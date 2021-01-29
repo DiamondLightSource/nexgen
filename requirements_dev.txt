@@ -1,0 +1,4 @@
+freephil
+h5py
+pytest
+pytest-cov
