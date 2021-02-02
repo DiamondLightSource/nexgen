@@ -1,4 +1,4 @@
-import libtbx.phil
+import freephil
 
 # scope for the geometry input - N.B. having to unroll the input for structured
 # axis definitions as PHIL does not work well with complex data structures ->
@@ -7,7 +7,7 @@ import libtbx.phil
 # axes are presented in order... ah, no, because we need translation axes in
 # the stack as well.
 
-scope = libtbx.phil.parse(
+scope = freephil.parse(
     """
 output {
   data_file_template = nexus_%06d.h5
