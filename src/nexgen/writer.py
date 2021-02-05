@@ -46,10 +46,12 @@ def find_depends_on(d_info, path=None):
     else:
         _s = path + _d
         return numpy.string_(_s)
- 
+
+
 def imgcif2mcstas(vector):
-    c2n = numpy.array([[-1, 0, 0],[0, 1, 0],[0, 0, -1]])
+    c2n = numpy.array([[-1, 0, 0], [0, 1, 0], [0, 0, -1]])
     return tuple(numpy.dot(c2n, vector))
+
 
 class NexusWriter:
     """
@@ -421,10 +423,7 @@ class NexusWriter:
         nxtr = nxsample.create_group("transformations")
         create_attributes(nxtr, ("NX_class",), ("NXtransformations",))
 
-        # Get a list of axis offsets and vectors
-        offsets = NexusWriter.split_arrays(
-            self._cf, goniometer.axes, goniometer.offsets
-        )
+        # Get a list of axis vectors
         vectors = NexusWriter.split_arrays(
             self._cf, goniometer.axes, goniometer.vectors
         )
@@ -464,7 +463,6 @@ class NexusWriter:
                         vectors[k],
                     ),
                 )
-                _link = numpy.string_("/entry/sample/" + grp + "/" + goniometer.axes[k])
                 nxtr[goniometer.axes[k]] = self._nxs[
                     "/entry/sample/" + grp + "/" + goniometer.axes[k]
                 ]
