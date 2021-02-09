@@ -13,6 +13,36 @@ def create_attributes(obj, names, values):
         AttributeManager.create(obj, name=n, data=v)
 
 
+# def get_nxdata():
+#     pass
+
+
+def copy_from_events():
+    pass
+
+
+def copy_from_images():
+    pass
+
+
+def copy_from_timepix(nxdata, step):
+    # Timepix data have an array with start and stop value for rotation
+    # instead of the full list.
+    # If dealing with stills, start == stop
+    for k in nxdata.keys():
+        try:
+            if type(nxdata[k]) is h5py.Dataset:
+                scan_axis = k
+                ax = nxdata[k]
+        except KeyError:
+            continue
+    (start, stop) = ax[()]
+    ax_range = numpy.array([round(p, 1) for p in numpy.arange(start, stop, step)])
+    # Of course also sample/sample_ax/ax and sample/transformations/phi
+    # # need to be changed
+    return scan_axis, ax_range
+
+
 def CopyNexusStructure(h5_out, h5_in, event_mode=False, flip=False):
     """
     Copy nexus tree from one file to another.
