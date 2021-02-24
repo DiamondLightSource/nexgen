@@ -18,7 +18,7 @@ from h5py import AttributeManager
 def generate_image_data(shape, filename):
     data = numpy.ndarray(shape)
     data.fill(0)
-    with h5py.File(filename, "r") as datafile:
+    with h5py.File(filename, "w") as datafile:
         datafile.create_dataset("data", data=data)
     return data
 
