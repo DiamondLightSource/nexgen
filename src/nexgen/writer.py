@@ -387,7 +387,7 @@ class NexusWriter:
         nxbeam = nxinstr.create_group("beam")
         create_attributes(nxbeam, ("NX_class",), ("NXbeam",))
         wl = nxbeam.create_dataset("incident_wavelength", data=beam.wavelength)
-        create_attributes(wl, ("units",), ("angstrom"))
+        create_attributes(wl, ("units",), ("angstrom",))
         flux = nxbeam.create_dataset("total_flux", data=beam.flux)
         create_attributes(flux, ("units"), ("Hz",))
 
