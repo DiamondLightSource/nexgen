@@ -153,10 +153,13 @@ class NexusWriter:
             goniometer.depends[idx], path="/entry/sample/transformations/"
         )
         # This could probably be handled better but for the moment it works
-        if self._cf == "imgcif":
-            _vector = imgcif2mcstas(goniometer.vector[idx])
-        else:
-            _vector = goniometer.vectors[idx]
+        # if self._cf == "imgcif":
+        #    _vector = imgcif2mcstas(goniometer.vector[idx])
+        # else:
+        #    _vector = goniometer.vectors[idx]
+        vectors = NexusWriter.split_arrays(
+            self._cf, goniometer.axes, goniometer.vectors
+        )
         create_attributes(
             ax,
             ("depends_on", "transformation_type", "units", "vector"),
@@ -164,7 +167,8 @@ class NexusWriter:
                 _dep,
                 goniometer.types[idx],
                 goniometer.units[idx],
-                _vector,
+                vectors[idx],
+                # _vector,
             ),
         )
 
