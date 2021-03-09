@@ -25,7 +25,7 @@ def get_nexus_tree(nxs_in, nxs_out):
     return nxentry
 
 
-def timepix_axis(fin, nxdata, nxsample, step):
+def timepix_axis(fin, nxdata, nxsample, step, powder_diffraction):
     # Timepix data have an array with start and stop value for rotation
     # instead of the full list.
     # If dealing with stills, start == stop
@@ -40,7 +40,7 @@ def timepix_axis(fin, nxdata, nxsample, step):
         except KeyError:
             continue
     # (start, stop) = ax[()]
-    if start == stop:
+    if (start == stop) or (powder_diffraction is True):
         ax_range = start
     else:
         ax_range = numpy.array([round(p, 1) for p in numpy.arange(start, stop, step)])
@@ -59,7 +59,9 @@ def timepix_axis(fin, nxdata, nxsample, step):
     return ax
 
 
-def copy_nexus_from_timepix(data_file, timepix_nexus, step=0.1):
+def copy_nexus_from_timepix(
+    data_file, timepix_nexus, step=0.1, powder_diffraction=False
+):
     """
     Copy nexus tree and all metadata from event-mode Tristan detector.
     """
@@ -74,7 +76,7 @@ def copy_nexus_from_timepix(data_file, timepix_nexus, step=0.1):
         # Get nxsample group to be modified with the correct axis
         nxsample = nxentry["sample"]
         # Compute and write axis information
-        _ax = timepix_axis(nxs_in, nxdata, nxsample, step)
+        _ax = timepix_axis(nxs_in, nxdata, nxsample, step, powder_diffraction)
         create_attributes(
             nxdata, ("NX_class", "axes", "signal"), ("NXdata", _ax, "data")
         )
