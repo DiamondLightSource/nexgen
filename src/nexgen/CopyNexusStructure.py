@@ -59,6 +59,7 @@ def timepix_axis(fin, nxdata, nxsample, step, powder_diffraction):
     return ax
 
 
+# This needs some rethinking in how things are done
 def copy_nexus_from_timepix(
     data_file, timepix_nexus, step=0.1, powder_diffraction=False
 ):
