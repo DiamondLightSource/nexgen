@@ -3,14 +3,8 @@
 import os
 import numpy
 import h5py
-from h5py import AttributeManager
 
-
-def create_attributes(obj, names, values):
-    for n, v in zip(names, values):
-        if type(v) is str:
-            v = numpy.string_(v)
-        AttributeManager.create(obj, name=n, data=v)
+from . import create_attributes
 
 
 def get_nexus_tree(nxs_in, nxs_out):
