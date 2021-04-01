@@ -14,7 +14,7 @@ import numpy
 import h5py
 from h5py import AttributeManager
 
-# from . import imgcif2mcstas
+from . import imgcif2mcstas
 
 
 def generate_image_data(shape, filename):
@@ -48,11 +48,6 @@ def find_depends_on(d_info, path=None):
     else:
         _s = path + _d
         return numpy.string_(_s)
-
-
-def imgcif2mcstas(vector):
-    c2n = numpy.array([[-1, 0, 0], [0, 1, 0], [0, 0, -1]])
-    return tuple(numpy.dot(c2n, vector))
 
 
 class NexusWriter:
