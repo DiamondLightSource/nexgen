@@ -14,6 +14,8 @@ import numpy
 import h5py
 from h5py import AttributeManager
 
+# from . import imgcif2mcstas
+
 
 def generate_image_data(shape, filename):
     data = numpy.ndarray(shape)
@@ -133,7 +135,7 @@ class NexusWriter:
             )
             img = generate_image_data(dset_shape, self._datafile)
             nxdata.create_dataset("data", data=img)
-            #nxdata["datafile"] = h5py.ExternalLink(self._datafile, "/")
+            # nxdata["datafile"] = h5py.ExternalLink(self._datafile, "/")
         else:
             # TODO This needs some serious rethining at some point
             dirname = os.path.dirname(self._nxs.filename)
