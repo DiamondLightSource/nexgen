@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 import os
-import numpy
 import h5py
+import numpy as np
 
 from . import create_attributes
 
@@ -37,7 +37,7 @@ def timepix_axis(fin, nxdata, nxsample, step, powder_diffraction):
     if (start == stop) or (powder_diffraction is True):
         ax_range = start
     else:
-        ax_range = numpy.array([round(p, 1) for p in numpy.arange(start, stop, step)])
+        ax_range = np.array([round(p, 1) for p in np.arange(start, stop, step)])
     # del nxdata[ax]
     # nxdata[ax] = ax_range
     nxdata.create_dataset(ax, data=ax_range)

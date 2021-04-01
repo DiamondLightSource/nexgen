@@ -33,15 +33,6 @@ def generate_event_data(num_events, outfile):
     outfile.create_dataset("event_energy", data=numpy.zeros(num_events))
 
 
-# def set_dependency(d_info, path=None):
-#    _d = d_info
-#    if _d == ".":
-#        return numpy.string_(_d)
-#    else:
-#        _s = path + _d
-#        return numpy.string_(_s)
-
-
 class NexusWriter:
     """
     Class to write metadata in NeXus file.
