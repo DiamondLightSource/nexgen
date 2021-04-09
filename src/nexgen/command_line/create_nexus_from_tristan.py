@@ -69,6 +69,7 @@ def main():
         )
     else:
         sys.exit(f"Please pass a valid experiment type.")
+    print("All done!")
 
 
 if __name__ == "__main__":
