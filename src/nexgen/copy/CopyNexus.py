@@ -8,20 +8,23 @@ from . import get_nexus_tree
 from .. import create_attributes
 
 
-def images_nexus(data_file, original_nexus, skip=True):
+def images_nexus(data_file, original_nexus, simple_copy=False):
     """
     Copy NeXus metadata for images.
 
     Args:
         data_file:       HDF5 file.
         original_nexus:  NeXus file with experiment metadata.
-        skip:            Default True. If False, copy everything
+        simple_copy:     Default False. If passed, copy everything directly.
     """
     nxs_filename = os.path.splitext(data_file)[0] + ".nxs"
     with h5py.File(original_nexus, "r") as nxs_in, h5py.File(
         nxs_filename, "x"
     ) as nxs_out:
-        if skip is True:
+        if simple_copy is True:
+            # Copy the whole tree including nxdata
+            get_nexus_tree(nxs_in, nxs_out, skip=False)
+        else:
             # Copy the whole tree except for nxdata
             nxentry = get_nexus_tree(nxs_in, nxs_out)
             # Create nxdata group
@@ -37,9 +40,6 @@ def images_nexus(data_file, original_nexus, skip=True):
             # Add link to data
             with h5py.File(data_file, "r") as fout:
                 nxdata["data"] = h5py.ExternalLink(fout.filename, "data")
-        else:
-            # Copy the whole tree including nxdata
-            get_nexus_tree(nxs_in, nxs_out, skip)
 
 
 def pseudo_events_nexus(data_file, original_nexus):

@@ -7,7 +7,9 @@ import sys
 
 import freephil
 
-from nexgen.copy import CopyTristanNexus
+from ..copy import CopyTristanNexus
+
+# from nexgen.copy import CopyTristanNexus
 
 tristan_scope = freephil.parse(
     """
@@ -39,7 +41,7 @@ def main():
     params = working.extract()
 
     print(
-        f"Create a NeXus file to go with images binned from LATRD Tristan detector event data."
+        "Create a NeXus file to go with images binned from LATRD Tristan detector event data."
     )
     wdir = os.path.dirname(params.input.data_file)
     data_file_name = os.path.basename(params.input.data_file)
