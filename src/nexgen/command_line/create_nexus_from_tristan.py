@@ -14,19 +14,19 @@ tristan_scope = freephil.parse(
     input {
       data_file = None
         .type = path
-        .help = ""
+        .help = "HDF5 file containing the newly binned images."
       tristan_nexus_file = None
         .type = path
-        .help = ""
+        .help = "NeXus file with experiment metadata to be copied."
       experiment_type = *single multiple pump-probe
         .type = choice
-        .help = ""
+        .help = "Define the type of experiment that has been run."
       angular_velocity = 0.1
         .type = float
-        .help = ""
+        .help = "Angular velocity of sample rotation, in deg/s "
       mode = *static rotation
         .type = choice
-        .help = ""
+        .help = "For pump-probe experiments, define whether it's a rotation or not."
     }
     """
 )
