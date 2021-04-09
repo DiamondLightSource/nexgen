@@ -20,7 +20,7 @@ def get_nexus_tree(nxs_in: h5py.File, nxs_out: h5py.File, skip=True):
         nxentry field
         nothing is skip is False
     """
-    if skip:
+    if skip is True:
         nxentry = nxs_out.create_group("entry")
         create_attributes(nxentry, ("NX_class",), ("NXentry",))
         # Copy all of the nexus tree as it is except for /entry/data

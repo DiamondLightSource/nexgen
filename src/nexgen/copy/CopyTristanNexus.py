@@ -58,7 +58,7 @@ def multiple_images_nexus(data_file, tristan_nexus, step=0.1):
     Args:
         data_file:      HDF5 file containing the newly binned images.
         tristan_nexus:  NeXus file with experiment metadata to be copied.
-        step:           Default 0.1 deg/s
+        step:           Angular velocity. Default 0.1 deg/s
     """
     nxs_filename = os.path.splitext(data_file)[0] + ".nxs"
     with h5py.File(tristan_nexus, "r") as nxs_in, h5py.File(
@@ -105,7 +105,7 @@ def pump_probe_nexus(data_file, tristan_nexus, mode="static"):
         "static",
         "powder_diffraction",
         "rotation",
-    ], "Mode passed is not valid, please pass one of ['static', 'powder_diffraction', 'rotation']"
+    ], "Mode passed is not valid, please pass one of the following ['static', 'powder_diffraction', 'rotation']"
 
     nxs_filename = os.path.splitext(data_file)[0] + ".nxs"
     with h5py.File(tristan_nexus, "r") as nxs_in, h5py.File(
