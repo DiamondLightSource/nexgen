@@ -39,7 +39,7 @@ def images_nexus(data_file, original_nexus, skip=True):
                 nxdata["data"] = h5py.ExternalLink(fout.filename, "data")
         else:
             # Copy the whole tree including nxdata
-            nxentry = get_nexus_tree(nxs_in, nxs_out, skip)
+            get_nexus_tree(nxs_in, nxs_out, skip)
 
 
 def pseudo_events_nexus(data_file, original_nexus):
