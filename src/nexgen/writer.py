@@ -12,7 +12,8 @@ A custom .json file containing metadata can be created by modifying and running 
 import os
 import numpy
 import h5py
-from h5py import AttributeManager
+
+from . import imgcif2mcstas, create_attributes, set_dependency
 
 
 def generate_image_data(shape, filename):
@@ -30,27 +31,6 @@ def generate_event_data(num_events, outfile):
     outfile.create_dataset("event_id", data=numpy.zeros(num_events))
     outfile.create_dataset("event_time_offset", data=numpy.zeros(num_events))
     outfile.create_dataset("event_energy", data=numpy.zeros(num_events))
-
-
-def create_attributes(obj, names, values):
-    for n, v in zip(names, values):
-        if type(v) is str:
-            v = numpy.string_(v)
-        AttributeManager.create(obj, name=n, data=v)
-
-
-def find_depends_on(d_info, path=None):
-    _d = d_info
-    if _d == ".":
-        return numpy.string_(_d)
-    else:
-        _s = path + _d
-        return numpy.string_(_s)
-
-
-def imgcif2mcstas(vector):
-    c2n = numpy.array([[-1, 0, 0], [0, 1, 0], [0, 0, -1]])
-    return tuple(numpy.dot(c2n, vector))
 
 
 class NexusWriter:
@@ -133,7 +113,7 @@ class NexusWriter:
             )
             img = generate_image_data(dset_shape, self._datafile)
             nxdata.create_dataset("data", data=img)
-            #nxdata["datafile"] = h5py.ExternalLink(self._datafile, "/")
+            # nxdata["datafile"] = h5py.ExternalLink(self._datafile, "/")
         else:
             # TODO This needs some serious rethining at some point
             dirname = os.path.dirname(self._nxs.filename)
@@ -149,7 +129,7 @@ class NexusWriter:
 
         # TODO handle stills
         ax = nxdata.create_dataset(goniometer.axes[idx], data=_scan_range)
-        _dep = find_depends_on(
+        _dep = set_dependency(
             goniometer.depends[idx], path="/entry/sample/transformations/"
         )
         # This could probably be handled better but for the moment it works
@@ -324,7 +304,7 @@ class NexusWriter:
         nxdet_z = nxinstr.create_group("detector_z")
         create_attributes(nxdet_z, ("NX_class",), ("NXpositioner",))
         det_z = nxdet_z.create_dataset(detector.axes[idx], data=detector.starts[idx])
-        _dep = find_depends_on(
+        _dep = set_dependency(
             detector.depends[idx], "/entry/instrument/transformations/"
         )
         create_attributes(
@@ -350,7 +330,7 @@ class NexusWriter:
             twotheta = nxtransf.create_dataset(
                 detector.axes[i], data=detector.starts[i]
             )
-            _dep = find_depends_on(
+            _dep = set_dependency(
                 detector.depends[i],
                 "/entry/instrument/transformations/",
             )
@@ -416,7 +396,7 @@ class NexusWriter:
         # Sample depends_on
         nxsample.create_dataset(
             "depends_on",
-            data=find_depends_on(
+            data=set_dependency(
                 goniometer.axes[-1], path="/entry/sample/transformations/"
             ),
         )
@@ -454,7 +434,7 @@ class NexusWriter:
                 nxax = nxsample.create_group(grp)
                 create_attributes(nxax, ("NX_class",), ("NXpositioner",))
                 ax = nxax.create_dataset(goniometer.axes[k], data=goniometer.starts[k])
-                _dep = find_depends_on(
+                _dep = set_dependency(
                     goniometer.depends[k], path="/entry/sample/transformations/"
                 )
                 create_attributes(
