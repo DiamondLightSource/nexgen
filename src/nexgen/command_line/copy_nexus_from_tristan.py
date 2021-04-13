@@ -23,9 +23,12 @@ tristan_scope = freephil.parse(
       experiment_type = *single multiple pump-probe
         .type = choice
         .help = "Define the type of experiment that has been run."
-      angular_velocity = 0.1
+      angular_velocity = None
         .type = float
         .help = "Angular velocity of sample rotation, in deg/s "
+      nbins = None
+        .type = int
+        .help = Number of images that have been binned.
       mode = *static rotation
         .type = choice
         .help = "For pump-probe experiments, define whether it's a rotation or not."
@@ -57,11 +60,14 @@ def main():
         )
     elif params.input.experiment_type == "multiple":
         print("Rotation dataset.")
-        print("Angular velocity: %.2f deg/s" % params.input.angular_velocity)
+        if params.input.angular_velocity and params.input.nbins:
+            raise ValueError("angular_velocity and nbins are mutually exclusive.")
+        # print("Angular velocity: %.2f deg/s" % params.input.angular_velocity)
         CopyTristanNexus.multiple_images_nexus(
             params.input.data_file,
             params.input.tristan_nexus_file,
             params.input.angular_velocity,
+            params.input.nbins,
         )
     elif params.input.experiment_type == "pump-probe":
         print("Pump-probe experiment.")

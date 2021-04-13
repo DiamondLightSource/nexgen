@@ -48,17 +48,19 @@ def single_image_nexus(data_file, tristan_nexus):
         convert_scan_axis(nxsample, nxdata, ax)
 
 
-def multiple_images_nexus(data_file, tristan_nexus, step=0.1):
+def multiple_images_nexus(data_file, tristan_nexus, ang_vel=None, nbins=None):
     """
     Copy the nexus tree from the original NeXus file for a collection on Tristan detector.
     In this case multiple images from a rotation collection have been binned.
     Thus the scan_axis in the input file is a tuple (start, stop).
     The scan_axis in the new file will therefore be a list of angles.
+    ang_vel and num_bins are mutually exclusive arguments to work out the scan_axis list.
 
     Args:
         data_file:      HDF5 file containing the newly binned images.
         tristan_nexus:  NeXus file with experiment metadata to be copied.
-        step:           Angular velocity. Default 0.1 deg/s
+        ang_vel:        Angular velocity, deg/s.
+        nbins:       Number of binned images.
     """
     nxs_filename = os.path.splitext(data_file)[0] + ".nxs"
     with h5py.File(tristan_nexus, "r") as nxs_in, h5py.File(
@@ -77,7 +79,21 @@ def multiple_images_nexus(data_file, tristan_nexus, step=0.1):
             nxdata, ("NX_class", "axes", "signal"), ("NXdata", ax, "data")
         )
         (start, stop) = nxs_in["entry/data"][ax][()]
-        ax_range = np.array([round(p, 1) for p in np.arange(start, stop, step)])
+
+        if ang_vel and nbins:
+            raise ValueError(
+                "ang_vel and nbins are mutually exclusive, please pass only one of them."
+            )
+        elif ang_vel:
+            ax_range = np.array([round(p, 1) for p in np.arange(start, stop, ang_vel)])
+        elif nbins:
+            step = (stop - start) / nbins
+            ax_range = np.array([round(p, 1) for p in np.arange(start, stop, step)])
+        else:
+            raise ValueError(
+                "Impossible to calculate scan_axis, please pass either ang_vel or nbins."
+            )
+
         nxdata.create_dataset(ax, data=ax_range)
         # Write the attributes
         for key, value in ax_attr:
