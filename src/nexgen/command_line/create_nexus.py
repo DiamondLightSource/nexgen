@@ -36,3 +36,13 @@ master_phil = freephil.parse(
     """,
     process_includes=True,
 )
+
+
+def main():
+    working_phil = master_phil.fetch()
+    working_phil.show()
+    # params = working_phil.extract()
+
+
+if __name__ == "__main__":
+    main()

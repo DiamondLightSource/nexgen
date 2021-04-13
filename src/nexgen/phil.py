@@ -75,6 +75,7 @@ detector_scope = freephil.parse(
 )
 
 # Separate scope for module  ?
+# Multiple modules should be considered
 module_scope = freephil.parse(
     """
     module_offset = False
