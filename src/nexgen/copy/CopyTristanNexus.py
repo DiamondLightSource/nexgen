@@ -87,7 +87,7 @@ def multiple_images_nexus(data_file, tristan_nexus, ang_vel=None, nbins=None):
         elif ang_vel:
             ax_range = np.array([round(p, 1) for p in np.arange(start, stop, ang_vel)])
         elif nbins:
-            step = (stop - start) / nbins
+            step = round(abs((stop - start) / nbins), 2)
             ax_range = np.array([round(p, 1) for p in np.arange(start, stop, step)])
         else:
             raise ValueError(
