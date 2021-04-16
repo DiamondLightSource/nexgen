@@ -4,7 +4,7 @@ import logging
 import h5py
 
 from nexgen.geometry_phil import scope
-from writer import NexusWriter
+from nexgen.writer import NexusWriter
 
 logger = logging.getLogger("NXSWriter")
 
