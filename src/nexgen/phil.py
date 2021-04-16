@@ -4,6 +4,27 @@ Define phil scopes for input parameters.
 
 import freephil
 
+# Separate scope for module  ?
+# Multiple modules should be considered
+module_scope = freephil.parse(
+    """
+    module_offset = False
+      .type = bool
+      .help = "If set to true, calculates offset of the module in regard to detector origin and creates corresponding field"
+    module {
+      fast_axis = 1 0 0
+        .type = floats(size = 3)
+        .help = "Fast axis at datum position"
+      slow_axis = 0 -1 0
+        .type = floats(size = 3)
+        .help = "Slow axis at datum position"
+      offsets = -166.2 172.1 0 0 0 0
+        .type = floats
+        .help = "Axis offsets - one after the other - fast then slow"
+    }
+    """
+)
+
 detector_scope = freephil.parse(
     """
     detector {
@@ -72,27 +93,6 @@ detector_scope = freephil.parse(
     include scope phil.module_scope
     """,
     process_includes=True,
-)
-
-# Separate scope for module  ?
-# Multiple modules should be considered
-module_scope = freephil.parse(
-    """
-    module_offset = False
-      .type = bool
-      .help = "If set to true, calculates offset of the module in regard to detector origin and creates corresponding field"
-    module {
-      fast_axis = 1 0 0
-        .type = floats(size = 3)
-        .help = "Fast axis at datum position"
-      slow_axis = 0 -1 0
-        .type = floats(size = 3)
-        .help = "Slow axis at datum position"
-      offsets = -166.2 172.1 0 0 0 0
-        .type = floats
-        .help = "Axis offsets - one after the other - fast then slow"
-    }
-    """
 )
 
 goniometer_scope = freephil.parse(
