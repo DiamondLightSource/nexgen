@@ -57,7 +57,7 @@ def single_image_nexus(data_file, tristan_nexus, write_mode="x"):
 
 
 def multiple_images_nexus(
-    data_file, tristan_nexus, write_mode="x", ang_vel=None, nbins=None
+    data_file, tristan_nexus, write_mode="x", osc=None, nbins=None
 ):
     """
     Create a NeXus file for a multiple-image data set.
@@ -73,7 +73,7 @@ def multiple_images_nexus(
         tristan_nexus:  NeXus file with experiment metadata to be copied.
         write_mode:     Mode for writing the output NeXus file.  Accepts any valid
                         h5py file opening mode.
-        ang_vel:        Angular velocity, deg/s.
+        osc:            Oscillation angle (degrees).
         nbins:          Number of binned images.
 
     Returns:
@@ -96,20 +96,17 @@ def multiple_images_nexus(
         )
         (start, stop) = nxs_in["entry/data"][ax][()]
 
-        if ang_vel and nbins:
+        if osc and nbins:
             raise ValueError(
-                "ang_vel and nbins are mutually exclusive, "
-                "please pass only one of them."
+                "osc and nbins are mutually exclusive, " "please pass only one of them."
             )
-        elif ang_vel:
-            ax_range = np.array([round(p, 1) for p in np.arange(start, stop, ang_vel)])
+        elif osc:
+            ax_range = np.arange(start, stop, osc)
         elif nbins:
-            step = round(abs((stop - start) / nbins), 2)
-            ax_range = np.array([round(p, 1) for p in np.arange(start, stop, step)])
+            ax_range = np.linspace(start, stop, nbins + 1)[:-1]
         else:
             raise ValueError(
-                "Impossible to calculate scan_axis, "
-                "please pass either ang_vel or nbins."
+                "Impossible to calculate scan_axis, " "please pass either osc or nbins."
             )
 
         nxdata.create_dataset(ax, data=ax_range)
