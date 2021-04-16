@@ -47,6 +47,7 @@ def single_image_nexus(data_file, tristan_nexus):
         nxsample = nxentry["sample"]
         convert_scan_axis(nxsample, nxdata, ax)
 
+    return nxs_filename
 
 def multiple_images_nexus(data_file, tristan_nexus, ang_vel=None, nbins=None):
     """
@@ -102,6 +103,7 @@ def multiple_images_nexus(data_file, tristan_nexus, ang_vel=None, nbins=None):
         nxsample = nxentry["sample"]
         convert_scan_axis(nxsample, nxdata, ax)
 
+    return nxs_filename
 
 def pump_probe_nexus(data_file, tristan_nexus, mode="static"):
     """
@@ -150,3 +152,5 @@ def pump_probe_nexus(data_file, tristan_nexus, mode="static"):
         # Now fix all other instances of scan_axis in the tree
         nxsample = nxentry["sample"]
         convert_scan_axis(nxsample, nxdata, ax)
+
+    return nxs_filename
