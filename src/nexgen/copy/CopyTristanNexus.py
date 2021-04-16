@@ -31,8 +31,7 @@ def single_image_nexus(data_file, tristan_nexus):
         # Create nxdata group
         nxdata = nxentry.create_group("data")
         # Add link to data
-        with h5py.File(data_file, "r") as fh:
-            nxdata["data"] = h5py.ExternalLink(fh.filename, "data")
+        nxdata["data"] = h5py.ExternalLink(data_file, "data")
         # Compute and write axis information
         ax, ax_attr = identify_scan_axis(nxs_in)
         create_attributes(
@@ -72,8 +71,7 @@ def multiple_images_nexus(data_file, tristan_nexus, ang_vel=None, nbins=None):
         # Create nxdata group
         nxdata = nxentry.create_group("data")
         # Add link to data
-        with h5py.File(data_file, "r") as fh:
-            nxdata["data"] = h5py.ExternalLink(fh.filename, "data")
+        nxdata["data"] = h5py.ExternalLink(data_file, "data")
         # Compute and write axis information
         ax, ax_attr = identify_scan_axis(nxs_in)
         create_attributes(
@@ -134,8 +132,7 @@ def pump_probe_nexus(data_file, tristan_nexus, mode="static"):
         # Create nxdata group
         nxdata = nxentry.create_group("data")
         # Add link to data
-        with h5py.File(data_file, "r") as fh:
-            nxdata["data"] = h5py.ExternalLink(fh.filename, "data")
+        nxdata["data"] = h5py.ExternalLink(data_file, "data")
         # Compute and write axis information
         ax, ax_attr = identify_scan_axis(nxs_in)
         create_attributes(
