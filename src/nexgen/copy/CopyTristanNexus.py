@@ -12,7 +12,7 @@ from . import get_nexus_tree, identify_scan_axis, convert_scan_axis
 from .. import create_attributes
 
 
-def single_image_nexus(data_file, tristan_nexus):
+def single_image_nexus(data_file, tristan_nexus, write_mode="x"):
     """
     Copy the nexus tree from the original NeXus file for a collection on Tristan detector.
     In this case the input scan_axis is a tuple with the same start and stop value.
@@ -21,10 +21,15 @@ def single_image_nexus(data_file, tristan_nexus):
     Args:
         data_file:      HDF5 file containing the newly binned images.
         tristan_nexus:  NeXus file with experiment metadata to be copied.
+        write_mode:     Mode for writing the output NeXus file.  Accepts any valid
+                        h5py file opening mode.
+
+    Returns:
+        The name of the output NeXus file.
     """
     nxs_filename = os.path.splitext(data_file)[0] + ".nxs"
     with h5py.File(tristan_nexus, "r") as nxs_in, h5py.File(
-        nxs_filename, "x"
+        nxs_filename, write_mode
     ) as nxs_out:
         # Copy the whole tree except for nxdata
         nxentry = get_nexus_tree(nxs_in, nxs_out)
@@ -48,7 +53,10 @@ def single_image_nexus(data_file, tristan_nexus):
 
     return nxs_filename
 
-def multiple_images_nexus(data_file, tristan_nexus, ang_vel=None, nbins=None):
+
+def multiple_images_nexus(
+    data_file, tristan_nexus, write_mode="x", ang_vel=None, nbins=None
+):
     """
     Copy the nexus tree from the original NeXus file for a collection on Tristan detector.
     In this case multiple images from a rotation collection have been binned.
@@ -59,12 +67,17 @@ def multiple_images_nexus(data_file, tristan_nexus, ang_vel=None, nbins=None):
     Args:
         data_file:      HDF5 file containing the newly binned images.
         tristan_nexus:  NeXus file with experiment metadata to be copied.
+        write_mode:     Mode for writing the output NeXus file.  Accepts any valid
+                        h5py file opening mode.
         ang_vel:        Angular velocity, deg/s.
-        nbins:       Number of binned images.
+        nbins:          Number of binned images.
+
+    Returns:
+        The name of the output NeXus file.
     """
     nxs_filename = os.path.splitext(data_file)[0] + ".nxs"
     with h5py.File(tristan_nexus, "r") as nxs_in, h5py.File(
-        nxs_filename, "x"
+        nxs_filename, write_mode
     ) as nxs_out:
         # Copy the whole tree except for nxdata
         nxentry = get_nexus_tree(nxs_in, nxs_out)
@@ -103,7 +116,8 @@ def multiple_images_nexus(data_file, tristan_nexus, ang_vel=None, nbins=None):
 
     return nxs_filename
 
-def pump_probe_nexus(data_file, tristan_nexus, mode="static"):
+
+def pump_probe_nexus(data_file, tristan_nexus, write_mode="x", mode="static"):
     """
     Copy the nexus tree from the original NeXus file for a collection on Tristan detector.
     In this case multiple images from a pump-probe experiment have been binned.
@@ -114,7 +128,12 @@ def pump_probe_nexus(data_file, tristan_nexus, mode="static"):
     Args:
         data_file:      HDF5 file containing the newly binned images.
         tristan_nexus:  NeXus file with experiment metadata to be copied.
+        write_mode:     Mode for writing the output NeXus file.  Accepts any valid
+                        h5py file opening mode.
         mode:           "static", "powder_diffraction" or "rotation"
+
+    Returns:
+        The name of the output NeXus file.
     """
     # TODO: figure out a better way
     assert mode in [
@@ -125,7 +144,7 @@ def pump_probe_nexus(data_file, tristan_nexus, mode="static"):
 
     nxs_filename = os.path.splitext(data_file)[0] + ".nxs"
     with h5py.File(tristan_nexus, "r") as nxs_in, h5py.File(
-        nxs_filename, "x"
+        nxs_filename, write_mode
     ) as nxs_out:
         # Copy the whole tree except for nxdata
         nxentry = get_nexus_tree(nxs_in, nxs_out)

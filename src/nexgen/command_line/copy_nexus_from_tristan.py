@@ -66,14 +66,16 @@ def main():
         CopyTristanNexus.multiple_images_nexus(
             params.input.data_file,
             params.input.tristan_nexus_file,
-            params.input.angular_velocity,
-            params.input.nbins,
+            ang_vel=params.input.angular_velocity,
+            nbins=params.input.nbins,
         )
     elif params.input.experiment_type == "pump-probe":
         print("Pump-probe experiment.")
         print(f"Mode: {params.input.mode}")
         CopyTristanNexus.pump_probe_nexus(
-            params.input.data_file, params.input.tristan_nexus_file, params.input.mode
+            params.input.data_file,
+            params.input.tristan_nexus_file,
+            mode=params.input.mode,
         )
     else:
         sys.exit(f"Please pass a valid experiment type.")
