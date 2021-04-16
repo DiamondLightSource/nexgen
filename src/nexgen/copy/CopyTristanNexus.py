@@ -14,9 +14,11 @@ from .. import create_attributes
 
 def single_image_nexus(data_file, tristan_nexus, write_mode="x"):
     """
-    Copy the nexus tree from the original NeXus file for a collection on Tristan detector.
-    In this case the input scan_axis is a tuple with the same start and stop value.
-    The scan_axis in the new file will therefore be one single value.
+    Create a NeXus file for a single-image data set.
+
+    Copy the nexus tree from the original NeXus file for a collection on Tristan
+    detector. In this case the input scan_axis is a tuple with the same start and
+    stop value. The scan_axis in the new file will therefore be one single value.
 
     Args:
         data_file:      HDF5 file containing the newly binned images.
@@ -58,11 +60,13 @@ def multiple_images_nexus(
     data_file, tristan_nexus, write_mode="x", ang_vel=None, nbins=None
 ):
     """
-    Copy the nexus tree from the original NeXus file for a collection on Tristan detector.
-    In this case multiple images from a rotation collection have been binned.
-    Thus the scan_axis in the input file is a tuple (start, stop).
-    The scan_axis in the new file will therefore be a list of angles.
-    ang_vel and num_bins are mutually exclusive arguments to work out the scan_axis list.
+    Create a NeXus file for a multiple-image data set.
+
+    Copy the nexus tree from the original NeXus file for a collection on Tristan
+    detector. In this case multiple images from a rotation collection have been
+    binned. Thus the scan_axis in the input file is a tuple (start, stop). The
+    scan_axis in the new file will therefore be a list of angles. ang_vel and
+    num_bins are mutually exclusive arguments to work out the scan_axis list.
 
     Args:
         data_file:      HDF5 file containing the newly binned images.
@@ -94,7 +98,8 @@ def multiple_images_nexus(
 
         if ang_vel and nbins:
             raise ValueError(
-                "ang_vel and nbins are mutually exclusive, please pass only one of them."
+                "ang_vel and nbins are mutually exclusive, "
+                "please pass only one of them."
             )
         elif ang_vel:
             ax_range = np.array([round(p, 1) for p in np.arange(start, stop, ang_vel)])
@@ -103,7 +108,8 @@ def multiple_images_nexus(
             ax_range = np.array([round(p, 1) for p in np.arange(start, stop, step)])
         else:
             raise ValueError(
-                "Impossible to calculate scan_axis, please pass either ang_vel or nbins."
+                "Impossible to calculate scan_axis, "
+                "please pass either ang_vel or nbins."
             )
 
         nxdata.create_dataset(ax, data=ax_range)
@@ -119,11 +125,13 @@ def multiple_images_nexus(
 
 def pump_probe_nexus(data_file, tristan_nexus, write_mode="x", mode="static"):
     """
-    Copy the nexus tree from the original NeXus file for a collection on Tristan detector.
-    In this case multiple images from a pump-probe experiment have been binned.
-    Thus the scan_axis in the input file is a tuple (start, stop).
-    The scan_axis in the new file will be a single value if chosen mode is not "rotation".
-    TBD rotation + pump-probe
+    Create a NeXus file for a pump-probe image data set.
+
+    Copy the nexus tree from the original NeXus file for a collection on Tristan
+    detector. In this case multiple images from a pump-probe experiment have been
+    binned. Thus the scan_axis in the input file is a tuple (start, stop). The
+    scan_axis in the new file will be a single value if chosen mode is not
+    "rotation". TBD rotation + pump-probe
 
     Args:
         data_file:      HDF5 file containing the newly binned images.
@@ -136,11 +144,10 @@ def pump_probe_nexus(data_file, tristan_nexus, write_mode="x", mode="static"):
         The name of the output NeXus file.
     """
     # TODO: figure out a better way
-    assert mode in [
-        "static",
-        "powder_diffraction",
-        "rotation",
-    ], "Mode passed is not valid, please pass one of the following ['static', 'powder_diffraction', 'rotation']"
+    assert mode in ["static", "powder_diffraction", "rotation"], (
+        "Mode passed is not valid, please pass one of the following "
+        "['static', 'powder_diffraction', 'rotation']"
+    )
 
     nxs_filename = os.path.splitext(data_file)[0] + ".nxs"
     with h5py.File(tristan_nexus, "r") as nxs_in, h5py.File(
