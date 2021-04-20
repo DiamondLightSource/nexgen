@@ -21,7 +21,7 @@ input {
   coordinate_frame = mcstas *imgcif
     .type = choice
     .help = "Which coordinate system is being used to provide input vectors"
-  n_images = 2
+  n_images = None
     .type = int
     .help = "Number of blank images to be generated per file"
   n_events = 100000
