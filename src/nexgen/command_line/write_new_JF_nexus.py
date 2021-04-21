@@ -62,7 +62,6 @@ def main(infile: h5py.File, outfile: h5py.File):
     nxax = nxsample.create_group("sample_" + ax)
     create_attributes(nxax, ("NX_class",), ("NXpositioner",))
     nxax[ax] = outfile["entry/data/" + ax]
-    # TODO also add increments, end etc ...
     for k in infile["entry/sample/goniometer"]:
         if ax in k and k != ax:
             infile["entry/sample/goniometer"].copy(k, nxax, without_attrs=True)
@@ -100,11 +99,8 @@ def main(infile: h5py.File, outfile: h5py.File):
     for k in infile["entry/instrument/detector"].keys():
         if type(infile["entry/instrument/detector"][k]) is h5py.Dataset:
             infile["entry/instrument/detector"].copy(k, nxdetector)
-    # Module: /entry/data/instrument/detector/module
-    nxmodule = nxdetector.create_group("module")
-    create_attributes(nxmodule, ("NX_class",), ("NXdetector_module",))
 
-    # detectorSpecific
+    # Add detectorSpecific
     nxdetector.create_group("detectorSpecific")
     create_attributes(nxdetector["detectorSpecific"], ("NX_class",), ("NXcollection",))
     # Copy just the ones in the list
@@ -121,9 +117,65 @@ def main(infile: h5py.File, outfile: h5py.File):
             infile["entry/instrument/detector/detectorSpecific"].copy(
                 k, nxdetector["detectorSpecific"]
             )
-    # Finally copy detector mask in correct place
+    # Copy detector mask in correct place
     nxdetector.create_dataset("pixel_mask_applied", data=False)  # might be true
     infile["entry/instrument/detector/detectorSpecific"].copy("pixel_mask", nxdetector)
+
+    # Module: /entry/data/instrument/detector/module
+    nxmodule = nxdetector.create_group("module")
+    create_attributes(nxmodule, ("NX_class",), ("NXdetector_module",))
+    # and here things get even more hard coded
+    nxmodule.create_dataset("data_origin", data=np.array([0, 0]))
+    # Find image size for data_size (I can get it from mask)
+    image_size = nxdetector["pixel_mask"].shape
+    nxmodule.create_dataset("data_size", data=image_size)
+    # Write fast and slow axis
+    fast = nxmodule.create_dataset(
+        "fast_pixel_direction", data=nxdetector["x_pixel_size"][()] * 1000
+    )
+    create_attributes(
+        fast,
+        ("depends_on", "offset", "transformation_type", "units", "vector"),
+        (
+            "/entry/instrument/detector/module/module_offset",
+            [0, 0, 0],
+            "translation",
+            "mm",
+            [1, 0, 0],
+        ),
+    )
+    slow = nxmodule.create_dataset(
+        "slow_pixel_direction", data=nxdetector["y_pixel_size"][()] * 1000
+    )
+    create_attributes(
+        slow,
+        ("depends_on", "offset", "transformation_type", "units", "vector"),
+        (
+            "/entry/instrument/detector/module/fast_pixel_direction",
+            [0, 0, 0],
+            "translation",
+            "mm",
+            [0, -1, 0],
+        ),
+    )
+    # Finally calculate and write module offset (what does it depend on?)
+    beam_center = (nxdetector["beam_center_x"][()], nxdetector["beam_center_y"][()])
+    pixel_size = (nxdetector["x_pixel_size"], nxdetector["y_pixel_size"])
+    offset = calculate_module_offset(
+        beam_center, pixel_size, fast.attr["vector"][()], slow.attr["vector"][()]
+    )
+    nxmodule.create_dataset("module_offset", data=[(0.0)])
+    create_attributes(
+        nxmodule["module_offset"],
+        ("depends_on", "offset", "transformation_type", "units", "vector"),
+        (
+            "entry/instrument/JF1M/transformations/AXIS_D0",
+            offset,
+            "translation",
+            "mm",
+            [1, 0, 0],
+        ),
+    )
 
     print("All done!")
 
