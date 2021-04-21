@@ -105,6 +105,22 @@ def main(infile: h5py.File, outfile: h5py.File):
     create_attributes(nxmodule, ("NX_class",), ("NXdetector_module",))
 
     # detectorSpecific
+    nxdetector.create_group("detectorSpecific")
+    create_attributes(nxdetector["detectorSpecific"], ("NX_class",), ("NXcollection",))
+    # Copy just the ones in the list
+    spec = [
+        "compression",
+        "nimages",
+        "ntrigger",
+        "photon_energy",
+        "x_pixels_in_detector",
+        "y_pixels_in_detector",
+    ]
+    for k in infile["entry/instrument/detector/detectorSpecific"].keys():
+        if k in spec:
+            infile["entry/instrument/detector/detectorSpecific"].copy(
+                k, nxdetector["detectorSpecific"]
+            )
     # Finally copy detector mask in correct place
     nxdetector.create_dataset("pixel_mask_applied", data=False)  # might be true
     infile["entry/instrument/detector/detectorSpecific"].copy("pixel_mask", nxdetector)
