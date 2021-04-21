@@ -162,7 +162,7 @@ def main(infile: h5py.File, outfile: h5py.File):
     beam_center = (nxdetector["beam_center_x"][()], nxdetector["beam_center_y"][()])
     pixel_size = (nxdetector["x_pixel_size"], nxdetector["y_pixel_size"])
     offset = calculate_module_offset(
-        beam_center, pixel_size, fast.attr["vector"][()], slow.attr["vector"][()]
+        beam_center, pixel_size, fast.attrs["vector"][()], slow.attrs["vector"][()]
     )
     nxmodule.create_dataset("module_offset", data=[(0.0)])
     create_attributes(
