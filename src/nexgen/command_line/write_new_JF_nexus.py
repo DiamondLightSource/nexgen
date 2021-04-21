@@ -31,7 +31,8 @@ def main(infile: h5py.File, outfile: h5py.File):
     create_attributes(nxentry, ("NX_class",), ("NXentry",))
 
     # Copy definition (Nxmx)
-    infile.copy("entry/definition", nxentry)
+    nxentry.create_dataset("definition", data=np.string_("NXmx"))
+    # infile.copy("entry/definition", nxentry)
 
     # Start by figureing out which one is the scan axis
     ax = find_scan_axis(infile["entry/sample/goniometer"])
