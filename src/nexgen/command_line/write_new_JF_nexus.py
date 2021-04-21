@@ -98,7 +98,7 @@ def main(infile: h5py.File, outfile: h5py.File):
     # What about detector depends_on dataset ?
     # Copy just the datasets
     for k in infile["entry/instrument/detector"].keys():
-        if type(infile["entry/instrument/detector"]) is h5py.Dataset:
+        if type(infile["entry/instrument/detector"][k]) is h5py.Dataset:
             infile["entry/instrument/detector"].copy(k, nxdetector)
     # Module: /entry/data/instrument/detector/module
     nxmodule = nxdetector.create_group("module")
