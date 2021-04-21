@@ -66,6 +66,7 @@ def main(infile: h5py.File, outfile: h5py.File):
     for k in infile["entry/sample/goniometer"]:
         if ax in k and k != ax:
             infile["entry/sample/goniometer"].copy(k, nxax, without_attrs=True)
+            create_attributes(nxax[k], ("units",), ("deg",))
     # Write NXtransformations (another link)
     nxtr = nxsample.create_group("transformations")
     create_attributes(nxtr, ("NX_class",), ("NXtransformations",))
