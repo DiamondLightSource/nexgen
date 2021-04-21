@@ -11,7 +11,7 @@ from nexgen import create_attributes
 def find_scan_axis(gonio):
     # Dumb way
     for k in gonio.keys():
-        if "increment" in k and gonio[k] != 0.0:
+        if "increment" in k and gonio[k] != 0:
             return k.split("_")[0]
 
 
@@ -58,14 +58,14 @@ def main(infile: h5py.File, outfile: h5py.File):
     # Write scan_axis with correct attributes (this is just a link)
     nxax = nxsample.create_group("sample_" + ax)
     create_attributes(nxax, ("NX_class",), ("NXpositioner",))
-    nxax[ax] = outfile["entry/data" + ax]
+    nxax[ax] = outfile["entry/data/" + ax]
     # Write NXtransformations (another link)
     nxtr = nxsample.create_group("transformations")
     create_attributes(nxtr, ("NX_class",), ("NXtransformations",))
-    nxtr[ax] = outfile["entry/data" + ax]
+    nxtr[ax] = outfile["entry/data/" + ax]
     # Write depends on
     nxsample.create_dataset(
-        "depends_on", data=np.string_("/entry/sample/transformations" + ax)
+        "depends_on", data=np.string_("/entry/sample/transformations/" + ax)
     )
 
     # Instrument: /entry/data/instrument
