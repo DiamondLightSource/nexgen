@@ -63,9 +63,9 @@ def main(infile: h5py.File, outfile: h5py.File):
     create_attributes(nxax, ("NX_class",), ("NXpositioner",))
     nxax[ax] = outfile["entry/data/" + ax]
     # TODO also add increments, end etc ...
-    for k in infile["entry/sample"]:
+    for k in infile["entry/sample/goniometer"]:
         if ax in k and k != ax:
-            infile["entry/sample"].copy(k, nxax, without_attrs=True)
+            infile["entry/sample/goniometer"].copy(k, nxax, without_attrs=True)
     # Write NXtransformations (another link)
     nxtr = nxsample.create_group("transformations")
     create_attributes(nxtr, ("NX_class",), ("NXtransformations",))
