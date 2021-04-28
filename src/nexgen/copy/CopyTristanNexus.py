@@ -44,7 +44,13 @@ def single_image_nexus(data_file, tristan_nexus, write_mode="x"):
         create_attributes(
             nxdata, ("NX_class", "axes", "signal"), ("NXdata", ax, "data")
         )
-        ax_range = nxs_in["entry/data"][ax][0]
+        try:
+            ax_range = nxs_in["entry/data"][ax][0]
+        except ValueError:
+            # Some early Tristan data from before March 2021, where the goniometer
+            # was not moved during the data collection, record the rotation axis
+            # position as a scalar.
+            ax_range = nxs_in["entry/data"][ax][()]
         nxdata.create_dataset(ax, data=ax_range)
         # Write the attributes
         for key, value in ax_attr:
@@ -94,7 +100,13 @@ def multiple_images_nexus(
         create_attributes(
             nxdata, ("NX_class", "axes", "signal"), ("NXdata", ax, "data")
         )
-        (start, stop) = nxs_in["entry/data"][ax][()]
+        try:
+            (start, stop) = nxs_in["entry/data"][ax][()]
+        except (TypeError, ValueError):
+            # Some early Tristan data from before March 2021, where the goniometer
+            # was not moved during the data collection, record the rotation axis
+            # position as a scalar.
+            start = stop = nxs_in["entry/data"][ax][()]
 
         if osc and nbins:
             raise ValueError(
@@ -162,7 +174,13 @@ def pump_probe_nexus(data_file, tristan_nexus, write_mode="x", mode="static"):
             nxdata, ("NX_class", "axes", "signal"), ("NXdata", ax, "data")
         )
         if mode in ["static", "powder_diffraction"]:
-            ax_range = nxs_in["entry/data"][ax][0]
+            try:
+                ax_range = nxs_in["entry/data"][ax][0]
+            except ValueError:
+                # Some early Tristan data from before March 2021, where the goniometer
+                # was not moved during the data collection, record the rotation axis
+                # position as a scalar.
+                ax_range = nxs_in["entry/data"][ax][()]
         # else:
         # TODO
         nxdata.create_dataset(ax, data=ax_range)
