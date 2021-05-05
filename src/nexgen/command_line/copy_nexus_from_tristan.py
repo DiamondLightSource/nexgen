@@ -7,9 +7,9 @@ import sys
 
 import freephil
 
-# from ..copy import CopyTristanNexus
+# from ..nxs_copy import CopyTristanNexus
 
-from nexgen.copy import CopyTristanNexus
+from nexgen.nxs_copy import CopyTristanNexus
 
 tristan_scope = freephil.parse(
     """
