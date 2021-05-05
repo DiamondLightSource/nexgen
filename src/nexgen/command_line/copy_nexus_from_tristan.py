@@ -7,9 +7,9 @@ import sys
 
 import freephil
 
-# from ..copy import CopyTristanNexus
+# from ..nxs_copy import CopyTristanNexus
 
-from nexgen.copy import CopyTristanNexus
+from nexgen.nxs_copy import CopyTristanNexus
 
 tristan_scope = freephil.parse(
     """
@@ -23,9 +23,9 @@ tristan_scope = freephil.parse(
       experiment_type = *single multiple pump-probe
         .type = choice
         .help = "Define the type of experiment that has been run."
-      angular_velocity = None
+      oscillation = None
         .type = float
-        .help = "Angular velocity of sample rotation, in deg/s "
+        .help = "Image oscillation angle (degrees)"
       nbins = None
         .type = int
         .help = Number of images that have been binned.
@@ -60,20 +60,22 @@ def main():
         )
     elif params.input.experiment_type == "multiple":
         print("Rotation dataset.")
-        if params.input.angular_velocity and params.input.nbins:
-            raise ValueError("angular_velocity and nbins are mutually exclusive.")
-        # print("Angular velocity: %.2f deg/s" % params.input.angular_velocity)
+        if params.input.oscillation and params.input.nbins:
+            raise ValueError("oscillation and nbins are mutually exclusive.")
+        # print("Oscillation: %.2f deg/s" % params.input.oscillation)
         CopyTristanNexus.multiple_images_nexus(
             params.input.data_file,
             params.input.tristan_nexus_file,
-            params.input.angular_velocity,
-            params.input.nbins,
+            osc=params.input.oscillation,
+            nbins=params.input.nbins,
         )
     elif params.input.experiment_type == "pump-probe":
         print("Pump-probe experiment.")
         print(f"Mode: {params.input.mode}")
         CopyTristanNexus.pump_probe_nexus(
-            params.input.data_file, params.input.tristan_nexus_file, params.input.mode
+            params.input.data_file,
+            params.input.tristan_nexus_file,
+            mode=params.input.mode,
         )
     else:
         sys.exit(f"Please pass a valid experiment type.")

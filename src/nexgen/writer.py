@@ -105,12 +105,29 @@ class NexusWriter:
 
         # If mode = images, create blank image data, else go to events
         if self._mode == "images":
-            _scan_range = numpy.arange(
-                goniometer.starts[idx], goniometer.ends[idx], goniometer.increments[idx]
-            )
-            dset_shape = (self._params.input.n_images,) + tuple(
-                self.detector.image_size
-            )
+            # TODO FIX THIS GORILLA
+            if self._params.input.n_images:
+                dset_shape = (self._params.input.n_images,) + tuple(
+                    self.detector.image_size
+                )
+                _scan_range = numpy.linspace(
+                    goniometer.starts[idx],
+                    goniometer.ends[idx],
+                    self._params.input.n_images,
+                )
+            else:
+                _scan_range = numpy.arange(
+                    goniometer.starts[idx],
+                    goniometer.ends[idx],
+                    goniometer.increments[idx],
+                )
+                dset_shape = (len(_scan_range),) + tuple(self.detector.image_size)
+            # _scan_range = numpy.arange(
+            #    goniometer.starts[idx], goniometer.ends[idx], goniometer.increments[idx]
+            # )
+            # dset_shape = (self._params.input.n_images,) + tuple(
+            #    self.detector.image_size
+            # )
             img = generate_image_data(dset_shape, self._datafile)
             nxdata.create_dataset("data", data=img)
             # nxdata["datafile"] = h5py.ExternalLink(self._datafile, "/")
@@ -291,8 +308,9 @@ class NexusWriter:
         grp = nxdet.create_group("detectorSpecific")
         grp.create_dataset("x_pixels", data=detector.image_size[0])
         grp.create_dataset("y_pixels", data=detector.image_size[1])
-        if self._mode == "images":
-            grp.create_dataset("nimages", data=self._params.input.n_images)
+        # TODO re add this
+        # if self._mode == "images":
+        #    grp.create_dataset("nimages", data=self._params.input.n_images)
 
     def write_NXpositioner(self, nxinstr):
         detector = self.detector
