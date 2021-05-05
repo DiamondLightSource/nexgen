@@ -2,12 +2,11 @@
 Command line tool to generate a NeXus file.
 """
 
-import sys
+# import sys
 
-sys.path.append("/Users/graeme/git/nexgen/src/nexgen")
+# sys.path.append("/Users/graeme/git/nexgen/src/nexgen")
 import freephil
 
-import nexgen.phil
 
 master_phil = freephil.parse(
     """
