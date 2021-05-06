@@ -4,9 +4,8 @@ Command line tool to generate a NeXus file.
 
 # import sys
 
-# sys.path.append("/Users/graeme/git/nexgen/src/nexgen")
+# sys.path.append("/home/uhz96441/local/Python3_dials/modules/nexgen/src/nexgen/")
 import freephil
-
 
 master_phil = freephil.parse(
     """
@@ -32,11 +31,11 @@ master_phil = freephil.parse(
         .help = "Length of event stream per file"
     }
 
-    include scope nexgen.phil.goniometer_scope
+    include scope phil.goniometer_scope
 
-    include scope nexgen.phil.beamline_scope
+    include scope phil.beamline_scope
 
-    include scope nexgen.phil.detector_scope
+    include scope phil.detector_scope
     """,
     process_includes=True,
 )

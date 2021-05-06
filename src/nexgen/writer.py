@@ -12,23 +12,32 @@ A custom .json file containing metadata can be created by modifying and running 
 import os
 import numpy
 import h5py
+from hdf5plugin import Bitshuffle
 
 from . import imgcif2mcstas, create_attributes, set_dependency
 
 
 def generate_image_data(shape, filename):
-    data = numpy.ndarray(shape[1:], dtype="i4")
-    data.fill(0)
+    # data = numpy.ndarray(shape[1:], dtype="i4")
+    # data.fill(0)
     with h5py.File(filename, "w") as datafile:
-        dset = datafile.create_dataset("data", shape=shape)
-        for i in range(shape[0]):
-            dset[i] = data
+        datafile.create_dataset(
+            "data",
+            shape=shape,
+            dtype="i4",
+            chunks=(1, shape[1], shape[2]),
+            **Bitshuffle,
+        )
+        # this was way too slow
+        # dset = datafile.create_dataset("data", shape=shape)
+        # for i in range(shape[0]):
+        #    dset[i] = data
     # return data     # What did I need this for?
     # Ah okay, writing the dataset insead of the link.
     # Going back to the link!
 
 
-# TODO make vds and add link
+# TODO make vds and add link. Update no need for vds...
 def generate_event_data(num_events, outfile):
     outfile.create_dataset("cue_id", data=numpy.zeros(100))
     outfile.create_dataset("cue_timestamp_zero", data=numpy.zeros(100))
