@@ -17,11 +17,15 @@ from . import imgcif2mcstas, create_attributes, set_dependency
 
 
 def generate_image_data(shape, filename):
-    data = numpy.ndarray(shape)
+    data = numpy.ndarray(shape[1:], dtype="i4")
     data.fill(0)
     with h5py.File(filename, "w") as datafile:
-        datafile.create_dataset("data", data=data)
-    return data
+        dset = datafile.create_dataset("data", shape=shape)
+        for i in range(shape[0]):
+            dset[i] = data
+    # return data     # What did I need this for?
+    # Ah okay, writing the dataset insead of the link.
+    # Going back to the link!
 
 
 # TODO make vds and add link
@@ -91,7 +95,7 @@ class NexusWriter:
         goniometer = self.goniometer
         # Scan axis is the on that has a different start and end value
         # idx = numpy.where(goniometer.starts != goniometer.ends)[0][0]
-        # TOFIX for some reason this returns the wrong index
+        # FIXME for some reason this returns the wrong index
         idx = [(i != j) for i, j in zip(goniometer.starts, goniometer.ends)].index(
             True
         )  # TEMPORARY FIX
@@ -128,9 +132,11 @@ class NexusWriter:
             # dset_shape = (self._params.input.n_images,) + tuple(
             #    self.detector.image_size
             # )
-            img = generate_image_data(dset_shape, self._datafile)
-            nxdata.create_dataset("data", data=img)
-            # nxdata["datafile"] = h5py.ExternalLink(self._datafile, "/")
+            # FIXME handle memory allocation
+            # img = generate_image_data(dset_shape, self._datafile)
+            # nxdata.create_dataset("data", data=img)
+            generate_image_data(dset_shape, self._datafile)
+            nxdata["datafile"] = h5py.ExternalLink(self._datafile, "/")
         else:
             # TODO This needs some serious rethining at some point
             dirname = os.path.dirname(self._nxs.filename)
