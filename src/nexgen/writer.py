@@ -135,15 +135,6 @@ class NexusWriter:
                     goniometer.increments[idx],
                 )
                 dset_shape = (len(_scan_range),) + tuple(self.detector.image_size)
-            # _scan_range = numpy.arange(
-            #    goniometer.starts[idx], goniometer.ends[idx], goniometer.increments[idx]
-            # )
-            # dset_shape = (self._params.input.n_images,) + tuple(
-            #    self.detector.image_size
-            # )
-            # FIXME handle memory allocation
-            # img = generate_image_data(dset_shape, self._datafile)
-            # nxdata.create_dataset("data", data=img)
             generate_image_data(dset_shape, self._datafile)
             nxdata["datafile"] = h5py.ExternalLink(self._datafile, "/")
         else:
