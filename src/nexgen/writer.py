@@ -20,13 +20,13 @@ from . import imgcif2mcstas, create_attributes, set_dependency
 def generate_image_data(shape, filename):
     # data = numpy.ndarray(shape[1:], dtype="i4")
     # data.fill(0)
-    with h5py.File(filename, "w") as datafile:
-        datafile.create_dataset(
+    with h5py.File(filename, "w") as fh:
+        fh.create_dataset(
             "data",
             shape=shape,
             dtype="i4",
             chunks=(1, shape[1], shape[2]),
-            **Bitshuffle,
+            **Bitshuffle(),
         )
         # this was way too slow
         # dset = datafile.create_dataset("data", shape=shape)
@@ -136,7 +136,7 @@ class NexusWriter:
                 )
                 dset_shape = (len(_scan_range),) + tuple(self.detector.image_size)
             generate_image_data(dset_shape, self._datafile)
-            nxdata["datafile"] = h5py.ExternalLink(self._datafile, "/")
+            nxdata["data"] = h5py.ExternalLink(self._datafile, "data")
         else:
             # TODO This needs some serious rethining at some point
             dirname = os.path.dirname(self._nxs.filename)
