@@ -28,13 +28,6 @@ def generate_image_data(shape, filename):
             chunks=(1, shape[1], shape[2]),
             **Bitshuffle(),
         )
-        # this was way too slow
-        # dset = datafile.create_dataset("data", shape=shape)
-        # for i in range(shape[0]):
-        #    dset[i] = data
-    # return data     # What did I need this for?
-    # Ah okay, writing the dataset insead of the link.
-    # Going back to the link!
 
 
 # TODO make vds and add link. Update no need for vds...
@@ -118,7 +111,8 @@ class NexusWriter:
 
         # If mode = images, create blank image data, else go to events
         if self._mode == "images":
-            # TODO FIX THIS GORILLA
+            # TODO This needs to be taken into account when writing
+            # axes_increments in nxsample
             if self._params.input.n_images:
                 dset_shape = (self._params.input.n_images,) + tuple(
                     self.detector.image_size
