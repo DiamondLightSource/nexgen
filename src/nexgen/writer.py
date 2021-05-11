@@ -18,7 +18,7 @@ from . import imgcif2mcstas, create_attributes, set_dependency
 
 
 def generate_image_data(shape, filename):
-    data = numpy.zeros(shape[1:], dtype="u1")
+    data = numpy.zeros(shape[1:], dtype="i4")
     with h5py.File(filename, "w") as datafile:
         dset = datafile.create_dataset(
             "data",
@@ -29,7 +29,8 @@ def generate_image_data(shape, filename):
         )
         # Actually write the data in
         for i in range(shape[0]):
-            dset[i, :, :] += data
+            start_dset = dset[i, :, :]
+            dset[i, :, :] = start_dset + data
         print(f"{shape[0]} images written.")
 
 
@@ -88,8 +89,8 @@ class NexusWriter:
     ):
         # assumes fast and slow axis vectors have already been converted if needed
         # Scaled center
-        x_scaled = beam_center_xy[0] * xy_pixel_size[0]
-        y_scaled = beam_center_xy[1] * xy_pixel_size[1]
+        x_scaled = beam_center_xy[0] * (xy_pixel_size[0] / 1000)
+        y_scaled = beam_center_xy[1] * (xy_pixel_size[1] / 1000)
         # Detector origin
         det_origin = x_scaled * numpy.array(fast_axis_v) + y_scaled * numpy.array(
             slow_axis_v
