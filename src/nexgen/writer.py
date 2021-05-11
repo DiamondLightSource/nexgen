@@ -30,7 +30,7 @@ def generate_image_data(shape, filename):
         # Actually write the data in
         for i in range(shape[0]):
             dset[i, :, :] += data
-        print(f"{shape[0]} images written.") 
+        print(f"{shape[0]} images written.")
 
 
 # TODO add only link to files in nxdata
