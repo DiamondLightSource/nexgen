@@ -12,25 +12,33 @@ A custom .json file containing metadata can be created by modifying and running 
 import os
 import numpy
 import h5py
+from hdf5plugin import Bitshuffle
 
 from . import imgcif2mcstas, create_attributes, set_dependency
 
 
 def generate_image_data(shape, filename):
-    data = numpy.ndarray(shape)
-    data.fill(0)
+    # data = numpy.ndarray(shape)
+    # data.fill(0)
     with h5py.File(filename, "w") as datafile:
-        datafile.create_dataset("data", data=data)
-    return data
+        datafile.create_dataset(
+            "data",
+            shape=shape,
+            dtype="i4",
+            chunks=(1, shape[1], shape[2]),
+            **Bitshuffle(),
+        )
 
 
-# TODO make vds and add link
+# TODO add only link to files in nxdata
 def generate_event_data(num_events, outfile):
-    outfile.create_dataset("cue_id", data=numpy.zeros(100))
-    outfile.create_dataset("cue_timestamp_zero", data=numpy.zeros(100))
-    outfile.create_dataset("event_id", data=numpy.zeros(num_events))
-    outfile.create_dataset("event_time_offset", data=numpy.zeros(num_events))
-    outfile.create_dataset("event_energy", data=numpy.zeros(num_events))
+    outfile.create_dataset("cue_id", data=numpy.zeros(100), **Bitshuffle())
+    outfile.create_dataset("cue_timestamp_zero", data=numpy.zeros(100), **Bitshuffle())
+    outfile.create_dataset("event_id", data=numpy.zeros(num_events), **Bitshuffle())
+    outfile.create_dataset(
+        "event_time_offset", data=numpy.zeros(num_events), **Bitshuffle()
+    )
+    outfile.create_dataset("event_energy", data=numpy.zeros(num_events), **Bitshuffle())
 
 
 class NexusWriter:
@@ -91,7 +99,7 @@ class NexusWriter:
         goniometer = self.goniometer
         # Scan axis is the on that has a different start and end value
         # idx = numpy.where(goniometer.starts != goniometer.ends)[0][0]
-        # TOFIX for some reason this returns the wrong index
+        # FIXME for some reason this returns the wrong index
         idx = [(i != j) for i, j in zip(goniometer.starts, goniometer.ends)].index(
             True
         )  # TEMPORARY FIX
@@ -122,17 +130,11 @@ class NexusWriter:
                     goniometer.increments[idx],
                 )
                 dset_shape = (len(_scan_range),) + tuple(self.detector.image_size)
-            # _scan_range = numpy.arange(
-            #    goniometer.starts[idx], goniometer.ends[idx], goniometer.increments[idx]
-            # )
-            # dset_shape = (self._params.input.n_images,) + tuple(
-            #    self.detector.image_size
-            # )
-            img = generate_image_data(dset_shape, self._datafile)
-            nxdata.create_dataset("data", data=img)
-            # nxdata["datafile"] = h5py.ExternalLink(self._datafile, "/")
+
+            generate_image_data(dset_shape, self._datafile)
+            nxdata["datafile"] = h5py.ExternalLink(self._datafile, "data")
         else:
-            # TODO This needs some serious rethining at some point
+            # TODO This needs some serious rethinking at some point
             dirname = os.path.dirname(self._nxs.filename)
             outfile = os.path.join(dirname, "File_00000{}.h5")
             _scan_range = (goniometer.starts[idx], goniometer.ends[idx])
@@ -308,7 +310,7 @@ class NexusWriter:
         grp = nxdet.create_group("detectorSpecific")
         grp.create_dataset("x_pixels", data=detector.image_size[0])
         grp.create_dataset("y_pixels", data=detector.image_size[1])
-        # TODO re add this
+        # TODO add this again
         # if self._mode == "images":
         #    grp.create_dataset("nimages", data=self._params.input.n_images)
 
