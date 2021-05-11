@@ -18,16 +18,19 @@ from . import imgcif2mcstas, create_attributes, set_dependency
 
 
 def generate_image_data(shape, filename):
-    # data = numpy.ndarray(shape[1:], dtype="i4")
-    # data.fill(0)
-    with h5py.File(filename, "w") as fh:
-        fh.create_dataset(
+    data = numpy.zeros(shape[1:])
+    with h5py.File(filename, "w") as datafile:
+        dset = datafile.create_dataset(
             "data",
             shape=shape,
             dtype="i4",
             chunks=(1, shape[1], shape[2]),
             **Bitshuffle(),
         )
+        # Actually write the data in
+        for i in range(shape[0]):
+            dset[i, :, :] += data
+        print(f"{shape[0]} images written.")
 
 
 # TODO make vds and add link. Update no need for vds...
