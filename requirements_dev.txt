@@ -1,5 +1,6 @@
 freephil
 h5py
+hdf5plugin
 numpy
 pytest
 pytest-cov
