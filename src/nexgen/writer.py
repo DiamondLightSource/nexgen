@@ -18,16 +18,18 @@ from . import imgcif2mcstas, create_attributes, set_dependency
 
 
 def generate_image_data(shape, filename):
-    # data = numpy.ndarray(shape)
-    # data.fill(0)
+    data = numpy.zeros(shape[1:], dtype="u1")
     with h5py.File(filename, "w") as datafile:
-        datafile.create_dataset(
+        dset = datafile.create_dataset(
             "data",
             shape=shape,
             dtype="i4",
             chunks=(1, shape[1], shape[2]),
             **Bitshuffle(),
         )
+        # Actually write the data in
+        for i in range(shape[0]):
+            dset[i, :, :] = data
 
 
 # TODO add only link to files in nxdata
