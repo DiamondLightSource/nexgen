@@ -75,7 +75,7 @@ input {
     slow_axis = 0 -1 0
       .type = floats(size = 3)
       .help = "Slow axis at datum position"
-    offsets = -166.2 172.1 0 0 0 0
+    offsets = -0.1662 0.1721 0 0 0 0             # -166.2 172.1 0 0 0 0
       .type = floats
       .help = "Axis offsets - one after the other - fast then slow"
     module_offset = False
