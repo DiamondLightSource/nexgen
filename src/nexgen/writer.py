@@ -18,7 +18,7 @@ from . import imgcif2mcstas, create_attributes, set_dependency
 
 
 def generate_image_data(shape, filename):
-    data = numpy.zeros(shape[1:])
+    data = numpy.zeros(shape[1:], dtype="i4")
     with h5py.File(filename, "w") as datafile:
         dset = datafile.create_dataset(
             "data",
@@ -29,17 +29,20 @@ def generate_image_data(shape, filename):
         )
         # Actually write the data in
         for i in range(shape[0]):
-            dset[i, :, :] += data
-        print(f"{shape[0]} images written.")
+            start_dset = dset[i, :, :]
+            dset[i, :, :] = start_dset + data
+    print(f"{shape[0]} images written.")
 
 
-# TODO make vds and add link. Update no need for vds...
+# TODO add only link to files in nxdata
 def generate_event_data(num_events, outfile):
-    outfile.create_dataset("cue_id", data=numpy.zeros(100))
-    outfile.create_dataset("cue_timestamp_zero", data=numpy.zeros(100))
-    outfile.create_dataset("event_id", data=numpy.zeros(num_events))
-    outfile.create_dataset("event_time_offset", data=numpy.zeros(num_events))
-    outfile.create_dataset("event_energy", data=numpy.zeros(num_events))
+    outfile.create_dataset("cue_id", data=numpy.zeros(100), **Bitshuffle())
+    outfile.create_dataset("cue_timestamp_zero", data=numpy.zeros(100), **Bitshuffle())
+    outfile.create_dataset("event_id", data=numpy.zeros(num_events), **Bitshuffle())
+    outfile.create_dataset(
+        "event_time_offset", data=numpy.zeros(num_events), **Bitshuffle()
+    )
+    outfile.create_dataset("event_energy", data=numpy.zeros(num_events), **Bitshuffle())
 
 
 class NexusWriter:
@@ -86,8 +89,8 @@ class NexusWriter:
     ):
         # assumes fast and slow axis vectors have already been converted if needed
         # Scaled center
-        x_scaled = beam_center_xy[0] * xy_pixel_size[0]
-        y_scaled = beam_center_xy[1] * xy_pixel_size[1]
+        x_scaled = beam_center_xy[0] * (xy_pixel_size[0] / 1000)
+        y_scaled = beam_center_xy[1] * (xy_pixel_size[1] / 1000)
         # Detector origin
         det_origin = x_scaled * numpy.array(fast_axis_v) + y_scaled * numpy.array(
             slow_axis_v
@@ -132,6 +135,7 @@ class NexusWriter:
                     goniometer.increments[idx],
                 )
                 dset_shape = (len(_scan_range),) + tuple(self.detector.image_size)
+
             generate_image_data(dset_shape, self._datafile)
             nxdata["data"] = h5py.ExternalLink(self._datafile, "data")
         else:
