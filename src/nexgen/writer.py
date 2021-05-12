@@ -89,8 +89,8 @@ class NexusWriter:
     ):
         # assumes fast and slow axis vectors have already been converted if needed
         # Scaled center
-        x_scaled = beam_center_xy[0] * xy_pixel_size[0]
-        y_scaled = beam_center_xy[1] * xy_pixel_size[1]
+        x_scaled = beam_center_xy[0] * (xy_pixel_size[0] / 1000)
+        y_scaled = beam_center_xy[1] * (xy_pixel_size[1] / 1000)
         # Detector origin
         det_origin = x_scaled * numpy.array(fast_axis_v) + y_scaled * numpy.array(
             slow_axis_v
