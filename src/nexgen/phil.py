@@ -1,5 +1,5 @@
 """
-Define phil scopes for input parameters.
+Define phil scopes that describe beamline, goniometer, detector and module.
 """
 
 import freephil
