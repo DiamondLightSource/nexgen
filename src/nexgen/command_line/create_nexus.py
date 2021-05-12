@@ -29,7 +29,7 @@ master_phil = freephil.parse(
     }
 
     input {
-      coordinate_frame = mcstas *imgcif
+      coordinate_frame = *mcstas imgcif
         .type = choice
         .help = "Which coordinate system is being used to provide input vectors"
       # Make these two mutually exclusive ?
