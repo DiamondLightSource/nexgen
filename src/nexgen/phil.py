@@ -4,8 +4,8 @@ Define phil scopes for input parameters.
 
 import freephil
 
-# Separate scope for module  ?
 # Multiple modules should be considered
+# Need to find a way to tell which module is which
 module_scope = freephil.parse(
     """
     module_offset = False
@@ -13,14 +13,21 @@ module_scope = freephil.parse(
       .help = "If set to true, calculates offset of the module in regard to detector origin and creates corresponding field"
     module {
       fast_axis = 1 0 0
+        .multiple = True
         .type = floats(size = 3)
         .help = "Fast axis at datum position"
       slow_axis = 0 -1 0
+        .multiple = True
         .type = floats(size = 3)
         .help = "Slow axis at datum position"
       offsets = -166.2 172.1 0 0 0 0
+        .multiple = True
         .type = floats
         .help = "Axis offsets - one after the other - fast then slow"
+      module_size = 0 0
+        .multiple = True
+        .type = ints
+        .help = "In case of multiple modules, pass the size of aeach single module"
     }
     """
 )
