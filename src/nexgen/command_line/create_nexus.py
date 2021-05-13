@@ -100,7 +100,15 @@ def main():
 
     # Get data file name template
     data_file_template = get_filename_template(master_file)
-    print(data_file_template)
+
+    # Add some information to logger
+    logger.info("NeXus file will be saved as %s" % params.output.master_file_name)
+    logger.info("Data file(s) template: %s" % data_file_template)
+    logger.info(
+        "%d file(s) containing blank data to be written." % params.input.n_files
+    )
+
+    # Next: go through technical info (goniometer, detector, beamline etc ...)
 
 
 if __name__ == "__main__":
