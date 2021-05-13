@@ -6,11 +6,10 @@ Command line tool to generate a NeXus file.
 
 # sys.path.append("/home/uhz96441/local/Python3_dials/modules/nexgen/src/nexgen/")
 
-import os
-
 # import h5py
 import logging
 import argparse
+from pathlib import Path
 
 import freephil
 
@@ -66,18 +65,19 @@ def main():
     working_phil = master_phil.fetch(cl.process_and_fetch(args.phil))
     params = working_phil.extract()
 
+    # Path to file
+    master_file = Path(params.output.master_file_name).expanduser().resolve()
     # Start logger
-    logdir = os.path.dirname(params.output.master_file_name)
+    logfile = master_file.parent.joinpath("NeXusWriter.log")
     logging.basicConfig(
-        filename=os.path.join(logdir, "NeXusWriter.log"),
+        filename=logfile.as_posix(),
         format="%(message)s",
         level="DEBUG",
     )
 
     # Check that the file extension is correct
-    ext = os.path.splitext(params.output.master_file_name)[1]
-    assert (ext == ".nxs") or (
-        ext == ".h5"
+    assert (master_file.suffix == ".nxs") or (
+        master_file.suffix == ".h5"
     ), "Wrong file extension, please pass a .h5 or .nxs file."
 
 
