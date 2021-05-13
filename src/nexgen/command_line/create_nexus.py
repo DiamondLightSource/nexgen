@@ -31,6 +31,9 @@ master_phil = freephil.parse(
       coordinate_frame = *mcstas imgcif
         .type = choice
         .help = "Which coordinate system is being used to provide input vectors"
+      n_files = 1
+        .type = int
+        .help = "Number of data files to write - defaults to 1."
       # Make these two mutually exclusive ?
       n_images = None
         .type = int
@@ -38,6 +41,9 @@ master_phil = freephil.parse(
       n_events = None
         .type = int
         .help = "Length of event stream per file"
+      write_vds = False
+        .type = bool
+        .help = "If True, create also a _vds.h5 file. Only for image data."
     }
 
     include scope nexgen.phil.goniometer_scope
@@ -54,7 +60,15 @@ parser = argparse.ArgumentParser(
     description="Parse parameters to generate a NeXus file."
 )
 parser.add_argument("--debug", action="store_const", const=True)
-parser.add_argument("phil", nargs="*")
+parser.add_argument(
+    "-c",
+    "--show-config",
+    action="store_true",
+    default=False,
+    dest="show_config",
+    help="Show the configuration parameters.",
+)
+parser.add_argument("phil_args", nargs="*")
 
 
 def main():
@@ -62,7 +76,7 @@ def main():
     # working_phil.show()
     args = parser.parse_args()
     cl = master_phil.command_line_argument_interpreter()
-    working_phil = master_phil.fetch(cl.process_and_fetch(args.phil))
+    working_phil = master_phil.fetch(cl.process_and_fetch(args.phil_args))
     params = working_phil.extract()
 
     # Path to file
