@@ -15,17 +15,19 @@ def get_filename_template(master_filename: Path) -> str:
 
     Args:
         master_filename:    Path object containing the name of master file.
+                            The format should be either file_master.h5 or file.nxs.
     Returns:
         filename_template:  String template for the name of blank data file.
     """
     if master_filename.suffix == ".nxs":
         filename_root = master_filename.stem
+        filename_template = master_filename.parent / f"{filename_root}_%0{6}d.h5"
     elif master_filename.suffix == ".h5":
-        filename_root = master_filename.stem.split("_")[0]
+        filename = master_filename.stem.replace("master", f"%0{6}d")
+        filename_template = master_filename.parent / f"{filename}.h5"
     else:
         sys.exit("Master file did not have the expected format.")
-    filename_template = master_filename.parent / f"{filename_root}_%0{6}d.h5"
-    # so that filename_template % 1 will become filename_000001.h5
+    # so that filename_template.as_posix() % 1 will become filename_000001.h5
     return filename_template.as_posix()
 
 

@@ -94,6 +94,9 @@ def main():
     assert (master_file.suffix == ".nxs") or (
         master_file.suffix == ".h5"
     ), "Wrong file extension, please pass a .h5 or .nxs file."
+    # Just in case ...
+    if master_file.suffix == ".h5":
+        assert "master" in master_file.name, "Please pass a _master.h5 or .nxs file."
 
     # Get data file name template
     data_file_template = get_filename_template(master_file)
