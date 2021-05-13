@@ -14,6 +14,7 @@ from pathlib import Path
 import freephil
 
 # import nexgen.phil
+from nexgen.data import get_filename_template
 
 # import writer
 
@@ -82,7 +83,7 @@ def main():
     # Path to file
     master_file = Path(params.output.master_file_name).expanduser().resolve()
     # Start logger
-    logfile = master_file.parent.joinpath("NeXusWriter.log")
+    logfile = master_file.parent / "NeXusWriter.log"
     logging.basicConfig(
         filename=logfile.as_posix(),
         format="%(message)s",
@@ -93,6 +94,10 @@ def main():
     assert (master_file.suffix == ".nxs") or (
         master_file.suffix == ".h5"
     ), "Wrong file extension, please pass a .h5 or .nxs file."
+
+    # Get data file name template
+    data_file_template = get_filename_template(master_file)
+    print(data_file_template)
 
 
 if __name__ == "__main__":

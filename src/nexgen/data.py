@@ -1,20 +1,32 @@
 """
-General utilities for data writing.
+General tools for data writing.
 """
 
+import sys
 import h5py
 import numpy as np
+from pathlib import Path
 from hdf5plugin import Bitshuffle
 
 
-def find_filename_template():
+def get_filename_template(master_filename: Path) -> str:
     """
-    Use the master file name as a template to get the data file names.
+    Get the data file name template from the master file.
 
     Args:
+        master_filename:    Path object containing the name of master file.
     Returns:
+        filename_template:  String template for the name of blank data file.
     """
-    pass
+    if master_filename.suffix == ".nxs":
+        filename_root = master_filename.stem
+    elif master_filename.suffix == ".h5":
+        filename_root = master_filename.stem.split("_")[0]
+    else:
+        sys.exit("Master file did not have the expected format.")
+    filename_template = master_filename.parent / f"{filename_root}_%0{6}d.h5"
+    # so that filename_template % 1 will become filename_000001.h5
+    return filename_template.as_posix()
 
 
 def generate_image_data(filename, shape, write_mode="x"):
