@@ -1,6 +1,7 @@
 """
 Utilities for writing new NeXus format files.
 """
+import sys
 import numpy as np
 
 from .. import imgcif2mcstas
@@ -21,10 +22,43 @@ def split_vector_arrays(coord_frame, axes_names, array):
     return v
 
 
+def find_scan_axis(axes_names, axes_starts, axes_ends):
+    """
+    Identify the scan_axis.
+
+    This function identifies the scan axis from the list passed as argument.
+    The scan axis is the one where start and end value are not the same.
+    If there is only one axis, that is the one returned.
+    In the case of stills, phi is arbitrarily assigned.
+
+    Args:
+        axes_names:     List of names associated to goniometer axes.
+        axes_starts:    List of start values.
+        axes_ends:      List of end values.
+    Returns:
+        scan_axis:      String identifying the scan axis.
+    """
+    # TODO handle multiple rotation (is that even doable?)
+    # FIXME randomly assign to phi if stills
+    assert len(axes_names) > 0, "Please pass at least one axis."
+    if len(axes_names) == 1:
+        scan_axis = axes_names[0]
+    else:
+        idx = [(i != j) for i, j in zip(axes_starts, axes_ends)]
+        if idx.count(True) == 0:
+            scan_axis = "phi"
+        elif idx.count(True) == 1:
+            scan_axis = axes_names[idx.index(True)]
+        else:
+            sys.exit("Unable to correctly identify the scan axis.")
+    return scan_axis
+
+
 def calculate_origin(beam_center_fs, fs_pixel_size, fast_axis_vector, slow_axis_vector):
     """
-    Calculates the detector origin which is saved into the module_offset fields.
+    Calculates the offset of the detector.
 
+    This function returns the detector origin array, which is saved into the module_offset fields.
     Assumes that fast and slow axis vectors have already been converted to mcstas if needed.
 
     Args:
