@@ -69,6 +69,7 @@ parser.add_argument(
     dest="show_config",
     help="Show the configuration parameters.",
 )
+# TODO consider adding write mode as optional argument
 parser.add_argument("phil_args", nargs="*")
 
 
@@ -109,6 +110,13 @@ def main():
     )
 
     # Next: go through technical info (goniometer, detector, beamline etc ...)
+    # source = params.source
+    # beam = params.beam
+    # attenuator = params.attenuator
+    # cf = params.input.coordinate_frame
+    # goniometer = params.goniometer
+    # detector = params.detector
+    # module = params.module
 
 
 if __name__ == "__main__":
