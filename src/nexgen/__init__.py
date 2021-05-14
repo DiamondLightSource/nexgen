@@ -1,5 +1,5 @@
 """
-Utilities for creating NeXus format files.
+General tools useful to create NeXus format files.
 """
 
 __author__ = "Diamond Light Source - Scientific Software"
