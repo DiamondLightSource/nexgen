@@ -69,7 +69,7 @@ parser.add_argument(
     dest="show_config",
     help="Show the configuration parameters.",
 )
-# FIXME .multiple doesn't seem to work
+# FIXME .multiple doesn't seem to work (not an argparse problem)
 # TODO consider adding write mode as optional argument
 parser.add_argument("phil_args", nargs="*")
 
