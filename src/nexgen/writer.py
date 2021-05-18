@@ -136,7 +136,9 @@ class NexusWriter:
                 dset_shape = (len(_scan_range),) + tuple(self.detector.image_size)
 
             generate_image_data(dset_shape, self._datafile)
-            nxdata["data"] = h5py.ExternalLink(self._datafile, "data")
+            # nxdata["data"] = h5py.ExternalLink(self._datafile, "data")
+            # use a relative path
+            nxdata["data"] = h5py.ExternalLink(os.path.basename(self._datafile), "data")
         else:
             # TODO This needs some serious rethinking at some point
             dirname = os.path.dirname(self._nxs.filename)
