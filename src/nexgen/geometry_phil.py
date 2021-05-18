@@ -150,6 +150,9 @@ input {
         .type = str
         .help = "Facility type"
     }
+    beamline_name = I19-2
+      .type = str
+      .help = "Specify which beamline"
   }
   beam {
     wavelength = 0.979590

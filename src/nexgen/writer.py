@@ -379,9 +379,8 @@ class NexusWriter:
 
     def write_NXinstrument(self, nxentry):
         nxinstr = nxentry.create_group("instrument")
-        create_attributes(
-            nxinstr, ("NX_class", "short_name"), ("NXinstrument", "beamline")
-        )
+        bl = self.beamline.beamline_name
+        create_attributes(nxinstr, ("NX_class", "short_name"), ("NXinstrument", bl))
 
         # NXattenuator: /entry/instrument/attenuator
         attenuator = self.attenuator
