@@ -10,16 +10,20 @@ from .. import imgcif2mcstas
 def split_vector_arrays(coord_frame, axes_names, array):
     """
     Args:
+        coord_frame:
+        axes_names:
+        array:
     Returns:
+        array_list:     List of
     """
-    v = []
+    array_list = []
     for j in range(len(axes_names)):
         a = array[3 * j : 3 * j + 3]
         if coord_frame == "imgcif":
-            v.append(imgcif2mcstas(a))
+            array_list.append(imgcif2mcstas(a))
         else:
-            v.append(tuple(a))
-    return v
+            array_list.append(tuple(a))
+    return array_list
 
 
 def find_scan_axis(axes_names, axes_starts, axes_ends):
