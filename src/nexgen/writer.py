@@ -111,8 +111,15 @@ class NexusWriter:
         nxdata = nxentry.create_group("data")
         create_attributes(
             nxdata,
-            ("NX_class", "axes", "signal", "axes_indices"),
-            ("NXdata", goniometer.axes[idx], "data", "0"),
+            ("NX_class", "axes", "signal", goniometer.axes[idx] + "_indices"),
+            (
+                "NXdata",
+                goniometer.axes[idx],
+                "data",
+                [
+                    0,
+                ],
+            ),
         )
 
         # If mode = images, create blank image data, else go to events
