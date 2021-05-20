@@ -102,6 +102,7 @@ def main():
 
     # Get data file name template
     data_file_template = get_filename_template(master_file)
+    # I need also an option to create a file with a link to existing data!
 
     # Add some information to logger
     logger.info("NeXus file will be saved as %s" % params.output.master_file_name)
