@@ -89,8 +89,8 @@ class NexusWriter:
     ):
         # assumes fast and slow axis vectors have already been converted if needed
         # Scaled center
-        x_scaled = beam_center_xy[0] * (xy_pixel_size[0] / 1000)
-        y_scaled = beam_center_xy[1] * (xy_pixel_size[1] / 1000)
+        x_scaled = beam_center_xy[0] * (xy_pixel_size[0])
+        y_scaled = beam_center_xy[1] * (xy_pixel_size[1])  # let's leave it in mm
         # Detector origin
         det_origin = x_scaled * numpy.array(fast_axis_v) + y_scaled * numpy.array(
             slow_axis_v
@@ -266,12 +266,12 @@ class NexusWriter:
         )
         create_attributes(
             fast_pixel,
-            ("depends_on", "offset", "transformation_type", "units", "vector"),
+            ("depends_on", "offset_units", "transformation_type", "units", "vector"),
             (
                 "/entry/instrument/transformations/det_z",
                 offsets[0],
                 "translation",
-                "m",
+                "mm",
                 fast_axis,
             ),
         )
@@ -280,12 +280,12 @@ class NexusWriter:
         )
         create_attributes(
             slow_pixel,
-            ("depends_on", "offset", "transformation_type", "units", "vector"),
+            ("depends_on", "offset_units", "transformation_type", "units", "vector"),
             (
                 "/entry/instrument/detector/module/fast_pixel_direction",
                 offsets[1],
                 "translation",
-                "m",
+                "mm",
                 slow_axis,
             ),
         )
@@ -297,12 +297,18 @@ class NexusWriter:
             module_offset = nxmod.create_dataset("module_offset", data=([0.0]))
             create_attributes(
                 module_offset,
-                ("depends_on", "offset", "transformation_type", "units", "vector"),
+                (
+                    "depends_on",
+                    "offset_units",
+                    "transformation_type",
+                    "units",
+                    "vector",
+                ),
                 (
                     "/entry/instrument/transformations/det_z",
                     offset,
                     "translation",
-                    "m",
+                    "mm",
                     [1, 0, 0],
                 ),
             )
