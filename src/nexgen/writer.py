@@ -483,9 +483,12 @@ class NexusWriter:
                 ]
 
     def write(self):
+        # Default fields
+        self._nxs.attrs["default"] = "entry"
+
         # Start writing the NeXus tree
         nxentry = self._nxs.create_group("entry")
-        create_attributes(nxentry, ("NX_class",), ("NXentry",))
+        create_attributes(nxentry, ("NX_class", "default"), ("NXentry", "data"))
 
         # Definition: /entry/definition
         nxentry.create_dataset("definition", data=numpy.string_("NXmx"))
