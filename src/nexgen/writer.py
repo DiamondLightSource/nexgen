@@ -273,7 +273,7 @@ class NexusWriter:
         )
         create_attributes(
             fast_pixel,
-            ("depends_on", "offset_units", "transformation_type", "units", "vector"),
+            ("depends_on", "offset", "transformation_type", "offset_units", "vector"),
             (
                 "/entry/instrument/transformations/det_z",
                 offsets[0],
@@ -287,7 +287,7 @@ class NexusWriter:
         )
         create_attributes(
             slow_pixel,
-            ("depends_on", "offset_units", "transformation_type", "units", "vector"),
+            ("depends_on", "offset", "transformation_type", "offset_units", "vector"),
             (
                 "/entry/instrument/detector/module/fast_pixel_direction",
                 offsets[1],
@@ -306,9 +306,9 @@ class NexusWriter:
                 module_offset,
                 (
                     "depends_on",
-                    "offset_units",
+                    "offset",
                     "transformation_type",
-                    "units",
+                    "offset_units",
                     "vector",
                 ),
                 (
