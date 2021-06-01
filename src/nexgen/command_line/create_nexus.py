@@ -218,7 +218,14 @@ def main():
 
     with h5py.File(master_file, "x") as nxsfile:
         write_new_nexus(
-            nxsfile, params.input, goniometer, detector, source, beam, attenuator
+            nxsfile,
+            data_file_template,
+            params.input,
+            goniometer,
+            detector,
+            source,
+            beam,
+            attenuator,
         )
 
     logger.info("==" * 50)

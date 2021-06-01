@@ -8,24 +8,56 @@ import numpy as np
 from pathlib import Path
 from hdf5plugin import Bitshuffle
 
+from . import find_scan_axis
 from .. import create_attributes
 
 # from .. import imgcif2mcstas, create_attributes, set_dependency
 
 # NXdata writer
 def write_NXdata(
-    nxsfile: h5py.File, datafile, goniometer, data_type="images", scan_axis=None
+    nxsfile: h5py.File,
+    datafile,
+    goniometer,
+    data_type="images",
+    image_size=None,
+    scan_axis=None,
+    N=None,
 ):
     """
     Args:
         nxsfile:
+        datafile:
         goniometer:
+        data_type:
+        image_size:
+        scan_axis:
+        N:          Number of images or of events, defaults to None.
     """
+    # If scan_axis hasn't been passed, identify it.
+    if not scan_axis:
+        scan_axis = find_scan_axis(goniometer.axes, goniometer.starts, goniometer.ends)
+
     try:
         nxdata = nxsfile["entry/data"]
     except KeyError:
         nxdata = nxsfile.create_group("entry/data")
-        create_attributes(nxdata)
+        create_attributes(
+            nxdata,
+            ("NX_class", "axes", "signal", scan_axis + "_indices"),
+            ("NXdata", scan_axis, "data", [0]),
+        )
+
+    # If mode is images, create blank image data. Else go to events.
+    if data_type == "images":
+        if N:
+            continue
+        else:
+            continue
+    elif data_type == "events":
+        # write events
+        continue
+    else:
+        sys.exit("Please pass a correct data_type (images or events)")
     # 2 - determine whether to generate images or events (input argument)
     # 3 - number of images/ number of events
     # actually 2 and 3 are probably better handled somewhere else

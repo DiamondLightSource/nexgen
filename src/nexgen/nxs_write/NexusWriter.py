@@ -10,7 +10,9 @@ import numpy as np
 # from data import generate_image_data, generate_event_data
 # from . import calculate_origin, split_arrays
 # from .. import imgcif2mcstas, create_attributes, set_dependency
+from . import find_scan_axis
 from .. import create_attributes
+from data import write_NXdata
 
 # NXinstrument
 def write_NXinstrument(nxsfile: h5py.File, source, beam, attenuator, detector):
@@ -41,7 +43,14 @@ def write_NXsample(nxsfile: h5py.File, goniometer):
 
 # General writing (probably a temporary solution)
 def write_new_nexus(
-    nxsfile: h5py.File, input_params, goniometer, detector, source, beam, attenuator
+    nxsfile: h5py.File,
+    datafile,
+    input_params,
+    goniometer,
+    detector,
+    source,
+    beam,
+    attenuator,
 ):
     """
     Write a NeXus format file.
@@ -64,6 +73,15 @@ def write_new_nexus(
     # Start writing the NeXus tree with NXentry at the top level
     nxentry = nxsfile.create_group("entry")
     create_attributes(nxentry, ("NX_class", "default"), ("NXentry", "data"))
+
+    # NXdata: entry/data
+    # Identify scan axis
+    osc_axis = find_scan_axis(goniometer.axes, goniometer.starts, goniometer.ends)
+    write_NXdata(
+        nxsfile, datafile, goniometer, data_type=detector.mode, scan_axis=osc_axis
+    )
+    # NXinstrument: entry/data
+    # NXsample: entry/data
 
     # Record string with end_time
     end_time = datetime.fromtimestamp(time.time()).strftime("%A, %d. %B %Y %I:%M%p")
