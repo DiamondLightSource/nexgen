@@ -7,14 +7,17 @@ import numpy as np
 from .. import imgcif2mcstas
 
 
-def split_vector_arrays(coord_frame, axes_names, array):
+def split_arrays(coord_frame, axes_names, array):
     """
+    Split a list of values into arrays.
+
+    This function splits up the list of values passed as phil parameters for vector, offset of all existing axes. If the coordinate frame is set to imgCIF, the arrays will have to be converted into mcstas.
     Args:
-        coord_frame:
-        axes_names:
-        array:
+        coord_frame:    The coordinate system in which we are working: mcstas or imgCIF
+        axes_names:     List of axes that have been passed as phil parameters
+        array:          List of values to be split up
     Returns:
-        array_list:     List of
+        array_list:     List of arrays corresponding to each axis
     """
     array_list = []
     for j in range(len(axes_names)):

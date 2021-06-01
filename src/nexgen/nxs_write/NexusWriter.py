@@ -6,7 +6,7 @@ import h5py
 
 # import numpy as np
 
-# from . import calculate_origin
+# from . import calculate_origin, split_arrays
 # from .. import imgcif2mcstas, create_attributes, set_dependency
 # from ..data import generate_image_data, generate_event_data
 
