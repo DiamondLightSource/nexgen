@@ -17,16 +17,19 @@ def split_arrays(coord_frame, axes_names, array):
         axes_names:     List of axes that have been passed as phil parameters
         array:          List of values to be split up
     Returns:
-        array_list:     List of arrays corresponding to each axis
+        array_dict:     Dictionary of arrays corresponding to each axis. Keys are axes names.
     """
-    array_list = []
+    # array_list = []
+    array_dict = {}
     for j in range(len(axes_names)):
         a = array[3 * j : 3 * j + 3]
         if coord_frame == "imgcif":
-            array_list.append(imgcif2mcstas(a))
+            # array_list.append(imgcif2mcstas(a))
+            array_dict[axes_names[j]] = imgcif2mcstas(a)
         else:
-            array_list.append(tuple(a))
-    return array_list
+            # array_list.append(tuple(a))
+            array_dict[axes_names[j]] = tuple(a)
+    return array_dict
 
 
 def find_scan_axis(axes_names, axes_starts, axes_ends):
