@@ -8,7 +8,35 @@ import numpy as np
 from pathlib import Path
 from hdf5plugin import Bitshuffle
 
+from .. import create_attributes
 
+# from .. import imgcif2mcstas, create_attributes, set_dependency
+
+# NXdata writer
+def write_NXdata(
+    nxsfile: h5py.File, datafile, goniometer, data_type="images", scan_axis=None
+):
+    """
+    Args:
+        nxsfile:
+        goniometer:
+    """
+    try:
+        nxdata = nxsfile["entry/data"]
+    except KeyError:
+        nxdata = nxsfile.create_group("entry/data")
+        create_attributes(nxdata)
+    # 2 - determine whether to generate images or events (input argument)
+    # 3 - number of images/ number of events
+    # actually 2 and 3 are probably better handled somewhere else
+    # ad here only write the link to the data file(s)
+    # 4 - from goniometer determine scan axis and range
+    # 5 - write nxdata with attributes
+    # 6 - write scan axis dataset
+    pass
+
+
+# SOme useful functions
 def get_filename_template(master_filename: Path) -> str:
     """
     Get the data file name template from the master file.

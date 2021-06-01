@@ -151,6 +151,9 @@ beamline_scope = freephil.parse(
       type = Synchrotron X-ray Source
         .type = str
         .help = "Facility type"
+      beamline_name = "I19-2"
+        .type = str
+        .help = "Beamline name"
     }
 
     beam {

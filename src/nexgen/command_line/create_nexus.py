@@ -115,15 +115,111 @@ def main():
     )
 
     # Next: go through technical info (goniometer, detector, beamline etc ...)
-    # source = params.source
-    # beam = params.beam
-    # attenuator = params.attenuator
-    # cf = params.input.coordinate_frame
-    # goniometer = params.goniometer
-    # detector = params.detector
-    # module = params.module
+    cf = params.input.coordinate_frame
+    goniometer = params.goniometer
+    detector = params.detector
+    module = params.module
+    source = params.source
+    beam = params.beam
+    attenuator = params.attenuator
+
+    # Log information
+    logger.info("Data type: %s" % detector.mode)
+
+    logger.info("Source information")
+    logger.info(f"Facility: {source.name} - {source.type}.")
+    logger.info(f"Beamline: {source.beamline_name}")
+
+    logger.info("Coordinate system: %s" % cf)
+    if cf == "imgcif":
+        logger.warning(
+            "Input coordinate frame is imgcif. They will be converted to mcstas."
+        )
+
+    logger.info("Goniometer information")
+    axes = goniometer.axes
+    axis_vectors = goniometer.vectors
+
+    for tu in zip(goniometer.types, goniometer.units):
+        assert tu in (("translation", "mm"), ("rotation", "deg"))
+
+    assert len(axis_vectors) == 3 * len(axes)
+
+    for j in reversed(range(len(axes))):
+        vector = axis_vectors[3 * j : 3 * j + 3]
+        print(
+            f"Goniometer axes: {axes[j]} => {vector} ({goniometer.types[j]}) on {goniometer.depends[j]}"
+        )
+
+    for ax, dep, t, u, j in zip(
+        goniometer.axes,
+        goniometer.depends,
+        goniometer.types,
+        goniometer.units,
+        range(len(goniometer.axes)),
+    ):
+        vector = goniometer.vectors[3 * j : 3 * j + 3]
+        offset = goniometer.offsets[3 * j : 3 * j + 3]
+        logger.info(
+            "%s %s %s %s %s %s %s %s %s"
+            % (
+                ax,
+                dep,
+                t,
+                u,
+                vector,
+                offset,
+                goniometer.starts[j],
+                goniometer.ends[j],
+                goniometer.increments[j],
+            )
+        )
+
+    logger.info("")
+
+    logger.info("Detector information: %s" % detector.description)
+    logger.info(
+        f"Sensor made of {detector.sensor_material} x {detector.sensor_thickness}mm"
+    )
+    if detector.mode == "images":
+        logger.info(f"Trusted pixels > {detector.underload} and < {detector.overload}")
+    logger.info(
+        f"Image is a {detector.image_size} array of {detector.pixel_size} mm pixels"
+    )
+
+    logger.info("Detector axes:")
+    axes = detector.axes
+    axis_vectors = detector.vectors
+    for tu in zip(detector.types, detector.units):
+        assert tu in (("translation", "mm"), ("rotation", "deg"))
+
+    assert len(axis_vectors) == 3 * len(axes)
+
+    for j in range(len(axes)):
+        vector = axis_vectors[3 * j : 3 * j + 3]
+        print(f"Detector axis: {axes[j]} => {vector}")
+
+    if detector.flatfield is None:
+        logger.info("No flatfield applied")
+    else:
+        logger.info(f"Flatfield correction data lives here {detector.flatfield}")
+
+    if detector.pixel_mask is None:
+        logger.info("No bad pixel mask for this detector")
+    else:
+        logger.info(f"Bad pixel mask lives here {detector.pixel_mask}")
+
+    logger.info("Module information")
+    logger.warning(f"module_offset field setting: {module.module_offset}")
+    logger.info(f"Number of modules: {module.num_modules}")
+    logger.info(f"Fast axis at datum position: {module.fast_axis}")
+    logger.info(f"Slow_axis at datum position: {module.slow_axis}")
+    logger.info("")
+
     with h5py.File(master_file, "x") as nxsfile:
-        write_new_nexus(nxsfile)
+        write_new_nexus(
+            nxsfile, params.input, goniometer, detector, source, beam, attenuator
+        )
 
     logger.info("==" * 50)
 
