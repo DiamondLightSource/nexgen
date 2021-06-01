@@ -57,6 +57,10 @@ def generate_image_data(filename, shape, write_mode="x"):
     print(f"{shape[0]} images written.")
 
 
+def write_vds():
+    pass
+
+
 # This will need some rethinking in the future,
 # for now it's just to make examples to show GDA.
 def generate_event_data(filename, n_events, n_cues=100, write_mode="x"):

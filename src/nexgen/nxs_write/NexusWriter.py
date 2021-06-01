@@ -97,7 +97,16 @@ def write_NXpositioner(nxinstrument, detector):
 
 
 # General writing
-def write_full_nexus_file():
-    # 1 - write data file(s)
-    # 2 - write nexus components one by one
-    pass
+def write_new_nexus(
+    nxsfile: h5py.File,
+):
+    """
+    Write a NeXus format file.
+
+    Args:
+        nxsfile:    NeXus file to be written.
+    """
+    # Set default attribute
+    nxsfile.attrs["default"] = "entry"
+
+    # Start writing the NeXus tree with NXentry at the top level

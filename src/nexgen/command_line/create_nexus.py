@@ -6,7 +6,7 @@ Command line tool to generate a NeXus file.
 
 # sys.path.append("/home/uhz96441/local/Python3_dials/modules/nexgen/src/nexgen/")
 
-# import h5py
+import h5py
 import logging
 import argparse
 from pathlib import Path
@@ -14,7 +14,8 @@ from pathlib import Path
 import freephil
 
 # import nexgen.phil
-from nexgen.data import get_filename_template
+from ..nxs_write.data import get_filename_template
+from ..nxs_write.NexusWriter import write_new_nexus
 
 # import writer
 
@@ -105,7 +106,6 @@ def main():
 
     # Get data file name template
     data_file_template = get_filename_template(master_file)
-    # I need also an option to create a file with a link to existing data!
 
     # Add some information to logger
     logger.info("NeXus file will be saved as %s" % params.output.master_file_name)
@@ -122,8 +122,12 @@ def main():
     # goniometer = params.goniometer
     # detector = params.detector
     # module = params.module
+    with h5py.File(master_file, "x") as nxsfile:
+        write_new_nexus(nxsfile)
+
+    logger.info("==" * 50)
 
 
-if __name__ == "__main__":
-    # args = parser.parse_args()
-    main()
+# if __name__ == "__main__":
+# args = parser.parse_args()
+#    main()
