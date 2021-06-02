@@ -70,7 +70,7 @@ def write_new_nexus(
         scan_range = calculate_scan_range(
             goniometer.starts[idx],
             goniometer.ends[idx],
-            axis_increments=goniometer.increments[idx],
+            axis_increment=goniometer.increments[idx],
         )
     else:
         scan_range = calculate_scan_range(
