@@ -138,10 +138,23 @@ def write_NXinstrument(
     create_attributes(nxinstrument["name"], ("short_name",), ("DLS " + beamline_n,))
 
     # Write NXattenuator group: entry/instrument/attenuator
-    # 4 - write NXbeam
+    nxatt = nxinstrument.create_group("attenuator")
+    create_attributes(nxatt, ("NX_class",), ("NXattenuator",))
+    nxatt.create_dataset(
+        "attenuator_transmission",
+        data=attenuator["transmission"],
+    )
+
+    # Write NXbeam group: entry/instrument/beam
+    nxbeam = nxinstrument.create_group("beam")
+    create_attributes(nxbeam, ("NX_class",), ("NXbeam",))
+    wl = nxbeam.create_dataset("incident_wavelength", data=beam["wavelength"])
+    create_attributes(wl, ("units",), ("angstrom",))
+    flux = nxbeam.create_dataset("total_flux", data=beam["flux"])
+    create_attributes(flux, ("units"), ("Hz",))
+
     # 6 - call write_NXdetector
     # 7 - call write_NXpositioner
-    pass
 
 
 # NXsource
