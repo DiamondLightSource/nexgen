@@ -3,35 +3,38 @@
 import sys
 import h5py
 import numpy as np
-from pathlib import Path
 
-from data import generate_image_data
+# from pathlib import Path
+
 from . import find_scan_axis
 from .. import create_attributes
 
 # NXdata writer
 def write_NXdata(
     nxsfile: h5py.File,
-    datafile: Path,
-    goniometer,
+    datafiles: list,
+    goniometer: dict,
     data_type="images",
-    image_size=None,
     scan_axis=None,
-    N=None,
 ):
     """
     Args:
         nxsfile:
-        datafile:
-        goniometer:
+        datafiles:   List of Path objects
+        goniometer: Dictionary
         data_type:
         image_size:
         scan_axis:
         N:          Number of images or of events, defaults to None.
     """
+    # Check that a valid datafile_list has been passed.
+    assert len(datafiles) > 0, "Please pass at least a list of one HDF5 data file."
+
     # If scan_axis hasn't been passed, identify it.
     if not scan_axis:
-        scan_axis = find_scan_axis(goniometer.axes, goniometer.starts, goniometer.ends)
+        scan_axis = find_scan_axis(
+            goniometer["axes"], goniometer["starts"], goniometer["ends"]
+        )
 
     # Create NXdata group, unless it already exists, in which case just open it.
     try:
@@ -51,34 +54,23 @@ def write_NXdata(
     except ValueError:
         nxdata = nxsfile["entry/data"]
 
-    # TODO handle stills. Handle multiple file writers.
-    # If mode is images, create blank image data. Else go to events.
-    idx = goniometer.axes.index(scan_axis)
+    # If mode is images, link to blank image data. Else go to events.
+    # idx = goniometer.axes.index(scan_axis)
     if data_type == "images":
-        if N:
-            dset_shape = (N,) + tuple(image_size)
-            scan_range = np.linspace(goniometer.starts[idx], goniometer.ends[idx], N)
+        if len(datafiles) == 1:
+            nxdata["data"] = h5py.ExternalLink(datafiles[0].name, "data")
         else:
-            scan_range = np.arange(
-                goniometer.starts[idx], goniometer.ends[idx], goniometer.increments[idx]
-            )
-            dset_shape = (len(scan_range),) + tuple(image_size)
-
-        generate_image_data(datafile, dset_shape)
-        nxdata["data"] = h5py.ExternalLink(datafile.name, "data")
+            for filename in datafiles:
+                # TODO write vds
+                nxdata[filename.stem] = h5py.ExternalLink(filename.name, "data")
     elif data_type == "events":
-        # write events
-        print()
+        for filename in datafiles:
+            nxdata[filename.stem] = h5py.ExternalLink(filename.name, "/")
     else:
         sys.exit("Please pass a correct data_type (images or events)")
-    # 2 - determine whether to generate images or events (input argument)
-    # 3 - number of images/ number of events
-    # actually 2 and 3 are probably better handled somewhere else
-    # ad here only write the link to the data file(s)
     # 4 - from goniometer determine scan axis and range
     # 5 - write nxdata with attributes
     # 6 - write scan axis dataset
-    pass
 
 
 # NXsample

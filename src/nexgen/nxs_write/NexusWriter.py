@@ -2,18 +2,20 @@
 Writer for NeXus format files.
 """
 
-import sys
+# import sys
 import h5py
 import time
 import datetime
 import numpy as np
-from pathlib import Path
+
+# from pathlib import Path
 
 # from data import generate_image_data, generate_event_data
 # from . import calculate_origin, split_arrays
 # from .. import imgcif2mcstas, create_attributes, set_dependency
-from . import find_scan_axis
+from . import find_scan_axis, calculate_scan_range
 from .. import create_attributes
+from nxs_write.data import data_writer
 from nxs_write.NXclassWriters import (
     write_NXdata,
     write_NXinstrument,
@@ -26,7 +28,7 @@ from nxs_write.NXclassWriters import (
 # General writing (probably a temporary solution)
 def write_new_nexus(
     nxsfile: h5py.File,
-    datafile: Path,
+    datafile_list: list,
     input_params,
     goniometer,
     detector,
@@ -39,12 +41,13 @@ def write_new_nexus(
 
     Args:
         nxsfile:        NeXus file to be written.
-        input_params:   params.input
-        goniometer:
-        detector:
-        source:
-        beam:
-        attenuator:
+        datafile_list:  List of at least 1 Path object to a HDF5 data file.
+        input_params:   Scope extract
+        goniometer:     Scope extract
+        detector:       Scope extract
+        source:         Scope extract
+        beam:           Scope extract
+        attenuator:     Scope extract
     """
     # Record string with start_time
     start_time = datetime.fromtimestamp(time.time()).strftime("%A, %d. %B %Y %I:%M%p")
@@ -62,27 +65,36 @@ def write_new_nexus(
     # NXdata: entry/data
     # Identify scan axis
     osc_axis = find_scan_axis(goniometer.axes, goniometer.starts, goniometer.ends)
-    if detector.mode == "images":
-        write_NXdata(
-            nxsfile,
-            datafile,
-            goniometer,
-            image_size=detector.image_size,
-            scan_axis=osc_axis,
-            N=input_params.n_images,
-        )
-    elif detector.mode == "events":
-        write_NXdata(
-            nxsfile,
-            datafile,
-            goniometer,
-            data_type="events",
-            image_size=detector.image_size,
-            scan_axis=osc_axis,
-            N=input_params.n_events,
+    # Compute scan_range
+    idx = goniometer.axes.index(osc_axis)
+    if input_params.n_images is None:
+        scan_range = calculate_scan_range(
+            goniometer.starts[idx],
+            goniometer.ends[idx],
+            axis_increments=goniometer.increments[idx],
         )
     else:
-        sys.exit("Please pass a correct data_type (images or events)")
+        scan_range = calculate_scan_range(
+            goniometer.starts[idx], goniometer.ends[idx], n_images=input_params.n_images
+        )
+    # Write data files
+    data_writer(
+        datafile_list,
+        data_type=detector.mode,
+        image_size=detector.image_size,
+        scan_range=scan_range,
+        n_events=input_params.n_events,
+    )
+
+    # Call writer
+    write_NXdata(
+        nxsfile,
+        datafile_list,
+        goniometer.__dict__,
+        data_type=detector.mode,
+        scan_axis=osc_axis,
+        scan_range=scan_range,
+    )
 
     # NXinstrument: entry/instrument
     write_NXinstrument(nxsfile, beam, attenuator, detector, source.beamline_name)

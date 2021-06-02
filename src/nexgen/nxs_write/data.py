@@ -13,11 +13,23 @@ from hdf5plugin import Bitshuffle
 # from .. import imgcif2mcstas, create_attributes, set_dependency
 
 # Writer functions
-def data_writer():
+def data_writer(
+    datafiles, data_type="images", image_size=None, scan_range=None, n_events=None
+):
     """
-    Write data
+    Write N images or events to n files.
+
+    Args:
+        datafiles:  List of Path objects pointing at data files to be written.
+        data_type:  String identifying whether the files to be written contain images or events.
     """
-    pass
+    # TODO handle stills.
+    for filename in datafiles:
+        if data_type == "images":
+            dset_shape = (len(scan_range),) + tuple(image_size)
+            generate_image_data(filename, dset_shape)
+        else:
+            generate_event_data(filename, n_events)
 
 
 def generate_image_data(filename, shape, write_mode="x"):

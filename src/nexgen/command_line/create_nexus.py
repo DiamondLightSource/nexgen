@@ -106,10 +106,13 @@ def main():
 
     # Get data file name template
     data_file_template = get_filename_template(master_file)
-    data_file = (
-        Path(data_file_template % 1).expanduser().resolve()
-    )  # assumes only one file
-    # data_file_list = [Path(data_file_template%(n+1)).expanduser().resolve() for n in range(params.input.n_files)]
+    # data_file = (
+    #    Path(data_file_template % 1).expanduser().resolve()
+    # )  # assumes only one file
+    data_file_list = [
+        Path(data_file_template % (n + 1)).expanduser().resolve()
+        for n in range(params.input.n_files)
+    ]
     # TODO write more than one file (and add vds if prompted)
 
     # Add some information to logger
@@ -224,7 +227,7 @@ def main():
     with h5py.File(master_file, "x") as nxsfile:
         write_new_nexus(
             nxsfile,
-            data_file,
+            data_file_list,
             params.input,
             goniometer,
             detector,

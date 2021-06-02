@@ -64,6 +64,30 @@ def find_scan_axis(axes_names, axes_starts, axes_ends):
     return scan_axis
 
 
+def calculate_scan_range(
+    axis_start, axis_end, image_size, axis_increment=None, n_images=None
+):
+    """
+    Calculate the scan range for a rotation collection and return as a list.
+
+    axes_increments and n_images are mutually exclusive
+    Args:
+        axis_start:
+        axis_end:
+        image_size:
+        axis_increment:
+        n_images:
+    Returns:
+        scan_range:         List of values for the scan axis.
+    """
+    # TODO add check that either N or axis increment is None
+    if n_images:
+        scan_range = np.linspace(axis_start, axis_end, n_images)
+    else:
+        scan_range = np.arange(axis_start, axis_end, axis_increment)
+    return scan_range
+
+
 def calculate_origin(beam_center_fs, fs_pixel_size, fast_axis_vector, slow_axis_vector):
     """
     Calculates the offset of the detector.
