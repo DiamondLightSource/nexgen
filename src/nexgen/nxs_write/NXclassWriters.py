@@ -14,7 +14,7 @@ def write_NXdata(
     nxsfile: h5py.File,
     datafiles: list,
     goniometer: dict,
-    data_type="images",
+    data_type: str,
     scan_axis=None,
 ):
     """
@@ -68,13 +68,13 @@ def write_NXdata(
             nxdata[filename.stem] = h5py.ExternalLink(filename.name, "/")
     else:
         sys.exit("Please pass a correct data_type (images or events)")
-    # 4 - from goniometer determine scan axis and range
+
     # 5 - write nxdata with attributes
     # 6 - write scan axis dataset
 
 
 # NXsample
-def write_NXsample(nxsfile: h5py.File, goniometer):
+def write_NXsample(nxsfile: h5py.File, goniometer: dict):
     # 1 - check whether file already has nxentry, if it doesn't create it
     # 2 - create nxsample with attributes
     # 3 - look for nxbeam in file, if there make link
@@ -89,8 +89,19 @@ def write_NXsample(nxsfile: h5py.File, goniometer):
 
 
 # NXinstrument
-def write_NXinstrument(nxsfile: h5py.File, beam, attenuator, detector, beamline_n):
-    """"""
+def write_NXinstrument(
+    nxsfile: h5py.File, beam: dict, attenuator: dict, detector: dict, beamline_n: str
+):
+    """
+    Write NXinstrument group at entry/instrument.
+
+    Args:
+        nxsfile:
+        beam:
+        attenuator:
+        detector:
+        beamline_n:
+    """
     # Create NXinstrument group, unless it already exists, in which case just open it.
     try:
         nxinstrument = nxsfile.create_group("entry/instrument")
@@ -122,7 +133,7 @@ def write_NXsource(nxsfile: h5py.File, source):
 
     Args:
         nxsfile:    NeXus file where to write the group
-        source:     Scope extract containing the facility information
+        source:     Dictionary containing the facility information
     """
     try:
         nxsource = nxsfile.create_group("entry/source")
@@ -134,13 +145,13 @@ def write_NXsource(nxsfile: h5py.File, source):
     except ValueError:
         nxsource = nxsfile["entry/source"]
 
-    nxsource.create_dataset("name", data=np.string_(source.name))
-    create_attributes(nxsource["name"], ("short_name",), (source.short_name,))
-    nxsource.create_dataset("type", data=np.string_(source.type))
+    nxsource.create_dataset("name", data=np.string_(source["name"]))
+    create_attributes(nxsource["name"], ("short_name",), (source["short_name"],))
+    nxsource.create_dataset("type", data=np.string_(source["type"]))
 
 
 # NXdetector writer
-def write_NXdetector(nxsfile: h5py.File, detector):
+def write_NXdetector(nxsfile: h5py.File, detector: dict):
     # 1 - checke whether nxinstrument exists, if not create it
     # 2 - create nxdetector group with attribute
     # 3 - write all datasets
@@ -152,7 +163,7 @@ def write_NXdetector(nxsfile: h5py.File, detector):
 
 
 # NXdetector_module writer
-def write_NXmodule(nxdetector, module):
+def write_NXmodule(nxdetector: h5py.Group, module: dict):
     # 1- create nxdetectormodule group
     # 2 - check how many modules
     # 3 - write relevant datasets
@@ -162,7 +173,7 @@ def write_NXmodule(nxdetector, module):
 
 
 # NXpositioner (det_z and 2theta)
-def write_NXpositioner(nxinstrument, detector):
+def write_NXpositioner(nxinstrument: h5py.Group, detector: dict):
     # 1 - write detector_z
     # 2 - write entry/instrument/transformation with link to det_z
     # 3 - add 2 theta arm if there and add link in transformations
@@ -170,7 +181,7 @@ def write_NXpositioner(nxinstrument, detector):
 
 
 # NXCollection writer (detectorSpecific)
-def write_NXcollection(nxdetector, detector, n_images=None):
+def write_NXcollection(nxdetector: h5py.Group, detector: dict, n_images=None):
     # 1 - create detectorSpecific group
     # 2 - write x_pixels and y_pixels
     # 3 - if images write n_images

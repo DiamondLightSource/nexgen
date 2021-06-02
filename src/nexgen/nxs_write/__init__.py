@@ -64,9 +64,7 @@ def find_scan_axis(axes_names, axes_starts, axes_ends):
     return scan_axis
 
 
-def calculate_scan_range(
-    axis_start, axis_end, image_size, axis_increment=None, n_images=None
-):
+def calculate_scan_range(axis_start, axis_end, axis_increment=None, n_images=None):
     """
     Calculate the scan range for a rotation collection and return as a list.
 
@@ -74,7 +72,6 @@ def calculate_scan_range(
     Args:
         axis_start:
         axis_end:
-        image_size:
         axis_increment:
         n_images:
     Returns:

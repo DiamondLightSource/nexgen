@@ -62,7 +62,6 @@ def write_new_nexus(
     # Application definition: entry/definition
     nxentry.create_dataset("definition", data=np.string_(input_params.definition))
 
-    # NXdata: entry/data
     # Identify scan axis
     osc_axis = find_scan_axis(goniometer.axes, goniometer.starts, goniometer.ends)
     # Compute scan_range
@@ -86,7 +85,7 @@ def write_new_nexus(
         n_events=input_params.n_events,
     )
 
-    # Call writer
+    # NXdata: entry/data
     write_NXdata(
         nxsfile,
         datafile_list,
@@ -100,7 +99,7 @@ def write_new_nexus(
     write_NXinstrument(nxsfile, beam, attenuator, detector, source.beamline_name)
 
     # NXsource: entry/source
-    write_NXsource(nxsfile, source)
+    write_NXsource(nxsfile, source.__dict__)
     # NXsample: entry/sample
 
     # Record string with end_time
