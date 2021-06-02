@@ -19,7 +19,7 @@ from nxs_write.data import data_writer
 from nxs_write.NXclassWriters import (
     write_NXdata,
     write_NXinstrument,
-    # write_NXsample,
+    write_NXsample,
     write_NXsource,
     # write_NXdetector,
     # write_NXmodule,
@@ -105,10 +105,15 @@ def write_new_nexus(
         source.beamline_name,
     )
 
+    # NXdetector: entry/instrument/detector
+
+    # NXmodule: entry/instrument/detector/module
+
     # NXsource: entry/source
     write_NXsource(nxsfile, source.__dict__)
 
     # NXsample: entry/sample
+    write_NXsample(nxsfile, goniometer.__dict__, input_params.coordinate_frame)
 
     # Record string with end_time
     end_time = datetime.fromtimestamp(time.time()).strftime("%A, %d. %B %Y %I:%M%p")

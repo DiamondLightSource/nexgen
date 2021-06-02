@@ -20,6 +20,8 @@ def write_NXdata(
     scan_axis=None,
 ):
     """
+    Write NXdata group at entry/data
+
     Args:
         nxsfile:
         datafiles:   List of Path objects
@@ -92,18 +94,36 @@ def write_NXdata(
 
 
 # NXsample
-def write_NXsample(nxsfile: h5py.File, goniometer: dict):
-    # 1 - check whether file already has nxentry, if it doesn't create it
-    # 2 - create nxsample with attributes
-    # 3 - look for nxbeam in file, if there make link
-    # 4 - write sample_depends_on
+def write_NXsample(nxsfile: h5py.File, goniometer: dict, coord_frame):
+    """
+    Write NXsample group at entry/sample
+
+    Args:
+        nxsfile:
+        goniometer:
+        coord_frame:
+    """
+    # Create NXsample group, unless it already exists, in which case just open it.
+    try:
+        nxsample = nxsfile.create_group("entry/sample")
+        create_attributes(
+            nxsample,
+            ("NX_class",),
+            ("NXsample",),
+        )
+    except ValueError:
+        nxsample = nxsfile["entry/sample"]
+
+    # Save sample depends_on
+    nxsample.create_dataset("depends_on", data=set_dependency(goniometer["axes"][-1]))
+
+    # Look for nxbeam in file, if it's there make link
     # 5 - create nxtransformation
     # 6 - determine scan axis
     # 7 - try: make a link to scan axis in nxdata
     # 7 - if it doesn't exist, write here
     # 8 - write sample_ groups from goniometer (only angles)
     # 9 - write links to sample_ in transformations
-    pass
 
 
 # NXinstrument

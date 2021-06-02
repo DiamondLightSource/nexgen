@@ -49,7 +49,7 @@ def find_scan_axis(axes_names, axes_starts, axes_ends):
         scan_axis:      String identifying the scan axis.
     """
     # TODO handle multiple rotation (is that even doable?)
-    # FIXME randomly assign to phi if stills
+    # Randomly assign to phi if stills
     assert len(axes_names) > 0, "Please pass at least one axis."
     if len(axes_names) == 1:
         scan_axis = axes_names[0]

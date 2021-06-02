@@ -110,7 +110,7 @@ goniometer_scope = freephil.parse(
     goniometer {
       axes = omega sam_z sam_y sam_x chi phi
         .type = strings
-        .help = "Axis names for the goniometer axes"
+        .help = "Axis names for the goniometer axes. Sample depends on the last one in the list"
       depends = . omega sam_z sam_y sam_x chi
         .type = strings
         .help = "Axis names for the axis dependencies"
