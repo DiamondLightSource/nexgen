@@ -2,49 +2,31 @@
 Writer for NeXus format files.
 """
 
+import sys
 import h5py
 import time
 import datetime
 import numpy as np
+from pathlib import Path
 
 # from data import generate_image_data, generate_event_data
 # from . import calculate_origin, split_arrays
 # from .. import imgcif2mcstas, create_attributes, set_dependency
 from . import find_scan_axis
 from .. import create_attributes
-from data import write_NXdata
-
-# NXinstrument
-def write_NXinstrument(nxsfile: h5py.File, source, beam, attenuator, detector):
-    # 1 - check whether file already has nxentry, if it doesn't create it
-    # 2 - write nxinstrument and attributes
-    # 3 - write nxattenuator
-    # 4 - write nxbeam
-    # 5 - write nxsource
-    # 6 - call write_NXdetector
-    # 7 - call write_NXpositioner
-    pass
-
-
-# NXsample
-def write_NXsample(nxsfile: h5py.File, goniometer):
-    # 1 - check whether file already has nxentry, if it doesn't create it
-    # 2 - create nxsample with attributes
-    # 3 - look for nxbeam in file, if there make link
-    # 4 - write sample_depends_on
-    # 5 - create nxtransformation
-    # 6 - determine scan axis
-    # 7 - try: make a link to scan axis in nxdata
-    # 7 - if it doesn't exist, write here
-    # 8 - write sample_ groups from goniometer (only angles)
-    # 9 - write links to sample_ in transformations
-    pass
-
+from nxs_write.NXclassWriters import (
+    write_NXdata,
+    write_NXinstrument,
+    # write_NXsample,
+    write_NXsource,
+    # write_NXdetector,
+    # write_NXmodule,
+)
 
 # General writing (probably a temporary solution)
 def write_new_nexus(
     nxsfile: h5py.File,
-    datafile,
+    datafile: Path,
     input_params,
     goniometer,
     detector,
@@ -53,7 +35,7 @@ def write_new_nexus(
     attenuator,
 ):
     """
-    Write a NeXus format file.
+    Write a new NeXus format file.
 
     Args:
         nxsfile:        NeXus file to be written.
@@ -74,14 +56,40 @@ def write_new_nexus(
     nxentry = nxsfile.create_group("entry")
     create_attributes(nxentry, ("NX_class", "default"), ("NXentry", "data"))
 
+    # Application definition: entry/definition
+    nxentry.create_dataset("definition", data=np.string_(input_params.definition))
+
     # NXdata: entry/data
     # Identify scan axis
     osc_axis = find_scan_axis(goniometer.axes, goniometer.starts, goniometer.ends)
-    write_NXdata(
-        nxsfile, datafile, goniometer, data_type=detector.mode, scan_axis=osc_axis
-    )
-    # NXinstrument: entry/data
-    # NXsample: entry/data
+    if detector.mode == "images":
+        write_NXdata(
+            nxsfile,
+            datafile,
+            goniometer,
+            image_size=detector.image_size,
+            scan_axis=osc_axis,
+            N=input_params.n_images,
+        )
+    elif detector.mode == "events":
+        write_NXdata(
+            nxsfile,
+            datafile,
+            goniometer,
+            data_type="events",
+            image_size=detector.image_size,
+            scan_axis=osc_axis,
+            N=input_params.n_events,
+        )
+    else:
+        sys.exit("Please pass a correct data_type (images or events)")
+
+    # NXinstrument: entry/instrument
+    write_NXinstrument(nxsfile, beam, attenuator, detector, source.beamline_name)
+
+    # NXsource: entry/source
+    write_NXsource(nxsfile, source)
+    # NXsample: entry/sample
 
     # Record string with end_time
     end_time = datetime.fromtimestamp(time.time()).strftime("%A, %d. %B %Y %I:%M%p")

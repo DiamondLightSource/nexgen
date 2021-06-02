@@ -14,7 +14,7 @@ from pathlib import Path
 import freephil
 
 # import nexgen.phil
-from ..nxs_write.data import get_filename_template
+from .. import get_filename_template
 from ..nxs_write.NexusWriter import write_new_nexus
 
 # import writer
@@ -106,6 +106,11 @@ def main():
 
     # Get data file name template
     data_file_template = get_filename_template(master_file)
+    data_file = (
+        Path(data_file_template % 1).expanduser().resolve()
+    )  # assumes only one file
+    # data_file_list = [Path(data_file_template%(n+1)).expanduser().resolve() for n in range(params.input.n_files)]
+    # TODO write more than one file (and add vds if prompted)
 
     # Add some information to logger
     logger.info("NeXus file will be saved as %s" % params.output.master_file_name)
@@ -219,7 +224,7 @@ def main():
     with h5py.File(master_file, "x") as nxsfile:
         write_new_nexus(
             nxsfile,
-            data_file_template,
+            data_file,
             params.input,
             goniometer,
             detector,
