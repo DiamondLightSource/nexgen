@@ -6,8 +6,8 @@ import numpy as np
 
 # from pathlib import Path
 
-from . import find_scan_axis
-from .. import create_attributes
+from . import find_scan_axis, split_arrays
+from .. import create_attributes, set_dependency
 
 # NXdata writer
 def write_NXdata(
@@ -15,6 +15,8 @@ def write_NXdata(
     datafiles: list,
     goniometer: dict,
     data_type: str,
+    coord_frame,
+    scan_range,
     scan_axis=None,
 ):
     """
@@ -23,9 +25,9 @@ def write_NXdata(
         datafiles:   List of Path objects
         goniometer: Dictionary
         data_type:
-        image_size:
+        coord_frame:
         scan_axis:
-        N:          Number of images or of events, defaults to None.
+        scan_range:
     """
     # Check that a valid datafile_list has been passed.
     assert len(datafiles) > 0, "Please pass at least a list of one HDF5 data file."
@@ -55,7 +57,6 @@ def write_NXdata(
         nxdata = nxsfile["entry/data"]
 
     # If mode is images, link to blank image data. Else go to events.
-    # idx = goniometer.axes.index(scan_axis)
     if data_type == "images":
         if len(datafiles) == 1:
             nxdata["data"] = h5py.ExternalLink(datafiles[0].name, "data")
@@ -69,8 +70,25 @@ def write_NXdata(
     else:
         sys.exit("Please pass a correct data_type (images or events)")
 
-    # 5 - write nxdata with attributes
-    # 6 - write scan axis dataset
+    # Write rotation axis dataset
+    ax = nxdata.create_dataset(scan_axis, data=scan_range)
+    idx = goniometer["axes"].index(scan_axis)
+    _dep = set_dependency(
+        goniometer["depends"][idx], path="/entry/sample/transformations/"
+    )
+    # FIXME temporary quick way
+    vectors = split_arrays(coord_frame, goniometer["axes"], goniometer["vectors"])
+    # Write attributes for axis
+    create_attributes(
+        ax,
+        ("depends_on", "transformation_type", "units", "vector"),
+        (
+            _dep,
+            goniometer["types"][idx],
+            goniometer["units"][idx],
+            vectors[scan_axis],
+        ),
+    )
 
 
 # NXsample

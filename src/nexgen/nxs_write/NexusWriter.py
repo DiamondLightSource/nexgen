@@ -91,15 +91,23 @@ def write_new_nexus(
         datafile_list,
         goniometer.__dict__,
         data_type=detector.mode,
-        scan_axis=osc_axis,
+        coord_frame=input_params.coordinate_frame,
         scan_range=scan_range,
+        scan_axis=osc_axis,
     )
 
     # NXinstrument: entry/instrument
-    write_NXinstrument(nxsfile, beam, attenuator, detector, source.beamline_name)
+    write_NXinstrument(
+        nxsfile,
+        beam.__dict__,
+        attenuator.__dict__,
+        detector.__dict__,
+        source.beamline_name,
+    )
 
     # NXsource: entry/source
     write_NXsource(nxsfile, source.__dict__)
+
     # NXsample: entry/sample
 
     # Record string with end_time
