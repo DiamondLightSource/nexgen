@@ -124,7 +124,9 @@ def write_new_nexus(
     write_NXsource(nxsfile, source.__dict__)
 
     # NXsample: entry/sample
-    write_NXsample(nxsfile, goniometer.__dict__, input_params.coordinate_frame)
+    write_NXsample(
+        nxsfile, goniometer.__dict__, osc_axis, input_params.coordinate_frame
+    )
 
     # Record string with end_time
     end_time = datetime.fromtimestamp(time.time()).strftime("%A, %d. %B %Y %I:%M%p")

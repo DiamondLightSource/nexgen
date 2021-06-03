@@ -95,13 +95,14 @@ def write_NXdata(
     )
 
 
-# NXtransformations
-def write_NXtransformations():
-    pass
-
-
 # NXsample
-def write_NXsample(nxsfile: h5py.File, goniometer: dict, coord_frame):
+def write_NXsample(
+    nxsfile: h5py.File,
+    goniometer: dict,
+    coord_frame: str,
+    scan_axis: str,
+    scan_range=None,
+):
     """
     Write NXsample group at entry/sample
 
@@ -109,6 +110,8 @@ def write_NXsample(nxsfile: h5py.File, goniometer: dict, coord_frame):
         nxsfile:
         goniometer:
         coord_frame:
+        scan_axis:
+        scan_range:
     """
     # Create NXsample group, unless it already exists, in which case just open it.
     try:
@@ -124,13 +127,79 @@ def write_NXsample(nxsfile: h5py.File, goniometer: dict, coord_frame):
     # Save sample depends_on
     nxsample.create_dataset("depends_on", data=set_dependency(goniometer["axes"][-1]))
 
+    # Create NXtransformations group: /entry/sample/transformations
+    try:
+        nxtransformations = nxsample.create_group("transformations")
+        create_attributes(
+            nxsample,
+            ("NX_class",),
+            ("NXtransformations",),
+        )
+    except ValueError:
+        nxtransformations = nxsample["transformations"]
+
+    # Create sample_{axisname} groups
+    vectors = split_arrays(coord_frame, goniometer["axes"], goniometer["vectors"])
+    for ax in goniometer["axes"]:
+        if "sam" in ax:
+            grp_name = "sample_" + ax.split("_")[1]
+        else:
+            grp_name = "sample_" + ax
+        nxsample_ax = nxsample.create_group(grp_name)
+        create_attributes(nxsample_ax, ("NX_class",), ("NXpositioner",))
+        if ax == scan_axis:
+            # If we're dealing with the scan axis
+            try:
+                for k in nxsfile["entry/data"].keys():
+                    if nxsfile["entry/data"][k].attrs.get("depends_on"):
+                        nxsample_ax[ax] = nxsfile[nxsfile["entry/data"][k].name]
+                        nxtransformations[ax] = nxsfile[nxsfile["entry/data"][k].name]
+            except KeyError:
+                idx = goniometer["axes"].index(scan_axis)
+                nxax = nxsample_ax.create_dataset(ax, data=scan_range)
+                _dep = set_dependency(
+                    goniometer["depends"][idx], path="/entry/sample/transformations/"
+                )
+                create_attributes(
+                    ax,
+                    ("depends_on", "transformation_type", "units", "vector"),
+                    (
+                        _dep,
+                        goniometer["types"][idx],
+                        goniometer["units"][idx],
+                        vectors[scan_axis],
+                    ),
+                )
+                nxtransformations[ax] = nxsfile[nxax.name]
+            # TODO handle the case where scan range has not been passed.
+            # Write {axisname}_increment_set and {axis_name}_end datasets
+            increment_set = np.repeat(goniometer["increments"][idx], len(scan_range))
+            nxsample_ax.create_dataset(ax + "_increment_set", data=increment_set)
+            nxsample_ax.create_dataset(ax + "_end", data=scan_range + increment_set)
+        else:
+            # For all other axes
+            idx = goniometer["axes"].index(ax)
+            nxax = nxsample_ax.create_dataset(ax, data=goniometer["starts"][idx])
+            _dep = set_dependency(
+                goniometer["depends"][idx], path="/entry/sample/transformations/"
+            )
+            create_attributes(
+                ax,
+                ("depends_on", "transformation_type", "units", "vector"),
+                (
+                    _dep,
+                    goniometer["types"][idx],
+                    goniometer["units"][idx],
+                    vectors[scan_axis],
+                ),
+            )
+            nxtransformations[ax] = nxsfile[nxax.name]
+
     # Look for nxbeam in file, if it's there make link
-    # 5 - create nxtransformation
-    # 6 - determine scan axis
-    # 7 - try: make a link to scan axis in nxdata
-    # 7 - if it doesn't exist, write here
-    # 8 - write sample_ groups from goniometer (only angles)
-    # 9 - write links to sample_ in transformations
+    try:
+        nxsample["beam"] = nxsfile["entry/instrument/beam"]
+    except KeyError:
+        pass
 
 
 # NXinstrument
