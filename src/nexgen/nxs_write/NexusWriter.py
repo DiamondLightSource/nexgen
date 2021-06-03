@@ -21,8 +21,8 @@ from nxs_write.NXclassWriters import (
     write_NXinstrument,
     write_NXsample,
     write_NXsource,
-    # write_NXdetector,
-    # write_NXmodule,
+    write_NXdetector,
+    write_NXdetector_module,
 )
 
 # General writing (probably a temporary solution)
@@ -32,6 +32,7 @@ def write_new_nexus(
     input_params,
     goniometer,
     detector,
+    module,
     source,
     beam,
     attenuator,
@@ -39,12 +40,16 @@ def write_new_nexus(
     """
     Write a new NeXus format file.
 
+    This function writes a new nexus file from the information contained in the phil scopes passed as input.
+    It also writes a specified number of blank data HDF5 files.
+    The nuber of these files can be passed as input parameter, if it isn't it defaults to 1.
     Args:
         nxsfile:        NeXus file to be written.
         datafile_list:  List of at least 1 Path object to a HDF5 data file.
         input_params:   Scope extract
         goniometer:     Scope extract
         detector:       Scope extract
+        module:         Scope extract
         source:         Scope extract
         beam:           Scope extract
         attenuator:     Scope extract
@@ -72,10 +77,12 @@ def write_new_nexus(
             goniometer.ends[idx],
             axis_increment=goniometer.increments[idx],
         )
+        num_images = len(scan_range)
     else:
         scan_range = calculate_scan_range(
             goniometer.starts[idx], goniometer.ends[idx], n_images=input_params.n_images
         )
+        num_images = input_params.n_images
     # Write data files
     data_writer(
         datafile_list,
@@ -106,8 +113,12 @@ def write_new_nexus(
     )
 
     # NXdetector: entry/instrument/detector
+    write_NXdetector(nxsfile, detector.__dict__, num_images)
 
     # NXmodule: entry/instrument/detector/module
+    write_NXdetector_module(
+        nxsfile, module.__dict__, detector.image_size, detector.pixel_size
+    )
 
     # NXsource: entry/source
     write_NXsource(nxsfile, source.__dict__)
@@ -121,3 +132,8 @@ def write_new_nexus(
     # Write /entry/start_time and /entry/end_time
     nxentry.create_dataset("start_time", data=np.string_(start_time))
     nxentry.create_dataset("end_time", data=np.string_(end_time))
+
+
+# Write nexus file to go with existing data
+# def write_nexus_for_data():
+#    pass

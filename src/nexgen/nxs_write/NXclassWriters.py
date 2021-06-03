@@ -9,6 +9,8 @@ import numpy as np
 from . import find_scan_axis, split_arrays
 from .. import create_attributes, set_dependency
 
+# FIXME check that if group exists, it has the correct attributes
+
 # NXdata writer
 def write_NXdata(
     nxsfile: h5py.File,
@@ -93,6 +95,11 @@ def write_NXdata(
     )
 
 
+# NXtransformations
+def write_NXtransformations():
+    pass
+
+
 # NXsample
 def write_NXsample(nxsfile: h5py.File, goniometer: dict, coord_frame):
     """
@@ -173,8 +180,8 @@ def write_NXinstrument(
     flux = nxbeam.create_dataset("total_flux", data=beam["flux"])
     create_attributes(flux, ("units"), ("Hz",))
 
-    # 6 - call write_NXdetector
-    # 7 - call write_NXpositioner
+    # Write_NXpositioner: /entry/instrument/detector_z, two_theta
+    # Not really needed, can be added later
 
 
 # NXsource
@@ -202,7 +209,15 @@ def write_NXsource(nxsfile: h5py.File, source):
 
 
 # NXdetector writer
-def write_NXdetector(nxsfile: h5py.File, detector: dict):
+def write_NXdetector(nxsfile: h5py.File, detector: dict, n_images=None):
+    """
+    Write_NXdetector group at entry/instrument/detector
+
+    Args:
+        nxsfile:
+        detector:
+        n_images:   Number of written images (for image mode detector)
+    """
     # 1 - checke whether nxinstrument exists, if not create it
     # 2 - create nxdetector group with attribute
     # 3 - write all datasets
@@ -210,11 +225,21 @@ def write_NXdetector(nxsfile: h5py.File, detector: dict):
     # 5 - if images write overload and underload
     # 6 - call write_NXmodule
     # 7 - call write_NXcollection
+    # 8 - write transformations with links to detector_z and two_theta
     pass
 
 
 # NXdetector_module writer
-def write_NXmodule(nxdetector: h5py.Group, module: dict):
+def write_NXdetector_module(nxsfile: h5py.File, module: dict, image_size, pixel_size):
+    """
+    Write NXdetector_module group at entry/instrument/detector/module.
+
+    Args:
+        nxsfile:
+        module:
+        image_size:
+        pixel_size:
+    """
     # 1- create nxdetectormodule group
     # 2 - check how many modules
     # 3 - write relevant datasets
@@ -223,18 +248,26 @@ def write_NXmodule(nxdetector: h5py.Group, module: dict):
     pass
 
 
-# NXpositioner (det_z and 2theta)
-def write_NXpositioner(nxinstrument: h5py.Group, detector: dict):
-    # 1 - write detector_z
-    # 2 - write entry/instrument/transformation with link to det_z
-    # 3 - add 2 theta arm if there and add link in transformations
-    pass
+# NXdetector_group writer
+# def writr_NXdetector_group(nxinstrument: h5py.Group, detector: dict):
+# TODO to be added once multiple module functionality works
+# pass
 
 
 # NXCollection writer (detectorSpecific)
-def write_NXcollection(nxdetector: h5py.Group, detector: dict, n_images=None):
+def write_NXcollection(nxdetector: h5py.Group, image_size, n_images=None):
+    """
+    Write a NXcollection group inside NXdetector as detectorSpecific.
+    """
     # 1 - create detectorSpecific group
     # 2 - write x_pixels and y_pixels
     # 3 - if images write n_images
     # 4 - if events write tick time and frequency
     pass
+
+
+# NXpositioner (det_z and 2theta)
+# def write_NXpositioner(nxinstrument: h5py.Group, detector: dict):
+# 1 - write detector_z
+# 2 - add 2 theta arm if there
+#    pass

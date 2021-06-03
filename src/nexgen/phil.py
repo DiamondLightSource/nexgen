@@ -8,13 +8,13 @@ import freephil
 # Need to find a way to tell which module is which
 module_scope = freephil.parse(
     """
-    module_offset = False
-      .type = bool
-      .help = "If set to true, calculates offset of the module in regard to detector origin and creates corresponding field"
     module {
       num_modules = 1
         .type = int
         .help = "Number of modules - defaults to 1." # not sure how useful right now...
+      module_offset = False
+        .type = bool
+        .help = "If set to true, calculates offset of the module in regard to detector origin and creates corresponding field"
       fast_axis = 1 0 0
         .multiple = True
         .type = floats(size = 3)

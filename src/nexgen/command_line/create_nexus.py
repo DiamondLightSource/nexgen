@@ -231,6 +231,7 @@ def main():
             params.input,
             goniometer,
             detector,
+            module,
             source,
             beam,
             attenuator,
