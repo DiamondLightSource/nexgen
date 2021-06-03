@@ -125,7 +125,13 @@ def write_new_nexus(
 
     # NXsample: entry/sample
     write_NXsample(
-        nxsfile, goniometer.__dict__, osc_axis, input_params.coordinate_frame
+        nxsfile,
+        goniometer.__dict__,
+        osc_axis,
+        input_params.coordinate_frame,
+        detector.mode,
+        osc_axis,
+        scan_range=scan_range,
     )
 
     # Record string with end_time

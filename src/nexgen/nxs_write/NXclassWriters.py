@@ -10,6 +10,7 @@ from . import find_scan_axis, split_arrays
 from .. import create_attributes, set_dependency
 
 # FIXME check that if group exists, it has the correct attributes
+# FIXME for event data the scan axis should only have a tuple (start, end)
 
 # NXdata writer
 def write_NXdata(
@@ -17,7 +18,7 @@ def write_NXdata(
     datafiles: list,
     goniometer: dict,
     data_type: str,
-    coord_frame,
+    coord_frame: str,
     scan_range,
     scan_axis=None,
 ):
@@ -31,7 +32,7 @@ def write_NXdata(
         data_type:
         coord_frame:
         scan_axis:
-        scan_range:
+        scan_range:     If writing events, this is just a (start, end) tuple
     """
     # Check that a valid datafile_list has been passed.
     assert len(datafiles) > 0, "Please pass at least a list of one HDF5 data file."
@@ -100,6 +101,7 @@ def write_NXsample(
     nxsfile: h5py.File,
     goniometer: dict,
     coord_frame: str,
+    data_type: str,
     scan_axis: str,
     scan_range=None,
 ):
@@ -173,9 +175,12 @@ def write_NXsample(
                 nxtransformations[ax] = nxsfile[nxax.name]
             # TODO handle the case where scan range has not been passed.
             # Write {axisname}_increment_set and {axis_name}_end datasets
-            increment_set = np.repeat(goniometer["increments"][idx], len(scan_range))
-            nxsample_ax.create_dataset(ax + "_increment_set", data=increment_set)
-            nxsample_ax.create_dataset(ax + "_end", data=scan_range + increment_set)
+            if data_type == "images":
+                increment_set = np.repeat(
+                    goniometer["increments"][idx], len(scan_range)
+                )
+                nxsample_ax.create_dataset(ax + "_increment_set", data=increment_set)
+                nxsample_ax.create_dataset(ax + "_end", data=scan_range + increment_set)
         else:
             # For all other axes
             idx = goniometer["axes"].index(ax)
@@ -327,12 +332,17 @@ def write_NXdetector_module(nxsfile: h5py.File, module: dict, image_size, pixel_
 def write_NXcollection(nxdetector: h5py.Group, image_size, n_images=None):
     """
     Write a NXcollection group inside NXdetector as detectorSpecific.
+
+    Args:
+        nxdetector:     HDF5 NXdetector group
+        image_size:
+        n_images:
     """
-    # 1 - create detectorSpecific group
-    # 2 - write x_pixels and y_pixels
-    # 3 - if images write n_images
-    # 4 - if events write tick time and frequency
-    pass
+    # Create detectorSpecific group
+    grp = nxdetector.create_group("detectorSpecific")
+    grp.create_dataset("x_pixels", data=image_size[0])
+    grp.create_dataset("y_pixels", data=image_size[1])
+    # TODO if images write n_images, if events write tick time and frequency
 
 
 # NXpositioner (det_z and 2theta)
