@@ -283,28 +283,103 @@ def write_NXsource(nxsfile: h5py.File, source):
 
 
 # NXdetector writer
-def write_NXdetector(nxsfile: h5py.File, detector: dict, n_images=None):
+def write_NXdetector(
+    nxsfile: h5py.File, detector: dict, coord_frame: str, n_images=None
+):
     """
     Write_NXdetector group at entry/instrument/detector
 
     Args:
         nxsfile:
         detector:
+        coord_frame:
         n_images:   Number of written images (for image mode detector)
     """
-    # 1 - checke whether nxinstrument exists, if not create it
-    # 2 - create nxdetector group with attribute
-    # 3 - write all datasets
-    # 4- check for mask and flatfield files
-    # 5 - if images write overload and underload
-    # 6 - call write_NXmodule
-    # 7 - call write_NXcollection
-    # 8 - write transformations with links to detector_z and two_theta
-    pass
+    # Create NXdetector group, unless it already exists, in which case just open it.
+    try:
+        nxdetector = nxsfile.create_group("entry/instrument/detector")
+        create_attributes(
+            nxdetector,
+            ("NX_class",),
+            ("NXdetector",),
+        )
+    except ValueError:
+        nxdetector = nxsfile["entry/instrument/detector"]
+
+    # Detector depends_on
+    nxdetector.create_dataset(
+        "depends_on", data="/entry/instrument/detector/transformations/det_z"
+    )
+
+    # Detector description
+    nxdetector.create_dataset("description", data=np.string_(detector["description"]))
+    nxdetector.create_dataset("type", data=np.string_("Pixel"))
+
+    # Beam center
+    beam_center_x = nxdetector.create_dataset(
+        "beam_center_x", data=detector["beam_center"][0]
+    )
+    create_attributes(beam_center_x, ("units",), ("pixels",))
+    beam_center_y = nxdetector.create_dataset(
+        "beam_center_y", data=detector["beam_center"][1]
+    )
+    create_attributes(beam_center_y, ("units",), ("pixels",))
+
+    # Pixel size
+    x_pix_size = nxdetector.create_dataset(
+        "x_pixel_size", data=detector["pixel_size"][0] / 1000
+    )
+    create_attributes(x_pix_size, ("units",), ("m",))
+    y_pix_size = nxdetector.create_dataset(
+        "y_pixel_size", data=detector["pixel_size"][1] / 1000
+    )
+    create_attributes(y_pix_size, ("units",), ("m",))
+
+    # Count time
+    nxdetector.create_dataset("count_time", data=detector["exposure_time"])
+
+    # Sensor material, sensor thickness
+    nxdetector.create_dataset(
+        "sensor_material", data=np.string_(detector["sensor_material"])
+    )
+    nxdetector.create_dataset(
+        "sensor_thickness", data=detector["sensor_thickness"] / 1000
+    )
+    create_attributes(nxdetector["sensor_thickness"], ("units",), ("m",))
+
+    # If detector mode is images write overload and underload
+    if detector["mode"] == "images":
+        nxdetector.create_dataset("saturation_value", data=detector["overload"])
+        nxdetector.create_dataset("underload_value", data=detector["underload"])
+
+    # Check for mask and flatfield files
+    # Flatfield
+    if detector["flatfield"]:
+        nxdetector.create_dataset("flatfield_applied", data=False)
+        nxdetector.create_dataset("flatfield", data=detector["flatfield"])
+    # Bad pixel mask
+    if detector["pixel_mask"]:
+        nxdetector.create_dataset("pixel_mask_applied", data=False)
+        nxdetector.create_dataset("pixel_mask", data=detector["pixel_mask"])
+
+    # Write_NXcollection
+    write_NXcollection(nxdetector, detector["image_size"], n_images)
+
+    # Write NXtransformations: entry/instrument/detector/transformations/detector_z and two_theta
+    nxtransformations = nxdetector.create_group("transformations")
+    create_attributes(
+        nxtransformations,
+        ("NX_class",),
+        ("NXtransformations",),
+    )
+
+    # Create groups for detector_z and two_theta if present
 
 
 # NXdetector_module writer
-def write_NXdetector_module(nxsfile: h5py.File, module: dict, image_size, pixel_size):
+def write_NXdetector_module(
+    nxsfile: h5py.File, module: dict, coord_frame: str, image_size, pixel_size
+):
     """
     Write NXdetector_module group at entry/instrument/detector/module.
 

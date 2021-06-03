@@ -113,11 +113,17 @@ def write_new_nexus(
     )
 
     # NXdetector: entry/instrument/detector
-    write_NXdetector(nxsfile, detector.__dict__, num_images)
+    write_NXdetector(
+        nxsfile, detector.__dict__, input_params.coordinate_frame, num_images
+    )
 
     # NXmodule: entry/instrument/detector/module
     write_NXdetector_module(
-        nxsfile, module.__dict__, detector.image_size, detector.pixel_size
+        nxsfile,
+        module.__dict__,
+        input_params.coordinate_frame,
+        detector.image_size,
+        detector.pixel_size,
     )
 
     # NXsource: entry/source
