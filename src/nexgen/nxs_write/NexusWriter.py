@@ -124,6 +124,7 @@ def write_new_nexus(
         input_params.coordinate_frame,
         detector.image_size,
         detector.pixel_size,
+        beam_center=detector.beam_center,
     )
 
     # NXsource: entry/source

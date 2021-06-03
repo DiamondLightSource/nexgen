@@ -6,8 +6,8 @@ import numpy as np
 
 # from pathlib import Path
 
-from . import find_scan_axis, split_arrays
-from .. import create_attributes, set_dependency
+from . import find_scan_axis, split_arrays, calculate_origin
+from .. import create_attributes, set_dependency, imgcif2mcstas
 
 # FIXME check that if group exists, it has the correct attributes
 # FIXME for event data the scan axis should only have a tuple (start, end)
@@ -403,7 +403,12 @@ def write_NXdetector(
 
 # NXdetector_module writer
 def write_NXdetector_module(
-    nxsfile: h5py.File, module: dict, coord_frame: str, image_size, pixel_size
+    nxsfile: h5py.File,
+    module: dict,
+    coord_frame: str,
+    image_size,
+    pixel_size,
+    beam_center=None,
 ):
     """
     Write NXdetector_module group at entry/instrument/detector/module.
@@ -413,13 +418,110 @@ def write_NXdetector_module(
         module:
         image_size:
         pixel_size:
+        beam_center:    Only if origin needs to be calculated.
     """
-    # 1- create nxdetectormodule group
-    # 2 - check how many modules
-    # 3 - write relevant datasets
-    # 4 - if module_offset is True, calculate and write it
-    # 4 - and correct dependency tree accordingly
-    pass
+    # Create NXdetector_module group, unless it already exists, in which case just open it.
+    try:
+        nxmodule = nxsfile.create_group("entry/instrument/detector/module")
+        create_attributes(
+            nxmodule,
+            ("NX_class",),
+            ("NXdetector_module",),
+        )
+    except ValueError:
+        nxmodule = nxsfile["entry/instrument/detector/module"]
+
+    # TODO check how many modules, and write as many, plus NXdetector_group
+    nxmodule.create_dataset("data_origin", data=np.array([0, 0]))
+    nxmodule.create_dataset("data_size", data=image_size)
+    nxmodule.create_dataset("data_stride", data=np.array([1, 1]))
+
+    # Write fast_ and slow_ pixel_direction
+    # Convert vectors if needed
+    if coord_frame == "imgcif":
+        fast_axis = imgcif2mcstas(module["fast_axis"])
+        slow_axis = imgcif2mcstas(module["slow_axis"])
+    else:
+        # This is just to have the same type as after conversion
+        fast_axis = tuple(module["fast_axis"])
+        slow_axis = tuple(module["slow_axis"])
+
+    offsets = split_arrays(coord_frame, ["fast_axis", "slow_axis"], module["offsets"])
+
+    fast_pixel = nxmodule.create_dataset(
+        "fast_pixel_direction", data=pixel_size[0] / 1000
+    )
+    create_attributes(
+        fast_pixel,
+        (
+            "depends_on",
+            "offset",
+            "offset_units",
+            "transformation_type",
+            "units",
+            "vector",
+        ),
+        (
+            "/entry/instrument/detector/transformations/detector_z/det_z",
+            offsets["fast_axis"],
+            "mm",
+            "translation",
+            "mm",
+            fast_axis,
+        ),
+    )
+
+    slow_pixel = nxmodule.create_dataset(
+        "slow_pixel_direction", data=pixel_size[1] / 1000
+    )
+    create_attributes(
+        slow_pixel,
+        (
+            "depends_on",
+            "offset",
+            "offset_units",
+            "transformation_type",
+            "units",
+            "vector",
+        ),
+        (
+            "/entry/instrument/detector/module/fast_pixel_direction",
+            offsets["slow_axis"],
+            "mm",
+            "translation",
+            "mm",
+            slow_axis,
+        ),
+    )
+
+    # If module_offset is set ti=o True, calculate and write it
+    if module["module_offset"] is True:
+        origin = calculate_origin(beam_center, pixel_size, fast_axis, slow_axis)
+        # TODO correct value according to Jira tickets
+        module_offset = nxmodule.create_dataset("module_offset", data=np.array([0, 0]))
+        create_attributes(
+            module_offset,
+            (
+                "depends_on",
+                "offset",
+                "offset_units",
+                "transformation_type",
+                "units",
+                "vector",
+            ),
+            (
+                "/entry/instrument/detector/transformations/detector_z/det_z",
+                origin,
+                "mm",
+                "translation",
+                "mm",
+                [1, 0, 0],
+            ),
+        )
+        # Correct dependency tree accordingly
+        _path = "/entry/instrument/detector/module/module_offset"
+        create_attributes(fast_pixel, ("depends_on"), (_path,))
+        create_attributes(slow_pixel, ("depends_on"), (_path,))
 
 
 # NXdetector_group writer
@@ -447,7 +549,7 @@ def write_NXcollection(nxdetector: h5py.Group, image_size, n_images=None):
     # TODO if images write n_images, if events write tick time and frequency
 
 
-# NXpositioner (det_z and 2theta)
+# NXpositioner (det_z and 2theta) - probably not needed
 # def write_NXpositioner(nxinstrument: h5py.Group, detector: dict):
 # 1 - write detector_z
 # 2 - add 2 theta arm if there
