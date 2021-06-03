@@ -342,6 +342,8 @@ def write_NXcollection(nxdetector: h5py.Group, image_size, n_images=None):
     grp = nxdetector.create_group("detectorSpecific")
     grp.create_dataset("x_pixels", data=image_size[0])
     grp.create_dataset("y_pixels", data=image_size[1])
+    if n_images is not None:
+        grp.create_dataset("nimages", data=n_images)
     # TODO if images write n_images, if events write tick time and frequency
 
 
