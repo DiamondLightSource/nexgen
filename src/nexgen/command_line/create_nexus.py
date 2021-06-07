@@ -10,8 +10,11 @@ from pathlib import Path
 import freephil
 
 # import nexgen.phil
-from .. import get_filename_template
-from ..nxs_write.NexusWriter import write_new_nexus
+from nexgen import get_filename_template
+from nexgen.nxs_write.NexusWriter import write_new_nexus
+
+# from .. import get_filename_template
+# from ..nxs_write.NexusWriter import write_new_nexus
 
 # import writer
 

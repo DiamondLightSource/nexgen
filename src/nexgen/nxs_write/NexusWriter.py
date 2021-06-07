@@ -15,7 +15,7 @@ import numpy as np
 # from .. import imgcif2mcstas, create_attributes, set_dependency
 from . import find_scan_axis, calculate_scan_range
 from .. import create_attributes
-from nxs_write.data import data_writer
+from data_tools import data_writer
 from nxs_write.NXclassWriters import (
     write_NXdata,
     write_NXinstrument,
