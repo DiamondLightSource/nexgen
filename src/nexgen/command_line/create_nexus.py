@@ -50,11 +50,11 @@ master_phil = freephil.parse(
         .help = "If True, create also a _vds.h5 file. Only for image data."
     }
 
-    include scope nexgen.nexus_phil.goniometer_scope
+    include scope nexgen.nxs_phil.goniometer_scope
 
-    include scope nexgen.nexus_phil.beamline_scope
+    include scope nexgen.nxs_phil.beamline_scope
 
-    include scope nexgen.nexus_phil.detector_scope
+    include scope nexgen.nxs_phil.detector_scope
     """,
     process_includes=True,
 )
