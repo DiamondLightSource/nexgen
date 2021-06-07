@@ -100,7 +100,7 @@ detector_scope = freephil.parse(
         .help = "Axis units, from mm or deg"
     }
 
-    include scope phil.module_scope
+    include scope nexus_phil.module_scope
     """,
     process_includes=True,
 )
