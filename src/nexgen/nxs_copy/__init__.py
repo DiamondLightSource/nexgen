@@ -37,10 +37,10 @@ def get_nexus_tree(nxs_in: h5py.File, nxs_out: h5py.File, skip=True):
 
 def identify_scan_axis(nxs_in: h5py.File):
     """
-    Identify the scan_axis in the NeXus tree.
+    Identify the scan_axis in the NeXus tree of a Tristan collection.
 
     Args:
-        nxs_in: Tristan NeXus file
+        nxs_in:     Tristan NeXus file
     Returns:
         ax:         Name of the scan_axis
         ax_attrs:   Attributes of the scan_axis dataset, type h5py._hl.base.ItemsViewHDF5
