@@ -26,12 +26,12 @@ def write_NXdata(
     Write NXdata group at entry/data
 
     Args:
-        nxsfile:
-        datafiles:   List of Path objects
-        goniometer: Dictionary
-        data_type:
-        coord_frame:
-        scan_axis:
+        nxsfile:        NeXus file to be written
+        datafiles:      List of Path objects
+        goniometer:     Dictionary containing all the axes information
+        data_type:      Images or events
+        coord_frame:    Coordinate system the axes are currently in
+        scan_axis:      Rotation axis
         scan_range:     If writing events, this is just a (start, end) tuple
     """
     # Check that a valid datafile_list has been passed.
@@ -109,11 +109,11 @@ def write_NXsample(
     Write NXsample group at entry/sample
 
     Args:
-        nxsfile:
-        goniometer:
-        coord_frame:
-        scan_axis:
-        scan_range:
+        nxsfile:        NeXus file to be written
+        goniometer:     Dictionary containing all the axes information
+        coord_frame:    Coordinate system the axes are currently expressed in
+        scan_axis:      Rotation axis
+        scan_range:     List/tuple/array of scan axis values
     """
     # Create NXsample group, unless it already exists, in which case just open it.
     try:
@@ -215,11 +215,11 @@ def write_NXinstrument(
     Write NXinstrument group at entry/instrument.
 
     Args:
-        nxsfile:
-        beam:
-        attenuator:
-        detector:
-        beamline_n:
+        nxsfile:    NeXus file to be written
+        beam:       Dictionary with beam wavelength and flux
+        attenuator: Dictionary containing transmission
+        detector:   Dictionary containing all detector information
+        beamline_n: String identisying the beamline number
     """
     # Create NXinstrument group, unless it already exists, in which case just open it.
     try:
@@ -290,10 +290,10 @@ def write_NXdetector(
     Write_NXdetector group at entry/instrument/detector
 
     Args:
-        nxsfile:
-        detector:
-        coord_frame:
-        n_images:   Number of written images (for image mode detector)
+        nxsfile:        Nexus file to be written
+        detector:       Dictionary containing all detector information
+        coord_frame:    Coordinate system the axes are currently expressed in
+        n_images:       Number of written images (for image mode detector)
     """
     # Create NXdetector group, unless it already exists, in which case just open it.
     try:
@@ -414,10 +414,10 @@ def write_NXdetector_module(
     Write NXdetector_module group at entry/instrument/detector/module.
 
     Args:
-        nxsfile:
-        module:
-        image_size:
-        pixel_size:
+        nxsfile:        Nexus file to be written
+        module:         Dictionary containing the detector module information
+        image_size:     Size of the detector
+        pixel_size:     Size of the single pixels in fast and slow direction, in mm
         beam_center:    Only if origin needs to be calculated.
     """
     # Create NXdetector_module group, unless it already exists, in which case just open it.
@@ -537,8 +537,8 @@ def write_NXcollection(nxdetector: h5py.Group, image_size, n_images=None):
 
     Args:
         nxdetector:     HDF5 NXdetector group
-        image_size:
-        n_images:
+        image_size:     Size of the detector
+        n_images:       Number of images written per file.
     """
     # Create detectorSpecific group
     grp = nxdetector.create_group("detectorSpecific")
