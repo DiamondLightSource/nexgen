@@ -134,7 +134,6 @@ def write_new_nexus(
     write_NXsample(
         nxsfile,
         goniometer.__dict__,
-        osc_axis,
         input_params.coordinate_frame,
         detector.mode,
         osc_axis,
