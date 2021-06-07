@@ -15,10 +15,11 @@ Command line
 Writing tools
 -------------
 
-.. autoclass:: nexgen.nxs_write
+.. automodule:: nexgen.nxs_write
     :members:
 
 Copying tools
 -------------
 
-.. autoclass:: nexgen.nxs_copy
+.. automodule:: nexgen.nxs_copy
+    :members:
