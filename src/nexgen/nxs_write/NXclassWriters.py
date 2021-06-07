@@ -259,7 +259,7 @@ def write_NXinstrument(
 
 
 # NXsource
-def write_NXsource(nxsfile: h5py.File, source):
+def write_NXsource(nxsfile: h5py.File, source: dict):
     """
     Write NXsource group in entry/source.
 
