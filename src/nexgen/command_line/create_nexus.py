@@ -9,14 +9,11 @@ from pathlib import Path
 
 import freephil
 
-# import nexgen.phil
 from nexgen import get_filename_template
 from nexgen.nxs_write.NexusWriter import write_new_nexus
 
 # from .. import get_filename_template
 # from ..nxs_write.NexusWriter import write_new_nexus
-
-# import writer
 
 logger = logging.getLogger("NeXusWriter")
 
@@ -50,11 +47,11 @@ master_phil = freephil.parse(
         .help = "If True, create also a _vds.h5 file. Only for image data."
     }
 
-    include scope nexgen.nxs_phil.goniometer_scope
+    include scope nxs_phil.goniometer_scope
 
-    include scope nexgen.nxs_phil.beamline_scope
+    include scope nxs_phil.beamline_scope
 
-    include scope nexgen.nxs_phil.detector_scope
+    include scope nxs_phil.detector_scope
     """,
     process_includes=True,
 )
