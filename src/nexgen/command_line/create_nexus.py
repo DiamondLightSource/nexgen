@@ -2,10 +2,6 @@
 Command line tool to generate a NeXus file.
 """
 
-# import sys
-
-# sys.path.append("/home/uhz96441/local/Python3_dials/modules/nexgen/src/nexgen/")
-
 import h5py
 import logging
 import argparse
@@ -240,6 +236,5 @@ def main():
     logger.info("==" * 50)
 
 
-# if __name__ == "__main__":
-# args = parser.parse_args()
-#    main()
+if __name__ == "__main__":
+    main()
