@@ -376,19 +376,24 @@ def write_NXdetector(
     # Create groups for detector_z and two_theta if present
     vectors = split_arrays(coord_frame, detector["axes"], detector["vectors"])
 
+    # FIXME this assumes only detector_z or two_theta as axes
     for ax in detector["axes"]:
+        idx = detector["axes"].index(ax)
         if ax == "det_z":
             grp_name = "detector_z"
+            _dep = set_dependency(
+                detector["depends"][idx],
+                "entry/instrument/detector/transformations/two_theta/",
+            )
         else:
             grp_name = ax
-        idx = detector["axes"].index(ax)
+            _dep = set_dependency(
+                detector["depends"][idx],
+                "entry/instrument/detector/transformations/detector_z/",
+            )
         nxgrp_ax = nxtransformations.create_group(grp_name)
         create_attributes(nxgrp_ax, ("NX_class",), ("NXpositioner",))
         nxdet_ax = nxgrp_ax.create_dataset(ax, data=detector["starts"][idx])
-        _dep = set_dependency(
-            detector["depends"][idx],
-            "entry/instrument/detector/transformations/" + grp_name,
-        )
         create_attributes(
             nxdet_ax,
             ("depends_on", "transformation_type", "units", "vector"),
