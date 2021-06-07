@@ -122,7 +122,7 @@ def main():
     cf = params.input.coordinate_frame
     goniometer = params.goniometer
     detector = params.detector
-    module = params.module
+    module = params.detector_module
     source = params.source
     beam = params.beam
     attenuator = params.attenuator
