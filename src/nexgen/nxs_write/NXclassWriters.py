@@ -151,13 +151,13 @@ def write_NXsample(
         create_attributes(nxsample_ax, ("NX_class",), ("NXpositioner",))
         if ax == scan_axis:
             # If we're dealing with the scan axis
+            idx = goniometer["axes"].index(scan_axis)
             try:
                 for k in nxsfile["entry/data"].keys():
                     if nxsfile["entry/data"][k].attrs.get("depends_on"):
                         nxsample_ax[ax] = nxsfile[nxsfile["entry/data"][k].name]
                         nxtransformations[ax] = nxsfile[nxsfile["entry/data"][k].name]
             except KeyError:
-                idx = goniometer["axes"].index(scan_axis)
                 nxax = nxsample_ax.create_dataset(ax, data=scan_range)
                 _dep = set_dependency(
                     goniometer["depends"][idx], path="/entry/sample/transformations/"
