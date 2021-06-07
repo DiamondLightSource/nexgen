@@ -189,7 +189,7 @@ def write_NXsample(
                 goniometer["depends"][idx], path="/entry/sample/transformations/"
             )
             create_attributes(
-                ax,
+                nxax,
                 ("depends_on", "transformation_type", "units", "vector"),
                 (
                     _dep,
