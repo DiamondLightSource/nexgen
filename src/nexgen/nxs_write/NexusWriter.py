@@ -4,9 +4,9 @@ Writer for NeXus format files.
 
 # import sys
 import h5py
-import time
-import datetime
 import numpy as np
+import time
+from datetime import datetime
 
 # from pathlib import Path
 
