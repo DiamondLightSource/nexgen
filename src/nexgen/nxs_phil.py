@@ -8,7 +8,7 @@ import freephil
 # Need to find a way to tell which module is which
 module_scope = freephil.parse(
     """
-    module {
+    detector_module {
       num_modules = 1
         .type = int
         .help = "Number of modules - defaults to 1." # not sure how useful right now...
