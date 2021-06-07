@@ -12,8 +12,8 @@ Command line
 
 .. automodule:: nexgen.command_line
 
-.. automodule:: nexgen.command_line.copy_nexus_from_tristan
-    :members:
+#.. automodule:: nexgen.command_line.copy_nexus_from_tristan
+#    :members:
 
 Writing tools
 -------------
@@ -21,7 +21,7 @@ Writing tools
 .. automodule:: nexgen.nxs_write
     :members:
 
-.. automodule:: nexgen.nex_write.NXclassWriters
+.. automodule:: nexgen.nxs_write.NXclassWriters
     :members:
 
 Copying tools
