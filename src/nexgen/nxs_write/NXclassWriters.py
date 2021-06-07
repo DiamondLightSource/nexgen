@@ -195,7 +195,7 @@ def write_NXsample(
                     _dep,
                     goniometer["types"][idx],
                     goniometer["units"][idx],
-                    vectors[scan_axis],
+                    vectors[ax],
                 ),
             )
             nxtransformations[ax] = nxsfile[nxax.name]
@@ -396,7 +396,7 @@ def write_NXdetector(
                 _dep,
                 detector["types"][idx],
                 detector["units"][idx],
-                vectors[idx],
+                vectors[ax],
             ),
         )
 
