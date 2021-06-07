@@ -1,4 +1,5 @@
 """
+Writer functions for different groups of a NeXus file.
 """
 import sys
 import h5py
