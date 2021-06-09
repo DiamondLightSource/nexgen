@@ -7,9 +7,7 @@ import sys
 
 import freephil
 
-from nexgen.nxs_copy import CopyNexus
-
-# from ..nxs_copy import CopyNexus
+from ..nxs_copy import CopyNexus
 
 copy_scope = freephil.parse(
     """

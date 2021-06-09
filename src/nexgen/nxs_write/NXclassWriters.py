@@ -5,8 +5,6 @@ import sys
 import h5py
 import numpy as np
 
-# from pathlib import Path
-
 from . import find_scan_axis, split_arrays, calculate_origin
 from .. import create_attributes, set_dependency, imgcif2mcstas
 

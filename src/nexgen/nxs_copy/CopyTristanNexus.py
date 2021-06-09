@@ -6,8 +6,6 @@ import os
 import h5py
 import numpy as np
 
-# from pathlib import Path
-
 from . import get_nexus_tree, identify_scan_axis, convert_scan_axis
 from .. import create_attributes
 
