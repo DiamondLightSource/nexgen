@@ -4,8 +4,6 @@ Define phil scopes that describe beamline, goniometer, detector and module.
 
 import freephil
 
-import nexgen.command_line
-
 # Multiple modules should be considered
 # Need to find a way to tell which module is which
 module_scope_string = """
@@ -34,9 +32,7 @@ detector_module {
     .help = "In case of multiple modules, pass the size of aeach single module"
 }
 """
-module_scope = freephil.parse(
-    module_scope_string
-)
+module_scope = freephil.parse(module_scope_string)
 
 detector_scope = freephil.parse(
     f"""
