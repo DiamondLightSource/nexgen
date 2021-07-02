@@ -515,11 +515,11 @@ def write_NXdetector_module(
             ),
             (
                 "/entry/instrument/detector/transformations/detector_z/det_z",
-                origin,
+                [0, 0, 0],  # origin,
                 "mm",
                 "translation",
                 "mm",
-                [1, 0, 0],
+                origin,  # [1, 0, 0],
             ),
         )
         # Correct dependency tree accordingly
