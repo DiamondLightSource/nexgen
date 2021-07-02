@@ -3,8 +3,8 @@ import sys
 import logging
 import h5py
 
-from nexgen.geometry_phil import scope
-from nexgen.writer import NexusWriter
+from ..geometry_phil import scope
+from ..writer import NexusWriter
 
 logger = logging.getLogger("NXSWriter")
 

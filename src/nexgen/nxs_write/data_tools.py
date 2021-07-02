@@ -5,12 +5,8 @@ General tools for data writing.
 import h5py
 import numpy as np
 
-# from pathlib import Path
 from hdf5plugin import Bitshuffle
 
-# from . import find_scan_axis
-
-# from .. import imgcif2mcstas, create_attributes, set_dependency
 
 # Writer functions
 def data_writer(
