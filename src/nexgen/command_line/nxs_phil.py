@@ -60,6 +60,7 @@ module_scope = freephil.parse(
         .multiple = True
         .type = ints
         .help = "In case of multiple modules, pass the size of aeach single module"
+    }
     """
 )
 
