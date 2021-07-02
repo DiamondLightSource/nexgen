@@ -6,6 +6,7 @@ import freephil
 
 # Multiple modules should be considered
 # Need to find a way to tell which module is which
+# FIXME apparently doing this string thing means that the default values are not read
 module_scope_string = """
 detector_module {
   num_modules = 1
