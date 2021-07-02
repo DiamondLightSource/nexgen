@@ -7,33 +7,61 @@ import freephil
 # Multiple modules should be considered
 # Need to find a way to tell which module is which
 # FIXME apparently doing this string thing means that the default values are not read
-module_scope_string = """
-detector_module {
-  num_modules = 1
-    .type = int
-    .help = "Number of modules - defaults to 1." # not sure how useful right now...
-  module_offset = False
-    .type = bool
-    .help = "If set to true, calculates offset of the module in regard to detector origin and creates corresponding field"
-  fast_axis = 1 0 0
-    .multiple = True
-    .type = floats(size = 3)
-    .help = "Fast axis at datum position"
-  slow_axis = 0 -1 0
-    .multiple = True
-    .type = floats(size = 3)
-    .help = "Slow axis at datum position"
-  offsets = -0.1662 0.1721 0 0 0 0
-    .multiple = True
-    .type = floats
-    .help = "Axis offsets - one after the other - fast then slow"
-  module_size = 0 0
-    .multiple = True
-    .type = ints
-    .help = "In case of multiple modules, pass the size of aeach single module"
-}
-"""
-module_scope = freephil.parse(module_scope_string)
+# module_scope_string = """
+# detector_module {
+#   num_modules = 1
+#     .type = int
+#     .help = "Number of modules - defaults to 1." # not sure how useful right now...
+#   module_offset = False
+#     .type = bool
+#     .help = "If set to true, calculates offset of the module in regard to detector origin and creates corresponding field"
+#   fast_axis = 1 0 0
+#     .multiple = True
+#     .type = floats(size = 3)
+#     .help = "Fast axis at datum position"
+#   slow_axis = 0 -1 0
+#     .multiple = True
+#     .type = floats(size = 3)
+#     .help = "Slow axis at datum position"
+#   offsets = -0.1662 0.1721 0 0 0 0
+#     .multiple = True
+#     .type = floats
+#     .help = "Axis offsets - one after the other - fast then slow"
+#   module_size = 0 0
+#     .multiple = True
+#     .type = ints
+#     .help = "In case of multiple modules, pass the size of aeach single module"
+# }
+# """
+# module_scope = freephil.parse(module_scope_string)
+
+module_scope = freephil.parse(
+    """
+    detector_module {
+      num_modules = 1
+        .type = int
+        .help = "Number of modules - defaults to 1." # not sure how useful right now...
+      module_offset = False
+        .type = bool
+        .help = "If set to true, calculates offset of the module in regard to detector origin and creates corresponding field"
+      fast_axis = 1 0 0
+        .multiple = True
+        .type = floats(size = 3)
+        .help = "Fast axis at datum position"
+      slow_axis = 0 -1 0
+        .multiple = True
+        .type = floats(size = 3)
+        .help = "Slow axis at datum position"
+      offsets = -0.1662 0.1721 0 0 0 0
+        .multiple = True
+        .type = floats
+        .help = "Axis offsets - one after the other - fast then slow"
+      module_size = 0 0
+        .multiple = True
+        .type = ints
+        .help = "In case of multiple modules, pass the size of aeach single module"
+    """
+)
 
 detector_scope = freephil.parse(
     """
