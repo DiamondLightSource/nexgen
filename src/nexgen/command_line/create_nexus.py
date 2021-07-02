@@ -49,6 +49,8 @@ master_phil = freephil.parse(
     include scope nexgen.command_line.nxs_phil.beamline_scope
 
     include scope nexgen.command_line.nxs_phil.detector_scope
+
+    include scope nexgen.command_line.nxs_phil.module_scope
     """,
     process_includes=True,
 )
