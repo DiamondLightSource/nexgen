@@ -501,7 +501,29 @@ def write_NXdetector_module(
     # If module_offset is set ti=o True, calculate and write it
     if module["module_offset"] is True:
         origin = calculate_origin(beam_center, pixel_size, fast_axis, slow_axis)
-        # TODO correct value according to Jira tickets
+        # FIXME correct value according to Jira tickets
+        # TODO add possibility of both
+        module_offset = nxmodule.create_dataset("module_offset", data=np.array([1]))
+        create_attributes(
+            module_offset,
+            (
+                "depends_on",
+                "offset",
+                "offset_units",
+                "transformation_type",
+                "units",
+                "vector",
+            ),
+            (
+                "/entry/instrument/detector/transformations/detector_z/det_z",
+                [0, 0, 0],
+                "mm",
+                "translation",
+                "mm",
+                origin,
+            ),
+        )
+        """
         module_offset = nxmodule.create_dataset("module_offset", data=np.array([0, 0]))
         create_attributes(
             module_offset,
@@ -522,6 +544,7 @@ def write_NXdetector_module(
                 [1, 0, 0],
             ),
         )
+        """
         # Correct dependency tree accordingly
         _path = "/entry/instrument/detector/module/module_offset"
         create_attributes(fast_pixel, ("depends_on"), (_path,))
