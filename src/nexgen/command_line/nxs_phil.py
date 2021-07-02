@@ -199,6 +199,7 @@ beamline_scope = freephil.parse(
 )
 
 if __name__ == "__main__":
+    print(module_scope.as_str())
     print(detector_scope.as_str())
     print(goniometer_scope.as_str())
     print(beamline_scope.as_str())
