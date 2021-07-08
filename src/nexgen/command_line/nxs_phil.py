@@ -6,7 +6,6 @@ import freephil
 
 # Multiple modules should be considered
 # Need to find a way to tell which module is which
-# FIXME apparently doing this string thing means that the default values are not read
 # module_scope_string = """
 # detector_module {
 #   num_modules = 1
@@ -128,8 +127,6 @@ detector_scope = freephil.parse(
         .type = strings
         .help = "Axis units, from mm or deg"
     }
-
-    #module_scope_string
     """
 )
 
@@ -202,6 +199,7 @@ beamline_scope = freephil.parse(
 )
 
 if __name__ == "__main__":
+    print(module_scope.as_str())
     print(detector_scope.as_str())
     print(goniometer_scope.as_str())
     print(beamline_scope.as_str())
