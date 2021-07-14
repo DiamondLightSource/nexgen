@@ -36,11 +36,20 @@ def single_image_nexus(data_file, tristan_nexus, write_mode="x"):
         # Create nxdata group
         nxdata = nxentry.create_group("data")
         # Add link to data
-        nxdata["data"] = h5py.ExternalLink(data_file, "data")
+        nxdata["data"] = h5py.ExternalLink(os.path.basename(data_file), "data")
         # Compute and write axis information
         ax, ax_attr = identify_scan_axis(nxs_in)
         create_attributes(
-            nxdata, ("NX_class", "axes", "signal"), ("NXdata", ax, "data")
+            nxdata,
+            ("NX_class", "axes", "signal", ax + "_indices"),
+            (
+                "NXdata",
+                ax,
+                "data",
+                [
+                    0,
+                ],
+            ),
         )
         try:
             ax_range = nxs_in["entry/data"][ax][0]
@@ -92,11 +101,20 @@ def multiple_images_nexus(
         # Create nxdata group
         nxdata = nxentry.create_group("data")
         # Add link to data
-        nxdata["data"] = h5py.ExternalLink(data_file, "data")
+        nxdata["data"] = h5py.ExternalLink(os.path.basename(data_file), "data")
         # Compute and write axis information
         ax, ax_attr = identify_scan_axis(nxs_in)
         create_attributes(
-            nxdata, ("NX_class", "axes", "signal"), ("NXdata", ax, "data")
+            nxdata,
+            ("NX_class", "axes", "signal", ax + "_indices"),
+            (
+                "NXdata",
+                ax,
+                "data",
+                [
+                    0,
+                ],
+            ),
         )
         try:
             (start, stop) = nxs_in["entry/data"][ax][()]
@@ -165,11 +183,20 @@ def pump_probe_nexus(data_file, tristan_nexus, write_mode="x", mode="static"):
         # Create nxdata group
         nxdata = nxentry.create_group("data")
         # Add link to data
-        nxdata["data"] = h5py.ExternalLink(data_file, "data")
+        nxdata["data"] = h5py.ExternalLink(os.path.basename(data_file), "data")
         # Compute and write axis information
         ax, ax_attr = identify_scan_axis(nxs_in)
         create_attributes(
-            nxdata, ("NX_class", "axes", "signal"), ("NXdata", ax, "data")
+            nxdata,
+            ("NX_class", "axes", "signal", ax + "_indices"),
+            (
+                "NXdata",
+                ax,
+                "data",
+                [
+                    0,
+                ],
+            ),
         )
         if mode in ["static", "powder_diffraction"]:
             try:
