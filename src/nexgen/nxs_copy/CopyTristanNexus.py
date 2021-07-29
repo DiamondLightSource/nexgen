@@ -6,6 +6,8 @@ import os
 import h5py
 import numpy as np
 
+from pathlib import Path
+
 from . import get_nexus_tree, identify_scan_axis, convert_scan_axis
 from .. import create_attributes
 
@@ -92,7 +94,10 @@ def multiple_images_nexus(
     Returns:
         The name of the output NeXus file.
     """
-    nxs_filename = os.path.splitext(data_file)[0] + ".nxs"
+    # nxs_filename = os.path.splitext(data_file)[0] + ".nxs"
+    if type(data_file) is str:
+        data_file = Path(data_file).expanduser().resolve()
+    nxs_filename = data_file.parent / f"{data_file.stem}.nxs"
     with h5py.File(tristan_nexus, "r") as nxs_in, h5py.File(
         nxs_filename, write_mode
     ) as nxs_out:
