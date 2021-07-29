@@ -34,7 +34,7 @@ steps:
 - bash: |
     curl -Os https://uploader.codecov.io/latest/linux/codecov
     chmod +x codecov
-    ./codecov -B $(Build.SourceBranchName) -C $(Build.SourceVersion) -n "Python $(PYTHON_VERSION) $(Agent.OS)"
+    ./codecov -B $(Build.SourceBranchName) -C $(Build.SourceVersion) -t $(CODECOV_TOKEN) -n "Python $(PYTHON_VERSION) $(Agent.OS)"
   displayName: 'Publish coverage stats'
   continueOnError: True
   workingDirectory: $(Pipeline.Workspace)/src
