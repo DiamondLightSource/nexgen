@@ -85,7 +85,7 @@ def check_I19_dependency_tree(NXtransf: h5py.Group):
             "/entry/sample/transformations/sam_z"
         )
     if NXtransf["sam_z"].attrs["depends_on"] != b"/entry/sample/transformations/phi":
-        NXtransf["sam_Z"].attrs["depends_on"] = np.string_(
+        NXtransf["sam_z"].attrs["depends_on"] = np.string_(
             "/entry/sample/transformations/phi"
         )
 
