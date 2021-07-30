@@ -55,8 +55,18 @@ def check_detector_transformations(nxtransf: h5py.Group):
         logger.info("Overwriting det_z vector ...")
         det_z.attrs["vector"] = [0, 0, -1]
 
-    # TBD
-    # logger.info("Checking dependency tree for typos ...")
+    logger.info("Checking dependency tree of detector for typos ...")
+    if two_theta[ds_name].attrs["depends_on"] != b".":
+        logger.info("Setting two_theta as base ...")
+        two_theta[ds_name].attrs["depends_on"] = np.string_(".")
+    if (
+        det_z.attrs["depends_on"]
+        != b"/entry/instrument/detector/transformations/two_theta/two_theta"
+    ):
+        logger.info("Fixing typo in det_z dependency ...")
+        det_z.attrs["depends_on"] == np.string_(
+            "/entry/instrument/detector/transformations/two_theta/two_theta"
+        )
 
 
 def check_sample_depends_on(nxsample: h5py.Group):
