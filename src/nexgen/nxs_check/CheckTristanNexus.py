@@ -64,7 +64,7 @@ def check_detector_transformations(nxtransf: h5py.Group):
         != b"/entry/instrument/detector/transformations/two_theta/two_theta"
     ):
         logger.info("Fixing typo in det_z dependency ...")
-        det_z.attrs["depends_on"] == np.string_(
+        det_z.attrs["depends_on"] = np.string_(
             "/entry/instrument/detector/transformations/two_theta/two_theta"
         )
 
