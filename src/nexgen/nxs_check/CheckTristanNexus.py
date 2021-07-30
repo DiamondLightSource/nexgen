@@ -64,6 +64,8 @@ def check_I19_dependency_tree(NXtransf: h5py.Group):
     Check and fix that the dependency tree in "entry/sample/transformations" is consistent with I19-2.
     """
     # FIXME Quick hard coded way, works for now but needs to be generalized.
+    logger.info("The dependency tree on I19-2 should follow this order:")
+    logger.info("x - y - z - phi - kappa - omega")
     if NXtransf["omega"].attrs["depends_on"] != b".":
         NXtransf["omega"].attrs["depends_on"] = np.string_(".")
     if NXtransf["kappa"].attrs["depends_on"] != b"/entry/sample/transformations/omega":
@@ -95,9 +97,7 @@ def run_checks(tristan_nexus_file):
     wdir = tristan_nexus_file.parent
     logfile = wdir / "NeXusChecks.log"  # widr is a PosixPath
     logging.basicConfig(
-        filename=logfile,
-        format="%(message)s",
-        level="DEBUG",
+        filename=logfile, format="%(asctime)s %(message)s", level="DEBUG", filemode="w"
     )
     logger.info(f"Running checks on {tristan_nexus_file} ...")
 
