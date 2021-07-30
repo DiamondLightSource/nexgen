@@ -1,9 +1,11 @@
 """
-Tools to check and eventually fix NeXus files for Tristan LATRD detector.
+Tools to check and eventually fix NeXus files for Tristan LATRD detector on I19-2 beamline at DLS.
 """
 
 import h5py
 import logging
+
+import numpy as np
 
 # Define logger
 logger = logging.getLogger("TristanNXSChecks")
@@ -53,7 +55,37 @@ def check_detector_transformations(NXtransf: h5py.Group):
         logger.info("Overwriting det_z vector ...")
         det_z.attrs["vector"] = [0, 0, -1]
 
-    logger.info("Checking dependency tree for typos ...")
+    # TBD
+    # logger.info("Checking dependency tree for typos ...")
+
+
+def check_I19_dependency_tree(NXtransf: h5py.Group):
+    """
+    Check and fix that the dependency tree in "entry/sample/transformations" is consistent with I19-2.
+    """
+    # FIXME Quick hard coded way, works for now but needs to be generalized.
+    if NXtransf["omega"].attrs["depends_on"] != b".":
+        NXtransf["omega"].attrs["depends_on"] = np.string_(".")
+    if NXtransf["kappa"].attrs["depends_on"] != b"/entry/sample/transformations/omega":
+        NXtransf["kappa"].attrs["depends_on"] = np.string_(
+            "/entry/sample/transformations/omega"
+        )
+    if NXtransf["phi"].attrs["depends_on"] != b"/entry/sample/transformations/kappa":
+        NXtransf["phi"].attrs["depends_on"] = np.string_(
+            "/entry/sample/transformations/kappa"
+        )
+    if NXtransf["sam_x"].attrs["depends_on"] != b"/entry/sample/transformations/sam_y":
+        NXtransf["sam_x"].attrs["depends_on"] = np.string_(
+            "/entry/sample/transformations/sam_y"
+        )
+    if NXtransf["sam_y"].attrs["depends_on"] != b"/entry/sample/transformations/sam_z":
+        NXtransf["sam_y"].attrs["depends_on"] = np.string_(
+            "/entry/sample/transformations/sam_z"
+        )
+    if NXtransf["sam_z"].attrs["depends_on"] != b"/entry/sample/transformations/phi":
+        NXtransf["sam_Z"].attrs["depends_on"] = np.string_(
+            "/entry/sample/transformations/phi"
+        )
 
 
 def run_checks(tristan_nexus_file):
@@ -86,4 +118,6 @@ def run_checks(tristan_nexus_file):
             # NXtransformations group was placed under NXinstrument group
             check_detector_transformations(nxsfile["entry/instrument/transformations"])
         logger.info("-" * 10)
+        logger.info("Check goniometer dependency tree")
+        check_I19_dependency_tree(nxsfile["entry/sample/transformations"])
         logger.info("EOF")
