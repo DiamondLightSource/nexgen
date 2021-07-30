@@ -24,7 +24,7 @@ def check_definition(nxsfile: h5py.File):
     logger.info("")
 
 
-def check_detector_transformations(NXtransf: h5py.Group):
+def check_detector_transformations(nxtransf: h5py.Group):
     """
     Checks and eventually fixes the values of detector_z and two_theta fields and their attributes.
     """
@@ -33,11 +33,11 @@ def check_detector_transformations(NXtransf: h5py.Group):
     )
     try:
         ds_name = "two_theta"
-        two_theta = NXtransf["two_theta"]
+        two_theta = nxtransf["two_theta"]
     except KeyError:
         # For older versions of Tristan nexus file
         ds_name = "twotheta"
-        two_theta = NXtransf["twotheta"]
+        two_theta = nxtransf["twotheta"]
     if two_theta[ds_name][()] != 0:
         logger.info("Correcting the value of two_theta arm ...")
         d = {}
@@ -50,7 +50,7 @@ def check_detector_transformations(NXtransf: h5py.Group):
         del d
 
     logger.info("Additionally, the detector_z vector should be [0,0,-1]")
-    det_z = NXtransf["detector_z/det_z"]
+    det_z = nxtransf["detector_z/det_z"]
     if np.any(det_z.attrs["vector"] != [0, 0, -1]):
         logger.info("Overwriting det_z vector ...")
         det_z.attrs["vector"] = [0, 0, -1]
@@ -59,33 +59,53 @@ def check_detector_transformations(NXtransf: h5py.Group):
     # logger.info("Checking dependency tree for typos ...")
 
 
-def check_I19_dependency_tree(NXtransf: h5py.Group):
+def check_sample_depends_on(nxsample: h5py.Group):
+    """
+    Check that the sample depends_on field exists and is correct.
+    For I19-2 Tristan it should be "/entry/sample/transformations/phi"
+    """
+    try:
+        dep = nxsample["depends_on"][()]
+        if dep != b"/entry/sample/transformations/phi":
+            logger.info("Fixing sample depends_on field ...")
+            del nxsample["depends_on"]
+            nxsample.create_dataset(
+                "depends_on", data=np.string_("/entry/sample/transformations/phi")
+            )
+    except KeyError:
+        logger.info("Sample depends_on field did not exist, creating now ...")
+        nxsample.create_dataset(
+            "depends_on", data=np.string_("/entry/sample/transformations/phi")
+        )
+
+
+def check_I19_dependency_tree(nxtransf: h5py.Group):
     """
     Check and fix that the dependency tree in "entry/sample/transformations" is consistent with I19-2.
     """
     # FIXME Quick hard coded way, works for now but needs to be generalized.
     logger.info("The dependency tree on I19-2 should follow this order:")
     logger.info("x - y - z - phi - kappa - omega")
-    if NXtransf["omega"].attrs["depends_on"] != b".":
-        NXtransf["omega"].attrs["depends_on"] = np.string_(".")
-    if NXtransf["kappa"].attrs["depends_on"] != b"/entry/sample/transformations/omega":
-        NXtransf["kappa"].attrs["depends_on"] = np.string_(
+    if nxtransf["omega"].attrs["depends_on"] != b".":
+        nxtransf["omega"].attrs["depends_on"] = np.string_(".")
+    if nxtransf["kappa"].attrs["depends_on"] != b"/entry/sample/transformations/omega":
+        nxtransf["kappa"].attrs["depends_on"] = np.string_(
             "/entry/sample/transformations/omega"
         )
-    if NXtransf["phi"].attrs["depends_on"] != b"/entry/sample/transformations/kappa":
-        NXtransf["phi"].attrs["depends_on"] = np.string_(
+    if nxtransf["phi"].attrs["depends_on"] != b"/entry/sample/transformations/kappa":
+        nxtransf["phi"].attrs["depends_on"] = np.string_(
             "/entry/sample/transformations/kappa"
         )
-    if NXtransf["sam_x"].attrs["depends_on"] != b"/entry/sample/transformations/sam_y":
-        NXtransf["sam_x"].attrs["depends_on"] = np.string_(
+    if nxtransf["sam_x"].attrs["depends_on"] != b"/entry/sample/transformations/sam_y":
+        nxtransf["sam_x"].attrs["depends_on"] = np.string_(
             "/entry/sample/transformations/sam_y"
         )
-    if NXtransf["sam_y"].attrs["depends_on"] != b"/entry/sample/transformations/sam_z":
-        NXtransf["sam_y"].attrs["depends_on"] = np.string_(
+    if nxtransf["sam_y"].attrs["depends_on"] != b"/entry/sample/transformations/sam_z":
+        nxtransf["sam_y"].attrs["depends_on"] = np.string_(
             "/entry/sample/transformations/sam_z"
         )
-    if NXtransf["sam_z"].attrs["depends_on"] != b"/entry/sample/transformations/phi":
-        NXtransf["sam_z"].attrs["depends_on"] = np.string_(
+    if nxtransf["sam_z"].attrs["depends_on"] != b"/entry/sample/transformations/phi":
+        nxtransf["sam_z"].attrs["depends_on"] = np.string_(
             "/entry/sample/transformations/phi"
         )
 
@@ -97,7 +117,7 @@ def run_checks(tristan_nexus_file):
     wdir = tristan_nexus_file.parent
     logfile = wdir / "NeXusChecks.log"  # widr is a PosixPath
     logging.basicConfig(
-        filename=logfile, format="%(asctime)s %(message)s", level="DEBUG", filemode="w"
+        filename=logfile, format="%(message)s", level="DEBUG", filemode="w"
     )
     logger.info(f"Running checks on {tristan_nexus_file} ...")
 
@@ -117,6 +137,9 @@ def run_checks(tristan_nexus_file):
             # For earlier versions of the Tristan nexus file (before June 2021):
             # NXtransformations group was placed under NXinstrument group
             check_detector_transformations(nxsfile["entry/instrument/transformations"])
+        logger.info("-" * 10)
+        logger.info("Check sample depends on")
+        check_sample_depends_on(nxsfile["entry/sample"])
         logger.info("-" * 10)
         logger.info("Check goniometer dependency tree")
         check_I19_dependency_tree(nxsfile["entry/sample/transformations"])
