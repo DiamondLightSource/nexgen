@@ -2,10 +2,13 @@
 Tools to check and eventually fix NeXus files for Tristan LATRD detector on I19-2 beamline at DLS.
 """
 
+import sys
 import h5py
 import logging
 
 import numpy as np
+
+from pathlib import Path
 
 # Define logger
 logger = logging.getLogger("TristanNXSChecks")
@@ -130,6 +133,8 @@ def run_checks(tristan_nexus_file):
     """
     Instigates the functions to check nexus files generated after binning of Tristan data.
     """
+    if type(tristan_nexus_file) is str:
+        tristan_nexus_file = Path(tristan_nexus_file).expanduser().resolve()
     wdir = tristan_nexus_file.parent
     logfile = wdir / "NeXusChecks.log"  # widr is a PosixPath
     logging.basicConfig(
@@ -160,3 +165,6 @@ def run_checks(tristan_nexus_file):
         logger.info("Check goniometer dependency tree")
         check_I19_dependency_tree(nxsfile["entry/sample/transformations"])
         logger.info("EOF")
+
+
+run_checks(sys.argv[1])
