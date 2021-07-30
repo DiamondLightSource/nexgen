@@ -97,24 +97,30 @@ def check_I19_dependency_tree(nxtransf: h5py.Group):
     logger.info("The dependency tree on I19-2 should follow this order:")
     logger.info("x - y - z - phi - kappa - omega")
     if nxtransf["omega"].attrs["depends_on"] != b".":
+        logger.info("Fixing omega ...")
         nxtransf["omega"].attrs["depends_on"] = np.string_(".")
     if nxtransf["kappa"].attrs["depends_on"] != b"/entry/sample/transformations/omega":
+        logger.info("Fixing kappa ...")
         nxtransf["kappa"].attrs["depends_on"] = np.string_(
             "/entry/sample/transformations/omega"
         )
     if nxtransf["phi"].attrs["depends_on"] != b"/entry/sample/transformations/kappa":
+        logger.info("Fixing phi ...")
         nxtransf["phi"].attrs["depends_on"] = np.string_(
             "/entry/sample/transformations/kappa"
         )
     if nxtransf["sam_x"].attrs["depends_on"] != b"/entry/sample/transformations/sam_y":
+        logger.info("Fixing sam_x ...")
         nxtransf["sam_x"].attrs["depends_on"] = np.string_(
             "/entry/sample/transformations/sam_y"
         )
     if nxtransf["sam_y"].attrs["depends_on"] != b"/entry/sample/transformations/sam_z":
+        logger.info("Fixing sam_y ...")
         nxtransf["sam_y"].attrs["depends_on"] = np.string_(
             "/entry/sample/transformations/sam_z"
         )
     if nxtransf["sam_z"].attrs["depends_on"] != b"/entry/sample/transformations/phi":
+        logger.info("Fixing sam_z ...")
         nxtransf["sam_z"].attrs["depends_on"] = np.string_(
             "/entry/sample/transformations/phi"
         )
