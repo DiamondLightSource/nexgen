@@ -57,14 +57,9 @@ def set_dependency(dep_info, path=None):
     """
     if dep_info == ".":
         return np.string_(".")
-    #    _d = dep_info
-    #    if _d == ".":
-    #        return numpy.string_(_d)
-    #    else:
-    #        _s = path + _d
-    #        return numpy.string_(_s)
-
     if path:
+        if path.endswith("/") is False:
+            path += "/"
         return np.string_(path + dep_info)
     else:
         return np.string_(dep_info)
