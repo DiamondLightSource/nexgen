@@ -113,20 +113,29 @@ def check_I19_dependency_tree(nxtransf: h5py.Group):
             "/entry/sample/transformations/kappa"
         )
     if nxtransf["sam_x"].attrs["depends_on"] != b"/entry/sample/transformations/sam_y":
-        logger.info("Fixing sam_x ...")
+        logger.info("Fixing sam_x dependency...")
         nxtransf["sam_x"].attrs["depends_on"] = np.string_(
             "/entry/sample/transformations/sam_y"
         )
+    if nxtransf["sam_x"].attrs["vector"] != [-1, 0, 0]:
+        logger.info("Fixing sam_x vector...")
+        nxtransf["sam_x"].attrs["vector"] = [-1, 0, 0]
     if nxtransf["sam_y"].attrs["depends_on"] != b"/entry/sample/transformations/sam_z":
         logger.info("Fixing sam_y ...")
         nxtransf["sam_y"].attrs["depends_on"] = np.string_(
             "/entry/sample/transformations/sam_z"
         )
+    if nxtransf["sam_y"].attrs["vector"] != [0, -1, 0]:
+        logger.info("Fixing sam_y vector...")
+        nxtransf["sam_y"].attrs["vector"] = [0, -1, 0]
     if nxtransf["sam_z"].attrs["depends_on"] != b"/entry/sample/transformations/phi":
         logger.info("Fixing sam_z ...")
         nxtransf["sam_z"].attrs["depends_on"] = np.string_(
             "/entry/sample/transformations/phi"
         )
+    if nxtransf["sam_z"].attrs["vector"] != [0, 0, -1]:
+        logger.info("Fixing sam_z vector...")
+        nxtransf["sam_z"].attrs["vector"] = [0, 0, -1]
 
 
 def run_checks(tristan_nexus_file):
