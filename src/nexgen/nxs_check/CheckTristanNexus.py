@@ -143,7 +143,7 @@ def check_values(nxentry: h5py.Group):
     Checks tht all dataset values that are supposed to be floats/ints aren't saved as strings.
     """
     instr = nxentry["instrument"]
-    if type(instr["beam/incident_wavelength"][()]) is str:
+    if type(instr["beam/incident_wavelength"][()]) is bytes:
         logger.info("Fixing incident wavelength value ...")
         d = {}
         for k, v in instr["beam/incident_wavelength"].attrs.items():
@@ -154,14 +154,14 @@ def check_values(nxentry: h5py.Group):
         for k, v in d.items():
             wl.attrs[k] = v
         del d, val
-    if type(instr["attenuator/attenuator_transmission"][()]) is str:
+    if type(instr["attenuator/attenuator_transmission"][()]) is np.bytes_:
         logger.info("Fixing attenuator transmission value...")
         val = float(instr["attenuator/attenuator_transmission"][()])
         del instr["attenuator/attenuator_traansmission"]
         instr["attenuator"].create_dataset("attenuator_transmission", data=val)
         del val
     det = instr["detector"]
-    if type(det["sensor_thickness"]) is str:
+    if type(det["sensor_thickness"]) is np.bytes_:
         logger.info("Fixing sensor thickness value ...")
         d = {}
         for k, v in det["sensor_thickness"].attrs.items():
