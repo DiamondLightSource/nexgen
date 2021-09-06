@@ -160,8 +160,8 @@ def check_values(nxentry: h5py.Group):
         del instr["attenuator/attenuator_traansmission"]
         instr["attenuator"].create_dataset("attenuator_transmission", data=val)
         del val
-    det = instr["detector"]
-    if type(det["sensor_thickness"]) is bytes:
+    det = nxentry["instrument/detector"]
+    if type(det["sensor_thickness"][()]) is bytes:
         logger.info("Fixing sensor thickness value ...")
         d = {}
         for k, v in det["sensor_thickness"].attrs.items():
