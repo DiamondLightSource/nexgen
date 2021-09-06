@@ -138,6 +138,42 @@ def check_I19_dependency_tree(nxtransf: h5py.Group):
         nxtransf["sam_z"].attrs["vector"] = [0, 0, -1]
 
 
+def check_values(nxentry: h5py.Group):
+    """
+    Checks tht all dataset values that are supposed to be floats/ints aren't saved as strings.
+    """
+    instr = nxentry["instrument"]
+    if type(instr["beam/incident_wavelength"][()]) is str:
+        logger.info("Fixing incident wavelength value ...")
+        d = {}
+        for k, v in instr["beam/incident_wavelength"].attrs.items():
+            d[k] = v
+        val = float(instr["beam/incident_wavelength"][()])
+        del instr["beam/incident_wavelength"]
+        wl = instr["beam"].create_dataset("incident_wavelength", data=val)
+        for k, v in d.items():
+            wl.attrs[k] = v
+        del d, val
+    if type(instr["attenuator/attenuator_transmission"][()]) is str:
+        logger.info("Fixing attenuator transmission value...")
+        val = float(instr["attenuator/attenuator_transmission"][()])
+        del instr["attenuator/attenuator_traansmission"]
+        instr["attenuator"].create_dataset("attenuator_transmission", data=val)
+        del val
+    det = instr["detector"]
+    if type(det["sensor_thickness"]) is str:
+        logger.info("Fixing sensor thickness value ...")
+        d = {}
+        for k, v in det["sensor_thickness"].attrs.items():
+            d[k] = v
+        val = float(det["sensor_thickness"][()])
+        del det["sensor_thickness"]
+        th = det.create_dataset("sensor_thickness", data=val)
+        for k, v in d.items():
+            th.attrs[k] = v
+        del d, val
+
+
 def run_checks(tristan_nexus_file):
     """
     Instigates the functions to check nexus files generated after binning of Tristan data.
@@ -147,7 +183,7 @@ def run_checks(tristan_nexus_file):
     wdir = tristan_nexus_file.parent
     logfile = wdir / "NeXusChecks.log"  # widr is a PosixPath
     logging.basicConfig(
-        filename=logfile, format="%(message)s", level="DEBUG", filemode="w"
+        filename=logfile, format="%(message)s", level="DEBUG", filemode="a"
     )
     logger.info(f"Running checks on {tristan_nexus_file} ...")
 
@@ -173,6 +209,9 @@ def run_checks(tristan_nexus_file):
         logger.info("-" * 10)
         logger.info("Check goniometer dependency tree")
         check_I19_dependency_tree(nxsfile["entry/sample/transformations"])
+        logger.info("-" * 10)
+        logger.info("Check that number values are saved as floats and not strings")
+        check_values(nxsfile["entry"])
         logger.info("EOF")
 
 
