@@ -154,14 +154,14 @@ def check_values(nxentry: h5py.Group):
         for k, v in d.items():
             wl.attrs[k] = v
         del d, val
-    if type(instr["attenuator/attenuator_transmission"][()]) is np.bytes_:
+    if type(instr["attenuator/attenuator_transmission"][()]) is bytes:
         logger.info("Fixing attenuator transmission value...")
         val = float(instr["attenuator/attenuator_transmission"][()])
         del instr["attenuator/attenuator_traansmission"]
         instr["attenuator"].create_dataset("attenuator_transmission", data=val)
         del val
     det = instr["detector"]
-    if type(det["sensor_thickness"]) is np.bytes_:
+    if type(det["sensor_thickness"]) is bytes:
         logger.info("Fixing sensor thickness value ...")
         d = {}
         for k, v in det["sensor_thickness"].attrs.items():
