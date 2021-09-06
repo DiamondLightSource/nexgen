@@ -54,9 +54,9 @@ def check_detector_transformations(nxtransf: h5py.Group):
 
     logger.info("Additionally, the detector_z vector should be [0,0,-1]")
     det_z = nxtransf["detector_z/det_z"]
-    if np.any(det_z.attrs["vector"] != [0, 0, -1]):
+    if np.any(det_z.attrs["vector"] != [0, 0, 1]):
         logger.info("Overwriting det_z vector ...")
-        det_z.attrs["vector"] = [0, 0, -1]
+        det_z.attrs["vector"] = [0, 0, 1]  # [0,0,-1]
 
     logger.info("Checking dependency tree of detector for typos ...")
     if two_theta[ds_name].attrs["depends_on"] != b".":
