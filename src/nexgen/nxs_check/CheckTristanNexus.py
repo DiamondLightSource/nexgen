@@ -72,24 +72,29 @@ def check_detector_transformations(nxtransf: h5py.Group):
         )
 
 
-def check_sample_depends_on(nxsample: h5py.Group):
+def check_sample_depends_on(nxsample: h5py.Group, scan_axis: str):
     """
     Check that the sample depends_on field exists and is correct.
-    For I19-2 Tristan it should be "/entry/sample/transformations/phi"
+    For I19-2 Tristan it should be "/entry/sample/transformations/phi" for a phi scan
+    and "/entry/sample/transformations/omega" for on omega scan.
     """
+    logger.info(f"Passed value for scan axis: {scan_axis}")
+    if scan_axis == "phi":
+        dep_string = np.string_("/entry/sample/transformations/phi")
+    elif scan_axis == "omega":
+        dep_string = np.string_("/entry/sample/transformations/omega")
+    # else:
+    #    print("Wrong scan_axis, please choose either phi or omega")
+    #    logger.warning("Wrong scan axis inserted, couldn't correct")
     try:
         dep = nxsample["depends_on"][()]
-        if dep != b"/entry/sample/transformations/phi":
+        if dep != dep_string:
             logger.info("Fixing sample depends_on field ...")
             del nxsample["depends_on"]
-            nxsample.create_dataset(
-                "depends_on", data=np.string_("/entry/sample/transformations/phi")
-            )
+            nxsample.create_dataset("depends_on", data=dep_string)
     except KeyError:
         logger.info("Sample depends_on field did not exist, creating now ...")
-        nxsample.create_dataset(
-            "depends_on", data=np.string_("/entry/sample/transformations/phi")
-        )
+        nxsample.create_dataset("depends_on", data=dep_string)
 
 
 def check_I19_dependency_tree(nxtransf: h5py.Group):
@@ -174,7 +179,7 @@ def check_values(nxentry: h5py.Group):
         del d, val
 
 
-def run_checks(tristan_nexus_file):
+def run_checks(tristan_nexus_file, scan_axis):
     """
     Instigates the functions to check nexus files generated after binning of Tristan data.
     """
@@ -205,7 +210,7 @@ def run_checks(tristan_nexus_file):
             check_detector_transformations(nxsfile["entry/instrument/transformations"])
         logger.info("-" * 10)
         logger.info("Check sample depends on")
-        check_sample_depends_on(nxsfile["entry/sample"])
+        check_sample_depends_on(nxsfile["entry/sample"], scan_axis)
         logger.info("-" * 10)
         logger.info("Check goniometer dependency tree")
         check_I19_dependency_tree(nxsfile["entry/sample/transformations"])
@@ -215,4 +220,4 @@ def run_checks(tristan_nexus_file):
         logger.info("EOF")
 
 
-run_checks(sys.argv[1])
+run_checks(sys.argv[1], sys.argv[2])
