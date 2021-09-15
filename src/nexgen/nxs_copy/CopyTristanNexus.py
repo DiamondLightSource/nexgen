@@ -206,8 +206,9 @@ def pump_probe_nexus(data_file, tristan_nexus, write_mode="x", mode="static"):
                 # was not moved during the data collection, record the rotation axis
                 # position as a scalar.
                 ax_range = nxs_in["entry/data"][ax][()]
-        # else:
-        # TODO
+        else:
+            # TODO
+            ax_range = nxs_in["entry/data"][ax][()]  # For the moment just copy
         nxdata.create_dataset(ax, data=ax_range)
         # Write the attributes
         for key, value in ax_attr:
