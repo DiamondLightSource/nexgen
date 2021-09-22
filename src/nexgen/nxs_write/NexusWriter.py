@@ -7,8 +7,7 @@ import numpy as np
 import time
 from datetime import datetime
 
-from . import find_scan_axis, calculate_scan_range
-from .. import create_attributes
+from . import find_scan_axis, calculate_scan_range, create_attributes
 from ..nxs_write.data_tools import data_writer
 from ..nxs_write.NXclassWriters import (
     write_NXdata,

@@ -5,8 +5,8 @@ import sys
 import h5py
 import numpy as np
 
-from . import find_scan_axis, split_arrays, calculate_origin
-from .. import create_attributes, set_dependency, imgcif2mcstas
+from . import find_scan_axis, calculate_origin, create_attributes, set_dependency
+from .. import imgcif2mcstas, split_arrays
 
 # FIXME check that if group exists, it has the correct attributes
 # FIXME for event data the scan axis should only have a tuple (start, end)

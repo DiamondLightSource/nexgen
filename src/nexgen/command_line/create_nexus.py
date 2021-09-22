@@ -9,11 +9,12 @@ from pathlib import Path
 
 import freephil
 
-from nexgen import get_filename_template
-from nexgen.nxs_write.NexusWriter import write_new_nexus
+# from nexgen import get_filename_template
+# from nexgen.nxs_write.NexusWriter import write_new_nexus
 
-# from .. import get_filename_template
-# from ..nxs_write.NexusWriter import write_new_nexus
+from . import version_parser
+from .. import get_filename_template
+from ..nxs_write.NexusWriter import write_new_nexus
 
 logger = logging.getLogger("NeXusWriter")
 
@@ -60,7 +61,9 @@ master_phil = freephil.parse(
 
 # Parse command line arguments
 parser = argparse.ArgumentParser(
-    description="Parse parameters to generate a NeXus file."
+    # description = __doc__,
+    description="Parse parameters to generate a NeXus file.",
+    parents=[version_parser],
 )
 parser.add_argument("--debug", action="store_const", const=True)
 parser.add_argument(
@@ -236,7 +239,3 @@ def main():
         )
 
     logger.info("==" * 50)
-
-
-if __name__ == "__main__":
-    main()

@@ -10,7 +10,6 @@ __version_tuple__ = tuple(int(x) for x in __version__.split("."))
 import sys
 import numpy as np
 
-from h5py import AttributeManager
 from pathlib import Path
 
 
@@ -26,43 +25,6 @@ def imgcif2mcstas(vector):
     """
     c2n = np.array([[-1, 0, 0], [0, 1, 0], [0, 0, -1]])
     return tuple(np.dot(c2n, vector))
-
-
-def create_attributes(nxs_obj, names, values):
-    """
-    Create or overwrite attributes with additional metadata information.
-
-    Args:
-        nxs_obj: NeXus object (Group or Dataset) to which the attributes should be attached
-        names: Tuple containing the names of the new attributes
-        values: Tuple containing the values relative to the names
-    """
-    for n, v in zip(names, values):
-        if type(v) is str:
-            # If a string, convert to numpy.string_
-            v = np.string_(v)
-        AttributeManager.create(nxs_obj, name=n, data=v)
-
-
-def set_dependency(dep_info, path=None):
-    """
-    Define value for "depends_on" attribute.
-    If the attribute points to the head of the dependency chain, simply pass "." for dep_info.
-
-    Args:
-        dep_info: The name of the transformation upon which the current one depends on.
-        path: Where the transformation is. Set to None, if passed it points to location in the NeXus tree.
-    Returns:
-        The value to be passed to the attribute "depends_on"
-    """
-    if dep_info == ".":
-        return np.string_(".")
-    if path:
-        if path.endswith("/") is False:
-            path += "/"
-        return np.string_(path + dep_info)
-    else:
-        return np.string_(dep_info)
 
 
 def get_filename_template(master_filename: Path) -> str:
@@ -85,3 +47,28 @@ def get_filename_template(master_filename: Path) -> str:
         sys.exit("Master file did not have the expected format.")
     # so that filename_template.as_posix() % 1 will become filename_000001.h5
     return filename_template.as_posix()
+
+
+def split_arrays(coord_frame, axes_names, array):
+    """
+    Split a list of values into arrays.
+
+    This function splits up the list of values passed as phil parameters for vector, offset of all existing axes. If the coordinate frame is set to imgCIF, the arrays will have to be converted into mcstas.
+    Args:
+        coord_frame:    The coordinate system in which we are working: mcstas or imgCIF
+        axes_names:     List of axes that have been passed as phil parameters
+        array:          List of values to be split up
+    Returns:
+        array_dict:     Dictionary of arrays corresponding to each axis. Keys are axes names.
+    """
+    # array_list = []
+    array_dict = {}
+    for j in range(len(axes_names)):
+        a = array[3 * j : 3 * j + 3]
+        if coord_frame == "imgcif":
+            # array_list.append(imgcif2mcstas(a))
+            array_dict[axes_names[j]] = imgcif2mcstas(a)
+        else:
+            # array_list.append(tuple(a))
+            array_dict[axes_names[j]] = tuple(a)
+    return array_dict

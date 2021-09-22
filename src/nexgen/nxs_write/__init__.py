@@ -4,32 +4,44 @@ Utilities for writing new NeXus format files.
 import sys
 import numpy as np
 
-from .. import imgcif2mcstas
+from h5py import AttributeManager
 
 
-def split_arrays(coord_frame, axes_names, array):
+def create_attributes(nxs_obj, names, values):
     """
-    Split a list of values into arrays.
+    Create or overwrite attributes with additional metadata information.
 
-    This function splits up the list of values passed as phil parameters for vector, offset of all existing axes. If the coordinate frame is set to imgCIF, the arrays will have to be converted into mcstas.
     Args:
-        coord_frame:    The coordinate system in which we are working: mcstas or imgCIF
-        axes_names:     List of axes that have been passed as phil parameters
-        array:          List of values to be split up
-    Returns:
-        array_dict:     Dictionary of arrays corresponding to each axis. Keys are axes names.
+        nxs_obj: NeXus object (Group or Dataset) to which the attributes should be attached
+        names: Tuple containing the names of the new attributes
+        values: Tuple containing the values relative to the names
     """
-    # array_list = []
-    array_dict = {}
-    for j in range(len(axes_names)):
-        a = array[3 * j : 3 * j + 3]
-        if coord_frame == "imgcif":
-            # array_list.append(imgcif2mcstas(a))
-            array_dict[axes_names[j]] = imgcif2mcstas(a)
-        else:
-            # array_list.append(tuple(a))
-            array_dict[axes_names[j]] = tuple(a)
-    return array_dict
+    for n, v in zip(names, values):
+        if type(v) is str:
+            # If a string, convert to numpy.string_
+            v = np.string_(v)
+        AttributeManager.create(nxs_obj, name=n, data=v)
+
+
+def set_dependency(dep_info, path=None):
+    """
+    Define value for "depends_on" attribute.
+    If the attribute points to the head of the dependency chain, simply pass "." for dep_info.
+
+    Args:
+        dep_info: The name of the transformation upon which the current one depends on.
+        path: Where the transformation is. Set to None, if passed it points to location in the NeXus tree.
+    Returns:
+        The value to be passed to the attribute "depends_on"
+    """
+    if dep_info == ".":
+        return np.string_(".")
+    if path:
+        if path.endswith("/") is False:
+            path += "/"
+        return np.string_(path + dep_info)
+    else:
+        return np.string_(dep_info)
 
 
 def find_scan_axis(axes_names, axes_starts, axes_ends):
