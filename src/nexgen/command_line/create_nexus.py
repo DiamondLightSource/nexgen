@@ -12,7 +12,7 @@ import freephil
 # from nexgen import get_filename_template
 # from nexgen.nxs_write.NexusWriter import write_new_nexus
 
-from . import version_parser
+from . import version_parser, _CheckFileExtension
 from .. import get_filename_template
 from ..nxs_write.NexusWriter import write_new_nexus
 
@@ -21,7 +21,7 @@ logger = logging.getLogger("NeXusWriter")
 master_phil = freephil.parse(
     """
     output {
-      master_file_name = nexus_master.h5
+      master_filename = nexus_master.h5
         .type = path
         .help = "Filename for master file"
     }
@@ -76,7 +76,7 @@ parser.add_argument(
 )
 # FIXME .multiple doesn't seem to work (not an argparse problem)
 # TODO consider adding write mode as optional argument
-parser.add_argument("phil_args", nargs="*")
+parser.add_argument("phil_args", nargs="*", action=_CheckFileExtension)
 
 
 def main():
@@ -88,7 +88,7 @@ def main():
     params = working_phil.extract()
 
     # Path to file
-    master_file = Path(params.output.master_file_name).expanduser().resolve()
+    master_file = Path(params.output.master_filename).expanduser().resolve()
     # Start logger
     logfile = master_file.parent / "NeXusWriter.log"
     logging.basicConfig(
@@ -117,7 +117,7 @@ def main():
     # TODO write more than one file (and add vds if prompted)
 
     # Add some information to logger
-    logger.info("NeXus file will be saved as %s" % params.output.master_file_name)
+    logger.info("NeXus file will be saved as %s" % params.output.master_filename)
     logger.info("Data file(s) template: %s" % data_file_template)
     logger.info(
         "%d file(s) containing blank data to be written." % params.input.n_files
