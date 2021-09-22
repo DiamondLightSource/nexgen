@@ -60,7 +60,3 @@ def main():
     else:
         sys.exit(f"Please pass a valid data mode.")
     print("All done!")
-
-
-if __name__ == "__main__":
-    main()
