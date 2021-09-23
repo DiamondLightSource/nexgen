@@ -19,7 +19,6 @@ def data_writer(
         datafiles:  List of Path objects pointing at data files to be written.
         data_type:  String identifying whether the files to be written contain images or events.
     """
-    # TODO handle stills.
     for filename in datafiles:
         if data_type == "images":
             dset_shape = (len(scan_range),) + tuple(image_size)
@@ -54,6 +53,7 @@ def generate_image_data(filename, shape, write_mode="x"):
     print(f"{shape[0]} images written.")
 
 
+# FIXME
 # This will need some rethinking in the future, for now it's just to make examples to show GDA.
 def generate_event_data(filename, n_events, n_cues=100, write_mode="x"):
     """

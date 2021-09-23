@@ -75,13 +75,10 @@ parser.add_argument(
     help="Show the configuration parameters.",
 )
 # FIXME .multiple doesn't seem to work (not an argparse problem)
-# TODO consider adding write mode as optional argument
 parser.add_argument("phil_args", nargs="*", action=_CheckFileExtension)
 
 
 def main():
-    # working_phil = master_phil.fetch()
-    # working_phil.show()
     args = parser.parse_args()
     cl = master_phil.command_line_argument_interpreter()
     working_phil = master_phil.fetch(cl.process_and_fetch(args.phil_args))
@@ -98,9 +95,9 @@ def main():
     )
 
     # Check that the file extension is correct
-    assert (master_file.suffix == ".nxs") or (
-        master_file.suffix == ".h5"
-    ), "Wrong file extension, please pass a .h5 or .nxs file."
+    # assert (master_file.suffix == ".nxs") or (
+    #     master_file.suffix == ".h5"
+    # ), "Wrong file extension, please pass a .h5 or .nxs file."
     # Just in case ...
     if master_file.suffix == ".h5":
         assert "master" in master_file.name, "Please pass a _master.h5 or .nxs file."

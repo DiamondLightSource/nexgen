@@ -61,12 +61,12 @@ def write_NXdata(
         nxdata = nxsfile["entry/data"]
 
     # If mode is images, link to blank image data. Else go to events.
+    # TODO write vds
     if data_type == "images":
         if len(datafiles) == 1:
             nxdata["data"] = h5py.ExternalLink(datafiles[0].name, "data")
         else:
             for filename in datafiles:
-                # TODO write vds
                 nxdata[filename.stem] = h5py.ExternalLink(filename.name, "data")
     elif data_type == "events":
         for filename in datafiles:
@@ -125,9 +125,6 @@ def write_NXsample(
     except ValueError:
         nxsample = nxsfile["entry/sample"]
 
-    # Save sample depends_on
-    nxsample.create_dataset("depends_on", data=set_dependency(goniometer["axes"][-1]))
-
     # Create NXtransformations group: /entry/sample/transformations
     try:
         nxtransformations = nxsample.create_group("transformations")
@@ -138,6 +135,11 @@ def write_NXsample(
         )
     except ValueError:
         nxtransformations = nxsample["transformations"]
+
+    # Save sample depends_on
+    nxsample.create_dataset(
+        "depends_on", data=set_dependency(scan_axis, path=nxtransformations.name)
+    )
 
     # Create sample_{axisname} groups
     vectors = split_arrays(coord_frame, goniometer["axes"], goniometer["vectors"])
