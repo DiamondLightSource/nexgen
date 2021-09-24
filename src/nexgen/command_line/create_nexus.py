@@ -141,7 +141,7 @@ def main():
     attenuator = params.attenuator
 
     # Log information
-    logger.info("Data type: %s" % detector.mode)
+    logger.info("Data type: %s" % data_type[0])
 
     logger.info("Source information")
     logger.info(f"Facility: {source.name} - {source.type}.")
