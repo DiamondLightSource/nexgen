@@ -9,22 +9,20 @@ from hdf5plugin import Bitshuffle
 
 
 # Writer functions
-def data_writer(
-    datafiles, data_type="images", image_size=None, scan_range=None, n_events=None
-):
+def data_writer(datafiles: list, data_type: tuple, image_size=None, scan_range=None):
     """
     Write N images or events to n files.
 
     Args:
         datafiles:  List of Path objects pointing at data files to be written.
-        data_type:  String identifying whether the files to be written contain images or events.
+        data_type:  Tuple (str, int) identifying whether the files to be written contain images or events.
     """
     for filename in datafiles:
-        if data_type == "images":
+        if data_type[0] == "images":
             dset_shape = (len(scan_range),) + tuple(image_size)
             generate_image_data(filename, dset_shape)
         else:
-            generate_event_data(filename, n_events)
+            generate_event_data(filename, data_type[1])
 
 
 def generate_image_data(filename, shape, write_mode="x"):

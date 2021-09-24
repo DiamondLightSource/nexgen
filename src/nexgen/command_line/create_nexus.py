@@ -2,19 +2,28 @@
 Command line tool to generate a NeXus file.
 """
 
+import time
 import h5py
 import logging
 import argparse
+
+import numpy as np
+
+from datetime import datetime
 from pathlib import Path
 
 import freephil
 
-# from nexgen import get_filename_template
-# from nexgen.nxs_write.NexusWriter import write_new_nexus
+from __init__ import version_parser, detectormode_parser, _CheckFileExtension
+from nexgen import get_filename_template
 
-from . import version_parser, _CheckFileExtension
-from .. import get_filename_template
-from ..nxs_write.NexusWriter import write_new_nexus
+# from nexgen.nxs_write.__init__ import create_attributes
+from nexgen.nxs_write.NexusWriter import write_new_nexus
+
+# from . import version_parser, detectormode_parser, _CheckFileExtension
+# from .. import get_filename_template
+# from ..nxs_write import create_attributes
+# from ..nxs_write.NexusWriter import write_new_nexus
 
 logger = logging.getLogger("NeXusWriter")
 
@@ -30,19 +39,12 @@ master_phil = freephil.parse(
       coordinate_frame = *mcstas imgcif
         .type = choice
         .help = "Which coordinate system is being used to provide input vectors"
-      definition = Nxmx
+      definition = NXmx
         .type = str
         .help = "Application definition for NeXus file. Deafults to Nxmx."
       n_files = 1
         .type = int
         .help = "Number of data files to write - defaults to 1."
-      # Make these two mutually exclusive ?
-      n_images = None
-        .type = int
-        .help = "Number of blank images to be written per file"
-      n_events = None
-        .type = int
-        .help = "Size of event stream per file"
       write_vds = False
         .type = bool
         .help = "If True, create also a _vds.h5 file. Only for image data."
@@ -63,7 +65,7 @@ master_phil = freephil.parse(
 parser = argparse.ArgumentParser(
     # description = __doc__,
     description="Parse parameters to generate a NeXus file.",
-    parents=[version_parser],
+    parents=[version_parser, detectormode_parser],
 )
 parser.add_argument("--debug", action="store_const", const=True)
 parser.add_argument(
@@ -94,24 +96,17 @@ def main():
         level="DEBUG",
     )
 
-    # Check that the file extension is correct
-    # assert (master_file.suffix == ".nxs") or (
-    #     master_file.suffix == ".h5"
-    # ), "Wrong file extension, please pass a .h5 or .nxs file."
     # Just in case ...
-    if master_file.suffix == ".h5":
-        assert "master" in master_file.name, "Please pass a _master.h5 or .nxs file."
+    if master_file.suffix == ".h5" and "master" not in master_file.stem:
+        master_file = Path(master_file.as_posix().replace(".h5", "_master.h5"))
 
     # Get data file name template
     data_file_template = get_filename_template(master_file)
-    # data_file = (
-    #    Path(data_file_template % 1).expanduser().resolve()
-    # )  # assumes only one file
     data_file_list = [
         Path(data_file_template % (n + 1)).expanduser().resolve()
         for n in range(params.input.n_files)
     ]
-    # TODO write more than one file (and add vds if prompted)
+    # TODO add vds if prompted
 
     # Add some information to logger
     logger.info("NeXus file will be saved as %s" % params.output.master_filename)
@@ -121,6 +116,10 @@ def main():
     )
 
     # Next: go through technical info (goniometer, detector, beamline etc ...)
+    if args.num_events:
+        data_type = ("events", args.num_events)
+    else:
+        data_type = ("images", args.num_images)
     cf = params.input.coordinate_frame
     goniometer = params.goniometer
     detector = params.detector
@@ -222,11 +221,27 @@ def main():
     logger.info(f"Slow_axis at datum position: {module.slow_axis}")
     logger.info("")
 
+    # Record string with start_time
+    start_time = datetime.fromtimestamp(time.time()).strftime("%A, %d. %B %Y %I:%M%p")
+
     with h5py.File(master_file, "x") as nxsfile:
+        # Set default attribute
+        nxsfile.attrs["default"] = "entry"
+
+        # Start writing the NeXus tree with NXentry at the top level
+        nxentry = nxsfile.create_group("entry")
+        nxentry.attrs["NX_class"] = "NXentry"
+        nxentry.attrs["default"] = "data"
+        # create_attributes(nxentry, ("NX_class", "default"), ("NXentry", "data"))
+
+        # Application definition: entry/definition
+        nxentry.create_dataset("definition", data=np.string_(params.input.definition))
+
         write_new_nexus(
             nxsfile,
             data_file_list,
-            params.input,
+            data_type,
+            cf,
             goniometer,
             detector,
             module,
@@ -235,4 +250,15 @@ def main():
             attenuator,
         )
 
+        # Record string with end_time
+        end_time = datetime.fromtimestamp(time.time()).strftime("%A, %d. %B %Y %I:%M%p")
+
+        # Write /entry/start_time and /entry/end_time
+        nxentry.create_dataset("start_time", data=np.string_(start_time))
+        nxentry.create_dataset("end_time", data=np.string_(end_time))
+
     logger.info("==" * 50)
+
+
+if __name__ == "__main__":
+    main()

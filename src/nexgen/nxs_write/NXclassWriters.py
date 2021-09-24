@@ -111,6 +111,7 @@ def write_NXsample(
         nxsfile:        NeXus file to be written
         goniometer:     Dictionary containing all the axes information
         coord_frame:    Coordinate system the axes are currently expressed in
+        data_type:      Images or events
         scan_axis:      Rotation axis
         scan_range:     List/tuple/array of scan axis values
     """
@@ -285,7 +286,7 @@ def write_NXsource(nxsfile: h5py.File, source: dict):
 
 # NXdetector writer
 def write_NXdetector(
-    nxsfile: h5py.File, detector: dict, coord_frame: str, n_images=None
+    nxsfile: h5py.File, detector: dict, coord_frame: str, data_type: str, n_images=None
 ):
     """
     Write_NXdetector group at entry/instrument/detector
@@ -294,6 +295,7 @@ def write_NXdetector(
         nxsfile:        Nexus file to be written
         detector:       Dictionary containing all detector information
         coord_frame:    Coordinate system the axes are currently expressed in
+        data_type:      Images or events
         n_images:       Number of written images (for image mode detector)
     """
     # Create NXdetector group, unless it already exists, in which case just open it.
@@ -349,7 +351,7 @@ def write_NXdetector(
     create_attributes(nxdetector["sensor_thickness"], ("units",), ("m",))
 
     # If detector mode is images write overload and underload
-    if detector["mode"] == "images":
+    if data_type == "images":
         nxdetector.create_dataset("saturation_value", data=detector["overload"])
         nxdetector.create_dataset("underload_value", data=detector["underload"])
 
@@ -576,10 +578,3 @@ def write_NXcollection(nxdetector: h5py.Group, image_size, n_images=None):
     if n_images is not None:
         grp.create_dataset("nimages", data=n_images)
     # TODO if images write n_images, if events write tick time and frequency
-
-
-# NXpositioner (det_z and 2theta) - probably not needed
-# def write_NXpositioner(nxinstrument: h5py.Group, detector: dict):
-# 1 - write detector_z
-# 2 - add 2 theta arm if there
-#    pass
