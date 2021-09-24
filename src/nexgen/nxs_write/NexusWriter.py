@@ -19,8 +19,8 @@ from ..nxs_write.NXclassWriters import (
     write_NXdetector_module,
 )
 
-# General writing (probably a temporary solution)
-def write_new_nexus(
+# General writing
+def write_new_example_nexus(
     nxsfile: h5py.File,
     datafile_list: list,
     data_type: tuple,
@@ -33,7 +33,7 @@ def write_new_nexus(
     attenuator,
 ):
     """
-    Write a new NeXus format file.
+    Write a new example NeXus format file with blank data.
 
     This function writes a new nexus file from the information contained in the phil scopes passed as input.
     It also writes a specified number of blank data HDF5 files.

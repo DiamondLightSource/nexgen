@@ -1,5 +1,5 @@
 """
-Command line tool to generate a NeXus file.
+Command line tool to generate an example NeXus file along with blank data.
 """
 
 import sys
@@ -19,7 +19,7 @@ from __init__ import version_parser, detectormode_parser, _CheckFileExtension
 from nexgen import get_filename_template
 
 # from nexgen.nxs_write.__init__ import create_attributes
-from nexgen.nxs_write.NexusWriter import write_new_nexus
+from nexgen.nxs_write.NexusWriter import write_new_example_nexus
 
 # from . import version_parser, detectormode_parser, _CheckFileExtension
 # from .. import get_filename_template
@@ -227,7 +227,7 @@ def main():
         # Application definition: entry/definition
         nxentry.create_dataset("definition", data=np.string_(params.input.definition))
 
-        write_new_nexus(
+        write_new_example_nexus(
             nxsfile,
             data_file_list,
             data_type,
