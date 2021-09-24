@@ -84,7 +84,7 @@ def write_new_nexus(
         nxsfile,
         datafile_list,
         goniometer.__dict__,
-        data_type,
+        data_type[0],
         coord_frame=coord_frame,
         scan_range=scan_range,
         scan_axis=osc_axis,
@@ -120,7 +120,7 @@ def write_new_nexus(
         nxsfile,
         goniometer.__dict__,
         coord_frame,
-        data_type,
+        data_type[0],
         osc_axis,
         scan_range=scan_range,
     )
