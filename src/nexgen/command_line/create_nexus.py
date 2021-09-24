@@ -174,7 +174,7 @@ def main():
     logger.info(
         f"Sensor made of {detector.sensor_material} x {detector.sensor_thickness}mm"
     )
-    if detector.mode == "images":
+    if data_type[0] == "images":
         logger.info(f"Trusted pixels > {detector.underload} and < {detector.overload}")
     logger.info(
         f"Image is a {detector.image_size} array of {detector.pixel_size} mm pixels"
