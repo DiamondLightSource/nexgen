@@ -214,38 +214,48 @@ def main():
     # Record string with start_time
     start_time = datetime.fromtimestamp(time.time()).strftime("%A, %d. %B %Y %I:%M%p")
 
-    with h5py.File(master_file, "x") as nxsfile:
-        # Set default attribute
-        nxsfile.attrs["default"] = "entry"
+    try:
+        with h5py.File(master_file, "x") as nxsfile:
+            # Set default attribute
+            nxsfile.attrs["default"] = "entry"
 
-        # Start writing the NeXus tree with NXentry at the top level
-        nxentry = nxsfile.create_group("entry")
-        nxentry.attrs["NX_class"] = "NXentry"
-        nxentry.attrs["default"] = "data"
-        # create_attributes(nxentry, ("NX_class", "default"), ("NXentry", "data"))
+            # Start writing the NeXus tree with NXentry at the top level
+            nxentry = nxsfile.create_group("entry")
+            nxentry.attrs["NX_class"] = "NXentry"
+            nxentry.attrs["default"] = "data"
+            # create_attributes(nxentry, ("NX_class", "default"), ("NXentry", "data"))
 
-        # Application definition: entry/definition
-        nxentry.create_dataset("definition", data=np.string_(params.input.definition))
+            # Application definition: entry/definition
+            nxentry.create_dataset(
+                "definition", data=np.string_(params.input.definition)
+            )
 
-        write_new_example_nexus(
-            nxsfile,
-            data_file_list,
-            data_type,
-            cf,
-            goniometer,
-            detector,
-            module,
-            source,
-            beam,
-            attenuator,
+            write_new_example_nexus(
+                nxsfile,
+                data_file_list,
+                data_type,
+                cf,
+                goniometer,
+                detector,
+                module,
+                source,
+                beam,
+                attenuator,
+            )
+
+            # Record string with end_time
+            end_time = datetime.fromtimestamp(time.time()).strftime(
+                "%A, %d. %B %Y %I:%M%p"
+            )
+
+            # Write /entry/start_time and /entry/end_time
+            nxentry.create_dataset("start_time", data=np.string_(start_time))
+            nxentry.create_dataset("end_time", data=np.string_(end_time))
+    except Exception as err:
+        logger.info(
+            f"An error occurred and {master_file} couldn't be written correctly."
         )
-
-        # Record string with end_time
-        end_time = datetime.fromtimestamp(time.time()).strftime("%A, %d. %B %Y %I:%M%p")
-
-        # Write /entry/start_time and /entry/end_time
-        nxentry.create_dataset("start_time", data=np.string_(start_time))
-        nxentry.create_dataset("end_time", data=np.string_(end_time))
+        logger.error(err)
 
     logger.info("==" * 50)
 
