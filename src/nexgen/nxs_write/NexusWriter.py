@@ -5,7 +5,7 @@ Writer for NeXus format files.
 import h5py
 
 from . import find_scan_axis, calculate_scan_range
-from data_tools import data_writer
+from ..nxswrite.data_tools import data_writer
 from NXclassWriters import (
     write_NXdata,
     write_NXinstrument,
