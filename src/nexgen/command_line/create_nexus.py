@@ -2,6 +2,7 @@
 Command line tool to generate a NeXus file.
 """
 
+import sys
 import time
 import h5py
 import logging
@@ -25,7 +26,11 @@ from nexgen.nxs_write.NexusWriter import write_new_nexus
 # from ..nxs_write import create_attributes
 # from ..nxs_write.NexusWriter import write_new_nexus
 
-logger = logging.getLogger("NeXusWriter")
+# Define a logger object and a formatter
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+formatter = logging.Formatter("%(message)s")
+# formatter = logging.Formatter("%(levelname)s %(message)s")
 
 master_phil = freephil.parse(
     """
@@ -77,6 +82,7 @@ parser.add_argument(
     help="Show the configuration parameters.",
 )
 # FIXME .multiple doesn't seem to work (not an argparse problem)
+# Per forza non funziona, c'era impostato 3 come dimensione!!!
 parser.add_argument("phil_args", nargs="*", action=_CheckFileExtension)
 
 
@@ -88,13 +94,19 @@ def main():
 
     # Path to file
     master_file = Path(params.output.master_filename).expanduser().resolve()
+
     # Start logger
     logfile = master_file.parent / "NeXusWriter.log"
-    logging.basicConfig(
-        filename=logfile.as_posix(),
-        format="%(message)s",
-        level="DEBUG",
-    )
+    # Define stream and file handler for logging
+    CH = logging.StreamHandler(sys.stdout)
+    CH.setLevel(logging.DEBUG)
+    CH.setFormatter(formatter)
+    FH = logging.FileHandler(logfile, mode="w")
+    FH.setLevel(logging.DEBUG)
+    FH.setFormatter(formatter)
+    # Add handlers to logger
+    logger.addHandler(CH)
+    logger.addHandler(FH)
 
     # Just in case ...
     if master_file.suffix == ".h5" and "master" not in master_file.stem:
@@ -152,37 +164,13 @@ def main():
 
     for j in reversed(range(len(axes))):
         vector = axis_vectors[3 * j : 3 * j + 3]
-        print(
-            f"Goniometer axes: {axes[j]} => {vector} ({goniometer.types[j]}) on {goniometer.depends[j]}"
-        )
-
-    for ax, dep, t, u, j in zip(
-        goniometer.axes,
-        goniometer.depends,
-        goniometer.types,
-        goniometer.units,
-        range(len(goniometer.axes)),
-    ):
-        vector = goniometer.vectors[3 * j : 3 * j + 3]
-        offset = goniometer.offsets[3 * j : 3 * j + 3]
         logger.info(
-            "%s %s %s %s %s %s %s %s %s"
-            % (
-                ax,
-                dep,
-                t,
-                u,
-                vector,
-                offset,
-                goniometer.starts[j],
-                goniometer.ends[j],
-                goniometer.increments[j],
-            )
+            f"Goniometer axis: {axes[j]} => {vector} ({goniometer.types[j]}) on {goniometer.depends[j]}. {goniometer.starts[j]} {goniometer.ends[j]} {goniometer.increments[j]}"
         )
 
     logger.info("")
 
-    logger.info("Detector information: %s" % detector.description)
+    logger.info("Detector information:\n%s" % detector.description)
     logger.info(
         f"Sensor made of {detector.sensor_material} x {detector.sensor_thickness}mm"
     )
@@ -202,7 +190,9 @@ def main():
 
     for j in range(len(axes)):
         vector = axis_vectors[3 * j : 3 * j + 3]
-        print(f"Detector axis: {axes[j]} => {vector}")
+        logger.info(
+            f"Detector axis: {axes[j]} => {vector} ({detector.types[j]}) on {detector.depends[j]}. {detector.starts[j]}"
+        )
 
     if detector.flatfield is None:
         logger.info("No flatfield applied")
@@ -260,5 +250,4 @@ def main():
     logger.info("==" * 50)
 
 
-if __name__ == "__main__":
-    main()
+main()

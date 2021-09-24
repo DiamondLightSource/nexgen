@@ -44,11 +44,9 @@ module_scope = freephil.parse(
         .type = bool
         .help = "If set to true, calculates offset of the module in regard to detector origin and creates corresponding field"
       fast_axis = 1 0 0
-        .multiple = True
         .type = floats(size = 3)
         .help = "Fast axis at datum position"
       slow_axis = 0 -1 0
-        .multiple = True
         .type = floats(size = 3)
         .help = "Slow axis at datum position"
       offsets = -0.1662 0.1721 0 0 0 0
