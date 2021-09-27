@@ -81,8 +81,6 @@ parser.add_argument(
     dest="show_config",
     help="Show the configuration parameters.",
 )
-# FIXME .multiple doesn't seem to work (not an argparse problem)
-# Per forza non funziona, c'era impostato 3 come dimensione!!!
 parser.add_argument("phil_args", nargs="*", action=_CheckFileExtension)
 
 
@@ -251,6 +249,7 @@ def main():
             # Write /entry/start_time and /entry/end_time
             nxentry.create_dataset("start_time", data=np.string_(start_time))
             nxentry.create_dataset("end_time", data=np.string_(end_time))
+            logger.info(f"{master_file} correctly written.")
     except Exception as err:
         logger.info(
             f"An error occurred and {master_file} couldn't be written correctly."

@@ -89,7 +89,6 @@ def calculate_scan_range(axis_start, axis_end, axis_increment=None, n_images=Non
     Returns:
         scan_range:         List of values for the scan axis.
     """
-    # TODO add check that either N or axis increment is None
     if n_images:
         scan_range = np.linspace(axis_start, axis_end, n_images)
     else:
@@ -97,6 +96,7 @@ def calculate_scan_range(axis_start, axis_end, axis_increment=None, n_images=Non
     return scan_range
 
 
+# TODO choose how to calculate (see eiger vs tristan in notes)
 def calculate_origin(beam_center_fs, fs_pixel_size, fast_axis_vector, slow_axis_vector):
     """
     Calculates the offset of the detector.
