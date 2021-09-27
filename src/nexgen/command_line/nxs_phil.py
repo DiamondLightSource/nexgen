@@ -164,6 +164,17 @@ beamline_scope = freephil.parse(
     """
 )
 
+timestamp_scope = freephil.parse(
+    """
+    start_time = 2021-Sep-27T16:44:35
+      .type = str
+      .help = "Experiment start time"
+    end_time = 2021-Sep-27T16:45:02
+      .type = str
+      .help = "Experiment end time"
+    """
+)
+
 if __name__ == "__main__":
     print(module_scope.as_str())
     print(detector_scope.as_str())
