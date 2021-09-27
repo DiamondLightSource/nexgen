@@ -7,10 +7,14 @@ __email__ = "scientificsoftware@diamond.ac.uk"
 __version__ = "0.5.2"
 __version_tuple__ = tuple(int(x) for x in __version__.split("."))
 
+import re
 import sys
 import numpy as np
 
 from pathlib import Path
+
+# Filename pattern: filename_000000.h5
+P = re.compile(r"(.*)_(?:\d+)")
 
 
 def imgcif2mcstas(vector):
@@ -47,6 +51,20 @@ def get_filename_template(master_filename: Path) -> str:
         sys.exit("Master file did not have the expected format.")
     # so that filename_template.as_posix() % 1 will become filename_000001.h5
     return filename_template.as_posix()
+
+
+def get_nexus_filename(data_filename: Path) -> Path:
+    """
+    Get the filename for the NeXus file from the stem of the input file name, by .
+
+    Args:
+        data_filename:  Input file path.
+    Returns:
+        NeXus file name (.nxs) path.
+    """
+    filename_stem = P.fullmatch(data_filename.stem)[1]
+    nxs_filename = data_filename.parent / f"{filename_stem}.nxs"
+    return nxs_filename
 
 
 def split_arrays(coord_frame, axes_names, array):

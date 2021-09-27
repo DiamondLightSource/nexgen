@@ -19,12 +19,12 @@ from __init__ import version_parser, detectormode_parser, _CheckFileExtension
 from nexgen import get_filename_template
 
 # from nexgen.nxs_write.__init__ import create_attributes
-from nexgen.nxs_write.NexusWriter import write_new_example_nexus
+from nexgen.nxs_write.NexusWriter import write_nexus_and_data
 
 # from . import version_parser, detectormode_parser, _CheckFileExtension
 # from .. import get_filename_template
 # from ..nxs_write import create_attributes
-# from ..nxs_write.NexusWriter import write_new_nexus
+# from ..nxs_write.NexusWriter import write_nexus_and_data
 
 # Define a logger object and a formatter
 logger = logging.getLogger(__name__)
@@ -69,7 +69,7 @@ master_phil = freephil.parse(
 # Parse command line arguments
 parser = argparse.ArgumentParser(
     # description = __doc__,
-    description="Parse parameters to generate a NeXus file.",
+    description="Generate an example NeXus file with blank dataset using the parameters passed as input.",
     parents=[version_parser, detectormode_parser],
 )
 parser.add_argument("--debug", action="store_const", const=True)
@@ -92,9 +92,12 @@ def main():
 
     # Path to file
     master_file = Path(params.output.master_filename).expanduser().resolve()
+    # Just in case ...
+    if master_file.suffix == ".h5" and "master" not in master_file.stem:
+        master_file = Path(master_file.as_posix().replace(".h5", "_master.h5"))
 
     # Start logger
-    logfile = master_file.parent / "NeXusWriter.log"
+    logfile = master_file.parent / "generate_nexus_and_data.log"  # "NeXusWriter.log"
     # Define stream and file handler for logging
     CH = logging.StreamHandler(sys.stdout)
     CH.setLevel(logging.DEBUG)
@@ -105,10 +108,6 @@ def main():
     # Add handlers to logger
     logger.addHandler(CH)
     logger.addHandler(FH)
-
-    # Just in case ...
-    if master_file.suffix == ".h5" and "master" not in master_file.stem:
-        master_file = Path(master_file.as_posix().replace(".h5", "_master.h5"))
 
     # Get data file name template
     data_file_template = get_filename_template(master_file)
@@ -228,7 +227,7 @@ def main():
                 "definition", data=np.string_(params.input.definition)
             )
 
-            write_new_example_nexus(
+            write_nexus_and_data(
                 nxsfile,
                 data_file_list,
                 data_type,

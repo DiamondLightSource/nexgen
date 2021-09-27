@@ -80,7 +80,7 @@ def write_NXdata(
     _dep = set_dependency(
         goniometer["depends"][idx], path="/entry/sample/transformations/"
     )
-    # FIXME temporary quick way
+
     vectors = split_arrays(coord_frame, goniometer["axes"], goniometer["vectors"])
     # Write attributes for axis
     create_attributes(
@@ -450,7 +450,6 @@ def write_NXdetector_module(
         fast_axis = imgcif2mcstas(module["fast_axis"])
         slow_axis = imgcif2mcstas(module["slow_axis"])
     else:
-        # This is just to have the same type as after conversion
         fast_axis = tuple(module["fast_axis"])
         slow_axis = tuple(module["slow_axis"])
 

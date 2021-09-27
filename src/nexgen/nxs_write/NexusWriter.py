@@ -20,7 +20,21 @@ from ..nxs_write.NXclassWriters import (
 )
 
 # General writing
-def write_new_example_nexus(
+def write_nexus(
+    datafile,
+    goniometer,
+    detector,
+    module,
+    beamline,
+    coordinate_frame="mcstas",
+):
+    """"""
+    # Is this like what I need for GDA? Different? Could I just reuse that one?
+    # Does it make sense to use command line tool?
+    pass
+
+
+def write_nexus_and_data(
     nxsfile: h5py.File,
     datafile_list: list,
     data_type: tuple,
