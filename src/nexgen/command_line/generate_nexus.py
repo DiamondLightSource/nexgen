@@ -98,9 +98,34 @@ def main():
     logger.info("Create a NeXus file for %s" % datafiles)
     logger.info("NeXus file will be saved as %s" % master_file)
 
+    # Load technical info from phil parser
+    cf = params.input.coordinate_frame
+    goniometer = params.goniometer
+    detector = params.detector
+    module = params.detector_module
+    source = params.source
+    beam = params.beam
+    attenuator = params.attenuator
+
+    # TODO FIXME add call to get_iso_timestamp to make this useful
+    timestamps = (params.start_time, params.end_time)
+
+    # TODO finish adding logging
+
     try:
         with h5py.File(master_file, "x") as nxsfile:
-            write_nexus(nxsfile, datafiles)
+            write_nexus(
+                nxsfile,
+                datafiles,
+                goniometer,
+                detector,
+                module,
+                source,
+                beam,
+                attenuator,
+                timestamps,
+                cf,
+            )
             # FIXME need to finish filling this one out!
     except Exception as err:
         logger.info(
