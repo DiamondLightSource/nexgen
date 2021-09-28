@@ -211,7 +211,7 @@ def write_NXsample(
 
 # NXinstrument
 def write_NXinstrument(
-    nxsfile: h5py.File, beam: dict, attenuator: dict, detector: dict, beamline_n: str
+    nxsfile: h5py.File, beam: dict, attenuator: dict, beamline_n: str
 ):
     """
     Write NXinstrument group at entry/instrument.
@@ -220,7 +220,6 @@ def write_NXinstrument(
         nxsfile:    NeXus file to be written
         beam:       Dictionary with beam wavelength and flux
         attenuator: Dictionary containing transmission
-        detector:   Dictionary containing all detector information
         beamline_n: String identisying the beamline number
     """
     # Create NXinstrument group, unless it already exists, in which case just open it.
@@ -256,9 +255,6 @@ def write_NXinstrument(
     flux = nxbeam.create_dataset("total_flux", data=beam["flux"])
     create_attributes(flux, ("units"), ("Hz",))
 
-    # Write_NXpositioner: /entry/instrument/detector_z, two_theta
-    # Not really needed, can be added later
-
 
 # NXsource
 def write_NXsource(nxsfile: h5py.File, source: dict):
@@ -286,7 +282,11 @@ def write_NXsource(nxsfile: h5py.File, source: dict):
 
 # NXdetector writer
 def write_NXdetector(
-    nxsfile: h5py.File, detector: dict, coord_frame: str, data_type: str, n_images=None
+    nxsfile: h5py.File,
+    detector: dict,
+    coord_frame: str,
+    data_type: str,
+    n_images: int = None,
 ):
     """
     Write_NXdetector group at entry/instrument/detector

@@ -166,12 +166,12 @@ beamline_scope = freephil.parse(
 
 timestamp_scope = freephil.parse(
     """
-    start_time = 2021-Sep-27T16:44:35
+    start_time = None
       .type = str
-      .help = "Experiment start time"
-    end_time = 2021-Sep-27T16:45:02
+      .help = "Experiment start time, pass either a timestamp or a string, eg '2021-09-20T10:20:30' or 'Tue Sep 28 2021 10:58:01'."
+    end_time = None
       .type = str
-      .help = "Experiment end time"
+      .help = "Experiment end time, pass either a timestamp or a string, eg '2021-09-20T10:20:30' or 'Tue Sep 28 2021 10:58:01'."
     """
 )
 

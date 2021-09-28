@@ -17,6 +17,7 @@ def data_writer(datafiles: list, data_type: tuple, image_size=None, scan_range=N
         datafiles:  List of Path objects pointing at data files to be written.
         data_type:  Tuple (str, int) identifying whether the files to be written contain images or events.
     """
+    # TODO FIXME if multiple files split number of images across them.
     for filename in datafiles:
         if data_type[0] == "images":
             dset_shape = (len(scan_range),) + tuple(image_size)
@@ -73,6 +74,22 @@ def generate_event_data(filename, n_events, n_cues=100, write_mode="x"):
         datafile.create_dataset("event_time_offset", data=events, **Bitshuffle())
         datafile.create_dataset("event_energy", data=events, **Bitshuffle())
     print(f"Stream of {n_events} written.")
+
+
+def find_number_of_images(datafile_list):
+    """
+    Calculate total number of images when there's more than one input HDF5 file.
+
+    Args:
+        datafiles:  List of paths to the input image files.
+    Returns:
+        num_images: Total number of images.
+    """
+    num_images = 0
+    for filename in datafile_list:
+        with h5py.File(filename, "r") as f:
+            num_images += f["data"].shape[0]
+    return num_images
 
 
 def vds_writer():

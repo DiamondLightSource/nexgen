@@ -99,7 +99,7 @@ def calculate_scan_range(axis_start, axis_end, axis_increment=None, n_images=Non
 # TODO choose how to calculate (see eiger vs tristan in notes)
 def calculate_origin(beam_center_fs, fs_pixel_size, fast_axis_vector, slow_axis_vector):
     """
-    Calculates the offset of the detector.
+    Calculate the offset of the detector.
 
     This function returns the detector origin array, which is saved into the module_offset fields.
     Assumes that fast and slow axis vectors have already been converted to mcstas if needed.

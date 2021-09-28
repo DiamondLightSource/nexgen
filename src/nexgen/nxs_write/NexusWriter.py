@@ -3,11 +3,12 @@ Writer for NeXus format files.
 """
 
 import h5py
+import numpy as np
 
 from . import find_scan_axis, calculate_scan_range
 
-# from data_tools import data_writer
-from ..nxs_write.data_tools import data_writer
+# from data_tools import data_writer, find_number_of_images
+from ..nxs_write.data_tools import data_writer, find_number_of_images
 
 # from NXclassWriters import (
 from ..nxs_write.NXclassWriters import (
@@ -21,17 +22,98 @@ from ..nxs_write.NXclassWriters import (
 
 # General writing
 def write_nexus(
-    datafile,
+    nxsfile: h5py.File,
+    datafiles: list,
     goniometer,
     detector,
     module,
-    beamline,
-    coordinate_frame="mcstas",
+    source,
+    beam,
+    attenuator,
+    timestamps: tuple,
+    coordinate_frame: str = "mcstas",
 ):
     """"""
-    # Is this like what I need for GDA? Different? Could I just reuse that one?
-    # Does it make sense to use command line tool?
-    pass
+    # Find total number of images that have been written across the files.
+    if len(datafiles) == 1:
+        with h5py.File(datafiles[0], "r") as f:
+            num_images = f["data"].shape[0]
+    else:
+        num_images = find_number_of_images(datafiles)
+
+    # Identify scan axis
+    osc_axis = find_scan_axis(goniometer.axes, goniometer.starts, goniometer.ends)
+
+    # Compute scan_range
+    idx = goniometer.axes.index(osc_axis)
+    if goniometer.increments[idx] != 0.0:
+        scan_range = calculate_scan_range(
+            goniometer.starts[idx],
+            goniometer.ends[idx],
+            axis_increment=goniometer.increments[idx],
+        )
+    else:
+        scan_range = calculate_scan_range(
+            goniometer.starts[idx], goniometer.ends[idx], n_images=num_images
+        )
+
+    # Set default attribute
+    nxsfile.attrs["default"] = "entry"
+
+    # Start writing the NeXus tree with NXentry at the top level
+    nxentry = nxsfile.create_group("entry")
+    nxentry.attrs["NX_class"] = np.string_("NXentry")
+    nxentry.attrs["default"] = np.string_("data")
+    # create_attributes(nxentry, ("NX_class", "default"), ("NXentry", "data"))
+
+    # NXdata: entry/data
+    write_NXdata(
+        nxsfile,
+        datafiles,
+        goniometer.__dict__,
+        "images",
+        coord_frame=coordinate_frame,
+        scan_range=scan_range,
+        scan_axis=osc_axis,
+    )
+
+    # NXinstrument: entry/instrument
+    write_NXinstrument(
+        nxsfile,
+        beam.__dict__,
+        attenuator.__dict__,
+        source.beamline_name,
+    )
+
+    # NXdetector: entry/instrument/detector
+    write_NXdetector(nxsfile, detector.__dict__, coordinate_frame, "images", num_images)
+
+    # NXmodule: entry/instrument/detector/module
+    write_NXdetector_module(
+        nxsfile,
+        module.__dict__,
+        coordinate_frame,
+        detector.image_size,
+        detector.pixel_size,
+        beam_center=detector.beam_center,
+    )
+
+    # NXsource: entry/source
+    write_NXsource(nxsfile, source.__dict__)
+
+    # NXsample: entry/sample
+    write_NXsample(
+        nxsfile,
+        goniometer.__dict__,
+        coordinate_frame,
+        "images",
+        osc_axis,
+        scan_range=scan_range,
+    )
+
+    # NX_DATE_TIME: /entry/start_time and /entry/end_time
+    nxentry.create_dataset("start_time", data=np.string_(timestamps[0]))
+    nxentry.create_dataset("end_time", data=np.string_(timestamps[1]))
 
 
 def write_nexus_and_data(
@@ -109,7 +191,6 @@ def write_nexus_and_data(
         nxsfile,
         beam.__dict__,
         attenuator.__dict__,
-        detector.__dict__,
         source.beamline_name,
     )
 

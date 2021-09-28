@@ -12,9 +12,13 @@ import sys
 import numpy as np
 
 from pathlib import Path
+from datetime import datetime
 
 # Filename pattern: filename_000000.h5
 P = re.compile(r"(.*)_(?:\d+)")
+
+# Format strings for timestamps
+format_list = ["%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%a %b %d %Y %H:%M:%S"]
 
 
 def imgcif2mcstas(vector):
@@ -90,3 +94,27 @@ def split_arrays(coord_frame, axes_names, array):
             # array_list.append(tuple(a))
             array_dict[axes_names[j]] = tuple(a)
     return array_dict
+
+
+def get_iso_timestamp(ts: str):
+    """
+    Format a timestamp string to be stores in a NeXus file according to ISO8601:
+    'YY-MM-DDThh:mm:ssZ'
+    Args:
+        ts:     Input string, can also be a timestamp (eg. time.time()) string.
+
+    Returns:
+        ts_iso: Output formatted string.
+    """
+    try:
+        ts = float(ts)
+        ts_iso = datetime.utcfromtimestamp(ts).replace(microsecond=0).isoformat()
+    except ValueError:
+        for fmt in format_list:
+            try:
+                ts_iso = datetime.strptime(ts, fmt).isoformat()
+            except ValueError:
+                pass
+    if ts_iso.endswith("Z") is False:
+        ts_iso += "Z"
+    return ts_iso
