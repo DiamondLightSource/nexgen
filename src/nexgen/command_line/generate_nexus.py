@@ -101,6 +101,7 @@ def main():
     try:
         with h5py.File(master_file, "x") as nxsfile:
             write_nexus(nxsfile, datafiles)
+            # FIXME need to finish filling this one out!
     except Exception as err:
         logger.info(
             f"An error occurred and {master_file} couldn't be written correctly."

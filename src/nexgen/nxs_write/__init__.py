@@ -2,6 +2,7 @@
 Utilities for writing new NeXus format files.
 """
 import sys
+import math
 import numpy as np
 
 from h5py import AttributeManager
@@ -96,12 +97,15 @@ def calculate_scan_range(axis_start, axis_end, axis_increment=None, n_images=Non
     return scan_range
 
 
-# TODO choose how to calculate (see eiger vs tristan in notes)
-def calculate_origin(beam_center_fs, fs_pixel_size, fast_axis_vector, slow_axis_vector):
+# TODO choose how to calculate
+def calculate_origin(
+    beam_center_fs, fs_pixel_size, fast_axis_vector, slow_axis_vector, mode="1"
+):
     """
     Calculate the offset of the detector.
 
-    This function returns the detector origin array, which is saved into the module_offset fields.
+    This function returns the detector origin array, which is saved as the vector attribute of the module_offset field.
+    The value to set the module_offset to is also returned: the magnitude of the displacement if the vector is normalized, 1.0 otherwise
     Assumes that fast and slow axis vectors have already been converted to mcstas if needed.
 
     Args:
@@ -110,7 +114,8 @@ def calculate_origin(beam_center_fs, fs_pixel_size, fast_axis_vector, slow_axis_
         fast_axis_vector:   Fast axis vector.
         slow__axis_vector:  Slow axis vector.
     Returns:
-        det_origin:         Offset attribute of module_offset.
+        det_origin:         Displacement of beam center, vector attribute of module_offset.
+        offset_value:       Value to assign to module_offset, depending whether det_origin is normalized or not.
     """
     # what was calculate module_offset
     x_scaled = beam_center_fs[0] * fs_pixel_size[0]
@@ -120,4 +125,8 @@ def calculate_origin(beam_center_fs, fs_pixel_size, fast_axis_vector, slow_axis_
         slow_axis_vector
     )
     det_origin = list(-det_origin)
-    return det_origin
+    if mode == "1":
+        offset_val = 1.0
+    else:
+        offset_val = math.hypot(*det_origin[:-1])
+    return det_origin, offset_val

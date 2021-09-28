@@ -473,10 +473,12 @@ def write_NXdetector_module(
             offsets["fast_axis"],
             "mm",
             "translation",
-            "mm",
+            "m",
             fast_axis,
         ),
     )
+
+    # TODO FIXME UNITS! Right now they are not super consistent. pixel size good in m
 
     slow_pixel = nxmodule.create_dataset(
         "slow_pixel_direction", data=pixel_size[1] / 1000
@@ -496,17 +498,25 @@ def write_NXdetector_module(
             offsets["slow_axis"],
             "mm",
             "translation",
-            "mm",
+            "m",
             slow_axis,
         ),
     )
 
     # If module_offset is set ti=o True, calculate and write it
-    if module["module_offset"] is True:
-        origin = calculate_origin(beam_center, pixel_size, fast_axis, slow_axis)
-        # FIXME correct value according to Jira tickets
-        # TODO add possibility of both
-        module_offset = nxmodule.create_dataset("module_offset", data=np.array([1]))
+    if module["module_offset"] != 0:
+        pixel_size_m = [
+            pixel_size[0] / 1000,
+            pixel_size[1] / 1000,
+        ]  # FIXME to be fixed once units work better
+        origin, offset_val = calculate_origin(
+            beam_center,
+            pixel_size_m,
+            fast_axis,
+            slow_axis,
+            mode=module["module_offset"],
+        )
+        module_offset = nxmodule.create_dataset("module_offset", data=offset_val)
         create_attributes(
             module_offset,
             (
@@ -522,32 +532,11 @@ def write_NXdetector_module(
                 [0, 0, 0],
                 "mm",
                 "translation",
-                "mm",
+                "m",
                 origin,
             ),
         )
-        """
-        module_offset = nxmodule.create_dataset("module_offset", data=np.array([0, 0]))
-        create_attributes(
-            module_offset,
-            (
-                "depends_on",
-                "offset",
-                "offset_units",
-                "transformation_type",
-                "units",
-                "vector",
-            ),
-            (
-                "/entry/instrument/detector/transformations/detector_z/det_z",
-                [0, 0, 0],  # origin,
-                "mm",
-                "translation",
-                "mm",
-                origin,  # [1, 0, 0],
-            ),
-        )
-        """
+
         # Correct dependency tree accordingly
         _path = "/entry/instrument/detector/module/module_offset"
         create_attributes(fast_pixel, ("depends_on"), (_path,))
