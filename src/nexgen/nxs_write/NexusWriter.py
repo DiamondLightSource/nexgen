@@ -21,7 +21,7 @@ from ..nxs_write.NXclassWriters import (
 )
 
 # General writing
-def write_nexus(
+def write_NXmx_nexus(
     nxsfile: h5py.File,
     datafiles: list,
     goniometer,
@@ -82,6 +82,9 @@ def write_nexus(
     nxentry.attrs["NX_class"] = np.string_("NXentry")
     nxentry.attrs["default"] = np.string_("data")
     # create_attributes(nxentry, ("NX_class", "default"), ("NXentry", "data"))
+
+    # Application definition: /entry/definition
+    nxentry.create_dataset("definition", data=np.string_("NXmx"))
 
     # NXdata: entry/data
     write_NXdata(

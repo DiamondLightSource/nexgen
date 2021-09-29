@@ -13,11 +13,11 @@ from pathlib import Path
 
 from __init__ import version_parser
 from nexgen import get_nexus_filename, get_iso_timestamp
-from nexgen.nxs_write.NexusWriter import write_nexus
+from nexgen.nxs_write.NexusWriter import write_NXmx_nexus
 
 # from . import version_parser
 # from .. import get_nexus_filename, get_iso_timestamp
-# from ..nxs_write.NexusWriter import write_nexus
+# from ..nxs_write.NexusWriter import write_NXmx_nexus
 
 # Define a logger object and a formatter
 logger = logging.getLogger(__name__)
@@ -191,7 +191,7 @@ def main():
     logger.info("Start writing NeXus file ...")
     try:
         with h5py.File(master_file, "x") as nxsfile:
-            write_nexus(
+            write_NXmx_nexus(
                 nxsfile,
                 datafiles,
                 goniometer,
