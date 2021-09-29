@@ -12,11 +12,11 @@ import freephil
 from pathlib import Path
 
 from __init__ import version_parser
-from nexgen import get_nexus_filename
+from nexgen import get_nexus_filename, get_iso_timestamp
 from nexgen.nxs_write.NexusWriter import write_nexus
 
 # from . import version_parser
-# from .. import get_nexus_filename
+# from .. import get_nexus_filename, get_iso_timestamp
 # from ..nxs_write.NexusWriter import write_nexus
 
 # Define a logger object and a formatter
@@ -106,9 +106,10 @@ def main():
     source = params.source
     beam = params.beam
     attenuator = params.attenuator
-
-    # TODO FIXME add call to get_iso_timestamp to make this useful
-    timestamps = (params.start_time, params.end_time)
+    timestamps = (
+        get_iso_timestamp(params.start_time),
+        get_iso_timestamp(params.end_time),
+    )
 
     # TODO finish adding logging
 

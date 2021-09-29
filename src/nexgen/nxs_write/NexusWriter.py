@@ -112,8 +112,10 @@ def write_nexus(
     )
 
     # NX_DATE_TIME: /entry/start_time and /entry/end_time
-    nxentry.create_dataset("start_time", data=np.string_(timestamps[0]))
-    nxentry.create_dataset("end_time", data=np.string_(timestamps[1]))
+    if timestamps[0] is not None:
+        nxentry.create_dataset("start_time", data=np.string_(timestamps[0]))
+    if timestamps[1] is not None:
+        nxentry.create_dataset("end_time", data=np.string_(timestamps[1]))
 
 
 def write_nexus_and_data(

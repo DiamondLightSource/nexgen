@@ -11,11 +11,11 @@ module_scope = freephil.parse(
       num_modules = 1
         .type = int
         .help = "Number of modules - defaults to 1."
-      module_offset = *0 1 2
+      module_offset = 0 *1 2
         .type = choice
         .help = "Decide whether to calculate offset of the module in regard to detector origin and creates corresponding field.
                 Options:
-                0 -> does not calculate module_offset
+                0 -> do not calculate module_offset
                 1 -> un-normalized displacement, set module_offset to 1
                 2 -> normalized displacement and set module_offset to magnitude of displacement"
       fast_axis = 1 0 0

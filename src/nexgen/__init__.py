@@ -106,6 +106,8 @@ def get_iso_timestamp(ts: str):
     Returns:
         ts_iso: Output formatted string.
     """
+    if ts is None:
+        return None
     try:
         ts = float(ts)
         ts_iso = datetime.utcfromtimestamp(ts).replace(microsecond=0).isoformat()
