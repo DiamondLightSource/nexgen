@@ -33,7 +33,24 @@ def write_nexus(
     timestamps: tuple,
     coordinate_frame: str = "mcstas",
 ):
-    """"""
+    """
+    Write a new NeXus file.
+
+    This function writes a new nexus file from the information contained in the phil scopes passed as input.
+    External links to HDF5 data files.
+
+    Args:
+        nxsfile:        NeXus file to be written.
+        datafiles:  List of at least 1 Path object to a HDF5 data file.
+        goniometer:         Scope extract
+        detector:           Scope extract
+        module:             Scope extract
+        source:             Scope extract
+        beam:               Scope extract
+        attenuator:         Scope extract
+        timestamps:         (start, end) tuple containing timestamps for start and end time.
+        coordinate_frame:   String indicating which coordinate system is being used.
+    """
     # Find total number of images that have been written across the files.
     if len(datafiles) == 1:
         with h5py.File(datafiles[0], "r") as f:
@@ -136,6 +153,7 @@ def write_nexus_and_data(
     This function writes a new nexus file from the information contained in the phil scopes passed as input.
     It also writes a specified number of blank data HDF5 files.
     The nuber of these files can be passed as input parameter, if it isn't it defaults to 1.
+
     Args:
         nxsfile:        NeXus file to be written.
         datafile_list:  List of at least 1 Path object to a HDF5 data file.

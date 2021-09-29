@@ -71,7 +71,7 @@ def get_nexus_filename(data_filename: Path) -> Path:
     return nxs_filename
 
 
-def split_arrays(coord_frame, axes_names, array):
+def split_arrays(coord_frame: str, axes_names: list, array: list) -> dict:
     """
     Split a list of values into arrays.
 
@@ -96,7 +96,7 @@ def split_arrays(coord_frame, axes_names, array):
     return array_dict
 
 
-def get_iso_timestamp(ts: str):
+def get_iso_timestamp(ts: str) -> str:
     """
     Format a timestamp string to be stores in a NeXus file according to ISO8601:
     'YY-MM-DDThh:mm:ssZ'
