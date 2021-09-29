@@ -111,8 +111,84 @@ def main():
         get_iso_timestamp(params.end_time),
     )
 
-    # TODO finish adding logging
+    # Log information
+    logger.info("Source information")
+    logger.info(f"Facility: {source.name} - {source.type}.")
+    logger.info(f"Beamline: {source.beamline_name}")
 
+    if timestamps[0] is not None:
+        logger.info(f"Collection start time: {timestamps[0]}")
+    else:
+        logger.warning("No collection start time recorded.")
+    if timestamps[1] is not None:
+        logger.info(f"Collection end time: {timestamps[1]}")
+    else:
+        logger.warning("No collection end time recorded.")
+
+    logger.info("Coordinate system: %s" % cf)
+    if cf == "imgcif":
+        logger.warning(
+            "Input coordinate frame is imgcif. They will be converted to mcstas."
+        )
+
+    logger.info("Goniometer information")
+    axes = goniometer.axes
+    axis_vectors = goniometer.vectors
+
+    assert len(axis_vectors) == 3 * len(
+        axes
+    ), "Number of vectors does not match number of goniometer axes."
+
+    for j in reversed(range(len(axes))):
+        vector = axis_vectors[3 * j : 3 * j + 3]
+        logger.info(
+            f"Goniometer axis: {axes[j]} => {vector} ({goniometer.types[j]}) on {goniometer.depends[j]}. {goniometer.starts[j]} {goniometer.ends[j]} {goniometer.increments[j]}"
+        )
+
+    logger.info("")
+
+    logger.info("Detector information:\n%s" % detector.description)
+    logger.info(
+        f"Sensor made of {detector.sensor_material} x {detector.sensor_thickness}mm"
+    )
+    logger.info(f"Trusted pixels > {detector.underload} and < {detector.overload}")
+    logger.info(
+        f"Image is a {detector.image_size} array of {detector.pixel_size} mm pixels"
+    )
+
+    logger.info("Detector axes:")
+    axes = detector.axes
+    axis_vectors = detector.vectors
+
+    assert len(axis_vectors) == 3 * len(
+        axes
+    ), "Number of vectors does not match number of detector axes."
+
+    for j in range(len(axes)):
+        vector = axis_vectors[3 * j : 3 * j + 3]
+        logger.info(
+            f"Detector axis: {axes[j]} => {vector} ({detector.types[j]}) on {detector.depends[j]}. {detector.starts[j]}"
+        )
+
+    if detector.flatfield is None:
+        logger.info("No flatfield applied")
+    else:
+        logger.info(f"Flatfield correction data lives here {detector.flatfield}")
+
+    if detector.pixel_mask is None:
+        logger.info("No bad pixel mask for this detector")
+    else:
+        logger.info(f"Bad pixel mask lives here {detector.pixel_mask}")
+
+    logger.info("Module information")
+    logger.info(f"Number of modules: {module.num_modules}")
+    logger.info(f"Fast axis at datum position: {module.fast_axis}")
+    logger.info(f"Slow_axis at datum position: {module.slow_axis}")
+    if module.module_offset == "0":
+        logger.warning(f"module_offset field will not be written.")
+    logger.info("")
+
+    logger.info("Start writing NeXus file ...")
     try:
         with h5py.File(master_file, "x") as nxsfile:
             write_nexus(
@@ -127,7 +203,7 @@ def main():
                 timestamps,
                 cf,
             )
-            # FIXME need to finish filling this one out!
+        logger.info(f"{master_file} correctly written.")
     except Exception as err:
         logger.info(
             f"An error occurred and {master_file} couldn't be written correctly."

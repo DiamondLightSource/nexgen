@@ -157,7 +157,9 @@ def main():
     for tu in zip(goniometer.types, goniometer.units):
         assert tu in (("translation", "mm"), ("rotation", "deg"))
 
-    assert len(axis_vectors) == 3 * len(axes)
+    assert len(axis_vectors) == 3 * len(
+        axes
+    ), "Number of vectors does not match number of axes."
 
     for j in reversed(range(len(axes))):
         vector = axis_vectors[3 * j : 3 * j + 3]
@@ -211,6 +213,7 @@ def main():
     # Record string with start_time
     start_time = datetime.fromtimestamp(time.time()).strftime("%A, %d. %B %Y %I:%M%p")
 
+    logger.info("Start writing NeXus and data files ...")
     try:
         with h5py.File(master_file, "x") as nxsfile:
             # Set default attribute
@@ -248,7 +251,7 @@ def main():
             # Write /entry/start_time and /entry/end_time
             nxentry.create_dataset("start_time", data=np.string_(start_time))
             nxentry.create_dataset("end_time", data=np.string_(end_time))
-            logger.info(f"{master_file} correctly written.")
+        logger.info(f"{master_file} correctly written.")
     except Exception as err:
         logger.info(
             f"An error occurred and {master_file} couldn't be written correctly."
