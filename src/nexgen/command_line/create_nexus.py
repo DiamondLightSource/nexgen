@@ -256,7 +256,7 @@ def main():
         logger.info(
             f"An error occurred and {master_file} couldn't be written correctly."
         )
-        logger.error(err)
+        logger.exception(err)
 
     logger.info("EOF")
 
