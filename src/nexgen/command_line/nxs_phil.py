@@ -45,18 +45,18 @@ detector_scope = freephil.parse(
       sensor_material = *Si CdTe
         .type = choice
         .help = "Sensor material (e.g. silicon)"
-      sensor_thickness = 0.320
-        .type = float
-        .help = "Sensor thickness, mm"
+      sensor_thickness = 0.320mm
+        .type = str
+        .help = "Sensor thickness, if unit is not specified defaults to mm"
       overload = 65535
         .type = int
         .help = "Pixels >= this value are invalid due to overloading"
       underload = -1
         .type = int
         .help = "Pixels <= this value are invalid"
-      pixel_size = 0.075 0.075
-        .type = floats(size = 2)
-        .help = "Pixel size in mm"
+      pixel_size = 0.075mm 0.075mm
+        .type = strings
+        .help = "Pixel size, if unit isn't passed defaults to mm"
       beam_center = 2214.355 2300.496
         .type = floats(size = 2)
         .help = "Beam position on the detector"
@@ -69,9 +69,9 @@ detector_scope = freephil.parse(
       image_size = 4362 4148
         .type = ints(size = 2)
         .help = "Image size, slow, fast"
-      exposure_time = 0.004
-        .type = float
-        .help = "Nominal exposure time, seconds"
+      exposure_time = 0.004s
+        .type = str
+        .help = "Nominal exposure time, if unit is not specified defaults to seconds"
       axes = two_theta det_z
         .type = strings
         .help = "Axis names for the detector axes"

@@ -9,10 +9,16 @@ __version_tuple__ = tuple(int(x) for x in __version__.split("."))
 
 import re
 import sys
+import pint
 import numpy as np
 
 from pathlib import Path
 from datetime import datetime
+from typing import Optional
+
+# Initialize registry and a Quantity constructor
+ureg = pint.UnitRegistry()
+Q_ = ureg.Quantity
 
 # Filename pattern: filename_000000.h5
 P = re.compile(r"(.*)_(?:\d+)")
@@ -76,6 +82,7 @@ def split_arrays(coord_frame: str, axes_names: list, array: list) -> dict:
     Split a list of values into arrays.
 
     This function splits up the list of values passed as phil parameters for vector, offset of all existing axes. If the coordinate frame is set to imgCIF, the arrays will have to be converted into mcstas.
+
     Args:
         coord_frame:    The coordinate system in which we are working: mcstas or imgCIF
         axes_names:     List of axes that have been passed as phil parameters
@@ -100,6 +107,7 @@ def get_iso_timestamp(ts: str) -> str:
     """
     Format a timestamp string to be stores in a NeXus file according to ISO8601:
     'YY-MM-DDThh:mm:ssZ'
+
     Args:
         ts:     Input string, can also be a timestamp (eg. time.time()) string.
 
@@ -120,3 +128,50 @@ def get_iso_timestamp(ts: str) -> str:
     if ts_iso.endswith("Z") is False:
         ts_iso += "Z"
     return ts_iso
+
+
+def units_of_length(q: str, to_base: Optional[bool] = False) -> pint.Quantity:
+    """
+    Check that a quantity of length is compatible with NX_LENGTH, defaulting to mm if dimensionless.
+
+    Args:
+        q:          A string that can be interpreted as a pint Quantity, it can be dimensionless.
+        to_base:    If True, convert to base units of length (m).
+    Returns:
+        quantity:   A pint quantity with units applied if it was dimensionless.
+    """
+    quantity = Q_(q)
+    if quantity <= 0:
+        raise ValueError("Quantity must be positive")
+    quantity = quantity * ureg.mm if quantity.dimensionless else quantity
+    if quantity.check("[length]"):
+        if to_base is True:
+            return quantity.to_base_units()
+        else:
+            return quantity
+    else:
+        raise pint.errors.DimensionalityError(
+            quantity, "a quantity of", quantity.dimensionality, ureg.mm.dimensionality
+        )
+
+
+def units_of_time(q: str) -> pint.Quantity:
+    """
+    Check that a quantity of time is compatible with NX_TIME, defaulting to s if dimensionless.
+    Convert to seconds if time is passed as a fraction of it.
+
+    Args:
+        q:          A string that can be interpreted as a pint Quantity, it can be dimensionless.
+    Returns:
+        quantity:   A pint quantity in s, with units applied if it was dimensionless.
+    """
+    quantity = Q_(q)
+    if quantity <= 0:
+        raise ValueError("Quantity of time must be positive")
+    quantity = quantity * ureg.s if quantity.dimensionless else quantity
+    if quantity.check("[time]"):
+        return quantity.to()
+    else:
+        raise pint.errors.DimensionalityError(
+            quantity, "a quantity of", quantity.dimensionality, ureg.s.dimensionality
+        )

@@ -5,8 +5,17 @@ import sys
 import h5py
 import numpy as np
 
-from . import find_scan_axis, calculate_origin, create_attributes, set_dependency
-from .. import imgcif2mcstas, split_arrays
+from . import (
+    find_scan_axis,
+    calculate_origin,
+    create_attributes,
+    set_dependency,
+)
+from .. import (
+    imgcif2mcstas,
+    split_arrays,
+    # units_of_length, units_of_time
+)
 
 # FIXME check that if group exists, it has the correct attributes
 # FIXME for event data the scan axis should only have a tuple (start, end)
@@ -44,7 +53,7 @@ def write_NXdata(
 
     # Create NXdata group, unless it already exists, in which case just open it.
     try:
-        nxdata = nxsfile.create_group("entry/data")
+        nxdata = nxsfile.create_group("/entry/data")
         create_attributes(
             nxdata,
             ("NX_class", "axes", "signal", scan_axis + "_indices"),
@@ -58,7 +67,7 @@ def write_NXdata(
             ),
         )
     except ValueError:
-        nxdata = nxsfile["entry/data"]
+        nxdata = nxsfile["/entry/data"]
 
     # If mode is images, link to blank image data. Else go to events.
     # TODO write vds
@@ -117,14 +126,14 @@ def write_NXsample(
     """
     # Create NXsample group, unless it already exists, in which case just open it.
     try:
-        nxsample = nxsfile.create_group("entry/sample")
+        nxsample = nxsfile.create_group("/entry/sample")
         create_attributes(
             nxsample,
             ("NX_class",),
             ("NXsample",),
         )
     except ValueError:
-        nxsample = nxsfile["entry/sample"]
+        nxsample = nxsfile["/entry/sample"]
 
     # Create NXtransformations group: /entry/sample/transformations
     try:
@@ -155,10 +164,10 @@ def write_NXsample(
             # If we're dealing with the scan axis
             idx = goniometer["axes"].index(scan_axis)
             try:
-                for k in nxsfile["entry/data"].keys():
-                    if nxsfile["entry/data"][k].attrs.get("depends_on"):
-                        nxsample_ax[ax] = nxsfile[nxsfile["entry/data"][k].name]
-                        nxtransformations[ax] = nxsfile[nxsfile["entry/data"][k].name]
+                for k in nxsfile["/entry/data"].keys():
+                    if nxsfile["/entry/data"][k].attrs.get("depends_on"):
+                        nxsample_ax[ax] = nxsfile[nxsfile["/entry/data"][k].name]
+                        nxtransformations[ax] = nxsfile[nxsfile["/entry/data"][k].name]
             except KeyError:
                 nxax = nxsample_ax.create_dataset(ax, data=scan_range)
                 _dep = set_dependency(
@@ -204,7 +213,7 @@ def write_NXsample(
 
     # Look for nxbeam in file, if it's there make link
     try:
-        nxsample["beam"] = nxsfile["entry/instrument/beam"]
+        nxsample["beam"] = nxsfile["/entry/instrument/beam"]
     except KeyError:
         pass
 
@@ -224,14 +233,14 @@ def write_NXinstrument(
     """
     # Create NXinstrument group, unless it already exists, in which case just open it.
     try:
-        nxinstrument = nxsfile.create_group("entry/instrument")
+        nxinstrument = nxsfile.create_group("/entry/instrument")
         create_attributes(
             nxinstrument,
             ("NX_class",),
             ("NXinstrument",),
         )
     except ValueError:
-        nxinstrument = nxsfile["entry/instrument"]
+        nxinstrument = nxsfile["/entry/instrument"]
 
     # Write /name field and relative attribute
     nxinstrument.create_dataset(
@@ -266,14 +275,14 @@ def write_NXsource(nxsfile: h5py.File, source: dict):
         source:     Dictionary containing the facility information
     """
     try:
-        nxsource = nxsfile.create_group("entry/source")
+        nxsource = nxsfile.create_group("/entry/source")
         create_attributes(
             nxsource,
             ("NX_class",),
             ("NXsource",),
         )
     except ValueError:
-        nxsource = nxsfile["entry/source"]
+        nxsource = nxsfile["/entry/source"]
 
     nxsource.create_dataset("name", data=np.string_(source["name"]))
     create_attributes(nxsource["name"], ("short_name",), (source["short_name"],))
@@ -300,14 +309,14 @@ def write_NXdetector(
     """
     # Create NXdetector group, unless it already exists, in which case just open it.
     try:
-        nxdetector = nxsfile.create_group("entry/instrument/detector")
+        nxdetector = nxsfile.create_group("/entry/instrument/detector")
         create_attributes(
             nxdetector,
             ("NX_class",),
             ("NXdetector",),
         )
     except ValueError:
-        nxdetector = nxsfile["entry/instrument/detector"]
+        nxdetector = nxsfile["/entry/instrument/detector"]
 
     # Detector depends_on
     nxdetector.create_dataset(
@@ -379,20 +388,20 @@ def write_NXdetector(
     # Create groups for detector_z and two_theta if present
     vectors = split_arrays(coord_frame, detector["axes"], detector["vectors"])
 
-    # FIXME this assumes only detector_z or two_theta as axes
+    # This assumes only detector_z or two_theta as axes
     for ax in detector["axes"]:
         idx = detector["axes"].index(ax)
         if ax == "det_z":
             grp_name = "detector_z"
             _dep = set_dependency(
                 detector["depends"][idx],
-                "entry/instrument/detector/transformations/two_theta/",
+                "/entry/instrument/detector/transformations/two_theta/",
             )
         else:
             grp_name = ax
             _dep = set_dependency(
                 detector["depends"][idx],
-                "entry/instrument/detector/transformations/detector_z/",
+                "/entry/instrument/detector/transformations/detector_z/",
             )
         nxgrp_ax = nxtransformations.create_group(grp_name)
         create_attributes(nxgrp_ax, ("NX_class",), ("NXpositioner",))
@@ -430,14 +439,14 @@ def write_NXdetector_module(
     """
     # Create NXdetector_module group, unless it already exists, in which case just open it.
     try:
-        nxmodule = nxsfile.create_group("entry/instrument/detector/module")
+        nxmodule = nxsfile.create_group("/entry/instrument/detector/module")
         create_attributes(
             nxmodule,
             ("NX_class",),
             ("NXdetector_module",),
         )
     except ValueError:
-        nxmodule = nxsfile["entry/instrument/detector/module"]
+        nxmodule = nxsfile["/entry/instrument/detector/module"]
 
     # TODO check how many modules, and write as many, plus NXdetector_group
     nxmodule.create_dataset("data_origin", data=np.array([0, 0]))

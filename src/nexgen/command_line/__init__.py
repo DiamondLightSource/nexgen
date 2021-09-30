@@ -46,6 +46,3 @@ class _CheckFileExtension(argparse.Action):
                 )
                 values[i] = f"{fname.stem}.nxs"
         setattr(namespace, self.dest, values)
-
-
-# class

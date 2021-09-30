@@ -171,12 +171,12 @@ def main():
 
     logger.info("Detector information:\n%s" % detector.description)
     logger.info(
-        f"Sensor made of {detector.sensor_material} x {detector.sensor_thickness}mm"
+        f"Sensor made of {detector.sensor_material} x {detector.sensor_thickness}"
     )
     if data_type[0] == "images":
         logger.info(f"Trusted pixels > {detector.underload} and < {detector.overload}")
     logger.info(
-        f"Image is a {detector.image_size} array of {detector.pixel_size} mm pixels"
+        f"Image is a {detector.image_size} array of {detector.pixel_size} pixels"
     )
 
     logger.info("Detector axes:")
@@ -258,7 +258,7 @@ def main():
         )
         logger.error(err)
 
-    logger.info("==" * 50)
+    logger.info("EOF")
 
 
 main()
