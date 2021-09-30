@@ -167,7 +167,7 @@ def units_of_time(q: str) -> pint.Quantity:
         raise ValueError("Quantity of time must be positive")
     quantity = quantity * ureg.s if quantity.dimensionless else quantity
     if quantity.check("[time]"):
-        return quantity.to()
+        return quantity.to_base_units()
     else:
         raise pint.errors.DimensionalityError(
             quantity, "a quantity of", quantity.dimensionality, ureg.s.dimensionality
