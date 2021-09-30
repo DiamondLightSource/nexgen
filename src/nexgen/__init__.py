@@ -20,7 +20,7 @@ from typing import Optional
 ureg = pint.UnitRegistry()
 Q_ = ureg.Quantity
 
-# Filename pattern: filename_000000.h5
+# Filename pattern: filename_######.h5
 P = re.compile(r"(.*)_(?:\d+)")
 
 # Format strings for timestamps

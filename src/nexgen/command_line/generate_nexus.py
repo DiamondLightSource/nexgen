@@ -134,6 +134,11 @@ def main():
     logger.info("Goniometer information")
     axes = goniometer.axes
     axis_vectors = goniometer.vectors
+    for tu in zip(goniometer.types, goniometer.units):
+        assert tu in (
+            ("translation", "mm"),
+            ("rotation", "deg"),
+        ), "Appropriate axis units should be: mm for translations, det for rotations"
 
     assert len(axis_vectors) == 3 * len(
         axes
@@ -159,6 +164,11 @@ def main():
     logger.info("Detector axes:")
     axes = detector.axes
     axis_vectors = detector.vectors
+    for tu in zip(detector.types, detector.units):
+        assert tu in (
+            ("translation", "mm"),
+            ("rotation", "deg"),
+        ), "Appropriate axis units should be: mm for translations, det for rotations"
 
     assert len(axis_vectors) == 3 * len(
         axes
