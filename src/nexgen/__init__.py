@@ -90,15 +90,12 @@ def split_arrays(coord_frame: str, axes_names: list, array: list) -> dict:
     Returns:
         array_dict:     Dictionary of arrays corresponding to each axis. Keys are axes names.
     """
-    # array_list = []
     array_dict = {}
     for j in range(len(axes_names)):
         a = array[3 * j : 3 * j + 3]
         if coord_frame == "imgcif":
-            # array_list.append(imgcif2mcstas(a))
             array_dict[axes_names[j]] = imgcif2mcstas(a)
         else:
-            # array_list.append(tuple(a))
             array_dict[axes_names[j]] = tuple(a)
     return array_dict
 
@@ -110,7 +107,7 @@ def get_iso_timestamp(ts: str) -> str:
 
     Args:
         ts:     Input string, can also be a timestamp (eg. time.time()) string.
-
+                Allowed formats: "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%a %b %d %Y %H:%M:%S"
     Returns:
         ts_iso: Output formatted string.
     """

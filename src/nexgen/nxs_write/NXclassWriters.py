@@ -14,7 +14,8 @@ from . import (
 from .. import (
     imgcif2mcstas,
     split_arrays,
-    # units_of_length, units_of_time
+    units_of_length,
+    units_of_time,
 )
 
 # FIXME check that if group exists, it has the correct attributes
@@ -337,27 +338,29 @@ def write_NXdetector(
     )
     create_attributes(beam_center_y, ("units",), ("pixels",))
 
-    # Pixel size
-    x_pix_size = nxdetector.create_dataset(
-        "x_pixel_size", data=detector["pixel_size"][0] / 1000
-    )
-    create_attributes(x_pix_size, ("units",), ("m",))
-    y_pix_size = nxdetector.create_dataset(
-        "y_pixel_size", data=detector["pixel_size"][1] / 1000
-    )
-    create_attributes(y_pix_size, ("units",), ("m",))
+    # Pixel size in m
+    x_pix = units_of_length(detector["pixel_size"][0], True)
+    x_pix_size = nxdetector.create_dataset("x_pixel_size", data=x_pix.magnitude)
+    create_attributes(x_pix_size, ("units",), (format(x_pix.units, "~"),))
+    y_pix = units_of_length(detector["pixel_size"][1], True)
+    y_pix_size = nxdetector.create_dataset("y_pixel_size", data=y_pix.magnitude)
+    create_attributes(y_pix_size, ("units",), (format(y_pix.units, "~"),))
 
     # Count time
-    nxdetector.create_dataset("count_time", data=detector["exposure_time"])
+    exp_time = units_of_time(detector["exposure_time"])
+    nxdetector.create_dataset("count_time", data=exp_time.magnitude)
 
-    # Sensor material, sensor thickness
+    # Sensor material, sensor thickness in m
     nxdetector.create_dataset(
         "sensor_material", data=np.string_(detector["sensor_material"])
     )
-    nxdetector.create_dataset(
-        "sensor_thickness", data=detector["sensor_thickness"] / 1000
+    sensor_thickness = units_of_length(detector["sensor_thickness"], True)
+    nxdetector.create_dataset("sensor_thickness", data=sensor_thickness.magnitude)
+    create_attributes(
+        nxdetector["sensor_thickness"],
+        ("units",),
+        (format(sensor_thickness.units, "~"),),
     )
-    create_attributes(nxdetector["sensor_thickness"], ("units",), ("m",))
 
     # If detector mode is images write overload and underload
     if data_type == "images":
@@ -388,7 +391,7 @@ def write_NXdetector(
     # Create groups for detector_z and two_theta if present
     vectors = split_arrays(coord_frame, detector["axes"], detector["vectors"])
 
-    # This assumes only detector_z or two_theta as axes
+    # This assumes only detector_z or two_theta as axes, and that they are fixed.
     for ax in detector["axes"]:
         idx = detector["axes"].index(ax)
         if ax == "det_z":
@@ -464,9 +467,8 @@ def write_NXdetector_module(
 
     offsets = split_arrays(coord_frame, ["fast_axis", "slow_axis"], module["offsets"])
 
-    fast_pixel = nxmodule.create_dataset(
-        "fast_pixel_direction", data=pixel_size[0] / 1000
-    )
+    x_pix = units_of_length(pixel_size[0], True)
+    fast_pixel = nxmodule.create_dataset("fast_pixel_direction", data=x_pix.magnitude)
     create_attributes(
         fast_pixel,
         (
@@ -482,16 +484,13 @@ def write_NXdetector_module(
             offsets["fast_axis"],
             "mm",
             "translation",
-            "m",
+            format(x_pix.units, "~"),
             fast_axis,
         ),
     )
 
-    # TODO FIXME UNITS! Right now they are not super consistent. pixel size good in m
-
-    slow_pixel = nxmodule.create_dataset(
-        "slow_pixel_direction", data=pixel_size[1] / 1000
-    )
+    y_pix = units_of_length(pixel_size[1], True)
+    slow_pixel = nxmodule.create_dataset("slow_pixel_direction", data=y_pix.magnitude)
     create_attributes(
         slow_pixel,
         (
@@ -507,17 +506,17 @@ def write_NXdetector_module(
             offsets["slow_axis"],
             "mm",
             "translation",
-            "m",
+            format(y_pix.units, "~"),
             slow_axis,
         ),
     )
 
-    # If module_offset is set ti=o True, calculate and write it
+    # If module_offset is set to 1 or 2, calculate accordinlgy and write the field
     if module["module_offset"] != 0:
         pixel_size_m = [
-            pixel_size[0] / 1000,
-            pixel_size[1] / 1000,
-        ]  # FIXME to be fixed once units work better
+            x_pix.magnitude,
+            y_pix.magnitude,
+        ]
         origin, offset_val = calculate_origin(
             beam_center,
             pixel_size_m,
@@ -541,7 +540,7 @@ def write_NXdetector_module(
                 [0, 0, 0],
                 "mm",
                 "translation",
-                "m",
+                format(x_pix.units, "~"),
                 origin,
             ),
         )
@@ -574,4 +573,4 @@ def write_NXcollection(nxdetector: h5py.Group, image_size, n_images=None):
     grp.create_dataset("y_pixels", data=image_size[1])
     if n_images is not None:
         grp.create_dataset("nimages", data=n_images)
-    # TODO if images write n_images, if events write tick time and frequency
+    # TODO if events write tick time and frequency

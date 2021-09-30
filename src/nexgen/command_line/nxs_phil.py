@@ -68,7 +68,7 @@ detector_scope = freephil.parse(
         .help = "if path is given, add link to bad pixel mask"
       image_size = 4362 4148
         .type = ints(size = 2)
-        .help = "Image size, slow, fast"
+        .help = "Image size in pixels: (slow, fast)"
       exposure_time = 0.004s
         .type = str
         .help = "Nominal exposure time, if unit is not specified defaults to seconds"
