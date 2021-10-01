@@ -1,9 +1,12 @@
 """
 Writer functions for different groups of a NeXus file.
 """
+from pathlib import Path
 import sys
 import h5py
 import numpy as np
+
+from typing import List, Tuple, Union, Optional
 
 from . import (
     find_scan_axis,
@@ -26,13 +29,13 @@ from data_tools import vds_writer
 # NXdata writer
 def write_NXdata(
     nxsfile: h5py.File,
-    datafiles: list,
+    datafiles: List[Path],
     goniometer: dict,
     data_type: str,
     coord_frame: str,
-    scan_range,
-    scan_axis=None,
-    write_vds=None,
+    scan_range: np.ndarray,
+    scan_axis: str = None,
+    write_vds: str = None,
 ):
     """
     Write NXdata group at entry/data
@@ -121,7 +124,7 @@ def write_NXsample(
     coord_frame: str,
     data_type: str,
     scan_axis: str,
-    scan_range=None,
+    scan_range: np.ndarray = None,
 ):
     """
     Write NXsample group at entry/sample
@@ -436,9 +439,9 @@ def write_NXdetector_module(
     nxsfile: h5py.File,
     module: dict,
     coord_frame: str,
-    image_size,
-    pixel_size,
-    beam_center=None,
+    image_size: Union[List, Tuple],
+    pixel_size: Union[List, Tuple],
+    beam_center: Optional[Union[List, Tuple]] = None,
 ):
     """
     Write NXdetector_module group at entry/instrument/detector/module.
@@ -568,7 +571,9 @@ def write_NXdetector_module(
 
 
 # NXCollection writer (detectorSpecific)
-def write_NXcollection(nxdetector: h5py.Group, image_size, n_images=None):
+def write_NXcollection(
+    nxdetector: h5py.Group, image_size: Union[List, Tuple], n_images: int = None
+):
     """
     Write a NXcollection group inside NXdetector as detectorSpecific.
 

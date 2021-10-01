@@ -32,7 +32,7 @@ def write_NXmx_nexus(
     attenuator,
     timestamps: tuple,
     coordinate_frame: str = "mcstas",
-    vds=False,
+    vds=None,
 ):
     """
     Write a new NeXus file.
@@ -41,8 +41,8 @@ def write_NXmx_nexus(
     External links to HDF5 data files.
 
     Args:
-        nxsfile:        NeXus file to be written.
-        datafiles:  List of at least 1 Path object to a HDF5 data file.
+        nxsfile:            NeXus file to be written.
+        datafiles:          List of at least 1 Path object to a HDF5 data file.
         goniometer:         Scope extract
         detector:           Scope extract
         module:             Scope extract
@@ -151,7 +151,7 @@ def write_nexus_and_data(
     source,
     beam,
     attenuator,
-    vds=False,
+    vds=None,
 ):
     """
     Write a new example NeXus format file with blank data.

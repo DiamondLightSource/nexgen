@@ -3,19 +3,23 @@ Utilities for writing new NeXus format files.
 """
 import sys
 import math
+import h5py
 import numpy as np
 
 from h5py import AttributeManager
+from typing import List, Tuple, Union
 
 
-def create_attributes(nxs_obj, names, values):
+def create_attributes(
+    nxs_obj: Union[h5py.Group, h5py.Dataset], names: Tuple, values: Tuple
+):
     """
     Create or overwrite attributes with additional metadata information.
 
     Args:
-        nxs_obj: NeXus object (Group or Dataset) to which the attributes should be attached
-        names: Tuple containing the names of the new attributes
-        values: Tuple containing the values relative to the names
+        nxs_obj:    NeXus object (Group or Dataset) to which the attributes should be attached
+        names:      Tuple containing the names of the new attributes
+        values:     Tuple containing the values relative to the names
     """
     for n, v in zip(names, values):
         if type(v) is str:
@@ -24,14 +28,14 @@ def create_attributes(nxs_obj, names, values):
         AttributeManager.create(nxs_obj, name=n, data=v)
 
 
-def set_dependency(dep_info, path=None):
+def set_dependency(dep_info: str, path: str = None):
     """
     Define value for "depends_on" attribute.
     If the attribute points to the head of the dependency chain, simply pass "." for dep_info.
 
     Args:
-        dep_info: The name of the transformation upon which the current one depends on.
-        path: Where the transformation is. Set to None, if passed it points to location in the NeXus tree.
+        dep_info:   The name of the transformation upon which the current one depends on.
+        path:       Where the transformation is. Set to None, if passed it points to location in the NeXus tree.
     Returns:
         The value to be passed to the attribute "depends_on"
     """
@@ -45,7 +49,7 @@ def set_dependency(dep_info, path=None):
         return np.string_(dep_info)
 
 
-def find_scan_axis(axes_names, axes_starts, axes_ends):
+def find_scan_axis(axes_names: List, axes_starts: List, axes_ends: List) -> str:
     """
     Identify the scan_axis.
 
@@ -77,18 +81,23 @@ def find_scan_axis(axes_names, axes_starts, axes_ends):
     return scan_axis
 
 
-def calculate_scan_range(axis_start, axis_end, axis_increment=None, n_images=None):
+def calculate_scan_range(
+    axis_start: float,
+    axis_end: float,
+    axis_increment: float = None,
+    n_images: int = None,
+) -> np.ndarray:
     """
-    Calculate the scan range for a rotation collection and return as a list.
+    Calculate the scan range for a rotation collection and return as a numpy array.
 
     axes_increments and n_images are mutually exclusive
     Args:
-        axis_start:
-        axis_end:
-        axis_increment:
-        n_images:
+        axis_start:         Rotation axis position at the beginning of the scan, float.
+        axis_end:           Rotation axis position at the end of the scan, float.
+        axis_increment:     Range through which the axis moves each frame, float.
+        n_images:           Alternatively, number of images, int.
     Returns:
-        scan_range:         List of values for the scan axis.
+        scan_range:         Numpy array of values for the rotation axis.
     """
     if n_images:
         scan_range = np.linspace(axis_start, axis_end, n_images)
@@ -97,9 +106,12 @@ def calculate_scan_range(axis_start, axis_end, axis_increment=None, n_images=Non
     return scan_range
 
 
-# TODO choose how to calculate
 def calculate_origin(
-    beam_center_fs, fs_pixel_size, fast_axis_vector, slow_axis_vector, mode="1"
+    beam_center_fs: Union[List, Tuple],
+    fs_pixel_size: Union[List, Tuple],
+    fast_axis_vector: Tuple,
+    slow_axis_vector: Tuple,
+    mode: str = "1",
 ):
     """
     Calculate the offset of the detector.
@@ -111,8 +123,11 @@ def calculate_origin(
     Args:
         beam_center_fs:     List or tuple of beam center position in fast and slow direction.
         fs_pixel_size:      List or tuple of pixel size in fast and slow direction, in m.
-        fast_axis_vector:   Fast axis vector.
-        slow__axis_vector:  Slow axis vector.
+        fast_axis_vector:   Fast axis vector (usually passed as a tuple).
+        slow__axis_vector:  Slow axis vector ( usually passed as a tuple).
+        mode:               Decides how to calculate det_origin.
+                            If set to "1" the displacement vector is un-normalized and the offset value set to 1.0.
+                            If set to "2" the displacement is normalized and the offset value is set to the magnitude of the displacement.
     Returns:
         det_origin:         Displacement of beam center, vector attribute of module_offset.
         offset_value:       Value to assign to module_offset, depending whether det_origin is normalized or not.

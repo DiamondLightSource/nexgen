@@ -14,7 +14,7 @@ import numpy as np
 
 from pathlib import Path
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 # Initialize registry and a Quantity constructor
 ureg = pint.UnitRegistry()
@@ -77,7 +77,7 @@ def get_nexus_filename(data_filename: Path) -> Path:
     return nxs_filename
 
 
-def split_arrays(coord_frame: str, axes_names: list, array: list) -> dict:
+def split_arrays(coord_frame: str, axes_names: List, array: List) -> dict:
     """
     Split a list of values into arrays.
 
