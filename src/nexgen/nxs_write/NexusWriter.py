@@ -6,7 +6,7 @@ import h5py
 import numpy as np
 
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 from . import find_scan_axis, calculate_scan_range
 
@@ -63,6 +63,8 @@ def write_NXmx_nexus(
     else:
         num_images = find_number_of_images(datafiles)
 
+    data_type = ("images", num_images)
+
     # Identify scan axis
     osc_axis = find_scan_axis(goniometer.axes, goniometer.starts, goniometer.ends)
 
@@ -91,50 +93,21 @@ def write_NXmx_nexus(
     # Application definition: /entry/definition
     nxentry.create_dataset("definition", data=np.string_("NXmx"))
 
-    # NXdata: entry/data
-    write_NXdata(
+    # Call the writers
+    call_writers(
         nxsfile,
         datafiles,
-        goniometer.__dict__,
-        "images",
-        coord_frame=coordinate_frame,
-        scan_range=scan_range,
-        scan_axis=osc_axis,
-        write_vds=vds,
-    )
-
-    # NXinstrument: entry/instrument
-    write_NXinstrument(
-        nxsfile,
-        beam.__dict__,
-        attenuator.__dict__,
-        source.beamline_name,
-    )
-
-    # NXdetector: entry/instrument/detector
-    write_NXdetector(nxsfile, detector.__dict__, coordinate_frame, "images", num_images)
-
-    # NXmodule: entry/instrument/detector/module
-    write_NXdetector_module(
-        nxsfile,
-        module.__dict__,
         coordinate_frame,
-        detector.image_size,
-        detector.pixel_size,
-        beam_center=detector.beam_center,
-    )
-
-    # NXsource: entry/source
-    write_NXsource(nxsfile, source.__dict__)
-
-    # NXsample: entry/sample
-    write_NXsample(
-        nxsfile,
-        goniometer.__dict__,
-        coordinate_frame,
-        "images",
         osc_axis,
-        scan_range=scan_range,
+        scan_range,
+        data_type,
+        goniometer,
+        detector,
+        module,
+        source,
+        beam,
+        attenuator,
+        vds,
     )
 
     # NX_DATE_TIME: /entry/start_time and /entry/end_time
@@ -146,9 +119,9 @@ def write_NXmx_nexus(
 
 def write_nexus_and_data(
     nxsfile: h5py.File,
-    datafile_list: List[Path],
+    datafiles: List[Path],
     data_type: Tuple[str, int],
-    coord_frame: str,
+    coordinate_frame: str,
     goniometer,
     detector,
     module,
@@ -165,17 +138,17 @@ def write_nexus_and_data(
     The nuber of these files can be passed as input parameter, if it isn't it defaults to 1.
 
     Args:
-        nxsfile:        NeXus file to be written.
-        datafile_list:  List of at least 1 Path object to a HDF5 data file.
-        data_type:      Tuple (str, int) indicating whether the mode is images or events (and eventually how many).
-        coord_frame:    String indicating which coordinate system is being used.
-        goniometer:     Scope extract
-        detector:       Scope extract
-        module:         Scope extract
-        source:         Scope extract
-        beam:           Scope extract
-        attenuator:     Scope extract
-        vds:            If passed, a Virtual Dataset will also be written.
+        nxsfile:            NeXus file to be written.
+        datafiles:          List of at least 1 Path object to a HDF5 data file.
+        data_type:          Tuple (str, int) indicating whether the mode is images or events (and eventually how many).
+        coordinate_frame:   String indicating which coordinate system is being used.
+        goniometer:         Scope extract
+        detector:           Scope extract
+        module:             Scope extract
+        source:             Scope extract
+        beam:               Scope extract
+        attenuator:         Scope extract
+        vds:                If passed, a Virtual Dataset will also be written.
     """
     # Identify scan axis
     osc_axis = find_scan_axis(goniometer.axes, goniometer.starts, goniometer.ends)
@@ -189,33 +162,66 @@ def write_nexus_and_data(
                 goniometer.ends[idx],
                 axis_increment=goniometer.increments[idx],
             )
-            num_images = len(scan_range)
+            data_type = ("images", len(scan_range))
         else:
             scan_range = calculate_scan_range(
                 goniometer.starts[idx], goniometer.ends[idx], n_images=data_type[1]
             )
-            num_images = data_type[1]
     elif data_type[0] == "events":
         scan_range = (goniometer.starts[idx], goniometer.ends[idx])
 
     # Write data files
     data_writer(
-        datafile_list,
+        datafiles,
         data_type,
         image_size=detector.image_size,
         scan_range=scan_range,
     )
 
+    # Call the writers
+    call_writers(
+        nxsfile,
+        datafiles,
+        coordinate_frame,
+        osc_axis,
+        scan_range,
+        data_type,
+        goniometer,
+        detector,
+        module,
+        source,
+        beam,
+        attenuator,
+        vds,
+    )
+
+
+def call_writers(
+    nxsfile: h5py.File,
+    datafiles: List[Path],
+    coordinate_frame: str,
+    scan_axis: str,
+    scan_range: Union[Tuple, np.ndarray],
+    data_type: Tuple[str, int],
+    goniometer,
+    detector,
+    module,
+    source,
+    beam,
+    attenuator,
+    vds: str,
+):
+    """ Call the writers for the NeXus base classes."""
     # NXdata: entry/data
     write_NXdata(
         nxsfile,
-        datafile_list,
+        datafiles,
         goniometer.__dict__,
         data_type[0],
-        coord_frame=coord_frame,
-        scan_range=scan_range,
-        scan_axis=osc_axis,
-        write_vds=vds,
+        coordinate_frame,
+        scan_range,
+        scan_axis,
+        vds,
     )
 
     # NXinstrument: entry/instrument
@@ -227,13 +233,13 @@ def write_nexus_and_data(
     )
 
     # NXdetector: entry/instrument/detector
-    write_NXdetector(nxsfile, detector.__dict__, coord_frame, data_type, num_images)
+    write_NXdetector(nxsfile, detector.__dict__, coordinate_frame, data_type)
 
     # NXmodule: entry/instrument/detector/module
     write_NXdetector_module(
         nxsfile,
         module.__dict__,
-        coord_frame,
+        coordinate_frame,
         detector.image_size,
         detector.pixel_size,
         beam_center=detector.beam_center,
@@ -246,8 +252,8 @@ def write_nexus_and_data(
     write_NXsample(
         nxsfile,
         goniometer.__dict__,
-        coord_frame,
+        coordinate_frame,
         data_type[0],
-        osc_axis,
-        scan_range=scan_range,
+        scan_axis,
+        scan_range,
     )

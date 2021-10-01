@@ -30,7 +30,7 @@ def write_NXdata(
     goniometer: dict,
     data_type: str,
     coord_frame: str,
-    scan_range: np.ndarray,
+    scan_range: Union[Tuple, np.ndarray],
     scan_axis: str = None,
     write_vds: str = None,
 ):
@@ -304,8 +304,7 @@ def write_NXdetector(
     nxsfile: h5py.File,
     detector: dict,
     coord_frame: str,
-    data_type: str,
-    n_images: int = None,
+    data_type: Tuple[str, int],
 ):
     """
     Write_NXdetector group at entry/instrument/detector
@@ -314,8 +313,7 @@ def write_NXdetector(
         nxsfile:        Nexus file to be written
         detector:       Dictionary containing all detector information
         coord_frame:    Coordinate system the axes are currently expressed in
-        data_type:      Images or events
-        n_images:       Number of written images (for image mode detector)
+        data_type:      Tuple (str, int) identifying whether the files to be written contain images or events.
     """
     # Create NXdetector group, unless it already exists, in which case just open it.
     try:
@@ -367,7 +365,7 @@ def write_NXdetector(
     )
 
     # If detector mode is images write overload and underload
-    if data_type == "images":
+    if data_type[0] == "images":
         nxdetector.create_dataset("saturation_value", data=detector["overload"])
         nxdetector.create_dataset("underload_value", data=detector["underload"])
 
@@ -382,7 +380,7 @@ def write_NXdetector(
         nxdetector.create_dataset("pixel_mask", data=detector["pixel_mask"])
 
     # Write_NXcollection
-    write_NXcollection(nxdetector, detector["image_size"], n_images)
+    write_NXcollection(nxdetector, detector["image_size"], data_type[1])
 
     # Write NXtransformations: entry/instrument/detector/transformations/detector_z and two_theta
     nxtransformations = nxdetector.create_group("transformations")
@@ -569,7 +567,7 @@ def write_NXdetector_module(
 
 # NXCollection writer (detectorSpecific)
 def write_NXcollection(
-    nxdetector: h5py.Group, image_size: Union[List, Tuple], n_images: int = None
+    nxdetector: h5py.Group, image_size: Union[List, Tuple], data_type: Tuple[str, int]
 ):
     """
     Write a NXcollection group inside NXdetector as detectorSpecific.
@@ -577,12 +575,12 @@ def write_NXcollection(
     Args:
         nxdetector:     HDF5 NXdetector group
         image_size:     Size of the detector
-        n_images:       Number of images written per file.
+        Tuple (str, int) identifying whether the files to be written contain images or events.
     """
     # Create detectorSpecific group
     grp = nxdetector.create_group("detectorSpecific")
     grp.create_dataset("x_pixels", data=image_size[0])
     grp.create_dataset("y_pixels", data=image_size[1])
-    if n_images is not None:
-        grp.create_dataset("nimages", data=n_images)
+    if data_type[0] == "images":
+        grp.create_dataset("nimages", data=data_type[1])
     # TODO if events write tick time and frequency
