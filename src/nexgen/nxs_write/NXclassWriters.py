@@ -328,11 +328,6 @@ def write_NXdetector(
     except ValueError:
         nxdetector = nxsfile["/entry/instrument/detector"]
 
-    # Detector depends_on
-    nxdetector.create_dataset(
-        "depends_on", data="/entry/instrument/detector/transformations/det_z"
-    )
-
     # Detector description
     nxdetector.create_dataset("description", data=np.string_(detector["description"]))
     nxdetector.create_dataset("type", data=np.string_("Pixel"))
@@ -395,6 +390,12 @@ def write_NXdetector(
         nxtransformations,
         ("NX_class",),
         ("NXtransformations",),
+    )
+
+    # Detector depends_on
+    nxdetector.create_dataset(
+        "depends_on",
+        data=set_dependency("detector_z/det_z", path=nxtransformations.name),
     )
 
     # Create groups for detector_z and two_theta if present
