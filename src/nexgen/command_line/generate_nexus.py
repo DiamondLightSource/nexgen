@@ -34,9 +34,9 @@ master_phil = freephil.parse(
       coordinate_frame = *mcstas imgcif
         .type = choice
         .help = "Which coordinate system is being used to provide input vectors."
-      vds_writer = False
-        .type = bool
-        .help = "If True, write vds along with external link to data in NeXus file."
+      vds_writer = *None dataset file
+        .type = choice
+        .help = "If not None, write vds along with external link to data in NeXus file, or create _vds.h5 file."
     }
 
     include scope nexgen.command_line.nxs_phil.goniometer_scope

@@ -32,7 +32,7 @@ def write_NXdata(
     coord_frame: str,
     scan_range,
     scan_axis=None,
-    write_vds=False,
+    write_vds=None,
 ):
     """
     Write NXdata group at entry/data
@@ -45,7 +45,7 @@ def write_NXdata(
         coord_frame:    Coordinate system the axes are currently in
         scan_axis:      Rotation axis
         scan_range:     If writing events, this is just a (start, end) tuple
-        write_vds:      If True, writes a Virtual Dataset. Defaults to False.
+        write_vds:      If not None, writes a Virtual Dataset.
     """
     # Check that a valid datafile_list has been passed.
     assert len(datafiles) > 0, "Please pass at least a list of one HDF5 data file."
@@ -76,17 +76,17 @@ def write_NXdata(
 
     # If mode is images, link to blank image data. Else go to events.
     if data_type == "images":
-        if len(datafiles) == 1 and write_vds is False:
+        if len(datafiles) == 1 and write_vds is None:
             nxdata["data"] = h5py.ExternalLink(datafiles[0].name, "data")
-        elif len(datafiles) == 1 and write_vds is True:
+        elif len(datafiles) == 1 and write_vds:
             nxdata[datafiles[0].stem] = h5py.ExternalLink(datafiles[0].name, "data")
-            vds_writer(nxsfile, datafiles)
+            vds_writer(nxsfile, datafiles, write_vds)
         else:
             # In theory if there are multiple files I should have a vds file there (because DIALS)
             for filename in datafiles:
                 nxdata[filename.stem] = h5py.ExternalLink(filename.name, "data")
-            if write_vds is True:
-                vds_writer(nxsfile, datafiles)
+            if write_vds:
+                vds_writer(nxsfile, datafiles, write_vds)
     elif data_type == "events":
         for filename in datafiles:
             nxdata[filename.stem] = h5py.ExternalLink(filename.name, "/")
