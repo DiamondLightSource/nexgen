@@ -117,7 +117,7 @@ def write_NXmx_nexus(
         nxentry.create_dataset("end_time", data=np.string_(timestamps[1]))
 
 
-def write_nexus_and_data(
+def write_nexus_demo(
     nxsfile: h5py.File,
     datafiles: List[Path],
     data_type: Tuple[str, int],

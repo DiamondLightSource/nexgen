@@ -19,12 +19,12 @@ from __init__ import version_parser, detectormode_parser, _CheckFileExtension
 from nexgen import get_filename_template
 
 # from nexgen.nxs_write.__init__ import create_attributes
-from nexgen.nxs_write.NexusWriter import write_nexus_and_data
+from nexgen.nxs_write.NexusWriter import write_nexus_demo
 
 # from . import version_parser, detectormode_parser, _CheckFileExtension
 # from .. import get_filename_template
 # from ..nxs_write import create_attributes
-# from ..nxs_write.NexusWriter import write_nexus_and_data
+# from ..nxs_write.NexusWriter import write_nexus_demo
 
 # Define a logger object and a formatter
 logger = logging.getLogger(__name__)
@@ -230,7 +230,7 @@ def main():
                 "definition", data=np.string_(params.input.definition)
             )
 
-            write_nexus_and_data(
+            write_nexus_demo(
                 nxsfile,
                 data_file_list,
                 data_type,
