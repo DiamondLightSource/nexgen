@@ -5,6 +5,9 @@ Writer for NeXus format files.
 import h5py
 import numpy as np
 
+from pathlib import Path
+from typing import List, Tuple
+
 from . import find_scan_axis, calculate_scan_range
 
 # from data_tools import data_writer, find_number_of_images
@@ -23,7 +26,7 @@ from ..nxs_write.NXclassWriters import (
 # General writing
 def write_NXmx_nexus(
     nxsfile: h5py.File,
-    datafiles: list,
+    datafiles: List[Path],
     goniometer,
     detector,
     module,
@@ -32,7 +35,7 @@ def write_NXmx_nexus(
     attenuator,
     timestamps: tuple,
     coordinate_frame: str = "mcstas",
-    vds=None,
+    vds: str = None,
 ):
     """
     Write a new NeXus file.
@@ -51,6 +54,7 @@ def write_NXmx_nexus(
         attenuator:         Scope extract
         timestamps:         (start, end) tuple containing timestamps for start and end time.
         coordinate_frame:   String indicating which coordinate system is being used.
+        vds:                If passed, a Virtual Dataset will also be written.
     """
     # Find total number of images that have been written across the files.
     if len(datafiles) == 1:
@@ -142,8 +146,8 @@ def write_NXmx_nexus(
 
 def write_nexus_and_data(
     nxsfile: h5py.File,
-    datafile_list: list,
-    data_type: tuple,
+    datafile_list: List[Path],
+    data_type: Tuple[str, int],
     coord_frame: str,
     goniometer,
     detector,
@@ -151,7 +155,7 @@ def write_nexus_and_data(
     source,
     beam,
     attenuator,
-    vds=None,
+    vds: str = None,
 ):
     """
     Write a new example NeXus format file with blank data.
@@ -171,6 +175,7 @@ def write_nexus_and_data(
         source:         Scope extract
         beam:           Scope extract
         attenuator:     Scope extract
+        vds:            If passed, a Virtual Dataset will also be written.
     """
     # Identify scan axis
     osc_axis = find_scan_axis(goniometer.axes, goniometer.starts, goniometer.ends)

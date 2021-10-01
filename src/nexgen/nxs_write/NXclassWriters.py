@@ -23,9 +23,6 @@ from .. import (
 
 from data_tools import vds_writer
 
-# FIXME check that if group exists, it has the correct attributes
-# FIXME for event data the scan axis should only have a tuple (start, end)
-
 # NXdata writer
 def write_NXdata(
     nxsfile: h5py.File,
