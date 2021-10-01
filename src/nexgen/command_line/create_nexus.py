@@ -241,6 +241,7 @@ def main():
                 source,
                 beam,
                 attenuator,
+                params.input.vds_writer,
             )
 
             # Record string with end_time

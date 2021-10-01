@@ -32,6 +32,7 @@ def write_NXmx_nexus(
     attenuator,
     timestamps: tuple,
     coordinate_frame: str = "mcstas",
+    vds=False,
 ):
     """
     Write a new NeXus file.
@@ -95,6 +96,7 @@ def write_NXmx_nexus(
         coord_frame=coordinate_frame,
         scan_range=scan_range,
         scan_axis=osc_axis,
+        write_vds=vds,
     )
 
     # NXinstrument: entry/instrument
@@ -149,6 +151,7 @@ def write_nexus_and_data(
     source,
     beam,
     attenuator,
+    vds=False,
 ):
     """
     Write a new example NeXus format file with blank data.
@@ -207,6 +210,7 @@ def write_nexus_and_data(
         coord_frame=coord_frame,
         scan_range=scan_range,
         scan_axis=osc_axis,
+        write_vds=vds,
     )
 
     # NXinstrument: entry/instrument

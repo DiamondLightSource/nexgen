@@ -212,6 +212,7 @@ def main():
                 attenuator,
                 timestamps,
                 cf,
+                params.input.vds_writer,
             )
         logger.info(f"{master_file} correctly written.")
     except Exception as err:

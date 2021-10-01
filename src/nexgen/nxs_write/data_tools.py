@@ -92,8 +92,27 @@ def find_number_of_images(datafile_list):
     return num_images
 
 
-def vds_writer():
+def vds_writer(nxsfile: h5py.File, datafile_list):
     """
     Write a Virtual Dataset file for image data.
     """
-    pass
+    entry_key = "data"
+    sh = h5py.File(datafile_list[0], "r")[entry_key].shape
+    dtype = h5py.File(datafile_list[0], "r")[entry_key].dtype
+
+    # Create virtual layout
+    layout = h5py.VirtualLayout(
+        shape=(len(datafile_list) * sh[0],) + sh[1:], dtype=dtype
+    )
+    start = 0
+    for _, filename in enumerate(datafile_list):
+        end = start + sh[0]
+        vsource = h5py.VirtualSource(
+            filename.name, entry_key, shape=sh
+        )  # Source definition
+        layout[start:end:1, :, :] = vsource
+        start = end
+
+    # Write virtual dataset in nexus file
+    nxdata = nxsfile["entry/data"]
+    nxdata.create_virtual_dataset(entry_key, layout, fillvalue=-1)
