@@ -6,7 +6,7 @@ import os
 import h5py
 import numpy as np
 
-from . import get_nexus_tree, identify_scan_axis, convert_scan_axis
+from . import get_nexus_tree, identify_tristan_scan_axis, convert_scan_axis
 from ..nxs_write import create_attributes
 
 
@@ -38,7 +38,7 @@ def single_image_nexus(data_file, tristan_nexus, write_mode="x"):
         # Add link to data
         nxdata["data"] = h5py.ExternalLink(os.path.basename(data_file), "data")
         # Compute and write axis information
-        ax, ax_attr = identify_scan_axis(nxs_in)
+        ax, ax_attr = identify_tristan_scan_axis(nxs_in)
         create_attributes(
             nxdata,
             ("NX_class", "axes", "signal", ax + "_indices"),
@@ -103,7 +103,7 @@ def multiple_images_nexus(
         # Add link to data
         nxdata["data"] = h5py.ExternalLink(os.path.basename(data_file), "data")
         # Compute and write axis information
-        ax, ax_attr = identify_scan_axis(nxs_in)
+        ax, ax_attr = identify_tristan_scan_axis(nxs_in)
         create_attributes(
             nxdata,
             ("NX_class", "axes", "signal", ax + "_indices"),
@@ -185,7 +185,7 @@ def pump_probe_nexus(data_file, tristan_nexus, write_mode="x", mode="static"):
         # Add link to data
         nxdata["data"] = h5py.ExternalLink(os.path.basename(data_file), "data")
         # Compute and write axis information
-        ax, ax_attr = identify_scan_axis(nxs_in)
+        ax, ax_attr = identify_tristan_scan_axis(nxs_in)
         create_attributes(
             nxdata,
             ("NX_class", "axes", "signal", ax + "_indices"),

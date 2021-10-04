@@ -4,21 +4,21 @@ Utilities for copying metadata to new NeXus files.
 
 import h5py
 
-from .. import create_attributes
+from ..nxs_write import create_attributes
 
 
-def get_nexus_tree(nxs_in: h5py.File, nxs_out: h5py.File, skip=True):
+def get_nexus_tree(nxs_in: h5py.File, nxs_out: h5py.File, skip: bool = True):
     """
-    Copy the tree from the original NeXus file, except for NXdata.
+    Copy the tree from the original NeXus file. Everything except NXdata is copied to a new NeXus file.
+    If skip is False, then the full tree is copied.
 
     Args:
-        nxs_in: original NeXus file.
-        nxs_out:new NeXus file.
-        skip:   default True, copy everything but NXdata.
-                Pass False to copy also NXdata.
+        nxs_in:     Original NeXus file.
+        nxs_out:    New NeXus file.
+        skip:       Defaults to True, copy everything but NXdata.
+                    Pass False to copy also NXdata.
     Returns:
-        nxentry field
-        nothing is skip is False
+        nxentry:    NeXus field.
     """
     if skip is True:
         nxentry = nxs_out.create_group("entry")
@@ -35,7 +35,7 @@ def get_nexus_tree(nxs_in: h5py.File, nxs_out: h5py.File, skip=True):
         return
 
 
-def identify_scan_axis(nxs_in: h5py.File):
+def identify_tristan_scan_axis(nxs_in: h5py.File):
     """
     Identify the scan_axis in the NeXus tree of a Tristan collection.
 
