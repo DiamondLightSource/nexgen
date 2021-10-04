@@ -46,3 +46,10 @@ class _CheckFileExtension(argparse.Action):
                 )
                 values[i] = f"{fname.stem}.nxs"
         setattr(namespace, self.dest, values)
+
+
+nexus_parser = argparse.ArgumentParser(add_help=False)
+nexus_parser.add_argument("phil_args", nargs="*")
+
+demo_parser = argparse.ArgumentParser(add_help=False)
+demo_parser.add_argument("phil_args", nargs="*", action=_CheckFileExtension)
