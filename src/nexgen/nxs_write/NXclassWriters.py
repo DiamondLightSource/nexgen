@@ -382,7 +382,7 @@ def write_NXdetector(
         nxdetector.create_dataset("pixel_mask", data=detector["pixel_mask"])
 
     # Write_NXcollection
-    write_NXcollection(nxdetector, detector["image_size"], data_type[1])
+    write_NXcollection(nxdetector, detector["image_size"], data_type)
 
     # Write NXtransformations: entry/instrument/detector/transformations/detector_z and two_theta
     nxtransformations = nxdetector.create_group("transformations")
