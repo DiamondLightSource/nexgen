@@ -12,10 +12,7 @@ from . import find_scan_axis, calculate_scan_range
 
 from .data_tools import data_writer, find_number_of_images
 
-# from ..nxs_write.data_tools import data_writer, find_number_of_images
-
 from .NXclassWriters import (
-    # from ..nxs_write.NXclassWriters import (
     write_NXdata,
     write_NXinstrument,
     write_NXsample,
