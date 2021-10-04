@@ -1,26 +1,41 @@
 """
-Command line tool to generate a NeXus file.
+Command line tool to generate an example NeXus file along with blank data.
 """
 
+import sys
+import time
 import h5py
 import logging
 import argparse
+
+import numpy as np
+
+from datetime import datetime
 from pathlib import Path
 
 import freephil
 
+from __init__ import version_parser, detectormode_parser, _CheckFileExtension
 from nexgen import get_filename_template
-from nexgen.nxs_write.NexusWriter import write_new_nexus
 
+# from nexgen.nxs_write.__init__ import create_attributes
+from nexgen.nxs_write.NexusWriter import write_nexus_demo
+
+# from . import version_parser, detectormode_parser, _CheckFileExtension
 # from .. import get_filename_template
-# from ..nxs_write.NexusWriter import write_new_nexus
+# from ..nxs_write import create_attributes
+# from ..nxs_write.NexusWriter import write_nexus_demo
 
-logger = logging.getLogger("NeXusWriter")
+# Define a logger object and a formatter
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+formatter = logging.Formatter("%(message)s")
+# formatter = logging.Formatter("%(levelname)s %(message)s")
 
 master_phil = freephil.parse(
     """
     output {
-      master_file_name = nexus_master.h5
+      master_filename = nexus_master.h5
         .type = path
         .help = "Filename for master file"
     }
@@ -35,16 +50,9 @@ master_phil = freephil.parse(
       n_files = 1
         .type = int
         .help = "Number of data files to write - defaults to 1."
-      # Make these two mutually exclusive ?
-      n_images = None
-        .type = int
-        .help = "Number of blank images to be written per file"
-      n_events = None
-        .type = int
-        .help = "Size of event stream per file"
-      write_vds = False
-        .type = bool
-        .help = "If True, create also a _vds.h5 file. Only for image data."
+      write_vds = *None dataset file
+        .type = choice
+        .help = "If not None, either write a vds in the nexus file or create also a _vds.h5 file."
     }
 
     include scope nexgen.command_line.nxs_phil.goniometer_scope
@@ -60,7 +68,9 @@ master_phil = freephil.parse(
 
 # Parse command line arguments
 parser = argparse.ArgumentParser(
-    description="Parse parameters to generate a NeXus file."
+    # description = __doc__,
+    description="Generate an example NeXus file with blank dataset using the parameters passed as input.",
+    parents=[version_parser, detectormode_parser],
 )
 parser.add_argument("--debug", action="store_const", const=True)
 parser.add_argument(
@@ -71,56 +81,54 @@ parser.add_argument(
     dest="show_config",
     help="Show the configuration parameters.",
 )
-# FIXME .multiple doesn't seem to work (not an argparse problem)
-# TODO consider adding write mode as optional argument
-parser.add_argument("phil_args", nargs="*")
+parser.add_argument("phil_args", nargs="*", action=_CheckFileExtension)
 
 
 def main():
-    # working_phil = master_phil.fetch()
-    # working_phil.show()
     args = parser.parse_args()
     cl = master_phil.command_line_argument_interpreter()
     working_phil = master_phil.fetch(cl.process_and_fetch(args.phil_args))
     params = working_phil.extract()
 
     # Path to file
-    master_file = Path(params.output.master_file_name).expanduser().resolve()
-    # Start logger
-    logfile = master_file.parent / "NeXusWriter.log"
-    logging.basicConfig(
-        filename=logfile.as_posix(),
-        format="%(message)s",
-        level="DEBUG",
-    )
-
-    # Check that the file extension is correct
-    assert (master_file.suffix == ".nxs") or (
-        master_file.suffix == ".h5"
-    ), "Wrong file extension, please pass a .h5 or .nxs file."
+    master_file = Path(params.output.master_filename).expanduser().resolve()
     # Just in case ...
-    if master_file.suffix == ".h5":
-        assert "master" in master_file.name, "Please pass a _master.h5 or .nxs file."
+    if master_file.suffix == ".h5" and "master" not in master_file.stem:
+        master_file = Path(master_file.as_posix().replace(".h5", "_master.h5"))
+
+    # Start logger
+    logfile = master_file.parent / "generate_nexus_and_data.log"  # "NeXusWriter.log"
+    # Define stream and file handler for logging
+    CH = logging.StreamHandler(sys.stdout)
+    CH.setLevel(logging.DEBUG)
+    CH.setFormatter(formatter)
+    FH = logging.FileHandler(logfile, mode="w")
+    FH.setLevel(logging.DEBUG)
+    FH.setFormatter(formatter)
+    # Add handlers to logger
+    logger.addHandler(CH)
+    logger.addHandler(FH)
 
     # Get data file name template
     data_file_template = get_filename_template(master_file)
-    # data_file = (
-    #    Path(data_file_template % 1).expanduser().resolve()
-    # )  # assumes only one file
     data_file_list = [
         Path(data_file_template % (n + 1)).expanduser().resolve()
         for n in range(params.input.n_files)
     ]
-    # TODO write more than one file (and add vds if prompted)
+    # TODO add vds if prompted
 
     # Add some information to logger
-    logger.info("NeXus file will be saved as %s" % params.output.master_file_name)
+    logger.info("NeXus file will be saved as %s" % params.output.master_filename)
     logger.info("Data file(s) template: %s" % data_file_template)
     logger.info(
         "%d file(s) containing blank data to be written." % params.input.n_files
     )
 
     # Next: go through technical info (goniometer, detector, beamline etc ...)
+    if args.num_events:
+        data_type = ("events", args.num_events)
+    else:
+        data_type = ("images", args.num_images)
     cf = params.input.coordinate_frame
     goniometer = params.goniometer
     detector = params.detector
@@ -130,7 +138,7 @@ def main():
     attenuator = params.attenuator
 
     # Log information
-    logger.info("Data type: %s" % detector.mode)
+    logger.info("Data type: %s" % data_type[0])
 
     logger.info("Source information")
     logger.info(f"Facility: {source.name} - {source.type}.")
@@ -149,48 +157,26 @@ def main():
     for tu in zip(goniometer.types, goniometer.units):
         assert tu in (("translation", "mm"), ("rotation", "deg"))
 
-    assert len(axis_vectors) == 3 * len(axes)
+    assert len(axis_vectors) == 3 * len(
+        axes
+    ), "Number of vectors does not match number of axes."
 
     for j in reversed(range(len(axes))):
         vector = axis_vectors[3 * j : 3 * j + 3]
-        print(
-            f"Goniometer axes: {axes[j]} => {vector} ({goniometer.types[j]}) on {goniometer.depends[j]}"
-        )
-
-    for ax, dep, t, u, j in zip(
-        goniometer.axes,
-        goniometer.depends,
-        goniometer.types,
-        goniometer.units,
-        range(len(goniometer.axes)),
-    ):
-        vector = goniometer.vectors[3 * j : 3 * j + 3]
-        offset = goniometer.offsets[3 * j : 3 * j + 3]
         logger.info(
-            "%s %s %s %s %s %s %s %s %s"
-            % (
-                ax,
-                dep,
-                t,
-                u,
-                vector,
-                offset,
-                goniometer.starts[j],
-                goniometer.ends[j],
-                goniometer.increments[j],
-            )
+            f"Goniometer axis: {axes[j]} => {vector} ({goniometer.types[j]}) on {goniometer.depends[j]}. {goniometer.starts[j]} {goniometer.ends[j]} {goniometer.increments[j]}"
         )
 
     logger.info("")
 
-    logger.info("Detector information: %s" % detector.description)
+    logger.info("Detector information:\n%s" % detector.description)
     logger.info(
-        f"Sensor made of {detector.sensor_material} x {detector.sensor_thickness}mm"
+        f"Sensor made of {detector.sensor_material} x {detector.sensor_thickness}"
     )
-    if detector.mode == "images":
+    if data_type[0] == "images":
         logger.info(f"Trusted pixels > {detector.underload} and < {detector.overload}")
     logger.info(
-        f"Image is a {detector.image_size} array of {detector.pixel_size} mm pixels"
+        f"Image is a {detector.image_size} array of {detector.pixel_size} pixels"
     )
 
     logger.info("Detector axes:")
@@ -203,7 +189,9 @@ def main():
 
     for j in range(len(axes)):
         vector = axis_vectors[3 * j : 3 * j + 3]
-        print(f"Detector axis: {axes[j]} => {vector}")
+        logger.info(
+            f"Detector axis: {axes[j]} => {vector} ({detector.types[j]}) on {detector.depends[j]}. {detector.starts[j]}"
+        )
 
     if detector.flatfield is None:
         logger.info("No flatfield applied")
@@ -222,21 +210,56 @@ def main():
     logger.info(f"Slow_axis at datum position: {module.slow_axis}")
     logger.info("")
 
-    with h5py.File(master_file, "x") as nxsfile:
-        write_new_nexus(
-            nxsfile,
-            data_file_list,
-            params.input,
-            goniometer,
-            detector,
-            module,
-            source,
-            beam,
-            attenuator,
+    # Record string with start_time
+    start_time = datetime.fromtimestamp(time.time()).strftime("%A, %d. %B %Y %I:%M%p")
+
+    logger.info("Start writing NeXus and data files ...")
+    try:
+        with h5py.File(master_file, "x") as nxsfile:
+            # Set default attribute
+            nxsfile.attrs["default"] = "entry"
+
+            # Start writing the NeXus tree with NXentry at the top level
+            nxentry = nxsfile.create_group("entry")
+            nxentry.attrs["NX_class"] = "NXentry"
+            nxentry.attrs["default"] = "data"
+            # create_attributes(nxentry, ("NX_class", "default"), ("NXentry", "data"))
+
+            # Application definition: entry/definition
+            nxentry.create_dataset(
+                "definition", data=np.string_(params.input.definition)
+            )
+
+            write_nexus_demo(
+                nxsfile,
+                data_file_list,
+                data_type,
+                cf,
+                goniometer,
+                detector,
+                module,
+                source,
+                beam,
+                attenuator,
+                params.input.vds_writer,
+            )
+
+            # Record string with end_time
+            end_time = datetime.fromtimestamp(time.time()).strftime(
+                "%A, %d. %B %Y %I:%M%p"
+            )
+
+            # Write /entry/start_time and /entry/end_time
+            nxentry.create_dataset("start_time", data=np.string_(start_time))
+            nxentry.create_dataset("end_time", data=np.string_(end_time))
+        logger.info(f"{master_file} correctly written.")
+    except Exception as err:
+        logger.info(
+            f"An error occurred and {master_file} couldn't be written correctly."
         )
+        logger.exception(err)
 
-    logger.info("==" * 50)
+    logger.info("EOF")
 
 
-if __name__ == "__main__":
-    main()
+main()

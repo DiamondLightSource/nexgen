@@ -2,33 +2,42 @@
 General tools for data writing.
 """
 
+from pathlib import Path
 import h5py
 import numpy as np
 
 from hdf5plugin import Bitshuffle
+from typing import List, Tuple, Optional, Union
 
 
 # Writer functions
 def data_writer(
-    datafiles, data_type="images", image_size=None, scan_range=None, n_events=None
+    datafiles: List[Path],
+    data_type: Tuple[str, int],
+    image_size: Optional[Union[List, Tuple]] = None,
+    scan_range: np.ndarray = None,
 ):
     """
     Write N images or events to n files.
 
     Args:
         datafiles:  List of Path objects pointing at data files to be written.
-        data_type:  String identifying whether the files to be written contain images or events.
+        data_type:  Tuple (str, int) identifying whether the files to be written contain images or events.
+        image_size: Tuple or List defining image dimensions.
+        scan_range: Numpy array containing the values of the rotation axis during the scan.
     """
-    # TODO handle stills.
+    # TODO FIXME if multiple files split number of images across them.
     for filename in datafiles:
-        if data_type == "images":
+        if data_type[0] == "images":
             dset_shape = (len(scan_range),) + tuple(image_size)
             generate_image_data(filename, dset_shape)
         else:
-            generate_event_data(filename, n_events)
+            generate_event_data(filename, data_type[1])
 
 
-def generate_image_data(filename, shape, write_mode="x"):
+def generate_image_data(
+    filename: Optional[Union[Path, str]], shape: Tuple[int, int], write_mode: str = "x"
+):
     """
     Generate a HDF5 file with blank images.
 
@@ -54,8 +63,14 @@ def generate_image_data(filename, shape, write_mode="x"):
     print(f"{shape[0]} images written.")
 
 
+# FIXME
 # This will need some rethinking in the future, for now it's just to make examples to show GDA.
-def generate_event_data(filename, n_events, n_cues=100, write_mode="x"):
+def generate_event_data(
+    filename: Optional[Union[Path, str]],
+    n_events: int,
+    n_cues: int = 100,
+    write_mode: str = "x",
+):
     """
     Generate a HDF5 file showing the structure of an event-mode dataset.
 
@@ -77,8 +92,56 @@ def generate_event_data(filename, n_events, n_cues=100, write_mode="x"):
     print(f"Stream of {n_events} written.")
 
 
-def vds_writer():
+def find_number_of_images(datafile_list: List[Path]):
+    """
+    Calculate total number of images when there's more than one input HDF5 file.
+
+    Args:
+        datafiles:  List of paths to the input image files.
+    Returns:
+        num_images: Total number of images.
+    """
+    num_images = 0
+    for filename in datafile_list:
+        with h5py.File(filename, "r") as f:
+            num_images += f["data"].shape[0]
+    return num_images
+
+
+def vds_writer(nxsfile: h5py.File, datafiles: List[Path], vds_writer: str):
     """
     Write a Virtual Dataset file for image data.
+
+    Args:
+        nxsfile:    NeXus file being written.
+        datafiles:  List of paths to source files.
+        vds_writer: Choose whether to write a virtual dataset under /entry/data/data in the NeXus file
+                    or a _vds.h5 file added to the NeXus file as an External Link.
     """
-    pass
+    entry_key = "data"
+    sh = h5py.File(datafiles[0], "r")[entry_key].shape
+    dtyp = h5py.File(datafiles[0], "r")[entry_key].dtype
+
+    # Create virtual layout
+    layout = h5py.VirtualLayout(shape=(len(datafiles) * sh[0],) + sh[1:], dtype=dtyp)
+    start = 0
+    for _, filename in enumerate(datafiles):
+        end = start + sh[0]
+        vsource = h5py.VirtualSource(
+            filename.name, entry_key, shape=sh
+        )  # Source definition
+        layout[start:end:1, :, :] = vsource
+        start = end
+
+    if vds_writer == "dataset":
+        # Write virtual dataset in nexus file
+        nxdata = nxsfile["entry/data"]
+        nxdata.create_virtual_dataset(entry_key, layout, fillvalue=-1)
+    elif vds_writer == "file":
+        # Create a _vds.h5 file and add link to nexus file
+        s = Path(nxsfile.filename).expanduser().resolve()
+        vds_filename = s.parent / f"{s.stem}_vds.h5"
+        del s
+        with h5py.File(vds_filename, "w") as vds:
+            vds.create_virtual_dataset("data", layout, fillvalue=-1)
+        nxsfile["data"] = h5py.ExternalLink(vds_filename.name, "data")
