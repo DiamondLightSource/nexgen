@@ -84,7 +84,7 @@ demo_phil = freephil.parse(
       n_files = 1
         .type = int
         .help = "Number of data files to write - defaults to 1."
-      write_vds = *None dataset file
+      vds_writer = *None dataset file
         .type = choice
         .help = "If not None, either write a vds in the nexus file or create also a _vds.h5 file."
     }
