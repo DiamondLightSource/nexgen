@@ -21,9 +21,9 @@ from .. import (
     units_of_time,
 )
 
-from ..nxs_write.data_tools import vds_writer
+# from ..nxs_write.data_tools import vds_writer
 
-# from data_tools import vds_writer
+from .data_tools import vds_writer
 
 # NXdata writer
 def write_NXdata(
@@ -151,7 +151,7 @@ def write_NXsample(
     try:
         nxtransformations = nxsample.create_group("transformations")
         create_attributes(
-            nxsample,
+            nxtransformations,
             ("NX_class",),
             ("NXtransformations",),
         )

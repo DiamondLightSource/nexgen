@@ -14,23 +14,23 @@ import numpy as np
 from pathlib import Path
 from datetime import datetime
 
-from __init__ import (
-    version_parser,
-    detectormode_parser,
-    nexus_parser,
-    demo_parser,
-)
-from nexgen import get_nexus_filename, get_filename_template, get_iso_timestamp
-from nexgen.nxs_write.NexusWriter import write_NXmx_nexus, write_nexus_demo
-
-# from . import (
+# from __init__ import (
 #    version_parser,
 #    detectormode_parser,
 #    nexus_parser,
 #    demo_parser,
 # )
-# from .. import get_nexus_filename, get_filename_template, get_iso_timestamp
-# from ..nxs_write.NexusWriter import write_NXmx_nexus, write_nexus_demo
+# from nexgen import get_nexus_filename, get_filename_template, get_iso_timestamp
+# from nexgen.nxs_write.NexusWriter import write_NXmx_nexus, write_nexus_demo
+
+from . import (
+    version_parser,
+    detectormode_parser,
+    nexus_parser,
+    demo_parser,
+)
+from .. import get_nexus_filename, get_filename_template, get_iso_timestamp
+from ..nxs_write.NexusWriter import write_NXmx_nexus, write_nexus_demo
 
 # Define a logger object and a formatter
 logger = logging.getLogger("NeXusGenerator")
