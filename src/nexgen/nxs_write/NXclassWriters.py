@@ -21,7 +21,9 @@ from .. import (
     units_of_time,
 )
 
-from data_tools import vds_writer
+from ..nxs_write.data_tools import vds_writer
+
+# from data_tools import vds_writer
 
 # NXdata writer
 def write_NXdata(
