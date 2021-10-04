@@ -2,9 +2,10 @@
 Tools for copying the metadata from Tristan NeXus files.
 """
 
-import os
 import h5py
 import numpy as np
+
+from pathlib import Path
 
 from . import get_nexus_tree, identify_scan_axis, convert_scan_axis
 from .. import create_attributes
@@ -27,7 +28,9 @@ def single_image_nexus(data_file, tristan_nexus, write_mode="x"):
     Returns:
         The name of the output NeXus file.
     """
-    nxs_filename = os.path.splitext(data_file)[0] + ".nxs"
+    if type(data_file) is str:
+        data_file = Path(data_file).expanduser().resolve()
+    nxs_filename = data_file.parent / f"{data_file.stem}.nxs"
     with h5py.File(tristan_nexus, "r") as nxs_in, h5py.File(
         nxs_filename, write_mode
     ) as nxs_out:
@@ -36,7 +39,7 @@ def single_image_nexus(data_file, tristan_nexus, write_mode="x"):
         # Create nxdata group
         nxdata = nxentry.create_group("data")
         # Add link to data
-        nxdata["data"] = h5py.ExternalLink(os.path.basename(data_file), "data")
+        nxdata["data"] = h5py.ExternalLink(data_file.name, "data")
         # Compute and write axis information
         ax, ax_attr = identify_scan_axis(nxs_in)
         create_attributes(
@@ -92,7 +95,10 @@ def multiple_images_nexus(
     Returns:
         The name of the output NeXus file.
     """
-    nxs_filename = os.path.splitext(data_file)[0] + ".nxs"
+    # nxs_filename = os.path.splitext(data_file)[0] + ".nxs"
+    if type(data_file) is str:
+        data_file = Path(data_file).expanduser().resolve()
+    nxs_filename = data_file.parent / f"{data_file.stem}.nxs"
     with h5py.File(tristan_nexus, "r") as nxs_in, h5py.File(
         nxs_filename, write_mode
     ) as nxs_out:
@@ -101,7 +107,7 @@ def multiple_images_nexus(
         # Create nxdata group
         nxdata = nxentry.create_group("data")
         # Add link to data
-        nxdata["data"] = h5py.ExternalLink(os.path.basename(data_file), "data")
+        nxdata["data"] = h5py.ExternalLink(data_file.name, "data")
         # Compute and write axis information
         ax, ax_attr = identify_scan_axis(nxs_in)
         create_attributes(
@@ -174,7 +180,9 @@ def pump_probe_nexus(data_file, tristan_nexus, write_mode="x", mode="static"):
         "['static', 'powder_diffraction', 'rotation']"
     )
 
-    nxs_filename = os.path.splitext(data_file)[0] + ".nxs"
+    if type(data_file) is str:
+        data_file = Path(data_file).expanduser().resolve()
+    nxs_filename = data_file.parent / f"{data_file.stem}.nxs"
     with h5py.File(tristan_nexus, "r") as nxs_in, h5py.File(
         nxs_filename, write_mode
     ) as nxs_out:
@@ -183,7 +191,7 @@ def pump_probe_nexus(data_file, tristan_nexus, write_mode="x", mode="static"):
         # Create nxdata group
         nxdata = nxentry.create_group("data")
         # Add link to data
-        nxdata["data"] = h5py.ExternalLink(os.path.basename(data_file), "data")
+        nxdata["data"] = h5py.ExternalLink(data_file.name, "data")
         # Compute and write axis information
         ax, ax_attr = identify_scan_axis(nxs_in)
         create_attributes(
