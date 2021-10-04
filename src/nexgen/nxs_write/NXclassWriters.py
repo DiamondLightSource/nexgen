@@ -1,11 +1,14 @@
 """
 Writer functions for different groups of a NeXus file.
 """
-from pathlib import Path
+
 import sys
 import h5py
+import logging
+
 import numpy as np
 
+from pathlib import Path
 from typing import List, Tuple, Union, Optional
 
 from . import (
@@ -22,6 +25,8 @@ from .. import (
 )
 
 from .data_tools import vds_writer
+
+NXclass_logger = logging.getLogger("NeXusGenerator.write.NXclass")
 
 # NXdata writer
 def write_NXdata(

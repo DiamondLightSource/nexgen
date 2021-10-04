@@ -4,6 +4,7 @@ Writer for NeXus format files.
 
 import h5py
 import logging
+
 import numpy as np
 
 from pathlib import Path
@@ -57,6 +58,7 @@ def write_NXmx_nexus(
         coordinate_frame:   String indicating which coordinate system is being used.
         vds:                If passed, a Virtual Dataset will also be written.
     """
+    writer_logger.info("NEW NEXUS")
     # Find total number of images that have been written across the files.
     if len(datafiles) == 1:
         with h5py.File(datafiles[0], "r") as f:
@@ -151,6 +153,7 @@ def write_nexus_demo(
         attenuator:         Scope extract
         vds:                If passed, a Virtual Dataset will also be written.
     """
+    writer_logger.info("NEW DEMO DATA")
     # Identify scan axis
     osc_axis = find_scan_axis(goniometer.axes, goniometer.starts, goniometer.ends)
 
@@ -214,7 +217,7 @@ def call_writers(
 ):
     """ Call the writers for the NeXus base classes."""
     logger = logging.getLogger("NeXusGenerator.writer.call")
-    logger.info("Start calling the writers!")
+    logger.info("Calling the writers ...")
 
     # NXdata: entry/data
     write_NXdata(

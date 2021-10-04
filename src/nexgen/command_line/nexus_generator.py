@@ -120,16 +120,12 @@ def write_NXmx_cli(args):
     master_file = get_nexus_filename(datafiles[0])
 
     # Start logger
-    logfile = datafiles[0].parent / "generate_nexus.log"  # "NeXusWriter.log"
-    # Define stream and file handler for logging
-    # CH = logging.StreamHandler(sys.stdout)
-    # CH.setLevel(logging.DEBUG)
-    # CH.setFormatter(formatter)
+    logfile = datafiles[0].parent / "generate_nexus.log"
+    # Define a file handler for logging
     FH = logging.FileHandler(logfile, mode="a")
     FH.setLevel(logging.DEBUG)
     FH.setFormatter(formatter)
     # Add handlers to logger
-    # logger.addHandler(CH)
     logger.addHandler(FH)
 
     # Add some information to logger
@@ -275,16 +271,12 @@ def write_demo_cli(args):
         master_file = Path(master_file.as_posix().replace(".h5", "_master.h5"))
 
     # Start logger
-    logfile = master_file.parent / "generate_demo.log"  # "NeXusWriter.log"
-    # Define stream and file handler for logging
-    # CH = logging.StreamHandler(sys.stdout)
-    # CH.setLevel(logging.DEBUG)
-    # CH.setFormatter(formatter)
+    logfile = master_file.parent / "generate_demo.log"
+    # Define a file handler for logging
     FH = logging.FileHandler(logfile, mode="w")
     FH.setLevel(logging.DEBUG)
     FH.setFormatter(formatter)
     # Add handlers to logger
-    # logger.addHandler(CH)
     logger.addHandler(FH)
 
     # Get data file name template
@@ -293,7 +285,6 @@ def write_demo_cli(args):
         Path(data_file_template % (n + 1)).expanduser().resolve()
         for n in range(params.input.n_files)
     ]
-    # TODO add vds if prompted
 
     # Add some information to logger
     logger.info("NeXus file will be saved as %s" % params.output.master_filename)
