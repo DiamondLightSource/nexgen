@@ -5,7 +5,7 @@ import os
 import h5py
 
 from . import get_nexus_tree
-from .. import create_attributes
+from ..nxs_write import create_attributes
 
 
 def images_nexus(data_file, original_nexus, simple_copy=False):

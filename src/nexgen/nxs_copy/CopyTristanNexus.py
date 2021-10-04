@@ -7,7 +7,7 @@ import h5py
 import numpy as np
 
 from . import get_nexus_tree, identify_scan_axis, convert_scan_axis
-from .. import create_attributes
+from ..nxs_write import create_attributes
 
 
 def single_image_nexus(data_file, tristan_nexus, write_mode="x"):
