@@ -16,7 +16,7 @@ def single_image_nexus(
     data_file: Optional[Union[Path, str]],
     tristan_nexus: Optional[Union[Path, str]],
     write_mode: str = "x",
-):
+) -> str:
     """
     Create a NeXus file for a single-image or a stationary pump-probe dataset.
 
@@ -84,7 +84,7 @@ def multiple_images_nexus(
     write_mode: str = "x",
     osc: float = None,
     nbins: int = None,
-):
+) -> str:
     """
     Create a NeXus file for a multiple-image dataset or multiple image sequences from a pump-probe collection.
 

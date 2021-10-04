@@ -57,7 +57,7 @@ def identify_tristan_scan_axis(nxs_in: h5py.File):
     return ax, ax_attr
 
 
-def convert_scan_axis(nxsample, nxdata, ax):
+def convert_scan_axis(nxsample: h5py.Group, nxdata: h5py.Group, ax: str):
     """
     Modify all instances of scan_axis present in NeXus file NXsample group.
 

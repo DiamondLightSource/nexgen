@@ -1,23 +1,32 @@
 """
 General tools to copy metadata from NeXus files.
 """
-import os
+
 import h5py
+
+from pathlib import Path
+from typing import Union, Optional
 
 from . import get_nexus_tree
 from ..nxs_write import create_attributes
 
 
-def images_nexus(data_file, original_nexus, simple_copy=False):
+def images_nexus(
+    data_file: Optional[Union[Path, str]],
+    original_nexus: Optional[Union[Path, str]],
+    simple_copy: bool = False,
+):
     """
     Copy NeXus metadata for images.
 
     Args:
-        data_file:       HDF5 file.
-        original_nexus:  NeXus file with experiment metadata.
-        simple_copy:     Default False. If passed, copy everything directly.
+        data_file:       String or Path pointing to the HDF5 file with images.
+        original_nexus:  String or Path pointing to the NeXus file with experiment metadata.
+        simple_copy:     Defaults False. If passed, copy everything directly.
     """
-    nxs_filename = os.path.splitext(data_file)[0] + ".nxs"
+    data_file = Path(data_file).expanduser().resolve()
+    original_nexus = Path(original_nexus).expanduser().resolve()
+    nxs_filename = data_file.parent / f"{data_file.stem}.nxs"
     with h5py.File(original_nexus, "r") as nxs_in, h5py.File(
         nxs_filename, "x"
     ) as nxs_out:
@@ -42,15 +51,20 @@ def images_nexus(data_file, original_nexus, simple_copy=False):
                 nxdata["data"] = h5py.ExternalLink(fout.filename, "data")
 
 
-def pseudo_events_nexus(data_file, original_nexus):
+def pseudo_events_nexus(
+    data_file: Optional[Union[Path, str]],
+    original_nexus: Optional[Union[Path, str]],
+):
     """
     Copy NeXus metadata for pseudo event mode data.
 
     Args:
-        data_file:       HDF5 file.
-        original_nexus:  NeXus file with experiment metadata.
+        data_file:       String or Path pointing to the HDF5 file with pseudo event data.
+        original_nexus:  String or Path pointing to the NeXus file with experiment metadata.
     """
-    nxs_filename = os.path.splitext(data_file)[0] + ".nxs"
+    data_file = Path(data_file).expanduser().resolve()
+    original_nexus = Path(original_nexus).expanduser().resolve()
+    nxs_filename = data_file.parent / f"{data_file.stem}.nxs"
     with h5py.File(original_nexus, "r") as nxs_in, h5py.File(
         nxs_filename, "x"
     ) as nxs_out:
