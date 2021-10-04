@@ -27,6 +27,7 @@ from ..nxs_write.NexusWriter import write_NXmx_nexus, write_nexus_demo
 logger = logging.getLogger("NeXusGenerator")
 logger.setLevel(logging.DEBUG)
 formatter = logging.Formatter("%(levelname)s %(message)s")
+# formatter = logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s")
 
 # Phil scopes
 master_phil = freephil.parse(

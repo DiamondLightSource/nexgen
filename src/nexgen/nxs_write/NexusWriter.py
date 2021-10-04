@@ -3,6 +3,7 @@ Writer for NeXus format files.
 """
 
 import h5py
+import logging
 import numpy as np
 
 from pathlib import Path
@@ -20,6 +21,8 @@ from .NXclassWriters import (
     write_NXdetector,
     write_NXdetector_module,
 )
+
+writer_logger = logging.getLogger("NeXusGenerator.writer")
 
 # General writing
 def write_NXmx_nexus(
@@ -210,6 +213,9 @@ def call_writers(
     vds: str,
 ):
     """ Call the writers for the NeXus base classes."""
+    logger = logging.getLogger("NeXusGenerator.writer.call")
+    logger.info("Start calling the writers!")
+
     # NXdata: entry/data
     write_NXdata(
         nxsfile,
