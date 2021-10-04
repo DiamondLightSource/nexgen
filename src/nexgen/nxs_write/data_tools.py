@@ -2,13 +2,16 @@
 General tools for data writing.
 """
 
-from pathlib import Path
 import h5py
+import logging
+
 import numpy as np
 
+from pathlib import Path
 from hdf5plugin import Bitshuffle
 from typing import List, Tuple, Optional, Union
 
+data_logger = logging.getLogger("NeXusGenerator.write.data")
 
 # Writer functions
 def data_writer(
@@ -28,6 +31,7 @@ def data_writer(
     """
     # TODO FIXME if multiple files split number of images across them.
     for filename in datafiles:
+        data_logger.info(f"Writing {filename} ...")
         if data_type[0] == "images":
             dset_shape = (len(scan_range),) + tuple(image_size)
             generate_image_data(filename, dset_shape)
@@ -118,6 +122,7 @@ def vds_writer(nxsfile: h5py.File, datafiles: List[Path], vds_writer: str):
         vds_writer: Choose whether to write a virtual dataset under /entry/data/data in the NeXus file
                     or a _vds.h5 file added to the NeXus file as an External Link.
     """
+    data_logger.info("Start creating VDS ...")
     entry_key = "data"
     sh = h5py.File(datafiles[0], "r")[entry_key].shape
     dtyp = h5py.File(datafiles[0], "r")[entry_key].dtype
@@ -137,6 +142,7 @@ def vds_writer(nxsfile: h5py.File, datafiles: List[Path], vds_writer: str):
         # Write virtual dataset in nexus file
         nxdata = nxsfile["entry/data"]
         nxdata.create_virtual_dataset(entry_key, layout, fillvalue=-1)
+        data_logger.info("VDS written to NeXus file.")
     elif vds_writer == "file":
         # Create a _vds.h5 file and add link to nexus file
         s = Path(nxsfile.filename).expanduser().resolve()
@@ -145,3 +151,4 @@ def vds_writer(nxsfile: h5py.File, datafiles: List[Path], vds_writer: str):
         with h5py.File(vds_filename, "w") as vds:
             vds.create_virtual_dataset("data", layout, fillvalue=-1)
         nxsfile["entry/data/data"] = h5py.ExternalLink(vds_filename.name, "data")
+        data_logger.info(f"{vds_filename} written and link added to NeXus file.")

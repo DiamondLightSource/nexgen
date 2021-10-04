@@ -52,6 +52,7 @@ def write_NXdata(
         scan_range:     If writing events, this is just a (start, end) tuple
         write_vds:      If not None, writes a Virtual Dataset.
     """
+    NXclass_logger.info("Start writing NXdata.")
     # Check that a valid datafile_list has been passed.
     assert len(datafiles) > 0, "Please pass at least a list of one HDF5 data file."
 
@@ -85,12 +86,13 @@ def write_NXdata(
             nxdata["data"] = h5py.ExternalLink(datafiles[0].name, "data")
         elif len(datafiles) == 1 and write_vds:
             nxdata[datafiles[0].stem] = h5py.ExternalLink(datafiles[0].name, "data")
+            NXclass_logger.info("Calling VDS writer.")
             vds_writer(nxsfile, datafiles, write_vds)
         else:
-            # In theory if there are multiple files I should have a vds file there (because DIALS)
             for filename in datafiles:
                 nxdata[filename.stem] = h5py.ExternalLink(filename.name, "data")
             if write_vds:
+                NXclass_logger.info("Calling VDS writer.")
                 vds_writer(nxsfile, datafiles, write_vds)
     elif data_type == "events":
         for filename in datafiles:
@@ -139,6 +141,7 @@ def write_NXsample(
         scan_axis:      Rotation axis
         scan_range:     List/tuple/array of scan axis values
     """
+    NXclass_logger.info("Start writing NXsample and NXtransformations.")
     # Create NXsample group, unless it already exists, in which case just open it.
     try:
         nxsample = nxsfile.create_group("/entry/sample")
@@ -246,6 +249,7 @@ def write_NXinstrument(
         attenuator: Dictionary containing transmission
         beamline_n: String identisying the beamline number
     """
+    NXclass_logger.info("Start writing NXinstrument.")
     # Create NXinstrument group, unless it already exists, in which case just open it.
     try:
         nxinstrument = nxsfile.create_group("/entry/instrument")
@@ -258,11 +262,13 @@ def write_NXinstrument(
         nxinstrument = nxsfile["/entry/instrument"]
 
     # Write /name field and relative attribute
+    NXclass_logger.info(f"DLS beamline {beamline_n}")
     nxinstrument.create_dataset(
         "name", data=np.string_("DIAMOND BEAMLINE " + beamline_n)
     )
     create_attributes(nxinstrument["name"], ("short_name",), ("DLS " + beamline_n,))
 
+    NXclass_logger.info("Write NXattenuator and NXbeam.")
     # Write NXattenuator group: entry/instrument/attenuator
     nxatt = nxinstrument.create_group("attenuator")
     create_attributes(nxatt, ("NX_class",), ("NXattenuator",))
@@ -289,6 +295,7 @@ def write_NXsource(nxsfile: h5py.File, source: dict):
         nxsfile:    NeXus file where to write the group
         source:     Dictionary containing the facility information
     """
+    NXclass_logger.info("Start writing NXsource.")
     try:
         nxsource = nxsfile.create_group("/entry/source")
         create_attributes(
@@ -320,6 +327,7 @@ def write_NXdetector(
         coord_frame:    Coordinate system the axes are currently expressed in
         data_type:      Tuple (str, int) identifying whether the files to be written contain images or events.
     """
+    NXclass_logger.info("Start writing NXdetector.")
     # Create NXdetector group, unless it already exists, in which case just open it.
     try:
         nxdetector = nxsfile.create_group("/entry/instrument/detector")
@@ -453,6 +461,7 @@ def write_NXdetector_module(
         pixel_size:     Size of the single pixels in fast and slow direction, in mm
         beam_center:    Only if origin needs to be calculated.
     """
+    NXclass_logger.info("Start writing NXdetector_module.")
     # Create NXdetector_module group, unless it already exists, in which case just open it.
     try:
         nxmodule = nxsfile.create_group("/entry/instrument/detector/module")

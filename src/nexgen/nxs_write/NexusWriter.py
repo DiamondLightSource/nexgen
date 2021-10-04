@@ -58,7 +58,7 @@ def write_NXmx_nexus(
         coordinate_frame:   String indicating which coordinate system is being used.
         vds:                If passed, a Virtual Dataset will also be written.
     """
-    writer_logger.info("NEW NEXUS")
+    writer_logger.info("Writing NXmx NeXus file ...")
     # Find total number of images that have been written across the files.
     if len(datafiles) == 1:
         with h5py.File(datafiles[0], "r") as f:
@@ -67,6 +67,7 @@ def write_NXmx_nexus(
         num_images = find_number_of_images(datafiles)
 
     data_type = ("images", num_images)
+    writer_logger.info(f"Total number of images: {num_images}")
 
     # Identify scan axis
     osc_axis = find_scan_axis(goniometer.axes, goniometer.starts, goniometer.ends)
@@ -83,6 +84,8 @@ def write_NXmx_nexus(
         scan_range = calculate_scan_range(
             goniometer.starts[idx], goniometer.ends[idx], n_images=num_images
         )
+
+    writer_logger.info(f"Scan axis: {osc_axis}")
 
     # Set default attribute
     nxsfile.attrs["default"] = "entry"
@@ -153,7 +156,8 @@ def write_nexus_demo(
         attenuator:         Scope extract
         vds:                If passed, a Virtual Dataset will also be written.
     """
-    writer_logger.info("NEW DEMO DATA")
+    writer_logger.info("Writing demo ...")
+    writer_logger.info(f"The data file will contain {data_type[1]} {data_type[0]}")
     # Identify scan axis
     osc_axis = find_scan_axis(goniometer.axes, goniometer.starts, goniometer.ends)
 
@@ -174,6 +178,8 @@ def write_nexus_demo(
     elif data_type[0] == "events":
         scan_range = (goniometer.starts[idx], goniometer.ends[idx])
 
+    writer_logger.info(f"Scan axis: {osc_axis}")
+    writer_logger.info("Calling data writer ...")
     # Write data files
     data_writer(
         datafiles,
