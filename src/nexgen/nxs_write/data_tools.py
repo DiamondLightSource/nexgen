@@ -144,4 +144,4 @@ def vds_writer(nxsfile: h5py.File, datafiles: List[Path], vds_writer: str):
         del s
         with h5py.File(vds_filename, "w") as vds:
             vds.create_virtual_dataset("data", layout, fillvalue=-1)
-        nxsfile["data"] = h5py.ExternalLink(vds_filename.name, "data")
+        nxsfile["entry/data"] = h5py.ExternalLink(vds_filename.name, "data")
