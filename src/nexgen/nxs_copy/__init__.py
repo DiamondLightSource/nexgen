@@ -4,10 +4,18 @@ Utilities for copying metadata to new NeXus files.
 
 import h5py
 
+from typing import List
+
 from ..nxs_write import create_attributes
 
 
-def get_nexus_tree(nxs_in: h5py.File, nxs_out: h5py.File, skip: bool = True):
+# TODO instead of just skipping NXdata, make it so that class to be skipped can be passed from command line.
+def get_nexus_tree(
+    nxs_in: h5py.File,
+    nxs_out: h5py.File,
+    skip: bool = True,
+    skip_obj: List[str] = ["data"],
+):
     """
     Copy the tree from the original NeXus file. Everything except NXdata is copied to a new NeXus file.
     If skip is False, then the full tree is copied.
@@ -16,7 +24,9 @@ def get_nexus_tree(nxs_in: h5py.File, nxs_out: h5py.File, skip: bool = True):
         nxs_in:     Original NeXus file.
         nxs_out:    New NeXus file.
         skip:       Defaults to True, copy everything but NXdata.
-                    Pass False to copy also NXdata.
+                    Pass False to copy the whole NXentry tree.
+        skip_obj:   List of objects not to be copied.
+                    For now, it can only skip NX_class objects.
     Returns:
         nxentry:    NeXus field.
     """
@@ -25,7 +35,7 @@ def get_nexus_tree(nxs_in: h5py.File, nxs_out: h5py.File, skip: bool = True):
         create_attributes(nxentry, ("NX_class",), ("NXentry",))
         # Copy all of the nexus tree as it is except for /entry/data
         for k in nxs_in["entry"].keys():
-            if k == "data":
+            if k in skip_obj:
                 continue
             nxs_in["entry"].copy(k, nxentry)
         return nxentry

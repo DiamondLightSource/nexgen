@@ -7,15 +7,16 @@ import logging
 import argparse
 import freephil
 
-# from pathlib import Path
+from pathlib import Path
 
-from . import (
+from __init__ import (
+    # from . import (
     version_parser,
     full_copy_parser,
     tristan_copy_parser,
 )
 
-# from ..nxs_copy import CopyNexus, CopyTristanNexus
+from ..nxs_copy import CopyNexus  # , CopyTristanNexus
 
 # Define a logger object and a formatter
 logger = logging.getLogger("CopyNeXus")
@@ -26,14 +27,41 @@ formatter = logging.Formatter("%(levelname)s %(message)s")
 general_scope = freephil.parse(
     """
     input{
+      original_nexus = None
+        .type = path
+        .help = "NeXus file to be copied."
       data_filename = None
         .type = path
-        .help = "HDF5 data file"
+        .help = "HDF5 data file."
+      data_type = *images events
+        .type = choice
+        .help = "Type of data in the HDF5 file, can be either images or events."
+      simple_copy = False
+        .type = bool
+        .help = "If True, the full NeXus tree is copied."
+      skip = data
+        .multiple = True
+        .type = str
+        .help = "Object, or list of, to be skipped when copying metadata. For now only NX_class groups."
     }
     """
 )
 
-tristan_scope = freephil.parse()
+tristan_scope = freephil.parse(
+    """
+    input {
+      tristan_nexus = None
+        .type = path
+        .help = ""
+      data_filename = None
+        .type = path
+        .help = ""
+      experiment_type = stationary *rotation
+        .type = choice
+        .help = ""
+    }
+    """
+)
 
 # Parse command line arguments
 parser = argparse.ArgumentParser(
@@ -57,7 +85,39 @@ def copy_nexus(args):
     working_phil = general_scope.fetch(clai.process_and_fetch(args.phil_args))
     params = working_phil.extract()
     working_phil.show()
-    print(params)
+
+    logger.info("Copy metadata from one NeXus file to another.")
+
+    # Path to data file and original nexus file
+    data_file = Path(params.input.data_filename).expanduser().resolve()
+    nexus_file = Path(params.input.original_nexus).expanduser().resolve()
+    logger.info(f"NeXus file to be copied: {nexus_file}")
+    logger.info(f"Input data to be saved in NeXus file: {data_file}")
+
+    logger.info(f"Data type: {params.input.data_type}")
+    if params.input.simple_copy is True:
+        logger.info(f"{nexus_file} will be copied in its entirety.")
+    else:
+        logger.info(
+            f"The following groups will not be copied from NXentry of {nexus_file}: {params.input.skip}"
+        )
+    try:
+        if params.input.data_type == "images":
+            new_nxs = CopyNexus.images_nexus(
+                data_file,
+                nexus_file,
+                simple_copy=params.input.simple_copy,
+                skip_group=params.input.skip,
+            )
+        elif params.input.data_type == "events":
+            new_nxs = CopyNexus.pseudo_events_nexus(
+                data_file,
+                nexus_file,
+            )
+        logger.info(f"File {nexus_file} correctly copied to {new_nxs}.")
+    except Exception as err:
+        logger.info(f"File {nexus_file} could not be copied.")
+        logger.exception(err)
 
 
 def copy_tristan_nexus(args):

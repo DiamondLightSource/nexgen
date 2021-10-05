@@ -59,14 +59,14 @@ full_copy_parser.add_argument("phil_args", nargs="*")
 
 tristan_copy_parser = argparse.ArgumentParser(add_help=False)
 tristan_copy_parser.add_argument("phil_args", nargs="*")
-group = tristan_copy_parser.add_mutually_exclusive_group()
-group.add_argument(
+tristan_group = tristan_copy_parser.add_mutually_exclusive_group(required=True)
+tristan_group.add_argument(
     "-o",
     "--osc-angle",
     help="Oscillation angle, in degrees",
     type=float,
 )
-group.add_argument(
+tristan_group.add_argument(
     "-n",
     "--num-bins",
     help="Number of binnes images",
