@@ -20,7 +20,11 @@ from . import (
     nexus_parser,
     demo_parser,
 )
-from .. import get_nexus_filename, get_filename_template, get_iso_timestamp
+from .. import (
+    get_nexus_filename,
+    get_filename_template,
+    get_iso_timestamp,
+)
 from ..nxs_write.NexusWriter import write_NXmx_nexus, write_nexus_demo
 
 # Define a logger object and a formatter
