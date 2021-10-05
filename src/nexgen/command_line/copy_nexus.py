@@ -16,7 +16,9 @@ from __init__ import (
     tristan_copy_parser,
 )
 
-from ..nxs_copy import CopyNexus  # , CopyTristanNexus
+# from nexgen.nxs_copy import CopyTristanNexus
+
+from ..nxs_copy import CopyNexus, CopyTristanNexus
 
 # Define a logger object and a formatter
 logger = logging.getLogger("CopyNeXus")
@@ -125,7 +127,41 @@ def copy_tristan_nexus(args):
     working_phil = tristan_scope.fetch(clai.process_and_fetch(args.phil_args))
     params = working_phil.extract()
     working_phil.show()
-    print(params)
+
+    logger.info("Copy metadata from Tristan NeXus file.")
+
+    # Path to data and original nexus file
+    data_file = Path(params.input.data_filename).expanduser().resolve()
+    nexus_file = Path(params.input.tristan_nexus).expanduser().resolve()
+    logger.info(f"Working directory: {data_file.parent}")
+    logger.info(f"NeXus file to be copied: {nexus_file}")
+    logger.info(f"Input data to be saved in NeXus file: {data_file}")
+
+    try:
+        if params.input.experiment_type == "stationary":
+            logger.info(
+                "Copying metadata for a stationary dataset. \n"
+                "This means either a single image or a pump-probe experiment.\n"
+                "The 'scan_axis' will be a single scalar."
+            )
+            nxs_img = CopyTristanNexus.single_image_nexus(
+                data_file,
+                nexus_file,
+            )
+        elif params.input.experiment_type == "rotation":
+            logger.info()
+            nxs_img = CopyTristanNexus.multiple_images_nexus(
+                data_file,
+                nexus_file,
+                args.osc_angle,
+                args.num_bins,
+            )
+        logger.info(
+            f"Experiment metadata correctly copied from {nexus_file} to {nxs_img}."
+        )
+    except Exception as err:
+        logger.info(f"File {nexus_file} could not be copied.")
+        logger.exception(err)
 
 
 # Define subparsers
