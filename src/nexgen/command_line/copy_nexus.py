@@ -33,6 +33,7 @@ general_scope = freephil.parse(
         .type = path
         .help = "NeXus file to be copied."
       data_filename = None
+        .multiple = True
         .type = path
         .help = "HDF5 data file."
       data_type = *images events
@@ -43,12 +44,14 @@ general_scope = freephil.parse(
         .help = "If True, the full NeXus tree is copied."
       skip = data
         .multiple = True
+        .optional = True
         .type = str
         .help = "Object, or list of, to be skipped when copying metadata. For now only NX_class groups."
     }
     """
 )
-# TODO consider that there might be multiple input files
+# FIXME using .optional=True means that every time skip is provided "data" is always skipped
+# For the moment it's a workaround to get it to work since otherwise it doesn't find default value
 
 tristan_scope = freephil.parse(
     """
@@ -57,6 +60,7 @@ tristan_scope = freephil.parse(
         .type = path
         .help = ""
       data_filename = None
+        .multiple = True
         .type = path
         .help = ""
       experiment_type = stationary *rotation
@@ -65,6 +69,7 @@ tristan_scope = freephil.parse(
     }
     """
 )
+# TODO write a nexus file for each data file in a list (for multiple sequences)
 
 # Parse command line arguments
 parser = argparse.ArgumentParser(
@@ -92,7 +97,7 @@ def copy_nexus(args):
     logger.info("Copy metadata from one NeXus file to another.")
 
     # Path to data file and original nexus file
-    data_file = Path(params.input.data_filename).expanduser().resolve()
+    data_file = [Path(d).expanduser().resolve() for d in params.input.data_filename]
     nexus_file = Path(params.input.original_nexus).expanduser().resolve()
     logger.info(f"NeXus file to be copied: {nexus_file}")
     logger.info(f"Input data to be saved in NeXus file: {data_file}")
@@ -132,7 +137,7 @@ def copy_tristan_nexus(args):
     logger.info("Copy metadata from Tristan NeXus file.")
 
     # Path to data and original nexus file
-    data_file = Path(params.input.data_filename).expanduser().resolve()
+    data_file = [Path(d).expanduser().resolve() for d in params.input.data_filename]
     nexus_file = Path(params.input.tristan_nexus).expanduser().resolve()
     logger.info(f"Working directory: {data_file.parent}")
     logger.info(f"NeXus file to be copied: {nexus_file}")
@@ -146,7 +151,7 @@ def copy_tristan_nexus(args):
                 "The 'scan_axis' will be a single scalar."
             )
             nxs_img = CopyTristanNexus.single_image_nexus(
-                data_file,
+                data_file[0],
                 nexus_file,
             )
         elif params.input.experiment_type == "rotation":
@@ -155,12 +160,13 @@ def copy_tristan_nexus(args):
                 "This means either a multiple images or a multi sequences pump-probe experiment.\n"
                 "The 'scan_axis' will be a list."
             )
-            nxs_img = CopyTristanNexus.multiple_images_nexus(
-                data_file,
-                nexus_file,
-                args.osc_angle,
-                args.num_bins,
-            )
+            for filename in data_file:
+                nxs_img = CopyTristanNexus.multiple_images_nexus(
+                    filename,
+                    nexus_file,
+                    args.osc_angle,
+                    args.num_bins,
+                )
         logger.info(
             f"Experiment metadata correctly copied from {nexus_file} to {nxs_img}."
         )
