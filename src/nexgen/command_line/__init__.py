@@ -4,7 +4,8 @@ import argparse
 
 from pathlib import Path
 
-from .. import __version__
+# from .. import __version__
+from nexgen import __version__
 
 version_parser = argparse.ArgumentParser(add_help=False)
 version_parser.add_argument(

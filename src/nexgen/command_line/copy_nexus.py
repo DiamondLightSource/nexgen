@@ -17,7 +17,6 @@ from __init__ import (
 )
 
 # from nexgen.nxs_copy import CopyTristanNexus
-
 from ..nxs_copy import CopyNexus, CopyTristanNexus
 
 # Define a logger object and a formatter
@@ -149,7 +148,11 @@ def copy_tristan_nexus(args):
                 nexus_file,
             )
         elif params.input.experiment_type == "rotation":
-            logger.info()
+            logger.info(
+                "Copying metadata for a roation dataset. \n"
+                "This means either a multiple images or a multi sequences pump-probe experiment.\n"
+                "The 'scan_axis' will be a list."
+            )
             nxs_img = CopyTristanNexus.multiple_images_nexus(
                 data_file,
                 nexus_file,
