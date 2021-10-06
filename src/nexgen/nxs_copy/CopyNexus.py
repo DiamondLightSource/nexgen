@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Union, Optional, List
 
 from . import get_nexus_tree
+from .. import get_nexus_filename
 from ..nxs_write import create_attributes
 
 
@@ -29,7 +30,7 @@ def images_nexus(
     """
     data_file = Path(data_file).expanduser().resolve()
     original_nexus = Path(original_nexus).expanduser().resolve()
-    nxs_filename = data_file.parent / f"{data_file.stem}.nxs"
+    nxs_filename = get_nexus_filename(data_file)
     with h5py.File(original_nexus, "r") as nxs_in, h5py.File(
         nxs_filename, "x"
     ) as nxs_out:
@@ -69,7 +70,7 @@ def pseudo_events_nexus(
     """
     data_file = Path(data_file).expanduser().resolve()
     original_nexus = Path(original_nexus).expanduser().resolve()
-    nxs_filename = data_file.parent / f"{data_file.stem}.nxs"
+    nxs_filename = get_nexus_filename(data_file)
     with h5py.File(original_nexus, "r") as nxs_in, h5py.File(
         nxs_filename, "x"
     ) as nxs_out:

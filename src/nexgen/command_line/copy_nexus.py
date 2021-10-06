@@ -48,6 +48,7 @@ general_scope = freephil.parse(
     }
     """
 )
+# TODO consider that there might be multiple input files
 
 tristan_scope = freephil.parse(
     """
