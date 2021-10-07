@@ -66,6 +66,9 @@ tristan_scope = freephil.parse(
       experiment_type = stationary *rotation
         .type = choice
         .help = ""
+      write_mode = r+ w *x a
+        .type = choice
+        .help = ""
     }
     """
 )
@@ -153,6 +156,7 @@ def copy_tristan_nexus(args):
             nxs_img = CopyTristanNexus.single_image_nexus(
                 data_file[0],
                 nexus_file,
+                params.input.write_mode,
             )
         elif params.input.experiment_type == "rotation":
             logger.info(
@@ -164,6 +168,7 @@ def copy_tristan_nexus(args):
                 nxs_img = CopyTristanNexus.multiple_images_nexus(
                     filename,
                     nexus_file,
+                    params.input.write_mode,
                     args.osc_angle,
                     args.num_bins,
                 )
