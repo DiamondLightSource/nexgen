@@ -3,6 +3,7 @@ General tools to copy metadata from NeXus files.
 """
 
 import h5py
+import logging
 
 from pathlib import Path
 from typing import Union, Optional, List
@@ -10,6 +11,8 @@ from typing import Union, Optional, List
 from . import get_nexus_tree
 from .. import get_nexus_filename
 from ..nxs_write import create_attributes
+
+copy_logger = logging.getLogger("CopyNeXus.copy")
 
 
 def images_nexus(
@@ -28,9 +31,11 @@ def images_nexus(
         skip_group:     If simple_copy is True, this is a list of the objects not to be copied.
                         For the moment, works only for NX_class objects.
     """
+    copy_logger.info("Copying NeXus file for image dataset ...")
     data_file = [Path(d).expanduser().resolve() for d in data_file]
     original_nexus = Path(original_nexus).expanduser().resolve()
     nxs_filename = get_nexus_filename(data_file[0])
+    copy_logger.info(f"New NeXus file name: {nxs_filename}")
     with h5py.File(original_nexus, "r") as nxs_in, h5py.File(
         nxs_filename, "x"
     ) as nxs_out:
@@ -41,6 +46,7 @@ def images_nexus(
             # Copy the whole tree except for nxdata
             nxentry = get_nexus_tree(nxs_in, nxs_out, skip=True, skip_obj=skip_group)
             # FIXME this needs some revision!
+            copy_logger.info("Writing a new NXdata.")
             if "data" in skip_group:
                 # Create nxdata group
                 nxdata = nxentry.create_group("data")
@@ -58,7 +64,7 @@ def images_nexus(
                 else:
                     for filename in data_file:
                         nxdata[filename.stem] = h5py.ExternalLink(filename.name, "data")
-    return nxs_filename
+    return nxs_filename.as_posix()
 
 
 def pseudo_events_nexus(
@@ -72,9 +78,11 @@ def pseudo_events_nexus(
         data_file:       String or Path pointing to the HDF5 file with pseudo event data.
         original_nexus:  String or Path pointing to the NeXus file with experiment metadata.
     """
+    copy_logger.info("Copying NeXus file for events dataset ...")
     data_file = [Path(d).expanduser().resolve() for d in data_file]
     original_nexus = Path(original_nexus).expanduser().resolve()
     nxs_filename = get_nexus_filename(data_file[0])
+    copy_logger.info(f"New NeXus file name: {nxs_filename}")
     with h5py.File(original_nexus, "r") as nxs_in, h5py.File(
         nxs_filename, "x"
     ) as nxs_out:
@@ -98,7 +106,7 @@ def pseudo_events_nexus(
         else:
             for filename in data_file:
                 nxdata[filename.stem] = h5py.ExternalLink(filename.name, "/")
-    return nxs_filename
+    return nxs_filename.as_posix()
 
 
 # TODO I should probably consider adding a link to vds in case there is one.

@@ -9,7 +9,6 @@ from typing import List
 from ..nxs_write import create_attributes
 
 
-# TODO instead of just skipping NXdata, make it so that class to be skipped can be passed from command line.
 def get_nexus_tree(
     nxs_in: h5py.File,
     nxs_out: h5py.File,
@@ -33,14 +32,14 @@ def get_nexus_tree(
     if skip is True:
         nxentry = nxs_out.create_group("entry")
         create_attributes(nxentry, ("NX_class",), ("NXentry",))
-        # Copy all of the nexus tree as it is except for /entry/data
+        # Copy all of the nexus tree as it is except for the group passed as skip_obj
         for k in nxs_in["entry"].keys():
             if k in skip_obj:
                 continue
             nxs_in["entry"].copy(k, nxentry)
         return nxentry
     else:
-        # Then copy everything, even data
+        # Then copy everything
         nxs_in.copy("entry", nxs_out)
         return
 
