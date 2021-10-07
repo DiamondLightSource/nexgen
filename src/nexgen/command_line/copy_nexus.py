@@ -9,16 +9,16 @@ import freephil
 
 from pathlib import Path
 
-from __init__ import (
-    # from . import (
+# from __init__ import (
+from . import (
     version_parser,
     full_copy_parser,
     tristan_copy_parser,
 )
 
-from nexgen.nxs_copy import CopyNexus, CopyTristanNexus
+# from nexgen.nxs_copy import CopyNexus, CopyTristanNexus
 
-# from ..nxs_copy import CopyNexus, CopyTristanNexus
+from ..nxs_copy import CopyNexus, CopyTristanNexus
 
 # Define a logger object and a formatter
 logger = logging.getLogger("CopyNeXus")
