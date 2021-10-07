@@ -139,7 +139,7 @@ def copy_tristan_nexus(args):
     # Path to data and original nexus file
     data_file = [Path(d).expanduser().resolve() for d in params.input.data_filename]
     nexus_file = Path(params.input.tristan_nexus).expanduser().resolve()
-    logger.info(f"Working directory: {data_file.parent}")
+    logger.info(f"Working directory: {data_file[0].parent}")
     logger.info(f"NeXus file to be copied: {nexus_file}")
     logger.info(f"Input data to be saved in NeXus file: {data_file}")
 
