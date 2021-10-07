@@ -162,8 +162,14 @@ def copy_tristan_nexus(args):
             logger.info(
                 "Copying metadata for a roation dataset. \n"
                 "This means either a multiple images or a multi sequences pump-probe experiment.\n"
-                "The 'scan_axis' will be a list."
             )
+            if args.osc_angle:
+                logger.info(
+                    f"Scan_axis will be a list of values defined by an oscillation angle of {args.osc_angle}."
+                )
+            elif args.num_bins:
+                logger.info(f"Scan_ axis will be a list of {args.num_bins} values.")
+
             for filename in data_file:
                 nxs_img = CopyTristanNexus.multiple_images_nexus(
                     filename,
