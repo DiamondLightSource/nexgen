@@ -43,33 +43,31 @@ general_scope = freephil.parse(
         .multiple = True
         .optional = True
         .type = str
-        .help = "Object, or list of, to be skipped when copying metadata. For now only NX_class groups."
+        .help = "Object, or list of, to be skipped when copying metadata.
+                If called, it will always first skip NXdata. For now only NX_class groups."
     }
     """
 )
-# FIXME using .optional=True means that every time skip is provided "data" is always skipped
-# For the moment it's a workaround to get it to work since otherwise it doesn't find default value
 
 tristan_scope = freephil.parse(
     """
     input {
       tristan_nexus = None
         .type = path
-        .help = ""
+        .help = "NeXus file associated with Tristan detector"
       data_filename = None
         .multiple = True
         .type = path
-        .help = ""
+        .help = "HDF5 file with binned images"
       experiment_type = stationary *rotation
         .type = choice
-        .help = ""
+        .help = "Specify whether an experiment is stationary or a rotation scan. Defaults to rotation."
       write_mode = r+ w *x a
         .type = choice
-        .help = ""
+        .help = "Specify write mode for new NeXus file."
     }
     """
 )
-# TODO write a nexus file for each data file in a list (for multiple sequences)
 
 # Parse command line arguments
 parser = argparse.ArgumentParser(
