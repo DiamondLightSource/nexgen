@@ -31,7 +31,7 @@ def get_nexus_tree(
     """
     if skip is True:
         nxentry = nxs_out.create_group("entry")
-        create_attributes(nxentry, ("NX_class",), ("NXentry",))
+        create_attributes(nxentry, ("NX_class", "default"), ("NXentry", "data"))
         # Copy all of the nexus tree as it is except for the group passed as skip_obj
         for k in nxs_in["entry"].keys():
             if k in skip_obj:

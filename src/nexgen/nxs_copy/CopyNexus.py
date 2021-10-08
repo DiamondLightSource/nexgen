@@ -43,10 +43,14 @@ def images_nexus(
             # Copy the whole tree
             get_nexus_tree(nxs_in, nxs_out, skip=False)
         else:
+            copy_logger.warning(
+                f"The following NX base classes will not be copied: {skip_group}"
+            )
+            nxs_out.attrs["default"] = "entry"
             # Copy the whole tree except for nxdata
             nxentry = get_nexus_tree(nxs_in, nxs_out, skip=True, skip_obj=skip_group)
             # FIXME this needs some revision!
-            copy_logger.info("Writing a new NXdata.")
+            copy_logger.info(f"Re write NXdata with link to {data_file}.")
             if "data" in skip_group:
                 # Create nxdata group
                 nxdata = nxentry.create_group("data")
@@ -86,6 +90,7 @@ def pseudo_events_nexus(
     with h5py.File(original_nexus, "r") as nxs_in, h5py.File(
         nxs_filename, "x"
     ) as nxs_out:
+        nxs_out.attrs["default"] = "entry"
         # Copy the whole tree except for nxdata
         nxentry = get_nexus_tree(nxs_in, nxs_out)
         # Create nxdata group
@@ -107,6 +112,3 @@ def pseudo_events_nexus(
             for filename in data_file:
                 nxdata[filename.stem] = h5py.ExternalLink(filename.name, "/")
     return nxs_filename.as_posix()
-
-
-# TODO I should probably consider adding a link to vds in case there is one.
