@@ -2,7 +2,6 @@
 Utilities for copying metadata to new NeXus files.
 """
 
-from re import S
 import h5py
 import numpy as np
 
@@ -66,7 +65,7 @@ def get_nexus_tree(
             nxs_in["entry"].copy(k, nxentry)
         # Then delete objects from skip list
         for s in skip_list:
-            del nxentry[S]
+            del nxentry[s]
         return nxentry
     else:
         # Copy everything
