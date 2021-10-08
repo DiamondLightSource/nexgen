@@ -2,11 +2,37 @@
 Utilities for copying metadata to new NeXus files.
 """
 
+from re import S
 import h5py
+import numpy as np
 
 from typing import List
 
 from ..nxs_write import create_attributes
+
+
+def walk_nxentry(nxentry: h5py.Group) -> List[str]:
+    """
+    Walk all the groups and subgroups of nxentry and returns the in a list.
+    """
+    obj_list = []
+    nxentry.visit(obj_list.append)
+    return obj_list
+
+
+def get_skip_list(nxentry: h5py.Group, skip_obj: List[str]) -> List[str]:
+    """
+    Get a list of all the objects that hould not be copied in the nex NeXus file.
+    """
+    obj_list = walk_nxentry(nxentry)
+    skip_list = []
+    for obj in obj_list:
+        try:
+            if nxentry[obj].attrs["NX_class"] in np.string_(skip_obj):
+                skip_list.append(obj)
+        except Exception:
+            pass
+    return skip_list
 
 
 def get_nexus_tree(
@@ -22,24 +48,28 @@ def get_nexus_tree(
     Args:
         nxs_in:     Original NeXus file.
         nxs_out:    New NeXus file.
-        skip:       Defaults to True, copy everything but NXdata.
+        skip:       Defaults to True, copy everything but objects in skip_obj, which always include NXdata.
                     Pass False to copy the whole NXentry tree.
         skip_obj:   List of objects not to be copied.
                     For now, it can only skip NX_class objects.
     Returns:
         nxentry:    NeXus field.
+        Nothing if the full file is copied.
     """
     if skip is True:
         nxentry = nxs_out.create_group("entry")
         create_attributes(nxentry, ("NX_class", "default"), ("NXentry", "data"))
         # Copy all of the nexus tree as it is except for the group passed as skip_obj
+        skip_list = get_skip_list(nxs_in["entry"], skip_obj)
+        # First copy full nxentry
         for k in nxs_in["entry"].keys():
-            if k in skip_obj:
-                continue
             nxs_in["entry"].copy(k, nxentry)
+        # Then delete objects from skip list
+        for s in skip_list:
+            del nxentry[S]
         return nxentry
     else:
-        # Then copy everything
+        # Copy everything
         nxs_in.copy("entry", nxs_out)
         return
 
