@@ -47,11 +47,10 @@ def images_nexus(
                 f"The following NX base classes will not be copied: {skip_group}"
             )
             nxs_out.attrs["default"] = "entry"
-            # Copy the whole tree except for nxdata
+            # Copy the whole tree except for nxdata and whatever other group was passed.
             nxentry = get_nexus_tree(nxs_in, nxs_out, skip=True, skip_obj=skip_group)
-            # FIXME this needs some revision!
-            copy_logger.info(f"Re write NXdata with link to {data_file}.")
-            if "data" in skip_group:
+            copy_logger.info(f"Re write NXdata with link to {data_file[0]}.")
+            if "NXdata" in skip_group:  # it always is...
                 # Create nxdata group
                 nxdata = nxentry.create_group("data")
                 # Find and copy only scan axis information
