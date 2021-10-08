@@ -46,8 +46,29 @@ class _CheckFileExtension(argparse.Action):
         setattr(namespace, self.dest, values)
 
 
+# Define subparsers for NeXus generator
 nexus_parser = argparse.ArgumentParser(add_help=False)
 nexus_parser.add_argument("phil_args", nargs="*")
 
 demo_parser = argparse.ArgumentParser(add_help=False)
 demo_parser.add_argument("phil_args", nargs="*", action=_CheckFileExtension)
+
+# Define subparsesrs for NeXus copy
+full_copy_parser = argparse.ArgumentParser(add_help=False)
+full_copy_parser.add_argument("phil_args", nargs="*")
+
+tristan_copy_parser = argparse.ArgumentParser(add_help=False)
+tristan_copy_parser.add_argument("phil_args", nargs="*")
+tristan_group = tristan_copy_parser.add_mutually_exclusive_group(required=True)
+tristan_group.add_argument(
+    "-o",
+    "--osc-angle",
+    help="Oscillation angle, in degrees",
+    type=float,
+)
+tristan_group.add_argument(
+    "-n",
+    "--num-bins",
+    help="Number of binnes images",
+    type=int,
+)
