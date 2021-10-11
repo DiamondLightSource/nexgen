@@ -379,7 +379,7 @@ def write_NXdetector(
     )
 
     # If detector mode is images write overload and underload
-    if data_type[0] == "images":
+    if data_type[0] == "images" and detector["overload"] is not None:
         nxdetector.create_dataset("saturation_value", data=detector["overload"])
         nxdetector.create_dataset("underload_value", data=detector["underload"])
 
