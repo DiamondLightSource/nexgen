@@ -602,7 +602,7 @@ def write_NXcollection(
     grp.create_dataset("y_pixels", data=detector["image_size"][1])
     if data_type[0] == "images":
         grp.create_dataset("nimages", data=data_type[1])
-    if "TRISTAN" in detector["description"].upeer() or data_type[1] == "events":
+    if "TRISTAN" in detector["description"].upper() or data_type[1] == "events":
         grp.create_dataset(
             "software_version", data=np.string_(detector["software_version"])
         )
