@@ -42,6 +42,9 @@ detector_scope = freephil.parse(
       description = Eiger 2XE 16M
         .type = str
         .help = "Detector class to record"
+      detector_type = Pixel
+        .type = str
+        .help = "Detector type to record"
       sensor_material = *Si CdTe
         .type = choice
         .help = "Sensor material (e.g. silicon)"
@@ -74,7 +77,7 @@ detector_scope = freephil.parse(
         .help = "Nominal exposure time, if unit is not specified defaults to seconds"
       axes = two_theta det_z
         .type = strings
-        .help = "Axis names for the detector axes"
+        .help = "Axis names for the detector axes. The detector sits on the last one."
       depends = . two_theta
         .type = strings
         .help = "Axis names for the axis dependencies"
@@ -96,6 +99,18 @@ detector_scope = freephil.parse(
       units = deg mm
         .type = strings
         .help = "Axis units, from mm or deg"
+      software_version = 1.1.3
+        .type = str
+        .help = "Tristan specific - Software version"
+      detector_tick = 1562.5ps
+        .type = str
+        .help = "Tristan specific - detector tick, in ps"
+      detector_frequency = 6.4e+08Hz
+        .type = str
+        .help = "Tristan specific - detector frequency, in Hz"
+      timeslice_rollover = 18
+        .type = int
+        .help = "Tristan specific - timeslice rollover bits"
     }
     """
 )

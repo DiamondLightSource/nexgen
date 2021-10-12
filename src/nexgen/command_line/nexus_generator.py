@@ -190,7 +190,9 @@ def write_NXmx_cli(args):
 
     logger.info("")
 
-    logger.info("Detector information:\n%s" % detector.description)
+    logger.info(
+        f"Detector information:\n {detector.description}, {detector.detector_type}"
+    )
     logger.info(
         f"Sensor made of {detector.sensor_material} x {detector.sensor_thickness}"
     )
