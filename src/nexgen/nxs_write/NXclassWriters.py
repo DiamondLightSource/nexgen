@@ -342,7 +342,7 @@ def write_NXdetector(
 
     # Detector description
     nxdetector.create_dataset("description", data=np.string_(detector["description"]))
-    nxdetector.create_dataset("type", data=np.string_("Pixel"))
+    nxdetector.create_dataset("type", data=np.string_(detector["detector_type"]))
 
     # Beam center
     beam_center_x = nxdetector.create_dataset(
