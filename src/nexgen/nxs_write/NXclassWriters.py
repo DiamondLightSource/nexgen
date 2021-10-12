@@ -404,11 +404,11 @@ def write_NXdetector(
         ("NXtransformations",),
     )
 
-    # Detector depends_on
-    nxdetector.create_dataset(
-        "depends_on",
-        data=set_dependency("detector_z/det_z", path=nxtransformations.name),
-    )
+    # # Detector depends_on
+    # nxdetector.create_dataset(
+    #     "depends_on",
+    #     data=set_dependency("detector_z/det_z", path=nxtransformations.name),
+    # )
 
     # Create groups for detector_z and two_theta if present
     vectors = split_arrays(coord_frame, detector["axes"], detector["vectors"])
@@ -420,13 +420,13 @@ def write_NXdetector(
             grp_name = "detector_z"
             _dep = set_dependency(
                 detector["depends"][idx],
-                "/entry/instrument/detector/transformations/two_theta/",
+                nxtransformations.name + "/two_theta/",
             )
         else:
             grp_name = ax
             _dep = set_dependency(
                 detector["depends"][idx],
-                "/entry/instrument/detector/transformations/detector_z/",
+                nxtransformations.name + "/detector_z/",
             )
         nxgrp_ax = nxtransformations.create_group(grp_name)
         create_attributes(nxgrp_ax, ("NX_class",), ("NXpositioner",))
@@ -441,6 +441,12 @@ def write_NXdetector(
                 vectors[ax],
             ),
         )
+        if ax == detector["axes"][-1]:
+            # Detector depends_on
+            nxdetector.create_dataset(
+                "depends_on",
+                data=set_dependency(ax, path=nxgrp_ax.name),
+            )
 
 
 # NXdetector_module writer
