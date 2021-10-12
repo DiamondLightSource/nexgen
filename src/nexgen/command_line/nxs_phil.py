@@ -99,6 +99,18 @@ detector_scope = freephil.parse(
       units = deg mm
         .type = strings
         .help = "Axis units, from mm or deg"
+      software_version = 1.1.3
+        .type = str
+        .help = "Tristan specific - Software version"
+      detector_tick = 1562.5ps
+        .type = str
+        .help = "Tristan specific - detector tick, in ps"
+      detector_frequency = 6.4e+08Hz
+        .type = str
+        .help = "Tristan specific - detector frequency, in Hz"
+      timeslice_rollover = 18
+        .type = int
+        .help = "Tristan specific - timeslice rollover bits"
     }
     """
 )

@@ -9,7 +9,7 @@ import logging
 import numpy as np
 
 from pathlib import Path
-from typing import List, Tuple, Union, Optional
+from typing import List, Dict, Tuple, Union, Optional
 
 from . import (
     find_scan_axis,
@@ -22,6 +22,7 @@ from .. import (
     split_arrays,
     units_of_length,
     units_of_time,
+    ureg,
 )
 
 from .data_tools import vds_writer
@@ -32,7 +33,7 @@ NXclass_logger = logging.getLogger("NeXusGenerator.write.NXclass")
 def write_NXdata(
     nxsfile: h5py.File,
     datafiles: List[Path],
-    goniometer: dict,
+    goniometer: Dict,
     data_type: str,
     coord_frame: str,
     scan_range: Union[Tuple, np.ndarray],
@@ -124,7 +125,7 @@ def write_NXdata(
 # NXsample
 def write_NXsample(
     nxsfile: h5py.File,
-    goniometer: dict,
+    goniometer: Dict,
     coord_frame: str,
     data_type: str,
     scan_axis: str,
@@ -238,7 +239,7 @@ def write_NXsample(
 
 # NXinstrument
 def write_NXinstrument(
-    nxsfile: h5py.File, beam: dict, attenuator: dict, beamline_n: str
+    nxsfile: h5py.File, beam: Dict, attenuator: Dict, beamline_n: str
 ):
     """
     Write NXinstrument group at entry/instrument.
@@ -288,7 +289,7 @@ def write_NXinstrument(
 
 
 # NXsource
-def write_NXsource(nxsfile: h5py.File, source: dict):
+def write_NXsource(nxsfile: h5py.File, source: Dict):
     """
     Write NXsource group in entry/source.
 
@@ -315,7 +316,7 @@ def write_NXsource(nxsfile: h5py.File, source: dict):
 # NXdetector writer
 def write_NXdetector(
     nxsfile: h5py.File,
-    detector: dict,
+    detector: Dict,
     coord_frame: str,
     data_type: Tuple[str, int],
 ):
@@ -394,7 +395,7 @@ def write_NXdetector(
         nxdetector.create_dataset("pixel_mask", data=detector["pixel_mask"])
 
     # Write_NXcollection
-    write_NXcollection(nxdetector, detector["image_size"], data_type)
+    write_NXcollection(nxdetector, detector, data_type)
 
     # Write NXtransformations: entry/instrument/detector/transformations/detector_z and two_theta
     nxtransformations = nxdetector.create_group("transformations")
@@ -403,12 +404,6 @@ def write_NXdetector(
         ("NX_class",),
         ("NXtransformations",),
     )
-
-    # # Detector depends_on
-    # nxdetector.create_dataset(
-    #     "depends_on",
-    #     data=set_dependency("detector_z/det_z", path=nxtransformations.name),
-    # )
 
     # Create groups for detector_z and two_theta if present
     vectors = split_arrays(coord_frame, detector["axes"], detector["vectors"])
@@ -452,7 +447,7 @@ def write_NXdetector(
 # NXdetector_module writer
 def write_NXdetector_module(
     nxsfile: h5py.File,
-    module: dict,
+    module: Dict,
     coord_frame: str,
     image_size: Union[List, Tuple],
     pixel_size: Union[List, Tuple],
@@ -581,14 +576,17 @@ def write_NXdetector_module(
 
 
 # NXdetector_group writer
-# def writr_NXdetector_group(nxinstrument: h5py.Group, detector: dict):
+# def writr_NXdetector_group(nxinstrument: h5py.Group, detector: Dict):
 # TODO to be added once multiple module functionality works
 # pass
 
 
 # NXCollection writer (detectorSpecific)
 def write_NXcollection(
-    nxdetector: h5py.Group, image_size: Union[List, Tuple], data_type: Tuple[str, int]
+    nxdetector: h5py.Group,
+    detector: Dict,
+    data_type: Tuple[str, int]
+    # nxdetector: h5py.Group, image_size: Union[List, Tuple], data_type: Tuple[str, int]
 ):
     """
     Write a NXcollection group inside NXdetector as detectorSpecific.
@@ -600,8 +598,20 @@ def write_NXcollection(
     """
     # Create detectorSpecific group
     grp = nxdetector.create_group("detectorSpecific")
-    grp.create_dataset("x_pixels", data=image_size[0])
-    grp.create_dataset("y_pixels", data=image_size[1])
+    grp.create_dataset("x_pixels", data=detector["image_size"][0])
+    grp.create_dataset("y_pixels", data=detector["image_size"][1])
     if data_type[0] == "images":
         grp.create_dataset("nimages", data=data_type[1])
-    # TODO if events write tick time and frequency
+    if "TRISTAN" in detector["description"].upeer() or data_type[1] == "events":
+        grp.create_dataset(
+            "software_version", data=np.string_(detector["software_version"])
+        )
+        tick = ureg.Quantity(detector["detector_tick"])
+        grp.create_dataset("detector_tick", data=tick.magnitude)
+        grp["detector_tick"].attrs["units"] = format(tick.units, "~")
+        freq = ureg.Quantity(detector["detector_frequency"])
+        grp.create_dataset("detector_frequency", data=freq.magnitude)
+        grp["detector_frequency"].attrs["units"] = format(freq.units, "~")
+        grp.create_dataset(
+            "timeslice_rollover_bits", data=detector["timeslice_rollover"]
+        )
