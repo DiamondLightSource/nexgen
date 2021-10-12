@@ -26,4 +26,4 @@ def test_units_of_time():
     # Check that a dimensionless value deafults to seconds
     assert nexgen.units_of_time(1) == ureg.Quantity(1, "s")
     # Check conversion to base units
-    assert nexgen.units_of_time("20ms") == ureg.Quantity(0.02, "m")
+    assert nexgen.units_of_time("20ms") == ureg.Quantity(0.02, "s")
