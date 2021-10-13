@@ -10,7 +10,7 @@ import numpy as np
 from pathlib import Path
 from typing import List, Tuple, Union
 
-from . import find_scan_axis, calculate_scan_range
+from . import find_scan_axis, calculate_scan_range, read_meta_file
 
 from .data_tools import data_writer, find_number_of_images
 
@@ -38,6 +38,7 @@ def write_NXmx_nexus(
     timestamps: tuple,
     coordinate_frame: str = "mcstas",
     vds: str = None,
+    meta: Path = None,
 ):
     """
     Write a new NeXus file.
@@ -48,16 +49,20 @@ def write_NXmx_nexus(
     Args:
         nxsfile:            NeXus file to be written.
         datafiles:          List of at least 1 Path object to a HDF5 data file.
-        goniometer:         Scope extract
-        detector:           Scope extract
-        module:             Scope extract
-        source:             Scope extract
-        beam:               Scope extract
-        attenuator:         Scope extract
+        goniometer:         Scope extract defining the goniometer geometry.
+        detector:           Scope extract defining the detector and its axes.
+        module:             Scope extract defining geometry and description of module.
+        source:             Scope extract describing the facility.
+        beam:               Scope extract defining properties of beam.
+        attenuator:         Scope extract defining transmission.
         timestamps:         (start, end) tuple containing timestamps for start and end time.
         coordinate_frame:   String indicating which coordinate system is being used.
         vds:                If passed, a Virtual Dataset will also be written.
+        meta:               If passed, it looks through the information contained in the _meta.h5 file and adds it to the detector_scope
     """
+    # If _meta.h5 file is passed, look through it for relevant information
+    if meta:
+        read_meta_file()
     writer_logger.info("Writing NXmx NeXus file ...")
     # Find total number of images that have been written across the files.
     if len(datafiles) == 1:
@@ -148,12 +153,12 @@ def write_nexus_demo(
         datafiles:          List of at least 1 Path object to a HDF5 data file.
         data_type:          Tuple (str, int) indicating whether the mode is images or events (and eventually how many).
         coordinate_frame:   String indicating which coordinate system is being used.
-        goniometer:         Scope extract
-        detector:           Scope extract
-        module:             Scope extract
-        source:             Scope extract
-        beam:               Scope extract
-        attenuator:         Scope extract
+        goniometer:         Scope extract defining the goniometer geometry.
+        detector:           Scope extract defining the detector and its axes.
+        module:             Scope extract defining defining geometry and description of module.
+        source:             Scope extract describing the facility.
+        beam:               Scope extract defining properties of beam.
+        attenuator:         Scope extract defining transmission.
         vds:                If passed, a Virtual Dataset will also be written.
     """
     writer_logger.info("Writing demo ...")
