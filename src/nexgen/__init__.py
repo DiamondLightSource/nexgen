@@ -9,12 +9,13 @@ __version_tuple__ = tuple(int(x) for x in __version__.split("."))
 
 import re
 import sys
+import h5py
 import pint
 import numpy as np
 
 from pathlib import Path
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Union
 
 # Initialize registry and a Quantity constructor
 ureg = pint.UnitRegistry()
@@ -75,6 +76,20 @@ def get_nexus_filename(data_filename: Path) -> Path:
     filename_stem = P.fullmatch(data_filename.stem)[1]
     nxs_filename = data_filename.parent / f"{filename_stem}.nxs"
     return nxs_filename
+
+
+def walk_nxs(nxs_obj: Union[h5py.File, h5py.Group]) -> List[str]:
+    """
+    Walk all the groups, subgroups and datasets of an object.
+
+    Args:
+        nxs_obj:    Object to walk through, could be a file or a group.
+    Returns:
+        obj_list:   List of strings.
+    """
+    obj_list = []
+    nxs_obj.visit(obj_list.append)
+    return obj_list
 
 
 def split_arrays(coord_frame: str, axes_names: List, array: List) -> dict:
