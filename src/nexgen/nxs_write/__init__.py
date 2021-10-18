@@ -51,9 +51,9 @@ def set_dependency(dep_info: str, path: str = None):
         return np.string_(dep_info)
 
 
-def find_scan_axis(axes_names: List, axes_starts: List, axes_ends: List) -> str:
+def find_rotation_axis(axes_names: List, axes_starts: List, axes_ends: List) -> str:
     """
-    Identify the scan_axis.
+    Identify the scan_axis for a rotation scan.
 
     This function identifies the scan axis from the list passed as argument.
     The scan axis is the one where start and end value are not the same.

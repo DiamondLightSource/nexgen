@@ -10,7 +10,7 @@ import numpy as np
 from pathlib import Path
 from typing import List, Tuple, Union
 
-from . import find_scan_axis, calculate_scan_range, read_meta_file
+from . import find_rotation_axis, calculate_scan_range, read_meta_file
 
 from .data_tools import data_writer, find_number_of_images
 
@@ -75,7 +75,7 @@ def write_NXmx_nexus(
     writer_logger.info(f"Total number of images: {num_images}")
 
     # Identify scan axis
-    osc_axis = find_scan_axis(goniometer.axes, goniometer.starts, goniometer.ends)
+    osc_axis = find_rotation_axis(goniometer.axes, goniometer.starts, goniometer.ends)
 
     # Compute scan_range
     idx = goniometer.axes.index(osc_axis)
@@ -164,7 +164,7 @@ def write_nexus_demo(
     writer_logger.info("Writing demo ...")
     writer_logger.info(f"The data file will contain {data_type[1]} {data_type[0]}")
     # Identify scan axis
-    osc_axis = find_scan_axis(goniometer.axes, goniometer.starts, goniometer.ends)
+    osc_axis = find_rotation_axis(goniometer.axes, goniometer.starts, goniometer.ends)
 
     # Compute scan_range
     idx = goniometer.axes.index(osc_axis)
