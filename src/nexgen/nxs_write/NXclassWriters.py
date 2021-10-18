@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import List, Dict, Tuple, Union, Optional
 
 from . import (
-    find_rotation_axis,
+    find_scan_axis,
     calculate_origin,
     create_attributes,
     set_dependency,
@@ -59,7 +59,7 @@ def write_NXdata(
 
     # If scan_axis hasn't been passed, identify it.
     if not scan_axis:
-        scan_axis = find_rotation_axis(
+        scan_axis = find_scan_axis(
             goniometer["axes"], goniometer["starts"], goniometer["ends"]
         )
 

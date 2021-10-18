@@ -51,9 +51,9 @@ def set_dependency(dep_info: str, path: str = None):
         return np.string_(dep_info)
 
 
-def find_rotation_axis(axes_names: List, axes_starts: List, axes_ends: List) -> str:
+def find_scan_axis(axes_names: List, axes_starts: List, axes_ends: List) -> str:
     """
-    Identify the scan_axis for a rotation scan.
+    Identify the scan_axis.
 
     This function identifies the scan axis from the list passed as argument.
     The scan axis is the one where start and end value are not the same.
@@ -67,7 +67,7 @@ def find_rotation_axis(axes_names: List, axes_starts: List, axes_ends: List) -> 
     Returns:
         scan_axis:      String identifying the scan axis.
     """
-    # TODO handle multiple rotation (is that even doable?)
+    # TODO Handle multiple scan axes (2D scan).
     # Randomly assign to phi if stills
     assert len(axes_names) > 0, "Please pass at least one axis."
     if len(axes_names) == 1:
