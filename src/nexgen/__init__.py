@@ -145,7 +145,7 @@ def get_iso_timestamp(ts: str) -> str:
 
 def units_of_length(q: str, to_base: Optional[bool] = False) -> pint.Quantity:
     """
-    Check that a quantity of length is compatible with NX_LENGTH, defaulting to mm if dimensionless.
+    Check that a quantity of length is compatible with NX_LENGTH, defaulting to m if dimensionless.
 
     Args:
         q:          A string that can be interpreted as a pint Quantity, it can be dimensionless.
