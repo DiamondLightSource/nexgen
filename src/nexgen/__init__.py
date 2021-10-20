@@ -21,8 +21,9 @@ from typing import Optional, List, Union
 ureg = pint.UnitRegistry()
 Q_ = ureg.Quantity
 
-# Filename pattern: filename_######.h5
-P = re.compile(r"(.*)_(?:\d+)")
+# Filename pattern: filename_######.h5 or filename_meta.h5
+# P = re.compile(r"(.*)_(?:\d+)")
+P = re.compile(r"(.*)_(?:meta|\d+)")
 
 # Format strings for timestamps
 format_list = ["%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%a %b %d %Y %H:%M:%S"]
@@ -64,17 +65,17 @@ def get_filename_template(master_filename: Path) -> str:
     return filename_template.as_posix()
 
 
-def get_nexus_filename(data_filename: Path) -> Path:
+def get_nexus_filename(input_filename: Path) -> Path:
     """
     Get the filename for the NeXus file from the stem of the input file name, by .
 
     Args:
-        data_filename:  Input file path.
+        input_filename:  File name and path of either a .h5 data file or a _meta.h5 file.
     Returns:
         NeXus file name (.nxs) path.
     """
-    filename_stem = P.fullmatch(data_filename.stem)[1]
-    nxs_filename = data_filename.parent / f"{filename_stem}.nxs"
+    filename_stem = P.fullmatch(input_filename.stem)[1]
+    nxs_filename = input_filename.parent / f"{filename_stem}.nxs"
     return nxs_filename
 
 
@@ -155,7 +156,7 @@ def units_of_length(q: str, to_base: Optional[bool] = False) -> pint.Quantity:
     quantity = Q_(q)
     if quantity <= 0:
         raise ValueError("Quantity must be positive")
-    quantity = quantity * ureg.mm if quantity.dimensionless else quantity
+    quantity = quantity * ureg.m if quantity.dimensionless else quantity
     if quantity.check("[length]"):
         if to_base is True:
             return quantity.to_base_units()

@@ -30,8 +30,8 @@ from ..nxs_write.NexusWriter import write_NXmx_nexus, write_nexus_demo
 # Define a logger object and a formatter
 logger = logging.getLogger("NeXusGenerator")
 logger.setLevel(logging.DEBUG)
-formatter = logging.Formatter("%(levelname)s %(message)s")
-# formatter = logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s")
+# formatter = logging.Formatter("%(levelname)s %(message)s")
+formatter = logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s")
 
 # Phil scopes
 master_phil = freephil.parse(
@@ -47,9 +47,9 @@ master_phil = freephil.parse(
       vds_writer = *None dataset file
         .type = choice
         .help = "If not None, write vds along with external link to data in NeXus file, or create _vds.h5 file."
-      meta_file = None
-        .type = path
-        .help = "Path to _meta.h5 file, if present."
+    #   meta_file = None
+    #     .type = path
+    #     .help = "Path to _meta.h5 file, if present."
     }
 
     include scope nexgen.command_line.nxs_phil.goniometer_scope
@@ -126,11 +126,11 @@ def write_NXmx_cli(args):
     # Get NeXus file name
     master_file = get_nexus_filename(datafiles[0])
 
-    # Path to meta_file
-    if params.input.meta_file:
-        meta_file = Path(params.input.meta_file).expanduser().resolve()
-    else:
-        meta_file = None
+    # # Path to meta_file
+    # if params.input.meta_file:
+    #     meta_file = Path(params.input.meta_file).expanduser().resolve()
+    # else:
+    #     meta_file = None
 
     # Start logger
     logfile = datafiles[0].parent / "generate_nexus.log"
@@ -143,7 +143,7 @@ def write_NXmx_cli(args):
 
     # Add some information to logger
     logger.info("Create a NeXus file for %s" % datafiles)
-    logger.info("Meta file for the collection: %s" % meta_file)
+    # logger.info("Meta file for the collection: %s" % meta_file)
     logger.info("NeXus file will be saved as %s" % master_file)
 
     # Load technical info from phil parser
@@ -263,7 +263,6 @@ def write_NXmx_cli(args):
                 timestamps,
                 cf,
                 params.input.vds_writer,
-                meta_file,
             )
         logger.info(f"{master_file} correctly written.")
     except Exception as err:
@@ -461,12 +460,12 @@ parser_NXmx = subparsers.add_parser(
     description=("Trigger NeXus file writing pointing to existing data."),
     parents=[nexus_parser],
 )
-parser_NXmx.add_argument(
-    "-ow",
-    "--overwrite",
-    action="store_true",
-    help="If there is a _meta.h5 file passed as input, override some detector parser information with values from it.",
-)
+# parser_NXmx.add_argument(
+#     "-ow",
+#     "--overwrite",
+#     action="store_true",
+#     help="If there is a _meta.h5 file passed as input, override some detector parser information with values from it.",
+# )
 parser_NXmx.set_defaults(func=write_NXmx_cli)
 
 parser_NXmx_demo = subparsers.add_parser(

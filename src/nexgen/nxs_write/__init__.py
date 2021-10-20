@@ -9,8 +9,6 @@ import numpy as np
 from h5py import AttributeManager
 from typing import List, Tuple, Union
 
-# from .. import walk_nxs
-
 
 def create_attributes(
     nxs_obj: Union[h5py.Group, h5py.Dataset], names: Tuple, values: Tuple
@@ -147,8 +145,3 @@ def calculate_origin(
     else:
         offset_val = math.hypot(*det_origin[:-1])
     return det_origin, offset_val
-
-
-def read_meta_file():
-    """"""
-    pass
