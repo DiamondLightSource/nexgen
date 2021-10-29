@@ -11,15 +11,6 @@ from .. import walk_nxs
 from ..nxs_write import create_attributes
 
 
-# def walk_nxentry(nxentry: h5py.Group) -> List[str]:
-#    """
-#    Walk all the groups and subgroups of nxentry and returns the in a list.
-#    """
-#    obj_list = []
-#    nxentry.visit(obj_list.append)
-#    return obj_list
-
-
 def get_skip_list(nxentry: h5py.Group, skip_obj: List[str]) -> List[str]:
     """
     Get a list of all the objects that hould not be copied in the nex NeXus file.
