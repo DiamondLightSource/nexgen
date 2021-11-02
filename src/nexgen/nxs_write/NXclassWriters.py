@@ -319,15 +319,19 @@ def write_NXdetector(
     detector: Dict,
     coord_frame: str,
     data_type: Tuple[str, int],
+    meta: Path = None,
+    link_list: List = None,
 ):
     """
-    Write_NXdetector group at entry/instrument/detector
+    Write_NXdetector group at entry/instrument/detector.
 
     Args:
-        nxsfile:        Nexus file to be written
-        detector:       Dictionary containing all detector information
-        coord_frame:    Coordinate system the axes are currently expressed in
+        nxsfile:        Nexus file to be written.
+        detector:       Dictionary containing all detector information.
+        coord_frame:    Coordinate system the axes are currently expressed in.
         data_type:      Tuple (str, int) identifying whether the files to be written contain images or events.
+        meta:           Path to _meta.h5 file, if exists.
+        link_list:      List of values from the meta file to be linked instead of copied.
     """
     NXclass_logger.info("Start writing NXdetector.")
     # Create NXdetector group, unless it already exists, in which case just open it.
@@ -345,57 +349,64 @@ def write_NXdetector(
     nxdetector.create_dataset("description", data=np.string_(detector["description"]))
     nxdetector.create_dataset("type", data=np.string_(detector["detector_type"]))
 
-    # Beam center
-    beam_center_x = nxdetector.create_dataset(
-        "beam_center_x", data=detector["beam_center"][0]
-    )
-    create_attributes(beam_center_x, ("units",), ("pixels",))
-    beam_center_y = nxdetector.create_dataset(
-        "beam_center_y", data=detector["beam_center"][1]
-    )
-    create_attributes(beam_center_y, ("units",), ("pixels",))
+    # If there is a meta file, a lot of information will be linked instead of copied
+    if meta:
+        for ll in link_list[0]:
+            nxdetector[ll] = h5py.ExternalLink(meta.name, detector[ll])
+    try:
+        # Beam center
+        beam_center_x = nxdetector.create_dataset(
+            "beam_center_x", data=detector["beam_center"][0]
+        )
+        create_attributes(beam_center_x, ("units",), ("pixels",))
+        beam_center_y = nxdetector.create_dataset(
+            "beam_center_y", data=detector["beam_center"][1]
+        )
+        create_attributes(beam_center_y, ("units",), ("pixels",))
 
-    # Pixel size in m
-    x_pix = units_of_length(detector["pixel_size"][0], True)
-    x_pix_size = nxdetector.create_dataset("x_pixel_size", data=x_pix.magnitude)
-    create_attributes(x_pix_size, ("units",), (format(x_pix.units, "~"),))
-    y_pix = units_of_length(detector["pixel_size"][1], True)
-    y_pix_size = nxdetector.create_dataset("y_pixel_size", data=y_pix.magnitude)
-    create_attributes(y_pix_size, ("units",), (format(y_pix.units, "~"),))
+        # Pixel size in m
+        x_pix = units_of_length(detector["pixel_size"][0], True)
+        x_pix_size = nxdetector.create_dataset("x_pixel_size", data=x_pix.magnitude)
+        create_attributes(x_pix_size, ("units",), (format(x_pix.units, "~"),))
+        y_pix = units_of_length(detector["pixel_size"][1], True)
+        y_pix_size = nxdetector.create_dataset("y_pixel_size", data=y_pix.magnitude)
+        create_attributes(y_pix_size, ("units",), (format(y_pix.units, "~"),))
 
-    # Count time
-    exp_time = units_of_time(detector["exposure_time"])
-    nxdetector.create_dataset("count_time", data=exp_time.magnitude)
+        # Count time
+        exp_time = units_of_time(detector["exposure_time"])
+        nxdetector.create_dataset("count_time", data=exp_time.magnitude)
 
-    # Sensor material, sensor thickness in m
-    nxdetector.create_dataset(
-        "sensor_material", data=np.string_(detector["sensor_material"])
-    )
-    sensor_thickness = units_of_length(detector["sensor_thickness"], True)
-    nxdetector.create_dataset("sensor_thickness", data=sensor_thickness.magnitude)
-    create_attributes(
-        nxdetector["sensor_thickness"],
-        ("units",),
-        (format(sensor_thickness.units, "~"),),
-    )
+        # Sensor material, sensor thickness in m
+        nxdetector.create_dataset(
+            "sensor_material", data=np.string_(detector["sensor_material"])
+        )
+        sensor_thickness = units_of_length(detector["sensor_thickness"], True)
+        nxdetector.create_dataset("sensor_thickness", data=sensor_thickness.magnitude)
+        create_attributes(
+            nxdetector["sensor_thickness"],
+            ("units",),
+            (format(sensor_thickness.units, "~"),),
+        )
+
+        # Check for mask and flatfield files
+        # Flatfield
+        if detector["flatfield"]:
+            nxdetector.create_dataset("flatfield_applied", data=False)
+            nxdetector.create_dataset("flatfield", data=detector["flatfield"])
+        # Bad pixel mask
+        if detector["pixel_mask"]:
+            nxdetector.create_dataset("pixel_mask_applied", data=False)
+            nxdetector.create_dataset("pixel_mask", data=detector["pixel_mask"])
+    except (TypeError, ValueError):
+        pass
 
     # If detector mode is images write overload and underload
     if data_type[0] == "images" and detector["overload"] is not None:
         nxdetector.create_dataset("saturation_value", data=detector["overload"])
         nxdetector.create_dataset("underload_value", data=detector["underload"])
 
-    # Check for mask and flatfield files
-    # Flatfield
-    if detector["flatfield"]:
-        nxdetector.create_dataset("flatfield_applied", data=False)
-        nxdetector.create_dataset("flatfield", data=detector["flatfield"])
-    # Bad pixel mask
-    if detector["pixel_mask"]:
-        nxdetector.create_dataset("pixel_mask_applied", data=False)
-        nxdetector.create_dataset("pixel_mask", data=detector["pixel_mask"])
-
     # Write_NXcollection
-    write_NXcollection(nxdetector, detector, data_type)
+    write_NXcollection(nxdetector, detector, data_type, meta, link_list[1])
 
     # Write NXtransformations: entry/instrument/detector/transformations/detector_z and two_theta
     nxtransformations = nxdetector.create_group("transformations")
@@ -585,16 +596,21 @@ def write_NXdetector_module(
 def write_NXcollection(
     nxdetector: h5py.Group,
     detector: Dict,
-    data_type: Tuple[str, int]
+    data_type: Tuple[str, int],
+    meta: Path = None,
+    link_list: List = None,
     # nxdetector: h5py.Group, image_size: Union[List, Tuple], data_type: Tuple[str, int]
 ):
     """
     Write a NXcollection group inside NXdetector as detectorSpecific.
 
     Args:
-        nxdetector:     HDF5 NXdetector group
-        image_size:     Size of the detector
-        Tuple (str, int) identifying whether the files to be written contain images or events.
+        nxdetector:     HDF5 NXdetector group.
+        detector:       Dictionary containing all detector information
+        image_size:     Size of the detector.
+        data_type:      Tuple (str, int) identifying whether the files to be written contain images or events.
+        meta:           Path to _meta.h5 file, if exists.
+        link_list:      List of values from the meta file to be linked instead of copied.
     """
     # Create detectorSpecific group
     grp = nxdetector.create_group("detectorSpecific")
@@ -602,10 +618,14 @@ def write_NXcollection(
     grp.create_dataset("y_pixels", data=detector["image_size"][1])
     if data_type[0] == "images":
         grp.create_dataset("nimages", data=data_type[1])
-    if "software_version" in detector:
-        grp.create_dataset(
-            "software_version", data=np.string_(detector["software_version"])
-        )
+    if meta:
+        for l in link_list:
+            grp[l] = h5py.ExternalLink(meta.name, detector["l"])
+    else:
+        if "software_version" in detector:
+            grp.create_dataset(
+                "software_version", data=np.string_(detector["software_version"])
+            )
     if "TRISTAN" in detector["description"].upper() or data_type[1] == "events":
         tick = ureg.Quantity(detector["detector_tick"])
         grp.create_dataset("detector_tick", data=tick.magnitude)

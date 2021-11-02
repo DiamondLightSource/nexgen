@@ -1,6 +1,8 @@
 """
 Tools to get the information stored inside the _meta.h5 file and overwrite the phil scope.
 """
+# TODO add more logging
+
 import h5py
 import logging
 

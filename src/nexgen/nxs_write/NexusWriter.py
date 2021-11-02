@@ -23,6 +23,8 @@ from .NXclassWriters import (
     write_NXdetector_module,
 )
 
+from ..tools.MetaReader import overwrite_beam, overwrite_detector
+
 writer_logger = logging.getLogger("NeXusGenerator.writer")
 
 # General writing
@@ -62,8 +64,11 @@ def write_NXmx_nexus(
     """
     # If _meta.h5 file is passed, look through it for relevant information
     if meta:
+        writer_logger.info("Looking through _meta.h5 file for metadata.")
         # overwrite detector, overwrite beam, get list of links for nxdetector and nxcollection
-        pass
+        with h5py.File(meta, "r") as mf:
+            overwrite_beam(mf, detector.description, beam)
+            link_list = overwrite_detector(mf, detector)
     writer_logger.info("Writing NXmx NeXus file ...")
     # Find total number of images that have been written across the files.
     if len(datafiles) == 1:
@@ -120,6 +125,8 @@ def write_NXmx_nexus(
         beam,
         attenuator,
         vds,
+        meta,
+        link_list,
     )
 
     # NX_DATE_TIME: /entry/start_time and /entry/end_time
@@ -227,6 +234,8 @@ def call_writers(
     beam,
     attenuator,
     vds: str,
+    meta: Path = None,
+    link_list: List = None,
 ):
     """ Call the writers for the NeXus base classes."""
     logger = logging.getLogger("NeXusGenerator.writer.call")
@@ -253,7 +262,9 @@ def call_writers(
     )
 
     # NXdetector: entry/instrument/detector
-    write_NXdetector(nxsfile, detector.__dict__, coordinate_frame, data_type)
+    write_NXdetector(
+        nxsfile, detector.__dict__, coordinate_frame, data_type, meta, link_list
+    )
 
     # NXmodule: entry/instrument/detector/module
     write_NXdetector_module(
