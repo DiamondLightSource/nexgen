@@ -174,7 +174,7 @@ class TristanMetafile(Metafile):
         return False
 
     def __init__(self, handle: h5py.File):
-        super.__init__(handle)
+        super().__init__(handle)
 
     def find_number_of_modules(self) -> int:
         n_modules = [k for k in self._handle.keys() if tristan_pattern.fullmatch(k)]
