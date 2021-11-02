@@ -6,6 +6,7 @@ import math
 import h5py
 import numpy as np
 
+from pathlib import Path
 from h5py import AttributeManager
 from typing import List, Tuple, Union
 
@@ -145,3 +146,19 @@ def calculate_origin(
     else:
         offset_val = math.hypot(*det_origin[:-1])
     return det_origin, offset_val
+
+
+def find_number_of_images(datafile_list: List[Path]):
+    """
+    Calculate total number of images when there's more than one input HDF5 file.
+
+    Args:
+        datafiles:  List of paths to the input image files.
+    Returns:
+        num_images: Total number of images.
+    """
+    num_images = 0
+    for filename in datafile_list:
+        with h5py.File(filename, "r") as f:
+            num_images += f["data"].shape[0]
+    return num_images

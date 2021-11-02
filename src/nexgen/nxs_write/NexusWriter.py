@@ -10,9 +10,9 @@ import numpy as np
 from pathlib import Path
 from typing import List, Tuple, Union
 
-from . import find_scan_axis, calculate_scan_range
+from . import find_scan_axis, calculate_scan_range, find_number_of_images
 
-from .data_tools import data_writer, find_number_of_images
+from .data_tools import data_writer
 
 from .NXclassWriters import (
     write_NXdata,
