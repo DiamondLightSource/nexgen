@@ -10,7 +10,7 @@ import numpy as np
 from pathlib import Path
 from typing import List, Tuple, Union
 
-from . import find_scan_axis, calculate_scan_range, read_meta_file
+from . import find_scan_axis, calculate_scan_range
 
 from .data_tools import data_writer, find_number_of_images
 
@@ -62,7 +62,8 @@ def write_NXmx_nexus(
     """
     # If _meta.h5 file is passed, look through it for relevant information
     if meta:
-        read_meta_file()
+        # overwrite detector, overwrite beam, get list of links for nxdetector and nxcollection
+        pass
     writer_logger.info("Writing NXmx NeXus file ...")
     # Find total number of images that have been written across the files.
     if len(datafiles) == 1:
@@ -211,6 +212,7 @@ def write_nexus_demo(
     )
 
 
+# def call_writers(*args,**kwargs):
 def call_writers(
     nxsfile: h5py.File,
     datafiles: List[Path],

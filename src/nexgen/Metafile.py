@@ -2,15 +2,34 @@
 """
 # TODO add docstrings
 
+import re
 import h5py
 
-from typing import Union, List
+from typing import Union, List, Tuple
 
-from functools import cached_property
+try:
+    # Only for Python version >= 3.8
+    from functools import cached_property
+except ImportError:
+    # Compatibility fr earlier Python versions
+    import functools
+
+    def cached_property(func):
+        @property
+        @functools.wraps(func)
+        def wrapper_decorator(*args, **kwargs):
+            return func(*args, **kwargs)
+
+        return wrapper_decorator
+
+
+tristan_pattern = re.compile(r"ts_qty_module\d{2}")
 
 
 class Metafile:
-    """"""
+    """
+    TODO Add docstring here
+    """
 
     def __init__(self, handle: h5py.File):
         self._handle = handle
@@ -44,13 +63,12 @@ class Metafile:
 
 
 class DectrisMetafile(Metafile):
-    """"""
+    """
+    TODO Add docstring here
+    """
 
     def __init__(self, handle: h5py.File):
         super().__init__(handle)
-
-    def __str__(self):
-        return f"{self._handle}"
 
     @cached_property
     def hasDectrisGroup(self) -> bool:
@@ -77,13 +95,13 @@ class DectrisMetafile(Metafile):
             return None
         return bc
 
-    def get_wavelength(self):
+    def get_wavelength(self) -> float:
         _loc = [obj for obj in self.walk if "wavelength" in obj]
         if len(_loc) == 0:
             return None
         return self.__getitem__(_loc[0])[0]
 
-    def get_sensor_information(self):
+    def get_sensor_information(self) -> Tuple[bytes, float]:
         _loc_material = [obj for obj in self.walk if "sensor_material" in obj]
         _loc_thickness = [obj for obj in self.walk if "sensor_thickness" in obj]
         return (
@@ -91,7 +109,7 @@ class DectrisMetafile(Metafile):
             self.__getitem__(_loc_thickness[0])[0],
         )
 
-    def find_mask(self):
+    def find_mask(self) -> Tuple[str, str]:
         if self.hasMask:
             mask_path = [obj for obj in self.walk if obj.lower() == "mask"]
             mask_applied_path = [obj for obj in self.walk if "mask_applied" in obj]
@@ -100,7 +118,7 @@ class DectrisMetafile(Metafile):
             return (mask_path[0], mask_applied_path[0])
         return (None, None)
 
-    def find_flatfield(self):
+    def find_flatfield(self) -> Tuple[str, str]:
         if self.hasFlatfield:
             flatfield_path = [obj for obj in self.walk if obj.lower() == "flatfield"]
             flatfield_applied_path = [
@@ -111,31 +129,31 @@ class DectrisMetafile(Metafile):
             return (flatfield_path[0], flatfield_applied_path[0])
         return (None, None)
 
-    def find_software_version(self):
+    def find_software_version(self) -> str:
         _loc = [obj for obj in self.walk if "software_version" in obj]
         if len(_loc) == 0:
             return None
         return _loc[0]
 
-    def find_threshold_energy(self):
+    def find_threshold_energy(self) -> str:
         _loc = [obj for obj in self.walk if "threshold_energy" in obj]
         if len(_loc) == 0:
             return None
         return _loc[0]
 
-    def find_bit_depth_readout(self):
+    def find_bit_depth_readout(self) -> str:
         _loc = [obj for obj in self.walk if "bit_depth_readout" in obj]
         if len(_loc) == 0:
             return None
         return _loc[0]
 
-    def find_detector_number(self):
+    def find_detector_number(self) -> str:
         _loc = [obj for obj in self.walk if "detector_number" in obj]
         if len(_loc) == 0:
             return None
         return _loc[0]
 
-    def find_detector_readout_time(self):
+    def find_detector_readout_time(self) -> str:
         _loc = [obj for obj in self.walk if "detector_readout_time" in obj]
         if len(_loc) == 0:
             return None
@@ -143,9 +161,33 @@ class DectrisMetafile(Metafile):
 
 
 class TristanMetafile(Metafile):
-    @staticmethod
-    def understand(filename: h5py.File):
-        pass
+    """
+    TODO Add docstring here
+    """
 
-    def __init__():
-        pass
+    @staticmethod
+    def isTristan(filename):
+        with h5py.File(filename, "r") as fh:
+            res = [k for k in fh.keys() if tristan_pattern.fullmatch(k)]
+        if len(res) > 0:
+            return True
+        return False
+
+    def __init__(self, handle: h5py.File):
+        super.__init__(handle)
+
+    def find_number_of_modules(self) -> int:
+        n_modules = [k for k in self._handle.keys() if tristan_pattern.fullmatch(k)]
+        return len(n_modules)
+
+    def find_software_version(self) -> str:
+        _loc = [obj for obj in self.walk if "software_version" in obj]
+        if len(_loc) == 0:
+            return None
+        return _loc[0]
+
+    def find_meta_version(self) -> str:
+        _loc = [obj for obj in self.walk if "meta_version" in obj]
+        if len(_loc) == 0:
+            return None
+        return _loc[0]

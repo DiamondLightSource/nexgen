@@ -4,7 +4,8 @@ Generate a NeXus file using the information from the _meta.h5 file to override t
 
 import sys
 
-# import h5py
+import glob
+import h5py
 import logging
 import argparse
 import freephil
@@ -17,7 +18,6 @@ from . import (
 )
 
 from .. import (
-    # get_filename_template,
     get_nexus_filename,
     # get_iso_timestamp,
 )
@@ -33,13 +33,13 @@ formatter = logging.Formatter("%(levelname)s %(message)s")
 master_phil = freephil.parse(
     """
     input {
+      meta_file = None
+        .type = path
+        .help = "Path to _meta.h5 file."
       datafile = None
         .multiple = True
         .type = path
         .help = "HDF5 file. For now, assumes pattern filename_%0{6}d.h5"
-      meta_file = None
-        .type = path
-        .help = "Path to _meta.h5 file."
       coordinate_frame = *mcstas imgcif
         .type = choice
         .help = "Which coordinate system is being used to provide input vectors."
@@ -101,7 +101,16 @@ def write_NXmx_from_meta(args):
     master_file = get_nexus_filename(meta_file)
     print(master_file)
 
-    # TODO Data files to be added ...
+    # If no datafile has been passed, look for them in the directory
+    if params.input.datafile:
+        datafiles = [Path(d).expanduser().resolve() for d in params.input.datafile]
+    else:
+        datafile_pattern = (
+            meta_file.parent / f"{master_file.stem}_{6*'[0-9]'}.h5"
+        ).as_posix()
+        datafiles = [
+            Path(d).expanduser().resolve() for d in sorted(glob.glob(datafile_pattern))
+        ]
 
     # Start logger
     logfile = meta_file.parent / "generate_nexus_from_meta.log"
@@ -111,6 +120,42 @@ def write_NXmx_from_meta(args):
     FH.setFormatter(formatter)
     # Add handlers to logger
     logger.addHandler(FH)
+
+    # Add some information to logger
+    logger.info("Create a NeXus file for %s" % datafiles[0])
+    logger.info(
+        "Number of experiment data files in directory, linked to the Nexus file: %d"
+        % len(datafiles)
+    )
+    logger.info("Meta file for the collection: %s" % meta_file)
+    logger.info("NeXus file will be saved as %s" % master_file)
+
+    # Load technical info from phil parser
+    # cf = params.input.coordinate_frame
+    # goniometer = params.goniometer
+    # detector = params.detector
+    # module = params.detector_module
+    # source = params.source
+    # beam = params.beam
+    # attenuator = params.attenuator
+    # timestamps = (
+    #     get_iso_timestamp(params.start_time),
+    #     get_iso_timestamp(params.end_time),
+    # )
+
+    # Detector definition HAS TO be passed.
+    # That's the discriminant to decide what to look for in the meta file.
+
+    try:
+        with h5py.File(master_file, "x") as nxsfile:
+            print(nxsfile)
+            # TODO call writer here
+            logger.info(f"{master_file} correctly written.")
+    except Exception as err:
+        logger.info(
+            f"An error occurred and {master_file} couldn't be written correctly."
+        )
+        logger.exception(err)
 
 
 # Main
