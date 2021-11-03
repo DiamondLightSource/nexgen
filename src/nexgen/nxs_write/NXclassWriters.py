@@ -391,11 +391,15 @@ def write_NXdetector(
         # Check for mask and flatfield files
         # Flatfield
         if detector["flatfield"]:
-            nxdetector.create_dataset("flatfield_applied", data=False)
+            nxdetector.create_dataset(
+                "flatfield_applied", data=detector["flatfield_applied"]
+            )
             nxdetector.create_dataset("flatfield", data=detector["flatfield"])
         # Bad pixel mask
         if detector["pixel_mask"]:
-            nxdetector.create_dataset("pixel_mask_applied", data=False)
+            nxdetector.create_dataset(
+                "pixel_mask_applied", data=detector["pixel_mask_applied"]
+            )
             nxdetector.create_dataset("pixel_mask", data=detector["pixel_mask"])
     except (TypeError, ValueError):
         pass
