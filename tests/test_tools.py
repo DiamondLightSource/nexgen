@@ -15,7 +15,7 @@ def test_cif2nxs():
 def test_units_of_length():
     assert nexgen.units_of_length("1.5m") == ureg.Quantity(1.5, "m")
     # Check that a diensionless unit defaults to mm
-    assert nexgen.units_of_length(100) == ureg.Quantity(100, "mm")
+    assert nexgen.units_of_length(100) == ureg.Quantity(100, "m")
     # Check conversion to base units
     assert nexgen.units_of_length("5cm", True) == ureg.Quantity(0.05, "m")
     assert nexgen.units_of_length("1in", True) == ureg.Quantity(0.0254, "m")

@@ -96,22 +96,6 @@ def generate_event_data(
     print(f"Stream of {n_events} written.")
 
 
-def find_number_of_images(datafile_list: List[Path]):
-    """
-    Calculate total number of images when there's more than one input HDF5 file.
-
-    Args:
-        datafiles:  List of paths to the input image files.
-    Returns:
-        num_images: Total number of images.
-    """
-    num_images = 0
-    for filename in datafile_list:
-        with h5py.File(filename, "r") as f:
-            num_images += f["data"].shape[0]
-    return num_images
-
-
 def vds_writer(nxsfile: h5py.File, datafiles: List[Path], vds_writer: str):
     """
     Write a Virtual Dataset file for image data.

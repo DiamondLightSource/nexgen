@@ -10,9 +10,9 @@ import numpy as np
 from pathlib import Path
 from typing import List, Tuple, Union
 
-from . import find_scan_axis, calculate_scan_range
+from . import find_scan_axis, calculate_scan_range, find_number_of_images
 
-from .data_tools import data_writer, find_number_of_images
+from .data_tools import data_writer
 
 from .NXclassWriters import (
     write_NXdata,
@@ -22,6 +22,8 @@ from .NXclassWriters import (
     write_NXdetector,
     write_NXdetector_module,
 )
+
+from ..tools.MetaReader import overwrite_beam, overwrite_detector
 
 writer_logger = logging.getLogger("NeXusGenerator.writer")
 
@@ -35,9 +37,10 @@ def write_NXmx_nexus(
     source,
     beam,
     attenuator,
-    timestamps: tuple,
+    timestamps: Tuple,
     coordinate_frame: str = "mcstas",
     vds: str = None,
+    meta: Tuple[Path, List] = (None, None),
 ):
     """
     Write a new NeXus file.
@@ -48,16 +51,24 @@ def write_NXmx_nexus(
     Args:
         nxsfile:            NeXus file to be written.
         datafiles:          List of at least 1 Path object to a HDF5 data file.
-        goniometer:         Scope extract
-        detector:           Scope extract
-        module:             Scope extract
-        source:             Scope extract
-        beam:               Scope extract
-        attenuator:         Scope extract
+        goniometer:         Scope extract defining the goniometer geometry.
+        detector:           Scope extract defining the detector and its axes.
+        module:             Scope extract defining geometry and description of module.
+        source:             Scope extract describing the facility.
+        beam:               Scope extract defining properties of beam.
+        attenuator:         Scope extract defining transmission.
         timestamps:         (start, end) tuple containing timestamps for start and end time.
         coordinate_frame:   String indicating which coordinate system is being used.
         vds:                If passed, a Virtual Dataset will also be written.
+        meta:               If passed, it looks through the information contained in the _meta.h5 file and adds it to the detector_scope
     """
+    # If _meta.h5 file is passed, look through it for relevant information
+    if meta[0]:
+        writer_logger.info("Looking through _meta.h5 file for metadata.")
+        # overwrite detector, overwrite beam, get list of links for nxdetector and nxcollection
+        with h5py.File(meta[0], "r") as mf:
+            overwrite_beam(mf, detector.description, beam)
+            link_list = overwrite_detector(mf, detector, meta[1])
     writer_logger.info("Writing NXmx NeXus file ...")
     # Find total number of images that have been written across the files.
     if len(datafiles) == 1:
@@ -114,6 +125,8 @@ def write_NXmx_nexus(
         beam,
         attenuator,
         vds,
+        meta[0],
+        link_list,
     )
 
     # NX_DATE_TIME: /entry/start_time and /entry/end_time
@@ -148,12 +161,12 @@ def write_nexus_demo(
         datafiles:          List of at least 1 Path object to a HDF5 data file.
         data_type:          Tuple (str, int) indicating whether the mode is images or events (and eventually how many).
         coordinate_frame:   String indicating which coordinate system is being used.
-        goniometer:         Scope extract
-        detector:           Scope extract
-        module:             Scope extract
-        source:             Scope extract
-        beam:               Scope extract
-        attenuator:         Scope extract
+        goniometer:         Scope extract defining the goniometer geometry.
+        detector:           Scope extract defining the detector and its axes.
+        module:             Scope extract defining defining geometry and description of module.
+        source:             Scope extract describing the facility.
+        beam:               Scope extract defining properties of beam.
+        attenuator:         Scope extract defining transmission.
         vds:                If passed, a Virtual Dataset will also be written.
     """
     writer_logger.info("Writing demo ...")
@@ -206,6 +219,7 @@ def write_nexus_demo(
     )
 
 
+# def call_writers(*args,**kwargs):
 def call_writers(
     nxsfile: h5py.File,
     datafiles: List[Path],
@@ -220,6 +234,8 @@ def call_writers(
     beam,
     attenuator,
     vds: str,
+    metafile: Path = None,
+    link_list: List = None,
 ):
     """ Call the writers for the NeXus base classes."""
     logger = logging.getLogger("NeXusGenerator.writer.call")
@@ -246,7 +262,9 @@ def call_writers(
     )
 
     # NXdetector: entry/instrument/detector
-    write_NXdetector(nxsfile, detector.__dict__, coordinate_frame, data_type)
+    write_NXdetector(
+        nxsfile, detector.__dict__, coordinate_frame, data_type, metafile, link_list
+    )
 
     # NXmodule: entry/instrument/detector/module
     write_NXdetector_module(

@@ -6,6 +6,7 @@ import math
 import h5py
 import numpy as np
 
+from pathlib import Path
 from h5py import AttributeManager
 from typing import List, Tuple, Union
 
@@ -65,7 +66,7 @@ def find_scan_axis(axes_names: List, axes_starts: List, axes_ends: List) -> str:
     Returns:
         scan_axis:      String identifying the scan axis.
     """
-    # TODO handle multiple rotation (is that even doable?)
+    # TODO Handle multiple scan axes (2D scan).
     # Randomly assign to phi if stills
     assert len(axes_names) > 0, "Please pass at least one axis."
     if len(axes_names) == 1:
@@ -145,3 +146,19 @@ def calculate_origin(
     else:
         offset_val = math.hypot(*det_origin[:-1])
     return det_origin, offset_val
+
+
+def find_number_of_images(datafile_list: List[Path]):
+    """
+    Calculate total number of images when there's more than one input HDF5 file.
+
+    Args:
+        datafiles:  List of paths to the input image files.
+    Returns:
+        num_images: Total number of images.
+    """
+    num_images = 0
+    for filename in datafile_list:
+        with h5py.File(filename, "r") as f:
+            num_images += f["data"].shape[0]
+    return num_images
