@@ -19,7 +19,13 @@ overwrite_logger = logging.getLogger("NeXusGenerator.writer.from_meta")
 
 def overwrite_beam(meta_file: h5py.File, name: str, beam):
     """
-    TODO Add docstring here
+    Looks for the wavelength value in the _meta.h5 file.
+    If found, it overwrites the value that was parsed from the command line.
+
+    Args:
+        meta_file:  _meta.h5 file.
+        name:       Detector description.
+        beam:       Scope extract defining the beam.
     """
     if "eiger" in name.lower():
         meta = DectrisMetafile(meta_file)
@@ -40,7 +46,13 @@ def overwrite_beam(meta_file: h5py.File, name: str, beam):
 
 def overwrite_detector(meta_file: h5py.File, detector) -> List:
     """
-    TODO Add docstring here
+    Looks through the _meta.h5 file for informtion relating to NXdetector.
+
+    Args:
+        meta_file:  _meta.h5 file.
+        detector:   Scope extract defining the detector.
+    Returns:
+        link_list:  A list of elements to be linked instead of copied in the NeXus file.
     """
     new_values = {}
     link_list = [[], []]
@@ -118,4 +130,5 @@ def overwrite_detector(meta_file: h5py.File, detector) -> List:
     return link_list
 
 
+# TODO select what to overwrite.
 # TODO add provision in case something actually is None

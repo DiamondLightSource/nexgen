@@ -26,10 +26,6 @@ tristan_pattern = re.compile(r"ts_qty_module\d{2}")
 
 
 class Metafile:
-    """
-    TODO Add docstring here
-    """
-
     def __init__(self, handle: h5py.File):
         self._handle = handle
 
@@ -63,7 +59,7 @@ class Metafile:
 
 class DectrisMetafile(Metafile):
     """
-    TODO Add docstring here
+    Describes a _meta.h5 file for a Dectris detector.
     """
 
     def __init__(self, handle: h5py.File):
@@ -161,7 +157,7 @@ class DectrisMetafile(Metafile):
 
 class TristanMetafile(Metafile):
     """
-    TODO Add docstring here
+    Describes a _meta.h5 file for a Tristan detector.
     """
 
     @staticmethod
