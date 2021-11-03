@@ -1,18 +1,15 @@
 """
 Tools to get the information stored inside the _meta.h5 file and overwrite the phil scope.
 """
-# TODO add more logging
 
 import h5py
 import logging
 
 from typing import List
 
-from nexgen.tools.Metafile import DectrisMetafile, TristanMetafile
-
 from .. import units_of_length
 
-# from Metafile import DectrisMetafile, TristanMetafile
+from .Metafile import DectrisMetafile, TristanMetafile
 
 overwrite_logger = logging.getLogger("NeXusGenerator.writer.from_meta")
 
