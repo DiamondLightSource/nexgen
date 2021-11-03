@@ -620,7 +620,7 @@ def write_NXcollection(
         grp.create_dataset("nimages", data=data_type[1])
     if meta:
         for l in link_list:
-            grp[l] = h5py.ExternalLink(meta.name, detector["l"])
+            grp[l] = h5py.ExternalLink(meta.name, detector[l])
     else:
         if "software_version" in detector:
             grp.create_dataset(
