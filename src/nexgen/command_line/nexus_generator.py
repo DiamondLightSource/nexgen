@@ -575,6 +575,10 @@ def write_with_meta_cli(args):
 
     logger.info("")
 
+    if detector.description is None:
+        logger.warning("No detector description provided, exit.")
+        sys.exit("Please provide a detector description for identification.")
+
     logger.info(
         f"Detector information:\n {detector.description}, {detector.detector_type}"
     )
@@ -622,9 +626,6 @@ def write_with_meta_cli(args):
     if module.module_offset == "0":
         logger.warning(f"module_offset field will not be written.")
     logger.info("")
-
-    # NB. Detector definition HAS TO be passed.
-    # That's the discriminant to decide what to look for in the meta file.
 
     logger.info("Start writing NeXus file ...")
     try:

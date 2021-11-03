@@ -1,6 +1,5 @@
 """
 """
-# TODO add docstrings
 
 import re
 import h5py

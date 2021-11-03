@@ -14,7 +14,7 @@ from .. import units_of_length
 
 # from Metafile import DectrisMetafile, TristanMetafile
 
-overwrite_logger = logging.getLogger("NeXusGenerator.writer.overwrite")
+overwrite_logger = logging.getLogger("NeXusGenerator.writer.from_meta")
 
 
 def overwrite_beam(meta_file: h5py.File, name: str, beam):
@@ -49,15 +49,23 @@ def overwrite_detector(meta_file: h5py.File, detector) -> List:
         new_values["n_modules"] = meta.find_number_of_modules()
         new_values["meta_version"] = meta.find_meta_version()
         link_list[1].append("meta_version")
+        overwrite_logger.info("Looking through meta file for Tristan detector.")
+        overwrite_logger.info("Number of modules: %d" % new_values["n_modules"])
+        overwrite_logger.info(
+            "Found meta_version located at: %s " % new_values["meta_version"]
+        )
     elif "eiger" in detector.description.lower():
         meta = DectrisMetafile(meta_file)
+        overwrite_logger.info("Looking through meta file for Eiger detector.")
         if meta.hasMask is True:
+            overwrite_logger.info("Mask has been located in meta file")
             mask_info = meta.find_mask()
             new_values["pixel_mask"] = mask_info[0]
             new_values["pixel_mask_applied"] = mask_info[1]
             link_list.append("pixel_mask")
             link_list[0].append("pixel_mask_applied")
         if meta.hasFlatfield is True:
+            overwrite_logger.info("Flatfield has been located in meta file")
             flatfield_info = meta.find_flatfield()
             new_values["flatfield"] = flatfield_info[0]
             new_values["flatfield_applied"] = flatfield_info[1]
@@ -68,18 +76,36 @@ def overwrite_detector(meta_file: h5py.File, detector) -> List:
             new_values["threshold_energy"] = meta.find_threshold_energy()
             new_values["bit_depth_readout"] = meta.find_bit_depth_readout()
             new_values["detector_readout_time"] = meta.find_detector_readout_time()
+            link_list[0].append("threshold_energy")
+            link_list[0].append("bit_depth_readout")
+            link_list[0].append("detector_readout_time")
+            link_list[1].append("software_version")
             pix = meta.get_pixel_size()
             new_values["pixel_size"] = [
                 units_of_length(pix[0]),
                 units_of_length(pix[1]),
             ]
+            overwrite_logger.warning("Pixel_size will be overwritten.")
+            overwrite_logger.info(
+                f"Values for x and y pixel size found in meta file: {pix[0]}, {pix[1]}"
+            )
             new_values["beam_center"] = meta.get_beam_center()
+            overwrite_logger.warning("Beam_center will be overwritten.")
+            overwrite_logger.info(
+                f"Values for x and y beam center position found in meta file: %s"
+                % new_values["beam_center"]
+            )
             sensor_info = meta.get_sensor_information()
             new_values["sensor_material"] = sensor_info[0]
+            overwrite_logger.warning("Sensor material will be overwritten.")
+            overwrite_logger.info(
+                f"Value for sensor material found in meta file: {sensor_info[0]}"
+            )
             new_values["sensor_thickness"] = units_of_length(sensor_info[1])
-            link_list[0].append("threshold_energy")
-            link_list[0].append("bit_depth_readout")
-            link_list[1].append("software_version")
+            overwrite_logger.warning("Sensor thickness will be overwritten.")
+            overwrite_logger.info(
+                f"Value for sensor thickness found in meta file: {sensor_info[1]}"
+            )
     else:
         overwrite_logger.warning("Unknown detector, exit.")
         raise ValueError("Please pass a valid detector description.")
@@ -90,3 +116,6 @@ def overwrite_detector(meta_file: h5py.File, detector) -> List:
         except KeyError:
             detector.__inject__(k, v)
     return link_list
+
+
+# TODO add provision in case something actually is None
