@@ -44,13 +44,14 @@ def overwrite_beam(meta_file: h5py.File, name: str, beam):
         beam.__inject__("wavelength", wl)
 
 
-def overwrite_detector(meta_file: h5py.File, detector) -> List:
+def overwrite_detector(meta_file: h5py.File, detector, ignore: List = None) -> List:
     """
     Looks through the _meta.h5 file for informtion relating to NXdetector.
 
     Args:
         meta_file:  _meta.h5 file.
         detector:   Scope extract defining the detector.
+        ignore:     List of datasets that should not be overwritten by the meta file.
     Returns:
         link_list:  A list of elements to be linked instead of copied in the NeXus file.
     """
@@ -122,6 +123,14 @@ def overwrite_detector(meta_file: h5py.File, detector) -> List:
         overwrite_logger.warning("Unknown detector, exit.")
         raise ValueError("Please pass a valid detector description.")
 
+    if ignore:
+        overwrite_logger.warning(
+            f"The following datasets are not going to be overwritten: {ignore}"
+        )
+        for i in ignore:
+            if i in new_values:
+                del new_values[i]
+
     for k, v in new_values.items():
         try:
             detector.__dict__[k] = v
@@ -130,5 +139,4 @@ def overwrite_detector(meta_file: h5py.File, detector) -> List:
     return link_list
 
 
-# TODO select what to overwrite.
 # TODO add provision in case something actually is None

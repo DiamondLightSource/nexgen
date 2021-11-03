@@ -37,10 +37,10 @@ def write_NXmx_nexus(
     source,
     beam,
     attenuator,
-    timestamps: tuple,
+    timestamps: Tuple,
     coordinate_frame: str = "mcstas",
     vds: str = None,
-    meta: Path = None,
+    meta: Tuple[Path, List] = (None, None),
 ):
     """
     Write a new NeXus file.
@@ -63,12 +63,12 @@ def write_NXmx_nexus(
         meta:               If passed, it looks through the information contained in the _meta.h5 file and adds it to the detector_scope
     """
     # If _meta.h5 file is passed, look through it for relevant information
-    if meta:
+    if meta[0]:
         writer_logger.info("Looking through _meta.h5 file for metadata.")
         # overwrite detector, overwrite beam, get list of links for nxdetector and nxcollection
-        with h5py.File(meta, "r") as mf:
+        with h5py.File(meta[0], "r") as mf:
             overwrite_beam(mf, detector.description, beam)
-            link_list = overwrite_detector(mf, detector)
+            link_list = overwrite_detector(mf, detector, meta[1])
     writer_logger.info("Writing NXmx NeXus file ...")
     # Find total number of images that have been written across the files.
     if len(datafiles) == 1:
@@ -125,7 +125,7 @@ def write_NXmx_nexus(
         beam,
         attenuator,
         vds,
-        meta,
+        meta[0],
         link_list,
     )
 
@@ -234,7 +234,7 @@ def call_writers(
     beam,
     attenuator,
     vds: str,
-    meta: Path = None,
+    metafile: Path = None,
     link_list: List = None,
 ):
     """ Call the writers for the NeXus base classes."""
@@ -263,7 +263,7 @@ def call_writers(
 
     # NXdetector: entry/instrument/detector
     write_NXdetector(
-        nxsfile, detector.__dict__, coordinate_frame, data_type, meta, link_list
+        nxsfile, detector.__dict__, coordinate_frame, data_type, metafile, link_list
     )
 
     # NXmodule: entry/instrument/detector/module

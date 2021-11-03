@@ -627,6 +627,11 @@ def write_with_meta_cli(args):
         logger.warning(f"module_offset field will not be written.")
     logger.info("")
 
+    if args.no_ow:
+        logger.warning(f"The following datasets will not be overwritten: {args.no_ow}")
+        metainfo = (metafile, args.no_ow)
+    else:
+        metainfo = (metafile, None)
     logger.info("Start writing NeXus file ...")
     try:
         with h5py.File(master_file, "x") as nxsfile:
@@ -642,7 +647,7 @@ def write_with_meta_cli(args):
                 timestamps,
                 cf,
                 params.input.vds_writer,
-                metafile,
+                metainfo,
             )
             logger.info(f"{master_file} correctly written.")
     except Exception as err:
@@ -682,6 +687,13 @@ parser_NXmx_meta = subparsers.add_parser(
         "Trigger NeXus file writing pointing to an existing collection with a meta file."
     ),
     parents=[nexus_parser],
+)
+parser_NXmx_meta.add_argument(
+    "-no",
+    "--no_ow",
+    nargs="+",
+    help="List of datasets that should not be overwritten even if present in meta file",
+    type=str,
 )
 parser_NXmx_meta.set_defaults(func=write_with_meta_cli)
 
