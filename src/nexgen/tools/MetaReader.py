@@ -52,13 +52,13 @@ def overwrite_detector(meta_file: h5py.File, detector) -> List:
     elif "eiger" in detector.description.lower():
         meta = DectrisMetafile(meta_file)
         if meta.hasMask is True:
-            mask_info = meta.get_mask()
+            mask_info = meta.find_mask()
             new_values["pixel_mask"] = mask_info[0]
             new_values["pixel_mask_applied"] = mask_info[1]
             link_list.append("pixel_mask")
             link_list[0].append("pixel_mask_applied")
         if meta.hasFlatfield is True:
-            flatfield_info = meta.get_flatfield()
+            flatfield_info = meta.find_flatfield()
             new_values["flatfield"] = flatfield_info[0]
             new_values["flatfield_applied"] = flatfield_info[1]
             link_list[0].append("flatfield")
