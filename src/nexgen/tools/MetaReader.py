@@ -89,9 +89,11 @@ def overwrite_detector(meta_file: h5py.File, detector, ignore: List = None) -> L
             new_values["threshold_energy"] = meta.find_threshold_energy()
             new_values["bit_depth_readout"] = meta.find_bit_depth_readout()
             new_values["detector_readout_time"] = meta.find_detector_readout_time()
+            new_values["serial_number"] = meta.find_detector_number()
             link_list[0].append("threshold_energy")
             link_list[0].append("bit_depth_readout")
             link_list[0].append("detector_readout_time")
+            link_list[0].append("serial_number")
             link_list[1].append("software_version")
             pix = meta.get_pixel_size()
             new_values["pixel_size"] = [
