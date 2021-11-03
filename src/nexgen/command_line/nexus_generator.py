@@ -103,8 +103,29 @@ meta_phil = freephil.parse(
       metafile = None
         .type = path
         .help = "Path to _meta.h5 file for collection."
+      datafile = None
+        .multiple = True
+        .type = path
+        .help = "HDF5 file. For now, assumes pattern filename_%0{6}d.h5"
+      coordinate_frame = *mcstas imgcif
+        .type = choice
+        .help = "Which coordinate system is being used to provide input vectors."
+      vds_writer = *None dataset file
+        .type = choice
+        .help = "If not None, write vds along with external link to data in NeXus file, or create _vds.h5 file."
     }
-    include scope nexus_generator.master_phil
+
+    include scope nexgen.command_line.nxs_phil.goniometer_scope
+
+    include scope nexgen.command_line.nxs_phil.beamline_scope
+
+    include scope nexgen.command_line.nxs_phil.detector_scope
+
+    include scope nexgen.command_line.nxs_phil.module_scope
+
+    include scope nexgen.command_line.nxs_phil.timestamp_scope
+
+    # include scope nexgen.command_line.nexus_generator.master_phil
     """,
     process_includes=True,
 )
