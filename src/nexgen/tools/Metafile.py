@@ -73,6 +73,17 @@ class DectrisMetafile(Metafile):
                 return True
         return False
 
+    def get_detector_size(self) -> Tuple:
+        # NB. reurns (fast, slow) but data_size in nxs file shoud be recorded (slow, fast)
+        # => det_size[::-1]
+        _loc = [obj for obj in self.walk if "pixels_in_detector" in obj]
+        det_size = []
+        for i in _loc:
+            det_size.append(self.__getitem__(i)[0])
+        if len(det_size) == 0:
+            return None
+        return tuple(det_size)
+
     def get_pixel_size(self) -> List:
         _loc = [obj for obj in self.walk if "pixel_size" in obj]
         pix = []
