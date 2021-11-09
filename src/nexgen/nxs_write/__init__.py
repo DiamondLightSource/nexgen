@@ -66,8 +66,10 @@ def find_scan_axis(axes_names: List, axes_starts: List, axes_ends: List) -> str:
     Returns:
         scan_axis:      String identifying the scan axis.
     """
-    # TODO Handle multiple scan axes (2D scan).
-    # Randomly assign to phi if stills
+    # TODO assign to a passed axis value instead of arbitrarily phi.
+    # (although in that case why even call the function)
+    # TODO only for rotation axes.
+    # (if just one rotation axis, assign to that one even if still)
     assert len(axes_names) > 0, "Please pass at least one axis."
     if len(axes_names) == 1:
         scan_axis = axes_names[0]

@@ -60,7 +60,8 @@ def write_NXmx_nexus(
         timestamps:         (start, end) tuple containing timestamps for start and end time.
         coordinate_frame:   String indicating which coordinate system is being used.
         vds:                If passed, a Virtual Dataset will also be written.
-        meta:               If passed, it looks through the information contained in the _meta.h5 file and adds it to the detector_scope
+        meta:               (path, list) tuple containing the path to the meta file and eventualy the fields to be skipped.
+                            If passed, it looks through the information contained in the _meta.h5 file and adds it to the detector_scope
     """
     # If _meta.h5 file is passed, look through it for relevant information
     if meta[0]:
