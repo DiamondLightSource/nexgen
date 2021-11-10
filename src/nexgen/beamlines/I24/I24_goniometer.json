@@ -1,0 +1,58 @@
+{
+    "axes": [
+        "omega", 
+        "sam_z", 
+        "sam_y", 
+        "sam_x"
+    ], 
+    "depends": [
+        ".", 
+        "omega", 
+        "sam_z", 
+        "sam_y"
+    ], 
+    "vectors": [
+        -1, 
+        0, 
+        0, 
+        0, 
+        0, 
+        1, 
+        0, 
+        1, 
+        0, 
+        1, 
+        0, 
+        0
+    ], 
+    "starts": [
+        0.0, 
+        0.0, 
+        0.0, 
+        0.0
+    ], 
+    "ends": [
+        0.0, 
+        0.0, 
+        0.0, 
+        0.0
+    ], 
+    "increments": [
+        0.0, 
+        0.0, 
+        0.0, 
+        0.0
+    ], 
+    "types": [
+        "rotation", 
+        "translation", 
+        "translation", 
+        "translation"
+    ], 
+    "units": [
+        "deg", 
+        "mm", 
+        "mm", 
+        "mm"
+    ]
+}
