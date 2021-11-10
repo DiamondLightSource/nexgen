@@ -8,7 +8,7 @@ import logging
 import numpy as np
 
 from pathlib import Path
-from typing import List, Tuple, Union
+from typing import Dict, List, Tuple, Union
 
 from . import find_scan_axis, calculate_scan_range, find_number_of_images
 
@@ -119,12 +119,12 @@ def write_NXmx_nexus(
         osc_axis,
         scan_range,
         data_type,
-        goniometer,
-        detector,
-        module,
-        source,
-        beam,
-        attenuator,
+        goniometer.__dict__,
+        detector.__dict__,
+        module.__dict__,
+        source.__dict__,
+        beam.__dict__,
+        attenuator.__dict__,
         vds,
         meta[0],
         link_list,
@@ -210,12 +210,12 @@ def write_nexus_demo(
         osc_axis,
         scan_range,
         data_type,
-        goniometer,
-        detector,
-        module,
-        source,
-        beam,
-        attenuator,
+        goniometer.__dict__,
+        detector.__dict__,
+        module.__dict__,
+        source.__dict__,
+        beam.__dict__,
+        attenuator.__dict__,
         vds,
     )
 
@@ -228,12 +228,12 @@ def call_writers(
     scan_axis: str,
     scan_range: Union[Tuple, np.ndarray],
     data_type: Tuple[str, int],
-    goniometer,
-    detector,
-    module,
-    source,
-    beam,
-    attenuator,
+    goniometer: Dict,
+    detector: Dict,
+    module: Dict,
+    source: Dict,
+    beam: Dict,
+    attenuator: Dict,
     vds: str,
     metafile: Path = None,
     link_list: List = None,
@@ -246,7 +246,7 @@ def call_writers(
     write_NXdata(
         nxsfile,
         datafiles,
-        goniometer.__dict__,
+        goniometer,
         data_type[0],
         coordinate_frame,
         scan_range,
@@ -257,33 +257,38 @@ def call_writers(
     # NXinstrument: entry/instrument
     write_NXinstrument(
         nxsfile,
-        beam.__dict__,
-        attenuator.__dict__,
+        beam,
+        attenuator,
         source.beamline_name,
     )
 
     # NXdetector: entry/instrument/detector
     write_NXdetector(
-        nxsfile, detector.__dict__, coordinate_frame, data_type, metafile, link_list
+        nxsfile,
+        detector,
+        coordinate_frame,
+        data_type,
+        metafile,
+        link_list,
     )
 
     # NXmodule: entry/instrument/detector/module
     write_NXdetector_module(
         nxsfile,
-        module.__dict__,
+        module,
         coordinate_frame,
         detector.image_size,
         detector.pixel_size,
-        beam_center=detector.beam_center,
+        beam_center=detector["beam_center"],
     )
 
     # NXsource: entry/source
-    write_NXsource(nxsfile, source.__dict__)
+    write_NXsource(nxsfile, source)
 
     # NXsample: entry/sample
     write_NXsample(
         nxsfile,
-        goniometer.__dict__,
+        goniometer,
         coordinate_frame,
         data_type[0],
         scan_axis,
