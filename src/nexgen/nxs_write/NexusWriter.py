@@ -78,6 +78,7 @@ def write_NXmx_nexus(
     else:
         num_images = find_number_of_images(datafiles)
 
+    # TODO add events option here
     data_type = ("images", num_images)
     writer_logger.info(f"Total number of images: {num_images}")
 
