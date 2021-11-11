@@ -44,14 +44,14 @@ def write_NXdata(
     Write NXdata group at entry/data
 
     Args:
-        nxsfile:        NeXus file to be written
-        datafiles:      List of Path objects
-        goniometer:     Dictionary containing all the axes information
-        data_type:      Images or events
-        coord_frame:    Coordinate system the axes are currently in
-        scan_axis:      Rotation axis
-        scan_range:     If writing events, this is just a (start, end) tuple
-        write_vds:      If not None, writes a Virtual Dataset.
+        nxsfile (h5py.File):        NeXus file to be written
+        datafiles (List):           List of Path objects
+        goniometer (Dict):          Dictionary containing all the axes information
+        data_type (str):            Images or events
+        coord_frame (str):          Coordinate system the axes are currently in
+        scan_range (Tuple|array):   If writing events, this is just a (start, end) tuple
+        scan_axis (str):            Rotation axis
+        write_vds (str):            If not None, writes a Virtual Dataset.
     """
     NXclass_logger.info("Start writing NXdata.")
     # Check that a valid datafile_list has been passed.
@@ -129,18 +129,18 @@ def write_NXsample(
     coord_frame: str,
     data_type: str,
     scan_axis: str,
-    scan_range: np.ndarray = None,
+    scan_range: Union[Tuple, np.ndarray] = None,
 ):
     """
     Write NXsample group at entry/sample
 
     Args:
-        nxsfile:        NeXus file to be written
-        goniometer:     Dictionary containing all the axes information
-        coord_frame:    Coordinate system the axes are currently expressed in
-        data_type:      Images or events
-        scan_axis:      Rotation axis
-        scan_range:     List/tuple/array of scan axis values
+        nxsfile (h5py.File):        NeXus file to be written
+        goniometer (Dict):          Dictionary containing all the axes information
+        coord_frame (str):          Coordinate system the axes are currently expressed in
+        data_type (str):            Images or events
+        scan_axis (str):            Rotation axis
+        scan_range (Tuple|array):   List/tuple/array of scan axis values
     """
     NXclass_logger.info("Start writing NXsample and NXtransformations.")
     # Create NXsample group, unless it already exists, in which case just open it.
@@ -245,10 +245,10 @@ def write_NXinstrument(
     Write NXinstrument group at entry/instrument.
 
     Args:
-        nxsfile:    NeXus file to be written
-        beam:       Dictionary with beam wavelength and flux
-        attenuator: Dictionary containing transmission
-        beamline_n: String identisying the beamline number
+        nxsfile (h5py.File):    NeXus file to be written
+        beam (Dict):            Dictionary with beam wavelength and flux
+        attenuator (Dict):      Dictionary containing transmission
+        beamline_n (str):       String identisying the beamline number
     """
     NXclass_logger.info("Start writing NXinstrument.")
     # Create NXinstrument group, unless it already exists, in which case just open it.
@@ -294,8 +294,8 @@ def write_NXsource(nxsfile: h5py.File, source: Dict):
     Write NXsource group in entry/source.
 
     Args:
-        nxsfile:    NeXus file where to write the group
-        source:     Dictionary containing the facility information
+        nxsfile (h5py.File):    NeXus file where to write the group
+        source (Dict):          Dictionary containing the facility information
     """
     NXclass_logger.info("Start writing NXsource.")
     try:
@@ -326,12 +326,12 @@ def write_NXdetector(
     Write_NXdetector group at entry/instrument/detector.
 
     Args:
-        nxsfile:        Nexus file to be written.
-        detector:       Dictionary containing all detector information.
-        coord_frame:    Coordinate system the axes are currently expressed in.
-        data_type:      Tuple (str, int) identifying whether the files to be written contain images or events.
-        meta:           Path to _meta.h5 file, if exists.
-        link_list:      List of values from the meta file to be linked instead of copied.
+        nxsfile (h5py.File):    Nexus file to be written.
+        detector (Dict):        Dictionary containing all detector information.
+        coord_frame (str):      Coordinate system the axes are currently expressed in.
+        data_type (Tuple):      Tuple (str, int) identifying whether the files to be written contain images or events.
+        meta (Path):            Path to _meta.h5 file, if exists.
+        link_list (List):       List of values from the meta file to be linked instead of copied.
     """
     NXclass_logger.info("Start writing NXdetector.")
     # Create NXdetector group, unless it already exists, in which case just open it.
@@ -472,11 +472,12 @@ def write_NXdetector_module(
     Write NXdetector_module group at entry/instrument/detector/module.
 
     Args:
-        nxsfile:        Nexus file to be written
-        module:         Dictionary containing the detector module information
-        image_size:     Size of the detector
-        pixel_size:     Size of the single pixels in fast and slow direction, in mm
-        beam_center:    Only if origin needs to be calculated.
+        nxsfile (h5py.File):        Nexus file to be written
+        module (Dict):              Dictionary containing the detector module information
+        coord_frame (str):          Coordinate system the axes are currently expressed in.
+        image_size (List|Tuple):    Size of the detector
+        pixel_size (List|Tuple):    Size of the single pixels in fast and slow direction, in mm
+        beam_center (List|Tuple):   Only if origin needs to be calculated.
     """
     NXclass_logger.info("Start writing NXdetector_module.")
     # Create NXdetector_module group, unless it already exists, in which case just open it.
@@ -609,12 +610,11 @@ def write_NXcollection(
     Write a NXcollection group inside NXdetector as detectorSpecific.
 
     Args:
-        nxdetector:     HDF5 NXdetector group.
-        detector:       Dictionary containing all detector information
-        image_size:     Size of the detector.
-        data_type:      Tuple (str, int) identifying whether the files to be written contain images or events.
-        meta:           Path to _meta.h5 file, if exists.
-        link_list:      List of values from the meta file to be linked instead of copied.
+        nxdetector (h5py.Group):    HDF5 NXdetector group.
+        detector (Dict):            Dictionary containing all detector information
+        data_type (Tuple[str,int]): Tuple identifying whether the files to be written contain images or events.
+        meta (Path):                Path to _meta.h5 file, if exists.
+        link_list (List):           List of values from the meta file to be linked instead of copied.
     """
     # Create detectorSpecific group
     grp = nxdetector.create_group("detectorSpecific")
@@ -640,3 +640,32 @@ def write_NXcollection(
         grp.create_dataset(
             "timeslice_rollover_bits", data=detector["timeslice_rollover"]
         )
+
+
+# NXnote writer
+# To be used e.g. as a place to store pump-probe info such as pump delay/width
+def write_NXnote(nxsfile: h5py.File, loc: str, info: Dict):
+    """
+    Write any additional information as a NXnote class in a specified location in the NeXus file.
+
+    Args:
+        nxsfile (h5py.File):    Nexus file to be written.
+        loc (str):              Location inside the NeXus file to write NXnote group.
+        info (Dict):            Dictionary of datasets to be written to NXnote.
+    """
+    # Create the NXnote group in the specified location
+    try:
+        nxnote = nxsfile.create_group(loc)
+        create_attributes(
+            nxnote,
+            ("NX_class",),
+            ("NXnote",),
+        )
+    except ValueError:
+        nxnote = nxsfile[loc]
+
+    # Write datasets
+    for k, v in info.items():
+        if type(v) is str:
+            v = np.string_(v)
+        nxnote.create_dataset(k, data=v)

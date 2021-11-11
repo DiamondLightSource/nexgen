@@ -235,7 +235,7 @@ def call_writers(
     source: Dict,
     beam: Dict,
     attenuator: Dict,
-    vds: str,
+    vds: str = None,
     metafile: Path = None,
     link_list: List = None,
 ):
