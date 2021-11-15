@@ -25,7 +25,7 @@ detector_params = {
     "pixel_size": ["0.075mm", "0.075mm"],
     "flatfield": None,
     "pixel_mask": None,
-    "image_size": [3262, 3108],
+    "image_size": [3108, 3262],  # (fast, slow)
     "axes": ["det_z"],
     "depends": ["."],
     "vectors": [0, 0, 1],
