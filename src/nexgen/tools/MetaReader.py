@@ -60,7 +60,11 @@ def overwrite_detector(
     """
     new_values = {}
     link_list = [[], []]
-    if "tristan" in detector.description.lower():
+    if type(detector) is dict:
+        detector_name = detector["description"].lower()
+    else:
+        detector_name = detector.description.lower()
+    if "tristan" in detector_name:
         meta = TristanMetafile(meta_file)
         new_values["n_modules"] = meta.find_number_of_modules()
         new_values["meta_version"] = meta.find_meta_version()
@@ -70,7 +74,7 @@ def overwrite_detector(
         overwrite_logger.info(
             "Found meta_version located at: %s " % new_values["meta_version"]
         )
-    elif "eiger" in detector.description.lower():
+    elif "eiger" in detector_name:
         meta = DectrisMetafile(meta_file)
         overwrite_logger.info("Looking through meta file for Eiger detector.")
         if meta.hasMask is True:
@@ -78,7 +82,7 @@ def overwrite_detector(
             mask_info = meta.find_mask()
             new_values["pixel_mask"] = mask_info[0]
             new_values["pixel_mask_applied"] = mask_info[1]
-            link_list.append("pixel_mask")
+            link_list[0].append("pixel_mask")
             link_list[0].append("pixel_mask_applied")
         if meta.hasFlatfield is True:
             overwrite_logger.info("Flatfield has been located in meta file")
