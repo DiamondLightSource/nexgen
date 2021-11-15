@@ -18,8 +18,8 @@ from .. import (
     get_nexus_filename,
 )
 
-from ..nxs_write import create_attributes
 from ..nxs_write.NexusWriter import call_writers
+from ..nxs_write.NXclassWriters import write_NXentry
 
 from ..tools.MetaReader import overwrite_detector, overwrite_beam
 
@@ -88,12 +88,8 @@ def extruder(master_file: Path, metafile: Path, SSX: namedtuple, links: List = N
     try:
         with h5py.File(master_file, "x") as nxsfile:
             # TODO FIXME actually get this to call write_NXmx ... easier once all the functions are fixed
-            # Set default attribute
-            nxsfile.attrs["default"] = "entry"
 
-            # Start writing the NeXus tree with NXentry at the top level
-            nxentry = nxsfile.create_group("entry")
-            create_attributes(nxentry, ("NX_class", "default"), ("NXentry", "data"))
+            nxentry = write_NXentry(nxsfile)
 
             if timestamps[0]:
                 nxentry.create_dataset("start_time", data=timestamps[0])

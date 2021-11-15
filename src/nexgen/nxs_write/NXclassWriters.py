@@ -29,6 +29,20 @@ from .data_tools import vds_writer
 
 NXclass_logger = logging.getLogger("NeXusGenerator.write.NXclass")
 
+# NXentry writer
+def write_NXentry(nxsfile: h5py.File) -> h5py.Group:
+    # Set default attribute
+    nxsfile.attrs["default"] = "entry"
+
+    # Start writing the NeXus tree with NXentry at the top level
+    nxentry = nxsfile.create_group("entry")
+    create_attributes(nxentry, ("NX_class", "default"), ("NXentry", "data"))
+
+    # Application definition: /entry/definition
+    nxentry.create_dataset("definition", data=np.string_("NXmx"))
+    return nxentry
+
+
 # NXdata writer
 def write_NXdata(
     nxsfile: h5py.File,
