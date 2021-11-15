@@ -552,7 +552,7 @@ def write_NXdetector_module(
     )
 
     # If module_offset is set to 1 or 2, calculate accordinlgy and write the field
-    if module["module_offset"] != 0:
+    if module["module_offset"] != "0":
         pixel_size_m = [
             x_pix.magnitude,
             y_pix.magnitude,
