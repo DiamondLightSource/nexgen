@@ -31,6 +31,16 @@ NXclass_logger = logging.getLogger("NeXusGenerator.write.NXclass")
 
 # NXentry writer
 def write_NXentry(nxsfile: h5py.File) -> h5py.Group:
+    """
+    Write NXentry group at top level of the NeXus file.
+    Also, write the application definition NXmx.
+
+    Args:
+        nxsfile (h5py.File):    NeXus file handle
+
+    Returns:
+        NXentry group.
+    """
     # Set default attribute
     nxsfile.attrs["default"] = "entry"
 

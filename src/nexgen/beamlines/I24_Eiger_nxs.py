@@ -7,6 +7,8 @@ import sys
 import h5py
 import logging
 
+import numpy as np
+
 from typing import List
 from pathlib import Path
 from collections import namedtuple
@@ -92,7 +94,7 @@ def extruder(master_file: Path, metafile: Path, SSX: namedtuple, links: List = N
             nxentry = write_NXentry(nxsfile)
 
             if timestamps[0]:
-                nxentry.create_dataset("start_time", data=timestamps[0])
+                nxentry.create_dataset("start_time", data=np.string_(timestamps[0]))
 
             call_writers(
                 nxsfile,
@@ -112,6 +114,11 @@ def extruder(master_file: Path, metafile: Path, SSX: namedtuple, links: List = N
                 metafile=metafile,
                 link_list=links,
             )
+
+            if timestamps[1]:
+                nxentry.create_dataset("end_time", data=np.string_(timestamps[1]))
+            # else:
+            #    write it (?)
             logger.info(f"{master_file} correctly written.")
     except Exception as err:
         logger.exception(err)
