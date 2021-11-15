@@ -28,6 +28,21 @@ from ..tools.MetaReader import overwrite_beam, overwrite_detector
 writer_logger = logging.getLogger("NeXusGenerator.writer")
 
 # General writing
+def write_nxentry(nxsfile: h5py.File) -> h5py.Group:
+    # Set default attribute
+    nxsfile.attrs["default"] = "entry"
+
+    # Start writing the NeXus tree with NXentry at the top level
+    nxentry = nxsfile.create_group("entry")
+    nxentry.attrs["NX_class"] = np.string_("NXentry")
+    nxentry.attrs["default"] = np.string_("data")
+    # create_attributes(nxentry, ("NX_class", "default"), ("NXentry", "data"))
+
+    # Application definition: /entry/definition
+    nxentry.create_dataset("definition", data=np.string_("NXmx"))
+    return nxentry
+
+
 def write_NXmx_nexus(
     nxsfile: h5py.File,
     datafiles: List[Path],
@@ -100,17 +115,18 @@ def write_NXmx_nexus(
 
     writer_logger.info(f"Scan axis: {osc_axis}")
 
-    # Set default attribute
-    nxsfile.attrs["default"] = "entry"
+    nxentry = write_nxentry(nxsfile)
+    # # Set default attribute
+    # nxsfile.attrs["default"] = "entry"
 
-    # Start writing the NeXus tree with NXentry at the top level
-    nxentry = nxsfile.create_group("entry")
-    nxentry.attrs["NX_class"] = np.string_("NXentry")
-    nxentry.attrs["default"] = np.string_("data")
-    # create_attributes(nxentry, ("NX_class", "default"), ("NXentry", "data"))
+    # # Start writing the NeXus tree with NXentry at the top level
+    # nxentry = nxsfile.create_group("entry")
+    # nxentry.attrs["NX_class"] = np.string_("NXentry")
+    # nxentry.attrs["default"] = np.string_("data")
+    # # create_attributes(nxentry, ("NX_class", "default"), ("NXentry", "data"))
 
-    # Application definition: /entry/definition
-    nxentry.create_dataset("definition", data=np.string_("NXmx"))
+    # # Application definition: /entry/definition
+    # nxentry.create_dataset("definition", data=np.string_("NXmx"))
 
     # Call the writers
     call_writers(
