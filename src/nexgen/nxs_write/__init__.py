@@ -92,18 +92,22 @@ def calculate_scan_range(
 ) -> np.ndarray:
     """
     Calculate the scan range for a rotation collection and return as a numpy array.
+    For this calculation axes_increments and n_images are mutually exclusive.
+    If there are multiple images but no rotation scan, renurn a numpy array of axis_start repeated n_images times.
 
-    axes_increments and n_images are mutually exclusive
     Args:
-        axis_start:         Rotation axis position at the beginning of the scan, float.
-        axis_end:           Rotation axis position at the end of the scan, float.
-        axis_increment:     Range through which the axis moves each frame, float.
-        n_images:           Alternatively, number of images, int.
+        axis_start (float):         Rotation axis position at the beginning of the scan, float.
+        axis_end (float):           Rotation axis position at the end of the scan, float.
+        axis_increment (float):     Range through which the axis moves each frame, float.
+        n_images (int):             Alternatively, number of images, int.
     Returns:
-        scan_range:         Numpy array of values for the rotation axis.
+        scan_range (np.ndarray):    Numpy array of values for the rotation axis.
     """
     if n_images:
-        scan_range = np.linspace(axis_start, axis_end, n_images)
+        if axis_start == axis_end:
+            scan_range = np.repeat(axis_start, n_images)
+        else:
+            scan_range = np.linspace(axis_start, axis_end, n_images)
     else:
         scan_range = np.arange(axis_start, axis_end, axis_increment)
     return scan_range

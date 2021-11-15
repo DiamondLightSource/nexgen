@@ -29,7 +29,7 @@ from ..tools.MetaReader import overwrite_beam, overwrite_detector
 writer_logger = logging.getLogger("NeXusGenerator.writer")
 
 # General writing
-def write_NXmx_nexus(
+def write_nexus(
     nxsfile: h5py.File,
     datafiles: List[Path],
     goniometer,

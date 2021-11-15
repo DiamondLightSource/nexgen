@@ -26,7 +26,7 @@ from .. import (
     get_filename_template,
     get_iso_timestamp,
 )
-from ..nxs_write.NexusWriter import write_NXmx_nexus, write_nexus_demo
+from ..nxs_write.NexusWriter import write_nexus, write_nexus_demo
 
 # Define a logger object and a formatter
 logger = logging.getLogger("NeXusGenerator")
@@ -279,7 +279,7 @@ def write_NXmx_cli(args):
     logger.info("Start writing NeXus file ...")
     try:
         with h5py.File(master_file, "x") as nxsfile:
-            write_NXmx_nexus(
+            write_nexus(
                 nxsfile,
                 datafiles,
                 goniometer,
@@ -635,7 +635,7 @@ def write_with_meta_cli(args):
     logger.info("Start writing NeXus file ...")
     try:
         with h5py.File(master_file, "x") as nxsfile:
-            write_NXmx_nexus(
+            write_nexus(
                 nxsfile,
                 datafiles,
                 goniometer,
