@@ -5,16 +5,17 @@ Tools to get the information stored inside the _meta.h5 file and overwrite the p
 import h5py
 import logging
 
-from typing import List
+from typing import List, Any
 
 from .. import units_of_length
 
 from .Metafile import DectrisMetafile, TristanMetafile
 
+# TODO actually define the type for scope extract and replace Any with Union
 overwrite_logger = logging.getLogger("NeXusGenerator.writer.from_meta")
 
 
-def overwrite_beam(meta_file: h5py.File, name: str, beam):
+def overwrite_beam(meta_file: h5py.File, name: str, beam: Any):
     """
     Looks for the wavelength value in the _meta.h5 file.
     If found, it overwrites the value that was parsed from the command line.
@@ -22,7 +23,7 @@ def overwrite_beam(meta_file: h5py.File, name: str, beam):
     Args:
         meta_file:  _meta.h5 file.
         name:       Detector description.
-        beam:       Scope extract defining the beam.
+        beam:       Scope extract or dictionary defining the beam.
     """
     if "eiger" in name.lower():
         meta = DectrisMetafile(meta_file)
@@ -35,19 +36,24 @@ def overwrite_beam(meta_file: h5py.File, name: str, beam):
     # If value exists, overwrite. Otherwise, create.
     overwrite_logger.warning("Wavelength will be overwritten.")
     overwrite_logger.info(f"Value for wavelngth found in meta file: {wl}")
-    try:
-        beam.__dict__["wavelength"] = wl
-    except KeyError:
-        beam.__inject__("wavelength", wl)
+    if type(beam) is dict:
+        beam["wavelength"] = wl
+    else:
+        try:
+            beam.__dict__["wavelength"] = wl
+        except KeyError:
+            beam.__inject__("wavelength", wl)
 
 
-def overwrite_detector(meta_file: h5py.File, detector, ignore: List = None) -> List:
+def overwrite_detector(
+    meta_file: h5py.File, detector: Any, ignore: List = None
+) -> List:
     """
     Looks through the _meta.h5 file for informtion relating to NXdetector.
 
     Args:
         meta_file:  _meta.h5 file.
-        detector:   Scope extract defining the detector.
+        detector:   Scope extract or dictionary defining the detector.
         ignore:     List of datasets that should not be overwritten by the meta file.
     Returns:
         link_list:  A list of elements to be linked instead of copied in the NeXus file.
@@ -131,10 +137,13 @@ def overwrite_detector(meta_file: h5py.File, detector, ignore: List = None) -> L
                 del new_values[i]
 
     for k, v in new_values.items():
-        try:
-            detector.__dict__[k] = v
-        except KeyError:
-            detector.__inject__(k, v)
+        if type(detector) is dict:
+            detector[k] = v
+        else:
+            try:
+                detector.__dict__[k] = v
+            except KeyError:
+                detector.__inject__(k, v)
     return link_list
 
 

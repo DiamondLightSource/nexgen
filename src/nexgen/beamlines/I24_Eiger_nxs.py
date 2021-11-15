@@ -17,6 +17,8 @@ from I24_Eiger_params import goniometer_axes, detector_params, source
 # )
 # from ..nxs_write.NexusWriter import call_writers
 
+# from ..tools.MetaReader import overwrite_detector, overwrite_beam
+
 # Define a logger object and a formatter
 logger = logging.getLogger("NeXusWriter.I24")
 logger.setLevel(logging.DEBUG)
