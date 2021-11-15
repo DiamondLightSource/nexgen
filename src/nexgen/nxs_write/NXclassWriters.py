@@ -505,7 +505,7 @@ def write_NXdetector_module(
         fast_axis = tuple(module["fast_axis"])
         slow_axis = tuple(module["slow_axis"])
 
-    offsets = split_arrays(coord_frame, ["fast_axis", "slow_axis"], module["offsets"])
+    # offsets = split_arrays(coord_frame, ["fast_axis", "slow_axis"], module["offsets"])
 
     x_pix = units_of_length(pixel_size[0], True)
     fast_pixel = nxmodule.create_dataset("fast_pixel_direction", data=x_pix.magnitude)
@@ -521,7 +521,8 @@ def write_NXdetector_module(
         ),
         (
             "/entry/instrument/detector/transformations/detector_z/det_z",
-            offsets["fast_axis"],
+            [0, 0, 0],
+            # offsets["fast_axis"],
             "mm",
             "translation",
             format(x_pix.units, "~"),
@@ -543,7 +544,8 @@ def write_NXdetector_module(
         ),
         (
             "/entry/instrument/detector/module/fast_pixel_direction",
-            offsets["slow_axis"],
+            [0, 0, 0],
+            # offsets["slow_axis"],
             "mm",
             "translation",
             format(y_pix.units, "~"),

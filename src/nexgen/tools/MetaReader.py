@@ -13,6 +13,7 @@ from .Metafile import DectrisMetafile, TristanMetafile
 
 # TODO actually define the type for scope extract and replace Any with Union
 overwrite_logger = logging.getLogger("NeXusGenerator.writer.from_meta")
+overwrite_logger.setLevel(logging.DEBUG)
 
 
 def overwrite_beam(meta_file: h5py.File, name: str, beam: Any):

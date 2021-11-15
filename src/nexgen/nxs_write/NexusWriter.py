@@ -260,7 +260,7 @@ def call_writers(
         nxsfile,
         beam,
         attenuator,
-        source.beamline_name,
+        source["beamline_name"],
     )
 
     # NXdetector: entry/instrument/detector
@@ -278,8 +278,8 @@ def call_writers(
         nxsfile,
         module,
         coordinate_frame,
-        detector.image_size,
-        detector.pixel_size,
+        detector["image_size"],
+        detector["pixel_size"],
         beam_center=detector["beam_center"],
     )
 

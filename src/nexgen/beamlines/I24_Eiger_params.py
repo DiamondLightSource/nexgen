@@ -17,6 +17,7 @@ goniometer_axes = {
 detector_params = {
     "mode": "images",
     "description": "Eiger 2X 9M",
+    "detector_type": "Pixel",
     "sensor_material": "CdTe",
     "sensor_thickness": "0.750mm",
     "overload": 1e07,
