@@ -42,7 +42,7 @@ logger.addHandler(CH)
 ssx_collect = namedtuple(
     "ssx_collect",
     [
-        "filename",
+        "visitpath",
         "exp_type",
         "num_imgs",
         "detector_distance",
@@ -77,12 +77,19 @@ attenuator = {}
 #     return gonio, det, mod
 
 
-def extruder(master_file: Path, metafile: Path, SSX: namedtuple, links: List = None):
+def extruder(
+    master_file: Path,
+    filename: List[Path],
+    metafile: Path,
+    SSX: namedtuple,
+    links: List = None,
+):
     """
     Write the NeXus file for extruder collections, pump-probe and not.
 
     Args:
         master_file (Path):     Path to the NeXus file to be written.
+        filename (list):        List of paths to file
         metafile (Path):        Path to the _meta.h5 file.
         SSX (namedtuple):       Parameters passed from the beamline.
         links (List, optional): List of datasets to be linked from the meta file. Defaults to None.
@@ -125,7 +132,7 @@ def extruder(master_file: Path, metafile: Path, SSX: namedtuple, links: List = N
 
             call_writers(
                 nxsfile,
-                [SSX.filename],
+                filename,
                 "mcstas",
                 scan_axis,  # This should be omega
                 scan_range,
@@ -180,7 +187,7 @@ def write_nxs(**ssx_params):
     """
     # Get info from the beamline
     SSX = ssx_collect(
-        filename=Path(ssx_params["filename"])
+        visitpath=Path(ssx_params["visitpath"])
         .expanduser()
         .resolve(),  # If needed, fix in the future for multiple files
         exp_type=ssx_params["exp_type"],
@@ -195,6 +202,7 @@ def write_nxs(**ssx_params):
         pump_exp=ssx_params["pump_exp"],
         pump_delay=ssx_params["pump_delay"],
     )
+    # print(type(SSX.filename))
     # Add to dictionaries
     detector["starts"] = [SSX.detector_distance]
     detector["exposure_time"] = SSX.exposure_time
@@ -203,16 +211,9 @@ def write_nxs(**ssx_params):
 
     beam["flux"] = SSX.flux
 
-    # Add some information to logger
-    logger.info("Creating a NeXus file for %s ..." % SSX.filename)
-    # Get NeXus filename
-    master_file = get_nexus_filename(SSX.filename)
-    logger.info("NeXus file will be saved as %s" % master_file)
     # Find metafile in directory and get info from it
     try:
-        metafile = [
-            f for f in SSX.filename.parent.iterdir() if "meta.h5" in f.as_posix()
-        ][0]
+        metafile = [f for f in SSX.visitpath.iterdir() if "meta.h5" in f.as_posix()][0]
         logger.info(f"Found {metafile} in directory. Looking for metadata ...")
     except IndexError:
         logger.warning(
@@ -229,9 +230,21 @@ def write_nxs(**ssx_params):
     # Set value for module_offset calculation.
     module["module_offset"] = "1"
 
+    # Find datafiles
+    filename = [
+        f
+        for f in SSX.visitpath.iterdir()
+        if "_000" in f.as_posix() and ".h5" in f.as_posix()
+    ]
+    # Add some information to logger
+    logger.info("Creating a NeXus file for %s ..." % filename)
+    # Get NeXus filename
+    master_file = get_nexus_filename(filename[0])
+    logger.info("NeXus file will be saved as %s" % master_file)
+
     # Call correct function for the current experiment
     if SSX.exp_type == "extruder":
-        extruder(master_file, metafile, SSX, links)
+        extruder(master_file, filename, metafile, SSX, links)
     elif SSX.exp_type == "fixed_target":
         fixed_target()
     elif SSX.exp_type == "3Dgridscan":
@@ -241,7 +254,7 @@ def write_nxs(**ssx_params):
 # Example usage
 if __name__ == "__main__":
     write_nxs(
-        filename=sys.argv[1],
+        visitpath=sys.argv[1],
         exp_type="extruder",
         num_imgs=100,
         det_dist=0.5,
