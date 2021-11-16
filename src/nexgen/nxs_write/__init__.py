@@ -52,7 +52,7 @@ def set_dependency(dep_info: str, path: str = None):
 
 def find_scan_axis(axes_names: List, axes_starts: List, axes_ends: List) -> str:
     """
-    Identify the scan_axis.
+    Identify the rotation scan_axis.
 
     This function identifies the scan axis from the list passed as argument.
     The scan axis is the one where start and end value are not the same.

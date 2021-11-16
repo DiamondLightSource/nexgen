@@ -129,6 +129,11 @@ def overwrite_detector(
             overwrite_logger.info(
                 f"Value for sensor thickness found in meta file: {sensor_info[1]}"
             )
+            new_values["overload"] = meta.get_saturation_value()
+            overwrite_logger.warning("Saturation value (overload) will be overwritten.")
+            overwrite_logger.info(
+                f"Value for overload found in meta file: %s" % new_values["overload"]
+            )
     else:
         overwrite_logger.warning("Unknown detector, exit.")
         raise ValueError("Please pass a valid detector description.")
