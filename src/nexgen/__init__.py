@@ -149,7 +149,7 @@ def get_iso_timestamp(ts: str) -> str:
     return ts_iso
 
 
-def units_of_length(q: Any, to_base: Optional[bool] = False) -> pint.Quantity:
+def units_of_length(q: Any, to_base: Optional[bool] = False):  # -> pint.Quantity:
     """
     Check that a quantity of length is compatible with NX_LENGTH, defaulting to m if dimensionless.
 
@@ -178,7 +178,7 @@ def units_of_length(q: Any, to_base: Optional[bool] = False) -> pint.Quantity:
         )
 
 
-def units_of_time(q: str) -> pint.Quantity:
+def units_of_time(q: str):  # -> pint.Quantity:
     """
     Check that a quantity of time is compatible with NX_TIME, defaulting to s if dimensionless.
     Convert to seconds if time is passed as a fraction of it.
