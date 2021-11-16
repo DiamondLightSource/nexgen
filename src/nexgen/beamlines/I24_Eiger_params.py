@@ -1,3 +1,6 @@
+"""
+Define beamline parameters for I24 with Eiger 9M detector.
+"""
 source = {
     "name": "Diamond Light Source",
     "short_name": "DLS",
@@ -14,7 +17,7 @@ goniometer_axes = {
     "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 }
 
-detector_params = {
+eiger9M_params = {
     "mode": "images",
     "description": "Eiger 2X 9M",
     "detector_type": "Pixel",

@@ -13,7 +13,7 @@ from typing import List
 from pathlib import Path
 from collections import namedtuple
 
-from .I24_Eiger_params import goniometer_axes, detector_params, source
+from .I24_Eiger_params import goniometer_axes, eiger9M_params, source
 
 from .. import (
     get_iso_timestamp,
@@ -59,7 +59,7 @@ ssx_collect = namedtuple(
 
 # Initialize dictionaries
 goniometer = goniometer_axes
-detector = detector_params
+detector = eiger9M_params
 # source = source
 module = {}
 beam = {}
@@ -78,6 +78,15 @@ attenuator = {}
 
 
 def extruder(master_file: Path, metafile: Path, SSX: namedtuple, links: List = None):
+    """
+    Write the NeXus file for extruder collections, pump-probe and not.
+
+    Args:
+        master_file (Path):     Path to the NeXus file to be written.
+        metafile (Path):        Path to the _meta.h5 file.
+        SSX (namedtuple):       Parameters passed from the beamline.
+        links (List, optional): List of datasets to be linked from the meta file. Defaults to None.
+    """
     goniometer["starts"] = goniometer["ends"] = goniometer["increments"] = [
         0.0,
         0.0,
@@ -153,6 +162,9 @@ def grid_scan_3D():
 
 
 def write_nxs(**ssx_params):
+    """
+    Gather all parameters from the beamline and call appropriate writer function for serial crystallography.
+    """
     # Get info from the beamline
     SSX = ssx_collect(
         filename=Path(ssx_params["filename"])
