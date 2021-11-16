@@ -50,31 +50,45 @@ def set_dependency(dep_info: str, path: str = None):
         return np.string_(dep_info)
 
 
-def find_scan_axis(axes_names: List, axes_starts: List, axes_ends: List) -> str:
+def find_scan_axis(
+    axes_names: List,
+    axes_starts: List,
+    axes_ends: List,
+    axes_types: List,
+    default: str = "omega",
+) -> str:
     """
-    Identify the scan_axis.
+    Identify the rotation scan_axis.
 
     This function identifies the scan axis from the list passed as argument.
     The scan axis is the one where start and end value are not the same.
-    If there is only one axis, that is the one returned.
-    In the case of stills, phi is arbitrarily assigned.
+    If there is only one rotation axis, that is the one returned.
+    In the case scan axis cannot be identified, a default value is arbitrarily assigned.
 
     Args:
-        axes_names:     List of names associated to goniometer axes.
-        axes_starts:    List of start values.
-        axes_ends:      List of end values.
+        axes_names (list):      List of names associated to goniometer axes.
+        axes_starts (list):     List of start values.
+        axes_ends (list):       List of end values.
+        axes_types (list):      List of axes types, useful to identify only the rotation axes.
+        default (str):          String to deafult to in case scan axis is not found.
     Returns:
-        scan_axis:      String identifying the scan axis.
+        scan_axis (str):        String identifying the scan axis.
     """
-    # TODO Handle multiple scan axes (2D scan).
-    # Randomly assign to phi if stills
+    # Assuming all list are of the same length ...
     assert len(axes_names) > 0, "Please pass at least one axis."
+    # Look only for rotation axes
+    rot_idx = [i for i in range(len(axes_types)) if axes_types[i] == "rotation"]
+    axes_names = [axes_names[j] for j in rot_idx]
+    axes_starts = [axes_starts[j] for j in rot_idx]
+    axes_ends = [axes_ends[j] for j in rot_idx]
+
     if len(axes_names) == 1:
         scan_axis = axes_names[0]
     else:
         idx = [(i != j) for i, j in zip(axes_starts, axes_ends)]
         if idx.count(True) == 0:
-            scan_axis = "phi"
+            # just in case ...
+            scan_axis = default
         elif idx.count(True) == 1:
             scan_axis = axes_names[idx.index(True)]
         else:
@@ -90,18 +104,22 @@ def calculate_scan_range(
 ) -> np.ndarray:
     """
     Calculate the scan range for a rotation collection and return as a numpy array.
+    For this calculation axes_increments and n_images are mutually exclusive.
+    If there are multiple images but no rotation scan, renurn a numpy array of axis_start repeated n_images times.
 
-    axes_increments and n_images are mutually exclusive
     Args:
-        axis_start:         Rotation axis position at the beginning of the scan, float.
-        axis_end:           Rotation axis position at the end of the scan, float.
-        axis_increment:     Range through which the axis moves each frame, float.
-        n_images:           Alternatively, number of images, int.
+        axis_start (float):         Rotation axis position at the beginning of the scan, float.
+        axis_end (float):           Rotation axis position at the end of the scan, float.
+        axis_increment (float):     Range through which the axis moves each frame, float.
+        n_images (int):             Alternatively, number of images, int.
     Returns:
-        scan_range:         Numpy array of values for the rotation axis.
+        scan_range (np.ndarray):    Numpy array of values for the rotation axis.
     """
     if n_images:
-        scan_range = np.linspace(axis_start, axis_end, n_images)
+        if axis_start == axis_end:
+            scan_range = np.repeat(axis_start, n_images)
+        else:
+            scan_range = np.linspace(axis_start, axis_end, n_images)
     else:
         scan_range = np.arange(axis_start, axis_end, axis_increment)
     return scan_range
