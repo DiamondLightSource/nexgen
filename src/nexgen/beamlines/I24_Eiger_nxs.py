@@ -20,6 +20,10 @@ from .. import (
     get_nexus_filename,
 )
 
+from ..nxs_write import (
+    calculate_scan_range,
+    find_scan_axis,
+)
 from ..nxs_write.NexusWriter import call_writers
 from ..nxs_write.NXclassWriters import write_NXentry
 
@@ -87,6 +91,20 @@ def extruder(master_file: Path, metafile: Path, SSX: namedtuple, links: List = N
         get_iso_timestamp(SSX.stop_time),
     )
 
+    # Get scan range array and rotation axis
+    scan_axis = find_scan_axis(
+        goniometer["axes"],
+        goniometer["starts"],
+        goniometer["ends"],
+        goniometer["types"],
+    )
+    scan_idx = goniometer["axes"].index(scan_axis)
+    scan_range = calculate_scan_range(
+        goniometer["starts"][scan_idx],
+        goniometer["ends"][scan_idx],
+        n_images=SSX.num_imgs,
+    )
+
     try:
         with h5py.File(master_file, "x") as nxsfile:
             # TODO FIXME actually get this to call write_NXmx ... easier once all the functions are fixed
@@ -100,10 +118,12 @@ def extruder(master_file: Path, metafile: Path, SSX: namedtuple, links: List = N
                 nxsfile,
                 [SSX.filename],
                 "mcstas",
-                "omega",
-                (
-                    0.0,
-                ),  # FIXME this should be an array of 0s as long as number of images... but I need to fixe the function.
+                scan_axis,
+                scan_range,
+                # "omega",
+                # (
+                #    0.0,
+                # ),  # FIXME this should be an array of 0s as long as number of images... but I need to fixe the function.
                 (detector["mode"], SSX.num_imgs),
                 goniometer,
                 detector,

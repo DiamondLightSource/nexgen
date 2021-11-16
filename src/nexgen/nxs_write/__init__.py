@@ -50,33 +50,45 @@ def set_dependency(dep_info: str, path: str = None):
         return np.string_(dep_info)
 
 
-def find_scan_axis(axes_names: List, axes_starts: List, axes_ends: List) -> str:
+def find_scan_axis(
+    axes_names: List,
+    axes_starts: List,
+    axes_ends: List,
+    axes_types: List,
+    default: str = "omega",
+) -> str:
     """
     Identify the rotation scan_axis.
 
     This function identifies the scan axis from the list passed as argument.
     The scan axis is the one where start and end value are not the same.
-    If there is only one axis, that is the one returned.
-    In the case of stills, phi is arbitrarily assigned.
+    If there is only one rotation axis, that is the one returned.
+    In the case scan axis cannot be identified, a default value is arbitrarily assigned.
 
     Args:
-        axes_names:     List of names associated to goniometer axes.
-        axes_starts:    List of start values.
-        axes_ends:      List of end values.
+        axes_names (list):      List of names associated to goniometer axes.
+        axes_starts (list):     List of start values.
+        axes_ends (list):       List of end values.
+        axes_types (list):      List of axes types, useful to identify only the rotation axes.
+        default (str):          String to deafult to in case scan axis is not found.
     Returns:
-        scan_axis:      String identifying the scan axis.
+        scan_axis (str):        String identifying the scan axis.
     """
-    # TODO assign to a passed axis value instead of arbitrarily phi.
-    # (although in that case why even call the function)
-    # TODO only for rotation axes.
-    # (if just one rotation axis, assign to that one even if still)
+    # Assuming all list are of the same length ...
     assert len(axes_names) > 0, "Please pass at least one axis."
+    # Look only for rotation axes
+    rot_idx = [i for i in range(len(axes_types)) if axes_types[i] == "rotation"]
+    axes_names = [axes_names[j] for j in rot_idx]
+    axes_starts = [axes_starts[j] for j in rot_idx]
+    axes_ends = [axes_ends[j] for j in rot_idx]
+
     if len(axes_names) == 1:
         scan_axis = axes_names[0]
     else:
         idx = [(i != j) for i, j in zip(axes_starts, axes_ends)]
         if idx.count(True) == 0:
-            scan_axis = "phi"
+            # just in case ...
+            scan_axis = default
         elif idx.count(True) == 1:
             scan_axis = axes_names[idx.index(True)]
         else:

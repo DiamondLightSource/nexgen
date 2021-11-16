@@ -84,7 +84,9 @@ def write_nexus(
     writer_logger.info(f"Total number of images: {num_images}")
 
     # Identify scan axis
-    osc_axis = find_scan_axis(goniometer.axes, goniometer.starts, goniometer.ends)
+    osc_axis = find_scan_axis(
+        goniometer.axes, goniometer.starts, goniometer.ends, goniometer.types
+    )
 
     # Compute scan_range
     idx = goniometer.axes.index(osc_axis)
@@ -165,7 +167,9 @@ def write_nexus_demo(
     writer_logger.info("Writing demo ...")
     writer_logger.info(f"The data file will contain {data_type[1]} {data_type[0]}")
     # Identify scan axis
-    osc_axis = find_scan_axis(goniometer.axes, goniometer.starts, goniometer.ends)
+    osc_axis = find_scan_axis(
+        goniometer.axes, goniometer.starts, goniometer.ends, goniometer.types
+    )
 
     # Compute scan_range
     idx = goniometer.axes.index(osc_axis)

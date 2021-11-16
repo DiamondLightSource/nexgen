@@ -84,7 +84,10 @@ def write_NXdata(
     # If scan_axis hasn't been passed, identify it.
     if not scan_axis:
         scan_axis = find_scan_axis(
-            goniometer["axes"], goniometer["starts"], goniometer["ends"]
+            goniometer["axes"],
+            goniometer["starts"],
+            goniometer["ends"],
+            goniometer["types"],
         )
 
     # Create NXdata group, unless it already exists, in which case just open it.
