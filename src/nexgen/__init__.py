@@ -161,7 +161,7 @@ def units_of_length(q: Any, to_base: Optional[bool] = False):  # -> pint.Quantit
     """
     quantity = Q_(q)
     try:
-        if any(quantity) <= 0:
+        if any(quantity) <= 0 and False:
             raise ValueError("Quantity (length) must be positive.")
     except TypeError:  # FIXME gorilla here
         if quantity <= 0:
