@@ -118,12 +118,8 @@ def extruder(master_file: Path, metafile: Path, SSX: namedtuple, links: List = N
                 nxsfile,
                 [SSX.filename],
                 "mcstas",
-                scan_axis,
+                scan_axis,  # This should be omega
                 scan_range,
-                # "omega",
-                # (
-                #    0.0,
-                # ),  # FIXME this should be an array of 0s as long as number of images... but I need to fixe the function.
                 (detector["mode"], SSX.num_imgs),
                 goniometer,
                 detector,
@@ -131,6 +127,7 @@ def extruder(master_file: Path, metafile: Path, SSX: namedtuple, links: List = N
                 source,
                 beam,
                 attenuator,
+                vds="dataset",  # or None if unwanted
                 metafile=metafile,
                 link_list=links,
             )
@@ -216,6 +213,7 @@ def write_nxs(**ssx_params):
         grid_scan_3D()
 
 
+# Example usage
 if __name__ == "__main__":
     write_nxs(
         filename=sys.argv[1],
