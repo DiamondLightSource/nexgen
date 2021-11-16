@@ -25,7 +25,7 @@ from ..nxs_write import (
     find_scan_axis,
 )
 from ..nxs_write.NexusWriter import call_writers
-from ..nxs_write.NXclassWriters import write_NXentry
+from ..nxs_write.NXclassWriters import write_NXentry, write_NXnote
 
 from ..tools.MetaReader import overwrite_detector, overwrite_beam
 
@@ -140,6 +140,19 @@ def extruder(master_file: Path, metafile: Path, SSX: namedtuple, links: List = N
                 metafile=metafile,
                 link_list=links,
             )
+
+            # Write pump-probe information if requested
+            if SSX.pump_status is True:
+                # Assuming pump_ext and pump_delay have been passed
+                assert (
+                    SSX.pump_exp and SSX.pump_delay
+                ), "Pump exposure time and/or delay have not been recorded."
+                loc = "/entry/source/notes"
+                pump_info = {
+                    "pump_exposure_time": SSX.pump_exp,
+                    "pump_delay": SSX.pump_delay,
+                }
+                write_NXnote(nxsfile, loc, pump_info)
 
             if timestamps[1]:
                 nxentry.create_dataset("end_time", data=np.string_(timestamps[1]))
