@@ -4,6 +4,7 @@ Create a NeXus file for serial crystallography datasets collected on I24 Eiger 2
 import sys
 
 # import json
+import glob
 import h5py
 import logging
 
@@ -43,6 +44,7 @@ ssx_collect = namedtuple(
     "ssx_collect",
     [
         "visitpath",
+        "filename",
         "exp_type",
         "num_imgs",
         "detector_distance",
@@ -80,8 +82,8 @@ attenuator = {}
 def extruder(
     master_file: Path,
     filename: List[Path],
-    metafile: Path,
     SSX: namedtuple,
+    metafile: Path = None,  # Just in case meta is not generated for some reason
     links: List = None,
 ):
     """
@@ -89,9 +91,9 @@ def extruder(
 
     Args:
         master_file (Path):     Path to the NeXus file to be written.
-        filename (list):        List of paths to file
-        metafile (Path):        Path to the _meta.h5 file.
+        filename (list):        List of paths to file.
         SSX (namedtuple):       Parameters passed from the beamline.
+        metafile (Path):        Path to the _meta.h5 file. Deafults to None.
         links (List, optional): List of datasets to be linked from the meta file. Defaults to None.
     """
     goniometer["starts"] = goniometer["ends"] = goniometer["increments"] = [
@@ -123,7 +125,8 @@ def extruder(
 
     try:
         with h5py.File(master_file, "x") as nxsfile:
-            # TODO FIXME actually get this to call write_NXmx ... easier once all the functions are fixed
+            # TODO
+            # It wou actld be good to actually get this to call write_NXmx ... easier once all the functions are fixed
 
             nxentry = write_NXentry(nxsfile)
 
@@ -163,8 +166,6 @@ def extruder(
 
             if timestamps[1]:
                 nxentry.create_dataset("end_time", data=np.string_(timestamps[1]))
-            # else:
-            #    write it (?)
             logger.info(f"{master_file} correctly written.")
     except Exception as err:
         logger.exception(err)
@@ -187,9 +188,8 @@ def write_nxs(**ssx_params):
     """
     # Get info from the beamline
     SSX = ssx_collect(
-        visitpath=Path(ssx_params["visitpath"])
-        .expanduser()
-        .resolve(),  # If needed, fix in the future for multiple files
+        visitpath=Path(ssx_params["visitpath"]).expanduser().resolve(),
+        filename=ssx_params["filename"],
         exp_type=ssx_params["exp_type"],
         num_imgs=ssx_params["num_imgs"],
         detector_distance=ssx_params["det_dist"],
@@ -202,7 +202,7 @@ def write_nxs(**ssx_params):
         pump_exp=ssx_params["pump_exp"],
         pump_delay=ssx_params["pump_delay"],
     )
-    # print(type(SSX.filename))
+
     # Add to dictionaries
     detector["starts"] = [SSX.detector_distance]
     detector["exposure_time"] = SSX.exposure_time
@@ -213,16 +213,18 @@ def write_nxs(**ssx_params):
 
     # Find metafile in directory and get info from it
     try:
-        metafile = [f for f in SSX.visitpath.iterdir() if "meta.h5" in f.as_posix()][0]
+        metafile = [
+            f for f in SSX.visitpath.iterdir() if SSX.filename + "_meta" in f.as_posix()
+        ][0]
         logger.info(f"Found {metafile} in directory. Looking for metadata ...")
+        # Overwrite/add to dictionary
+        with h5py.File(metafile, "r") as meta:
+            overwrite_beam(meta, detector["description"], beam)
+            links = overwrite_detector(meta, detector)
     except IndexError:
         logger.warning(
             "No _meta.h5 file found in directory. Some metadata will probably be missing."
         )
-    # Overwrite/add to dictionary
-    with h5py.File(metafile, "r") as meta:
-        overwrite_beam(meta, detector["description"], beam)
-        links = overwrite_detector(meta, detector)
 
     module["fast_axis"] = detector.pop("fast_axis")
     module["slow_axis"] = detector.pop("slow_axis")
@@ -231,20 +233,22 @@ def write_nxs(**ssx_params):
     module["module_offset"] = "1"
 
     # Find datafiles
+    filename_template = (
+        metafile.parent / metafile.name.replace("meta", f"{6*'[0-9]'}")
+    ).as_posix()
     filename = [
-        f
-        for f in SSX.visitpath.iterdir()
-        if "_000" in f.as_posix() and ".h5" in f.as_posix()
+        Path(f).expanduser().resolve() for f in sorted(glob.glob(filename_template))
     ]
+
     # Add some information to logger
     logger.info("Creating a NeXus file for %s ..." % filename)
     # Get NeXus filename
-    master_file = get_nexus_filename(filename[0])
+    master_file = get_nexus_filename(metafile)
     logger.info("NeXus file will be saved as %s" % master_file)
 
     # Call correct function for the current experiment
     if SSX.exp_type == "extruder":
-        extruder(master_file, filename, metafile, SSX, links)
+        extruder(master_file, filename, SSX, metafile, links)
     elif SSX.exp_type == "fixed_target":
         fixed_target()
     elif SSX.exp_type == "3Dgridscan":
@@ -255,6 +259,7 @@ def write_nxs(**ssx_params):
 if __name__ == "__main__":
     write_nxs(
         visitpath=sys.argv[1],
+        filename=sys.argv[2],
         exp_type="extruder",
         num_imgs=100,
         det_dist=0.5,
