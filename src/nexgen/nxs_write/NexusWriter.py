@@ -71,6 +71,8 @@ def write_nexus(
         with h5py.File(meta[0], "r") as mf:
             overwrite_beam(mf, detector.description, beam)
             link_list = overwrite_detector(mf, detector, meta[1])
+    else:
+        link_list = None
     writer_logger.info("Writing NXmx NeXus file ...")
     # Find total number of images that have been written across the files.
     if len(datafiles) == 1:
