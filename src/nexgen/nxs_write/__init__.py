@@ -74,6 +74,7 @@ def find_scan_axis(
     Returns:
         scan_axis (str):        String identifying the scan axis.
     """
+    # This assumes that at least one rotation axis is always passed.
     # Assuming all list are of the same length ...
     assert len(axes_names) > 0, "Please pass at least one axis."
     # Look only for rotation axes
