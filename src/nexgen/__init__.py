@@ -161,12 +161,8 @@ def units_of_length(q: Any, to_base: Optional[bool] = False):  # -> pint.Quantit
         quantity:   A pint quantity with units applied if it was dimensionless.
     """
     quantity = Q_(q)
-    try:
-        if any(quantity) <= 0 and False:
-            raise ValueError("Quantity (length) must be positive.")
-    except TypeError:  # FIXME gorilla here
-        if quantity <= 0:
-            raise ValueError("Quantity (length) must be positive.")
+    if quantity <= 0:
+        raise ValueError("Quantity (length) must be positive.")
     quantity = quantity * ureg.m if quantity.dimensionless else quantity
     if quantity.check("[length]"):
         if to_base is True:
