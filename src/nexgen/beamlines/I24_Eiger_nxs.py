@@ -12,6 +12,7 @@ import numpy as np
 
 from typing import List
 from pathlib import Path
+from datetime import datetime
 from collections import namedtuple
 
 from .I24_Eiger_params import goniometer_axes, eiger9M_params, source
@@ -193,8 +194,12 @@ def write_nxs(**ssx_params):
         exp_type=ssx_params["exp_type"],
         num_imgs=ssx_params["num_imgs"],
         detector_distance=ssx_params["det_dist"],
-        start_time=ssx_params["start_time"],
-        stop_time=ssx_params["stop_time"],
+        start_time=ssx_params["start_time"].strftime(
+            "%Y-%m-%dT%H:%M:%S"
+        ),  # should be datetiem type
+        stop_time=ssx_params["stop_time"].strftime(
+            "%Y-%m-%dT%H:%M:%S"
+        ),  # idem. A bit of a gorilla but works.
         exposure_time=ssx_params["exp_time"],
         transmission=ssx_params["transmission"],
         flux=ssx_params["flux"],
@@ -263,8 +268,10 @@ if __name__ == "__main__":
         exp_type="extruder",
         num_imgs=100,
         det_dist=0.5,
-        start_time="Mon Nov 15 2021 15:59:12",
-        stop_time=None,
+        # start_time="Mon Nov 15 2021 15:59:12",
+        start_time=datetime.now(),
+        stop_time=datetime.now(),
+        # stop_time=None,
         exp_time=0.002,
         transmission=1.0,
         flux=None,
