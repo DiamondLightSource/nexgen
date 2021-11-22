@@ -129,7 +129,7 @@ def get_iso_timestamp(ts: str) -> str:
 
     Args:
         ts:     Input string, can also be a timestamp (eg. time.time()) string.
-                Allowed formats: "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%a %b %d %Y %H:%M:%S"
+                Allowed formats: "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%a %b %d %Y %H:%M:%S".
     Returns:
         ts_iso: Output formatted string.
     """
@@ -149,7 +149,7 @@ def get_iso_timestamp(ts: str) -> str:
     return ts_iso
 
 
-def units_of_length(q: Any, to_base: Optional[bool] = False):  # -> pint.Quantity:
+def units_of_length(q: Any, to_base: Optional[bool] = False) -> Q_:  # -> pint.Quantity:
     """
     Check that a quantity of length is compatible with NX_LENGTH, defaulting to m if dimensionless.
 
@@ -160,12 +160,8 @@ def units_of_length(q: Any, to_base: Optional[bool] = False):  # -> pint.Quantit
         quantity:   A pint quantity with units applied if it was dimensionless.
     """
     quantity = Q_(q)
-    try:
-        if any(quantity) <= 0:
-            raise ValueError("Quantity (length) must be positive.")
-    except TypeError:  # FIXME gorilla here
-        if quantity <= 0:
-            raise ValueError("Quantity (length) must be positive.")
+    if quantity <= 0:
+        raise ValueError("Quantity (length) must be positive.")
     quantity = quantity * ureg.m if quantity.dimensionless else quantity
     if quantity.check("[length]"):
         if to_base is True:
@@ -178,7 +174,7 @@ def units_of_length(q: Any, to_base: Optional[bool] = False):  # -> pint.Quantit
         )
 
 
-def units_of_time(q: str):  # -> pint.Quantity:
+def units_of_time(q: str) -> Q_:  # -> pint.Quantity:
     """
     Check that a quantity of time is compatible with NX_TIME, defaulting to s if dimensionless.
     Convert to seconds if time is passed as a fraction of it.

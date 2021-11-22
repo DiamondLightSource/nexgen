@@ -437,7 +437,7 @@ def write_NXdetector(
         nxdetector.create_dataset("underload_value", data=detector["underload"])
 
     # Write_NXcollection
-    write_NXcollection(nxdetector, detector, data_type, meta, link_list[1])
+    write_NXcollection(nxdetector, detector, data_type, meta, link_list)
 
     # Write NXtransformations: entry/instrument/detector/transformations/detector_z and two_theta
     nxtransformations = nxdetector.create_group("transformations")
@@ -652,7 +652,7 @@ def write_NXcollection(
     if data_type[0] == "images":
         grp.create_dataset("nimages", data=data_type[1])
     if meta:
-        for l in link_list:
+        for l in link_list[1]:
             grp[l] = h5py.ExternalLink(meta.name, detector[l])
     else:
         if "software_version" in detector:
