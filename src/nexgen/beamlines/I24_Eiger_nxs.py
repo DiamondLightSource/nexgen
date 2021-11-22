@@ -218,18 +218,23 @@ def write_nxs(**ssx_params):
 
     # Find metafile in directory and get info from it
     try:
+        # if filename == test_##
         metafile = [
             f for f in SSX.visitpath.iterdir() if SSX.filename + "_meta" in f.as_posix()
         ][0]
-        logger.info(f"Found {metafile} in directory. Looking for metadata ...")
+        # if filename == test_##_000001
+        # seq = SSX.filename.split("_")[2]
+        # metafile = SSX.visitpath / (SSX.filename.replace(seq, "meta") + ".h5")
+        # logger.info(f"Found {metafile} in directory. Looking for metadata ...")
         # Overwrite/add to dictionary
         with h5py.File(metafile, "r") as meta:
             overwrite_beam(meta, detector["description"], beam)
             links = overwrite_detector(meta, detector)
     except IndexError:
         logger.warning(
-            "No _meta.h5 file found in directory. Some metadata will probably be missing."
+            "No _meta.h5 file found in directory. Some metadata will be missing."
         )
+        # sys.exit("Missing metadata, unable to write NeXus file. Please use command line tool.")
 
     module["fast_axis"] = detector.pop("fast_axis")
     module["slow_axis"] = detector.pop("slow_axis")
@@ -238,17 +243,20 @@ def write_nxs(**ssx_params):
     module["module_offset"] = "1"
 
     # Find datafiles
+    # if filename == test_##
     filename_template = (
         metafile.parent / metafile.name.replace("meta", f"{6*'[0-9]'}")
     ).as_posix()
     filename = [
         Path(f).expanduser().resolve() for f in sorted(glob.glob(filename_template))
     ]
+    # if filename = test_##_000000
+    # filename = [SSX.visitpath / (SSX.filename+".h5")]
 
     # Add some information to logger
     logger.info("Creating a NeXus file for %s ..." % filename)
     # Get NeXus filename
-    master_file = get_nexus_filename(metafile)
+    master_file = get_nexus_filename(filename[0])
     logger.info("NeXus file will be saved as %s" % master_file)
 
     # Call correct function for the current experiment
