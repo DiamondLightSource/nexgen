@@ -151,7 +151,8 @@ def extruder(
             )
 
             # Write pump-probe information if requested
-            if SSX.pump_status is True:
+            if SSX.pump_status == "true":
+                # if SSX.pump_status is True:
                 # Assuming pump_ext and pump_delay have been passed
                 assert (
                     SSX.pump_exp and SSX.pump_delay
@@ -281,7 +282,7 @@ def write_nxs(**ssx_params):
 #         exp_time=0.002,
 #         transmission=1.0,
 #         flux=None,
-#         pump_status=False,
+#         pump_status=False,    # this is a string on the beamline
 #         pump_exp=None,
 #         pump_delay=None,
 #     )
