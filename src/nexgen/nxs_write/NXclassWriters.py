@@ -380,6 +380,20 @@ def write_NXdetector(
     if meta:
         for ll in link_list[0]:
             nxdetector[ll] = h5py.ExternalLink(meta.name, detector[ll])
+    else:
+        # Check for mask and flatfield files
+        # Flatfield
+        if detector["flatfield"]:
+            nxdetector.create_dataset(
+                "flatfield_applied", data=detector["flatfield_applied"]
+            )
+            nxdetector.create_dataset("flatfield", data=detector["flatfield"])
+        # Bad pixel mask
+        if detector["pixel_mask"]:
+            nxdetector.create_dataset(
+                "pixel_mask_applied", data=detector["pixel_mask_applied"]
+            )
+            nxdetector.create_dataset("pixel_mask", data=detector["pixel_mask"])
     try:
         # Beam center
         beam_center_x = nxdetector.create_dataset(
@@ -415,20 +429,20 @@ def write_NXdetector(
             (format(sensor_thickness.units, "~"),),
         )
 
-        # Check for mask and flatfield files
-        # Flatfield
-        if detector["flatfield"]:
-            nxdetector.create_dataset(
-                "flatfield_applied", data=detector["flatfield_applied"]
-            )
-            nxdetector.create_dataset("flatfield", data=detector["flatfield"])
-        # Bad pixel mask
-        if detector["pixel_mask"]:
-            nxdetector.create_dataset(
-                "pixel_mask_applied", data=detector["pixel_mask_applied"]
-            )
-            nxdetector.create_dataset("pixel_mask", data=detector["pixel_mask"])
-    except (TypeError, ValueError):
+        # # Check for mask and flatfield files
+        # # Flatfield
+        # if detector["flatfield"]:
+        #     nxdetector.create_dataset(
+        #         "flatfield_applied", data=detector["flatfield_applied"]
+        #     )
+        #     nxdetector.create_dataset("flatfield", data=detector["flatfield"])
+        # # Bad pixel mask
+        # if detector["pixel_mask"]:
+        #     nxdetector.create_dataset(
+        #         "pixel_mask_applied", data=detector["pixel_mask_applied"]
+        #     )
+        #     nxdetector.create_dataset("pixel_mask", data=detector["pixel_mask"])
+    except (TypeError, ValueError, RuntimeError):
         pass
 
     # If detector mode is images write overload and underload
