@@ -122,7 +122,6 @@ def split_arrays(coord_frame: str, axes_names: List, array: List) -> dict:
     return array_dict
 
 
-# What if input is datetime?
 def get_iso_timestamp(ts: str) -> str:
     """
     Format a timestamp string to be stores in a NeXus file according to ISO8601:
@@ -130,7 +129,7 @@ def get_iso_timestamp(ts: str) -> str:
 
     Args:
         ts:     Input string, can also be a timestamp (eg. time.time()) string.
-                Allowed formats: "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%a %b %d %Y %H:%M:%S"
+                Allowed formats: "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%a %b %d %Y %H:%M:%S".
     Returns:
         ts_iso: Output formatted string.
     """

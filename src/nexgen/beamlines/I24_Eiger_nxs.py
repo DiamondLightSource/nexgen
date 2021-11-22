@@ -126,9 +126,6 @@ def extruder(
 
     try:
         with h5py.File(master_file, "x") as nxsfile:
-            # TODO
-            # It wou actld be good to actually get this to call write_NXmx ... easier once all the functions are fixed
-
             nxentry = write_NXentry(nxsfile)
 
             if timestamps[0]:
