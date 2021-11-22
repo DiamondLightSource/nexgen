@@ -222,7 +222,7 @@ def write_nxs(**ssx_params):
         # if filename == test_##_000001
         # seq = SSX.filename.split("_")[2]
         # metafile = SSX.visitpath / (SSX.filename.replace(seq, "meta") + ".h5")
-        # logger.info(f"Found {metafile} in directory. Looking for metadata ...")
+        logger.info(f"Found {metafile} in directory. Looking for metadata ...")
         # Overwrite/add to dictionary
         with h5py.File(metafile, "r") as meta:
             overwrite_beam(meta, detector["description"], beam)
