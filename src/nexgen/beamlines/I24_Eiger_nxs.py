@@ -226,6 +226,12 @@ def write_nxs(**ssx_params):
         # metafile = SSX.visitpath / (SSX.filename.replace(seq, "meta") + ".h5")
         logger.info(f"Found {metafile} in directory. Looking for metadata ...")
         # Overwrite/add to dictionary
+        # TODO rethink the metafile issue.
+        # This is fine if the collection is short enough that by the time the nexus writing
+        # is triggered all the other files are closed. But it will raise OSError otherwise.
+        # Possible solution: hard code the copied values - should be constant anyway - , make links
+        # and get beam center in namedtuple from the PVs.
+        # pretty much like GDA.
         with h5py.File(metafile, "r") as meta:
             overwrite_beam(meta, detector["description"], beam)
             links = overwrite_detector(meta, detector)
