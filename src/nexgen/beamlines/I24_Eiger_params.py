@@ -23,7 +23,7 @@ eiger9M_params = {
     "detector_type": "Pixel",
     "sensor_material": "CdTe",
     "sensor_thickness": "0.750mm",
-    "overload": 1e07,
+    "overload": "_dectris/countrate_correction_count_cutoff",
     "underload": -1,
     "pixel_size": ["0.075mm", "0.075mm"],
     "flatfield": None,
@@ -37,3 +37,5 @@ eiger9M_params = {
     "fast_axis": [-1, 0, 0],
     "slow_axis": [0, -1, 0],
 }
+
+dset_links = {}

@@ -13,7 +13,6 @@ import numpy as np
 from typing import List
 from pathlib import Path
 
-# from datetime import datetime
 from collections import namedtuple
 
 from .I24_Eiger_params import goniometer_axes, eiger9M_params, source
@@ -49,11 +48,13 @@ ssx_collect = namedtuple(
         "filename",
         "exp_type",
         "num_imgs",
+        "beam_center",
         "detector_distance",
         "start_time",
         "stop_time",
         "exposure_time",
         "transmission",
+        "wavelength",
         "flux",
         "pump_status",
         "pump_exp",
@@ -192,6 +193,7 @@ def write_nxs(**ssx_params):
         filename=ssx_params["filename"],
         exp_type=ssx_params["exp_type"],
         num_imgs=ssx_params["num_imgs"],
+        beam_center=ssx_params["beam_center"],
         detector_distance=ssx_params["det_dist"],
         start_time=ssx_params["start_time"].strftime(
             "%Y-%m-%dT%H:%M:%S"
@@ -201,6 +203,7 @@ def write_nxs(**ssx_params):
         ),  # idem. A bit of a gorilla but works.
         exposure_time=ssx_params["exp_time"],
         transmission=ssx_params["transmission"],
+        wavelength=ssx_params["wavelength"],
         flux=ssx_params["flux"],
         pump_status=ssx_params["pump_status"],
         pump_exp=ssx_params["pump_exp"],
@@ -210,9 +213,11 @@ def write_nxs(**ssx_params):
     # Add to dictionaries
     detector["starts"] = [SSX.detector_distance]
     detector["exposure_time"] = SSX.exposure_time
+    detector["beam_center"] = SSX.beam_center
 
     attenuator["transmission"] = SSX.transmission
 
+    beam["wavelength"] = SSX.wavelength
     beam["flux"] = SSX.flux
 
     # Find metafile in directory and get info from it
@@ -273,22 +278,24 @@ def write_nxs(**ssx_params):
         grid_scan_3D()
 
 
-# # Example usage
-# if __name__ == "__main__":
-#     write_nxs(
-#         visitpath=sys.argv[1],
-#         filename=sys.argv[2],
-#         exp_type="extruder",
-#         num_imgs=100,
-#         det_dist=0.5,
-#         # start_time="Mon Nov 15 2021 15:59:12",
-#         start_time=datetime.now(),
-#         stop_time=datetime.now(),
-#         # stop_time=None,
-#         exp_time=0.002,
-#         transmission=1.0,
-#         flux=None,
-#         pump_status=False,    # this is a string on the beamline
-#         pump_exp=None,
-#         pump_delay=None,
-#     )
+# Example usage
+if __name__ == "__main__":
+    from datetime import datetime
+
+    write_nxs(
+        visitpath=sys.argv[1],
+        filename=sys.argv[2],
+        exp_type="extruder",
+        num_imgs=100,
+        beam_center=[1590.7, 1643.7],
+        det_dist=0.5,
+        start_time=datetime.now(),
+        stop_time=datetime.now(),
+        exp_time=0.002,
+        transmission=1.0,
+        wavelength=0.649,
+        flux=None,
+        pump_status="false",  # this is a string on the beamline
+        pump_exp=None,
+        pump_delay=None,
+    )
