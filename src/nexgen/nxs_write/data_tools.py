@@ -40,14 +40,16 @@ def data_writer(
 
 
 def generate_image_data(
-    filename: Optional[Union[Path, str]], shape: Tuple[int, int], write_mode: str = "x"
+    filename: Optional[Union[Path, str]],
+    shape: Tuple[int, int, int],
+    write_mode: str = "x",
 ):
     """
     Generate a HDF5 file with blank images.
 
     Args:
         filename:   Name of the output data file to be written.
-        shape:      Tuple defining dataset dimensions.
+        shape:      Tuple defining dataset dimensions as follows: (img_number, slow_axis, fast_axis).
         write_mode: Mode for writing the output HDF5 file.  Accepts any valid
                     h5py file opening mode.
     """
