@@ -15,7 +15,7 @@ from pathlib import Path
 
 from collections import namedtuple
 
-from .I24_Eiger_params import goniometer_axes, eiger9M_params, source
+from .I24_Eiger_params import goniometer_axes, eiger9M_params, source, dset_links
 
 from .. import (
     get_iso_timestamp,
@@ -29,7 +29,7 @@ from ..nxs_write import (
 from ..nxs_write.NexusWriter import call_writers
 from ..nxs_write.NXclassWriters import write_NXentry, write_NXnote
 
-from ..tools.MetaReader import overwrite_detector, overwrite_beam
+# from ..tools.MetaReader import overwrite_detector, overwrite_beam
 
 # Define a logger object and a formatter
 logger = logging.getLogger("NeXusGenerator.I24")
@@ -87,7 +87,6 @@ def extruder(
     filename: List[Path],
     SSX: namedtuple,
     metafile: Path = None,  # Just in case meta is not generated for some reason
-    links: List = None,
 ):
     """
     Write the NeXus file for extruder collections, pump-probe and not.
@@ -97,7 +96,6 @@ def extruder(
         filename (list):        List of paths to file.
         SSX (namedtuple):       Parameters passed from the beamline.
         metafile (Path):        Path to the _meta.h5 file. Deafults to None.
-        links (List, optional): List of datasets to be linked from the meta file. Defaults to None.
     """
     goniometer["starts"] = goniometer["ends"] = goniometer["increments"] = [
         0.0,
@@ -148,7 +146,7 @@ def extruder(
                 attenuator,
                 vds="dataset",  # or None if unwanted
                 metafile=metafile,
-                link_list=links,
+                link_list=dset_links,
             )
 
             # Write pump-probe information if requested
@@ -190,17 +188,15 @@ def write_nxs(**ssx_params):
     # Get info from the beamline
     SSX = ssx_collect(
         visitpath=Path(ssx_params["visitpath"]).expanduser().resolve(),
-        filename=ssx_params["filename"],
+        filename=ssx_params["filename"],  # Template: test_##
         exp_type=ssx_params["exp_type"],
         num_imgs=ssx_params["num_imgs"],
         beam_center=ssx_params["beam_center"],
         detector_distance=ssx_params["det_dist"],
         start_time=ssx_params["start_time"].strftime(
             "%Y-%m-%dT%H:%M:%S"
-        ),  # should be datetiem type
-        stop_time=ssx_params["stop_time"].strftime(
-            "%Y-%m-%dT%H:%M:%S"
-        ),  # idem. A bit of a gorilla but works.
+        ),  # This should be datetiem type
+        stop_time=ssx_params["stop_time"].strftime("%Y-%m-%dT%H:%M:%S"),  # idem.
         exposure_time=ssx_params["exp_time"],
         transmission=ssx_params["transmission"],
         wavelength=ssx_params["wavelength"],
@@ -229,20 +225,15 @@ def write_nxs(**ssx_params):
         # if filename == test_##_000001
         # seq = SSX.filename.split("_")[2]
         # metafile = SSX.visitpath / (SSX.filename.replace(seq, "meta") + ".h5")
-        logger.info(f"Found {metafile} in directory. Looking for metadata ...")
+        logger.info(f"Found {metafile} in directory.")
         # Overwrite/add to dictionary
-        # TODO rethink the metafile issue.
-        # This is fine if the collection is short enough that by the time the nexus writing
-        # is triggered all the other files are closed. But it will raise OSError otherwise.
-        # Possible solution: hard code the copied values - should be constant anyway - , make links
-        # and get beam center in namedtuple from the PVs.
-        # pretty much like GDA.
-        with h5py.File(metafile, "r") as meta:
-            overwrite_beam(meta, detector["description"], beam)
-            links = overwrite_detector(meta, detector)
+        # Not doing this as for long collections it will not work
+        # with h5py.File(metafile, "r") as meta:
+        #     overwrite_beam(meta, detector["description"], beam)
+        #     links = overwrite_detector(meta, detector)
     except IndexError:
         logger.warning(
-            "No _meta.h5 file found in directory. Some metadata will be missing."
+            "No _meta.h5 file found in directory. External links in the NeXus file will be broken."
         )
         # sys.exit("Missing metadata, unable to write NeXus file. Please use command line tool.")
 
@@ -271,7 +262,7 @@ def write_nxs(**ssx_params):
 
     # Call correct function for the current experiment
     if SSX.exp_type == "extruder":
-        extruder(master_file, filename, SSX, metafile, links)
+        extruder(master_file, filename, SSX, metafile)
     elif SSX.exp_type == "fixed_target":
         fixed_target()
     elif SSX.exp_type == "3Dgridscan":
@@ -286,7 +277,7 @@ if __name__ == "__main__":
         visitpath=sys.argv[1],
         filename=sys.argv[2],
         exp_type="extruder",
-        num_imgs=100,
+        num_imgs=2450,
         beam_center=[1590.7, 1643.7],
         det_dist=0.5,
         start_time=datetime.now(),

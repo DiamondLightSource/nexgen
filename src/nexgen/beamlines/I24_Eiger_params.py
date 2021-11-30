@@ -23,19 +23,38 @@ eiger9M_params = {
     "detector_type": "Pixel",
     "sensor_material": "CdTe",
     "sensor_thickness": "0.750mm",
-    "overload": "_dectris/countrate_correction_count_cutoff",
+    "overload": 50649,  # "_dectris/countrate_correction_count_cutoff",
     "underload": -1,
     "pixel_size": ["0.075mm", "0.075mm"],
-    "flatfield": None,
-    "pixel_mask": None,
+    "flatfield": "flatfield",
+    "flatfield_applied": "_dectris/flatfield_correction_applied",
+    "pixel_mask": "mask",
+    "pixel_mask_applied": "_dectris/pixel_mask_applied",
     "image_size": [3108, 3262],  # (fast, slow)
     "axes": ["det_z"],
     "depends": ["."],
     "vectors": [0, 0, 1],
     "types": ["translation"],
     "units": ["mm"],
+    "bit_depth_readout": "_dectris/bit_depth_readout",
+    "detector_readout_time": "_dectris/detector_readout_time",
+    "threshold_energy": "_dectris/threshold_energy",
+    "software_version": "_dectris/software_version",
+    "serial_number": "_dectris/detector_number",
     "fast_axis": [-1, 0, 0],
     "slow_axis": [0, -1, 0],
 }
 
-dset_links = {}
+dset_links = [
+    [
+        "pixel_mask",
+        "pixel_mask_applied",
+        "flatfield",
+        "flatfield_applied",
+        "threshold_energy",
+        "bit_depth_readout",
+        "detector_readout_time",
+        "serial_number",
+    ],
+    ["software_version"],
+]
