@@ -15,7 +15,12 @@ from pathlib import Path
 
 from collections import namedtuple
 
-from .I24_Eiger_params import goniometer_axes, eiger9M_params, source, dset_links
+from .I24_Eiger_params import (
+    goniometer_axes,
+    eiger9M_params,
+    source,
+    dset_links,
+)
 
 from .. import (
     get_iso_timestamp,
@@ -28,8 +33,6 @@ from ..nxs_write import (
 )
 from ..nxs_write.NexusWriter import call_writers
 from ..nxs_write.NXclassWriters import write_NXentry, write_NXnote
-
-# from ..tools.MetaReader import overwrite_detector, overwrite_beam
 
 # Define a logger object and a formatter
 logger = logging.getLogger("NeXusGenerator.I24")
@@ -65,7 +68,6 @@ ssx_collect = namedtuple(
 # Initialize dictionaries
 goniometer = goniometer_axes
 detector = eiger9M_params
-# source = source
 module = {}
 beam = {}
 attenuator = {}
@@ -144,14 +146,13 @@ def extruder(
                 source,
                 beam,
                 attenuator,
-                vds="dataset",  # or None if unwanted
+                vds="dataset",
                 metafile=metafile,
                 link_list=dset_links,
             )
 
             # Write pump-probe information if requested
             if SSX.pump_status == "true":
-                # if SSX.pump_status is True:
                 # Assuming pump_ext and pump_delay have been passed
                 assert (
                     SSX.pump_exp and SSX.pump_delay
@@ -218,19 +219,10 @@ def write_nxs(**ssx_params):
 
     # Find metafile in directory and get info from it
     try:
-        # if filename == test_##
         metafile = [
             f for f in SSX.visitpath.iterdir() if SSX.filename + "_meta" in f.as_posix()
         ][0]
-        # if filename == test_##_000001
-        # seq = SSX.filename.split("_")[2]
-        # metafile = SSX.visitpath / (SSX.filename.replace(seq, "meta") + ".h5")
         logger.info(f"Found {metafile} in directory.")
-        # Overwrite/add to dictionary
-        # Not doing this as for long collections it will not work
-        # with h5py.File(metafile, "r") as meta:
-        #     overwrite_beam(meta, detector["description"], beam)
-        #     links = overwrite_detector(meta, detector)
     except IndexError:
         logger.warning(
             "No _meta.h5 file found in directory. External links in the NeXus file will be broken."
@@ -244,15 +236,12 @@ def write_nxs(**ssx_params):
     module["module_offset"] = "1"
 
     # Find datafiles
-    # if filename == test_##
     filename_template = (
         metafile.parent / metafile.name.replace("meta", f"{6*'[0-9]'}")
     ).as_posix()
     filename = [
         Path(f).expanduser().resolve() for f in sorted(glob.glob(filename_template))
     ]
-    # if filename = test_##_000000
-    # filename = [SSX.visitpath / (SSX.filename+".h5")]
 
     # Add some information to logger
     logger.info("Creating a NeXus file for %s ..." % filename)
