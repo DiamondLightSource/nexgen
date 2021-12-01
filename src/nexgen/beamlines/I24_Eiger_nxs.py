@@ -99,6 +99,8 @@ def extruder(
         SSX (namedtuple):       Parameters passed from the beamline.
         metafile (Path):        Path to the _meta.h5 file. Deafults to None.
     """
+    logger.info(f"Write NeXus file for {SSX.exp_type}")
+
     goniometer["starts"] = goniometer["ends"] = goniometer["increments"] = [
         0.0,
         0.0,
@@ -125,6 +127,12 @@ def extruder(
         goniometer["ends"][scan_idx],
         n_images=SSX.num_imgs,
     )
+
+    logger.info("Goniometer information")
+    for j in range(len(goniometer["axes"])):
+        logger.info(
+            f"Goniometer axis: {goniometer['axes'][j]} => {goniometer['starts'][j]}, {goniometer['types'][j]} on {goniometer['depends'][j]}"
+        )
 
     try:
         with h5py.File(master_file, "x") as nxsfile:
@@ -153,15 +161,23 @@ def extruder(
 
             # Write pump-probe information if requested
             if SSX.pump_status == "true":
-                # Assuming pump_ext and pump_delay have been passed
-                assert (
-                    SSX.pump_exp and SSX.pump_delay
-                ), "Pump exposure time and/or delay have not been recorded."
+                logger.info("Pump status is True, write pump information to file.")
+                pump_info = {}
+                if SSX.pump_exp:
+                    pump_info["pump_exposure_time"] = SSX.pump_exp
+                else:
+                    pump_info["pump_exposure_time"] = None
+                    logger.warning(
+                        "Pump exposure time has not been recorded and won't be written to file."
+                    )
+                if SSX.pump_delay:
+                    pump_info["pump_delay"] = SSX.pump_delay
+                else:
+                    pump_info["pump_delay"] = None
+                    logger.warning(
+                        "Pump delay has not been recorded and won't be written to file."
+                    )
                 loc = "/entry/source/notes"
-                pump_info = {
-                    "pump_exposure_time": SSX.pump_exp,
-                    "pump_delay": SSX.pump_delay,
-                }
                 write_NXnote(nxsfile, loc, pump_info)
 
             if timestamps[1]:
@@ -217,6 +233,7 @@ def write_nxs(**ssx_params):
     beam["wavelength"] = SSX.wavelength
     beam["flux"] = SSX.flux
 
+    logger.info(f"Current collection directory: {SSX.visitpath}")
     # Find metafile in directory and get info from it
     try:
         metafile = [
@@ -244,7 +261,7 @@ def write_nxs(**ssx_params):
     ]
 
     # Add some information to logger
-    logger.info("Creating a NeXus file for %s ..." % filename)
+    logger.info("Creating a NeXus file for %s ..." % metafile.name)
     # Get NeXus filename
     master_file = get_nexus_filename(filename[0])
     logger.info("NeXus file will be saved as %s" % master_file)
@@ -275,7 +292,7 @@ if __name__ == "__main__":
         transmission=1.0,
         wavelength=0.649,
         flux=None,
-        pump_status="false",  # this is a string on the beamline
+        pump_status="true",  # this is a string on the beamline
         pump_exp=None,
         pump_delay=None,
     )
