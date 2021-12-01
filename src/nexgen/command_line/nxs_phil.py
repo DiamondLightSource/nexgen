@@ -179,7 +179,7 @@ beamline_scope = freephil.parse(
       wavelength = 0.979590
         .type = float
         .help = "Wavelength of incident beam, angstroms"
-      flux = 268717230611.358
+      flux = None
         .type = float
         .help = "Flux of incident beam, ph / s"
     }

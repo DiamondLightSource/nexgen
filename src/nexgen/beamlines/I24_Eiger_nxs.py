@@ -244,7 +244,10 @@ def write_nxs(**ssx_params):
         logger.warning(
             "No _meta.h5 file found in directory. External links in the NeXus file will be broken."
         )
-        # sys.exit("Missing metadata, unable to write NeXus file. Please use command line tool.")
+        sys.exit(
+            "Missing metadata, unable to write NeXus file. Please use command line tool."
+        )
+        # TODO add instructions for using command line tool
 
     module["fast_axis"] = detector.pop("fast_axis")
     module["slow_axis"] = detector.pop("slow_axis")
