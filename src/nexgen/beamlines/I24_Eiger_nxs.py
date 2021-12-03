@@ -13,10 +13,14 @@ import numpy as np
 from typing import List
 from pathlib import Path
 
-# from datetime import datetime
 from collections import namedtuple
 
-from .I24_Eiger_params import goniometer_axes, eiger9M_params, source
+from .I24_Eiger_params import (
+    goniometer_axes,
+    eiger9M_params,
+    source,
+    dset_links,
+)
 
 from .. import (
     get_iso_timestamp,
@@ -29,8 +33,6 @@ from ..nxs_write import (
 )
 from ..nxs_write.NexusWriter import call_writers
 from ..nxs_write.NXclassWriters import write_NXentry, write_NXnote
-
-from ..tools.MetaReader import overwrite_detector, overwrite_beam
 
 # Define a logger object and a formatter
 logger = logging.getLogger("NeXusGenerator.I24")
@@ -49,11 +51,13 @@ ssx_collect = namedtuple(
         "filename",
         "exp_type",
         "num_imgs",
+        "beam_center",
         "detector_distance",
         "start_time",
         "stop_time",
         "exposure_time",
         "transmission",
+        "wavelength",
         "flux",
         "pump_status",
         "pump_exp",
@@ -64,7 +68,6 @@ ssx_collect = namedtuple(
 # Initialize dictionaries
 goniometer = goniometer_axes
 detector = eiger9M_params
-# source = source
 module = {}
 beam = {}
 attenuator = {}
@@ -86,7 +89,6 @@ def extruder(
     filename: List[Path],
     SSX: namedtuple,
     metafile: Path = None,  # Just in case meta is not generated for some reason
-    links: List = None,
 ):
     """
     Write the NeXus file for extruder collections, pump-probe and not.
@@ -96,8 +98,9 @@ def extruder(
         filename (list):        List of paths to file.
         SSX (namedtuple):       Parameters passed from the beamline.
         metafile (Path):        Path to the _meta.h5 file. Deafults to None.
-        links (List, optional): List of datasets to be linked from the meta file. Defaults to None.
     """
+    logger.info(f"Write NeXus file for {SSX.exp_type}")
+
     goniometer["starts"] = goniometer["ends"] = goniometer["increments"] = [
         0.0,
         0.0,
@@ -125,6 +128,12 @@ def extruder(
         n_images=SSX.num_imgs,
     )
 
+    logger.info("Goniometer information")
+    for j in range(len(goniometer["axes"])):
+        logger.info(
+            f"Goniometer axis: {goniometer['axes'][j]} => {goniometer['starts'][j]}, {goniometer['types'][j]} on {goniometer['depends'][j]}"
+        )
+
     try:
         with h5py.File(master_file, "x") as nxsfile:
             nxentry = write_NXentry(nxsfile)
@@ -145,23 +154,30 @@ def extruder(
                 source,
                 beam,
                 attenuator,
-                vds="dataset",  # or None if unwanted
+                vds="dataset",
                 metafile=metafile,
-                link_list=links,
+                link_list=dset_links,
             )
 
             # Write pump-probe information if requested
             if SSX.pump_status == "true":
-                # if SSX.pump_status is True:
-                # Assuming pump_ext and pump_delay have been passed
-                assert (
-                    SSX.pump_exp and SSX.pump_delay
-                ), "Pump exposure time and/or delay have not been recorded."
+                logger.info("Pump status is True, write pump information to file.")
+                pump_info = {}
+                if SSX.pump_exp:
+                    pump_info["pump_exposure_time"] = SSX.pump_exp
+                else:
+                    pump_info["pump_exposure_time"] = None
+                    logger.warning(
+                        "Pump exposure time has not been recorded and won't be written to file."
+                    )
+                if SSX.pump_delay:
+                    pump_info["pump_delay"] = SSX.pump_delay
+                else:
+                    pump_info["pump_delay"] = None
+                    logger.warning(
+                        "Pump delay has not been recorded and won't be written to file."
+                    )
                 loc = "/entry/source/notes"
-                pump_info = {
-                    "pump_exposure_time": SSX.pump_exp,
-                    "pump_delay": SSX.pump_delay,
-                }
                 write_NXnote(nxsfile, loc, pump_info)
 
             if timestamps[1]:
@@ -189,18 +205,20 @@ def write_nxs(**ssx_params):
     # Get info from the beamline
     SSX = ssx_collect(
         visitpath=Path(ssx_params["visitpath"]).expanduser().resolve(),
-        filename=ssx_params["filename"],
+        filename=ssx_params["filename"],  # Template: test_##
         exp_type=ssx_params["exp_type"],
         num_imgs=ssx_params["num_imgs"],
+        beam_center=ssx_params["beam_center"],
         detector_distance=ssx_params["det_dist"],
-        start_time=ssx_params["start_time"].strftime(
-            "%Y-%m-%dT%H:%M:%S"
-        ),  # should be datetiem type
-        stop_time=ssx_params["stop_time"].strftime(
-            "%Y-%m-%dT%H:%M:%S"
-        ),  # idem. A bit of a gorilla but works.
+        start_time=ssx_params["start_time"].strftime("%Y-%m-%dT%H:%M:%S")
+        if ssx_params["start_time"]
+        else None,  # This should be datetiem type
+        stop_time=ssx_params["stop_time"].strftime("%Y-%m-%dT%H:%M:%S")
+        if ssx_params["start_time"]
+        else None,  # idem.
         exposure_time=ssx_params["exp_time"],
         transmission=ssx_params["transmission"],
+        wavelength=ssx_params["wavelength"],
         flux=ssx_params["flux"],
         pump_status=ssx_params["pump_status"],
         pump_exp=ssx_params["pump_exp"],
@@ -210,30 +228,28 @@ def write_nxs(**ssx_params):
     # Add to dictionaries
     detector["starts"] = [SSX.detector_distance]
     detector["exposure_time"] = SSX.exposure_time
+    detector["beam_center"] = SSX.beam_center
 
     attenuator["transmission"] = SSX.transmission
 
+    beam["wavelength"] = SSX.wavelength
     beam["flux"] = SSX.flux
 
+    logger.info(f"Current collection directory: {SSX.visitpath}")
     # Find metafile in directory and get info from it
     try:
-        # if filename == test_##
         metafile = [
             f for f in SSX.visitpath.iterdir() if SSX.filename + "_meta" in f.as_posix()
         ][0]
-        # if filename == test_##_000001
-        # seq = SSX.filename.split("_")[2]
-        # metafile = SSX.visitpath / (SSX.filename.replace(seq, "meta") + ".h5")
-        logger.info(f"Found {metafile} in directory. Looking for metadata ...")
-        # Overwrite/add to dictionary
-        with h5py.File(metafile, "r") as meta:
-            overwrite_beam(meta, detector["description"], beam)
-            links = overwrite_detector(meta, detector)
+        logger.info(f"Found {metafile} in directory.")
     except IndexError:
         logger.warning(
-            "No _meta.h5 file found in directory. Some metadata will be missing."
+            "No _meta.h5 file found in directory. External links in the NeXus file will be broken."
         )
-        # sys.exit("Missing metadata, unable to write NeXus file. Please use command line tool.")
+        sys.exit(
+            "Missing metadata, unable to write NeXus file. Please use command line tool."
+        )
+        # TODO add instructions for using command line tool
 
     module["fast_axis"] = detector.pop("fast_axis")
     module["slow_axis"] = detector.pop("slow_axis")
@@ -242,47 +258,48 @@ def write_nxs(**ssx_params):
     module["module_offset"] = "1"
 
     # Find datafiles
-    # if filename == test_##
     filename_template = (
         metafile.parent / metafile.name.replace("meta", f"{6*'[0-9]'}")
     ).as_posix()
     filename = [
         Path(f).expanduser().resolve() for f in sorted(glob.glob(filename_template))
     ]
-    # if filename = test_##_000000
-    # filename = [SSX.visitpath / (SSX.filename+".h5")]
 
     # Add some information to logger
-    logger.info("Creating a NeXus file for %s ..." % filename)
+    logger.info("Creating a NeXus file for %s ..." % metafile.name)
     # Get NeXus filename
     master_file = get_nexus_filename(filename[0])
     logger.info("NeXus file will be saved as %s" % master_file)
 
     # Call correct function for the current experiment
     if SSX.exp_type == "extruder":
-        extruder(master_file, filename, SSX, metafile, links)
+        extruder(master_file, filename, SSX, metafile)
     elif SSX.exp_type == "fixed_target":
         fixed_target()
     elif SSX.exp_type == "3Dgridscan":
         grid_scan_3D()
 
 
-# # Example usage
-# if __name__ == "__main__":
-#     write_nxs(
-#         visitpath=sys.argv[1],
-#         filename=sys.argv[2],
-#         exp_type="extruder",
-#         num_imgs=100,
-#         det_dist=0.5,
-#         # start_time="Mon Nov 15 2021 15:59:12",
-#         start_time=datetime.now(),
-#         stop_time=datetime.now(),
-#         # stop_time=None,
-#         exp_time=0.002,
-#         transmission=1.0,
-#         flux=None,
-#         pump_status=False,    # this is a string on the beamline
-#         pump_exp=None,
-#         pump_delay=None,
-#     )
+# Example usage
+if __name__ == "__main__":
+    from datetime import datetime
+
+    write_nxs(
+        visitpath=sys.argv[1],
+        filename=sys.argv[2],
+        exp_type="extruder",
+        num_imgs=2450,
+        beam_center=[1590.7, 1643.7],
+        det_dist=0.5,
+        # start_time=None,
+        # stop_time=None,
+        start_time=datetime.now(),
+        stop_time=datetime.now(),
+        exp_time=0.002,
+        transmission=1.0,
+        wavelength=0.649,
+        flux=None,
+        pump_status="true",  # this is a string on the beamline
+        pump_exp=None,
+        pump_delay=None,
+    )

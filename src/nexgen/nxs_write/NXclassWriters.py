@@ -709,6 +709,7 @@ def write_NXnote(nxsfile: h5py.File, loc: str, info: Dict):
 
     # Write datasets
     for k, v in info.items():
-        if type(v) is str:
-            v = np.string_(v)
-        nxnote.create_dataset(k, data=v)
+        if v:  # Just in case one value is not recorded and set as None
+            if type(v) is str:
+                v = np.string_(v)
+            nxnote.create_dataset(k, data=v)

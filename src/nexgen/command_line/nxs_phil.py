@@ -179,7 +179,7 @@ beamline_scope = freephil.parse(
       wavelength = 0.979590
         .type = float
         .help = "Wavelength of incident beam, angstroms"
-      flux = 268717230611.358
+      flux = None
         .type = float
         .help = "Flux of incident beam, ph / s"
     }
@@ -200,6 +200,17 @@ timestamp_scope = freephil.parse(
     end_time = None
       .type = str
       .help = "Experiment end time, pass either a timestamp or a string, eg '2021-09-20T10:20:30' or 'Tue Sep 28 2021 10:58:01'."
+    """
+)
+
+pump_probe_scope = freephil.parse(
+    """
+    pump_exp = None
+      .type = float
+      .help = "Pump exposure time."
+    pump_delay = None
+      .type = float
+      .help = "Pump delay"
     """
 )
 
