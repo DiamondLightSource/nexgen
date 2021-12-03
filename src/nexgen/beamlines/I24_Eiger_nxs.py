@@ -210,10 +210,12 @@ def write_nxs(**ssx_params):
         num_imgs=ssx_params["num_imgs"],
         beam_center=ssx_params["beam_center"],
         detector_distance=ssx_params["det_dist"],
-        start_time=ssx_params["start_time"].strftime(
-            "%Y-%m-%dT%H:%M:%S"
-        ),  # This should be datetiem type
-        stop_time=ssx_params["stop_time"].strftime("%Y-%m-%dT%H:%M:%S"),  # idem.
+        start_time=ssx_params["start_time"].strftime("%Y-%m-%dT%H:%M:%S")
+        if ssx_params["start_time"]
+        else None,  # This should be datetiem type
+        stop_time=ssx_params["stop_time"].strftime("%Y-%m-%dT%H:%M:%S")
+        if ssx_params["start_time"]
+        else None,  # idem.
         exposure_time=ssx_params["exp_time"],
         transmission=ssx_params["transmission"],
         wavelength=ssx_params["wavelength"],
@@ -289,6 +291,8 @@ if __name__ == "__main__":
         num_imgs=2450,
         beam_center=[1590.7, 1643.7],
         det_dist=0.5,
+        # start_time=None,
+        # stop_time=None,
         start_time=datetime.now(),
         stop_time=datetime.now(),
         exp_time=0.002,

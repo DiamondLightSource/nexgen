@@ -15,6 +15,9 @@ goniometer_axes = {
     "types": ["rotation", "translation", "translation", "translation"],
     "units": ["deg", "mm", "mm", "mm"],
     "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    "starts": None,
+    "ends": None,
+    "increments": None,
 }
 
 eiger9M_params = {
@@ -36,6 +39,9 @@ eiger9M_params = {
     "vectors": [0, 0, 1],
     "types": ["translation"],
     "units": ["mm"],
+    "starts": None,
+    "ends": None,
+    "increments": None,
     "bit_depth_readout": "_dectris/bit_depth_readout",
     "detector_readout_time": "_dectris/detector_readout_time",
     "threshold_energy": "_dectris/threshold_energy",

@@ -203,6 +203,17 @@ timestamp_scope = freephil.parse(
     """
 )
 
+pump_probe_scope = freephil.parse(
+    """
+    pump_exp = None
+      .type = float
+      .help = "Pump exposure time."
+    pump_delay = None
+      .type = float
+      .help = "Pump delay"
+    """
+)
+
 if __name__ == "__main__":
     print(detector_scope.as_str())
     print(module_scope.as_str())

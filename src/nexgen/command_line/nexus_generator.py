@@ -656,6 +656,8 @@ def write_with_meta_cli(args):
         )
         logger.exception(err)
 
+    logger.info("EOF")
+
 
 # Define subparsers
 subparsers = parser.add_subparsers(
