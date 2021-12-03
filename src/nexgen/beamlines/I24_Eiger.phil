@@ -47,9 +47,6 @@ detector {
   types = translation
   units = mm
   software_version = None
-  detector_tick = None
-  detector_frequency = None
-  timeslice_rollover = None
 }
 detector_module {
   num_modules = 1
