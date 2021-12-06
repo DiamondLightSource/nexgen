@@ -28,6 +28,7 @@ from .. import (
     get_iso_timestamp,
 )
 from ..nxs_write.NexusWriter import write_nexus, write_nexus_demo
+from ..nxs_write.NXclassWriters import write_NXnote
 
 # Define a logger object and a formatter
 logger = logging.getLogger("NeXusGenerator")
@@ -297,6 +298,14 @@ def write_NXmx_cli(args):
                 cf,
                 params.input.vds_writer,
             )
+
+            # Check and save pump status
+            if params.pump_probe.pump_status is True:
+                logger.info(
+                    "Pump probe status is True, write relative metadata as NXnote."
+                )
+                write_NXnote(nxsfile, "/entry/source/notes", params.pump_probe.__dict__)
+
         logger.info(f"{master_file} correctly written.")
     except Exception as err:
         logger.info(
@@ -465,6 +474,13 @@ def write_demo_cli(args):
                 attenuator,
                 params.input.vds_writer,
             )
+
+            # Check and save pump status
+            if params.pump_probe.pump_status is True:
+                logger.info(
+                    "Pump probe status is True, write relative metadata as NXnote."
+                )
+                write_NXnote(nxsfile, "/entry/source/notes", params.pump_probe.__dict__)
 
             # Record string with end_time
             end_time = datetime.fromtimestamp(time.time()).strftime(
@@ -661,6 +677,14 @@ def write_with_meta_cli(args):
                 params.input.vds_writer,
                 metainfo,
             )
+
+            # Check and save pump status
+            if params.pump_probe.pump_status is True:
+                logger.info(
+                    "Pump probe status is True, write relative metadata as NXnote."
+                )
+                write_NXnote(nxsfile, "/entry/source/notes", params.pump_probe.__dict__)
+
             logger.info(f"{master_file} correctly written.")
     except Exception as err:
         logger.info(

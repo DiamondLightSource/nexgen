@@ -659,6 +659,7 @@ def write_NXcollection(
         meta (Path):                Path to _meta.h5 file, if exists.
         link_list (List):           List of values from the meta file to be linked instead of copied.
     """
+    NXclass_logger.info("Start writing detectorSpecific group as NXcollection.")
     # Create detectorSpecific group
     grp = nxdetector.create_group("detectorSpecific")
     grp.create_dataset("x_pixels", data=detector["image_size"][0])
@@ -696,6 +697,7 @@ def write_NXnote(nxsfile: h5py.File, loc: str, info: Dict):
         loc (str):              Location inside the NeXus file to write NXnote group.
         info (Dict):            Dictionary of datasets to be written to NXnote.
     """
+    NXclass_logger.info("Start writing NXnote.")
     # Create the NXnote group in the specified location
     try:
         nxnote = nxsfile.create_group(loc)
@@ -713,3 +715,4 @@ def write_NXnote(nxsfile: h5py.File, loc: str, info: Dict):
             if type(v) is str:
                 v = np.string_(v)
             nxnote.create_dataset(k, data=v)
+            NXclass_logger.info(f"{k} dataset writte in {loc}.")
