@@ -189,7 +189,8 @@ def write_NXmx_cli(args):
     )
 
     # If dealing with a tristan detector, add its specifications to detector scope.
-    # TODO
+    if "TRISTAN" in detector.description.upper():
+        add_tristan_spec(detector, params.tristanSpec)
 
     # Log information
     logger.info("Source information")
@@ -542,7 +543,8 @@ def write_with_meta_cli(args):
     )
 
     # If dealing with a tristan detector, add its specifications to detector scope.
-    # TODO
+    if "TRISTAN" in detector.description.upper():
+        add_tristan_spec(detector, params.tristanSpec)
 
     # Log information
     logger.info("Source information")
