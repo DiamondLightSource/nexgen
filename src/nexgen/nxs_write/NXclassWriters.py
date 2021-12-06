@@ -673,7 +673,7 @@ def write_NXcollection(
             grp.create_dataset(
                 "software_version", data=np.string_(detector["software_version"])
             )
-    if "TRISTAN" in detector["description"].upper() or data_type[1] == "events":
+    if "TRISTAN" in detector["description"].upper():  # or data_type[1] == "events":
         tick = ureg.Quantity(detector["detector_tick"])
         grp.create_dataset("detector_tick", data=tick.magnitude)
         grp["detector_tick"].attrs["units"] = format(tick.units, "~")

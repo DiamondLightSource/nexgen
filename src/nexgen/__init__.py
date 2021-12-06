@@ -11,6 +11,9 @@ import re
 import sys
 import h5py
 import pint
+
+# import freephil
+
 import numpy as np
 
 from pathlib import Path
@@ -20,6 +23,9 @@ from typing import Any, Optional, List, Union
 # Initialize registry and a Quantity constructor
 ureg = pint.UnitRegistry()
 Q_ = ureg.Quantity
+
+# Define scope extract type
+# Scope = freephil.common.scope_extract
 
 # Filename pattern: filename_######.h5 or filename_meta.h5
 # P = re.compile(r"(.*)_(?:\d+)")

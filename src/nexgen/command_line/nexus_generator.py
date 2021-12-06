@@ -20,6 +20,7 @@ from . import (
     detectormode_parser,
     nexus_parser,
     demo_parser,
+    add_tristan_spec,
 )
 from .. import (
     get_nexus_filename,
@@ -187,6 +188,9 @@ def write_NXmx_cli(args):
         get_iso_timestamp(params.end_time),
     )
 
+    # If dealing with a tristan detector, add its specifications to detector scope.
+    # TODO
+
     # Log information
     logger.info("Source information")
     logger.info(f"Facility: {source.name} - {source.type}.")
@@ -349,6 +353,10 @@ def write_demo_cli(args):
     source = params.source
     beam = params.beam
     attenuator = params.attenuator
+
+    # If dealing with a tristan detector, add its specifications to detector scope.
+    if "TRISTAN" in detector.description.upper():
+        add_tristan_spec(detector, params.tristanSpec)
 
     # Log information
     logger.info("Data type: %s" % data_type[0])
@@ -533,7 +541,9 @@ def write_with_meta_cli(args):
         get_iso_timestamp(params.end_time),
     )
 
-    # TODO figure out how to handle logging of detector information in this case
+    # If dealing with a tristan detector, add its specifications to detector scope.
+    # TODO
+
     # Log information
     logger.info("Source information")
     logger.info(f"Facility: {source.name} - {source.type}.")
