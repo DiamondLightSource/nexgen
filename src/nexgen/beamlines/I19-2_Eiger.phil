@@ -34,7 +34,7 @@ detector {
   sensor_material = Si *CdTe
   sensor_thickness = 0.750mm
   overload = None
-  underload = None
+  underload = -1
   pixel_size = 0.075mm 0.075mm
   beam_center = None
   flatfield = None
