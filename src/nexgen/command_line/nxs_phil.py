@@ -108,13 +108,15 @@ detector_scope = freephil.parse(
       software_version = None
         .type = str
         .help = "Detector software version"
-      detector_tick = 1562.5ps
+    }
+    tristanSpec {
+      detector_tick = None          # 1562.5ps
         .type = str
         .help = "Tristan specific - detector tick, in ps"
-      detector_frequency = 6.4e+08Hz
+      detector_frequency = None     # 6.4e+08Hz
         .type = str
         .help = "Tristan specific - detector frequency, in Hz"
-      timeslice_rollover = 18
+      timeslice_rollover = None     # 18
         .type = int
         .help = "Tristan specific - timeslice rollover bits"
     }
@@ -189,6 +191,17 @@ beamline_scope = freephil.parse(
         .type = float
         .help = "Attenuation of beam intensity"
     }
+    pump_probe {
+      pump_status = False
+        .type = bool
+        .help = "Pump probe experiment status."
+      pump_exp = None
+        .type = float
+        .help = "Pump exposure time"
+      pump_delay = None
+        .type = float
+        .help = "Pump delay"
+    }
     """
 )
 
@@ -200,17 +213,6 @@ timestamp_scope = freephil.parse(
     end_time = None
       .type = str
       .help = "Experiment end time, pass either a timestamp or a string, eg '2021-09-20T10:20:30' or 'Tue Sep 28 2021 10:58:01'."
-    """
-)
-
-pump_probe_scope = freephil.parse(
-    """
-    pump_exp = None
-      .type = float
-      .help = "Pump exposure time."
-    pump_delay = None
-      .type = float
-      .help = "Pump delay"
     """
 )
 
