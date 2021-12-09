@@ -110,13 +110,13 @@ detector_scope = freephil.parse(
         .help = "Detector software version"
     }
     tristanSpec {
-      detector_tick = 1562.5ps
+      detector_tick = None          # 1562.5ps
         .type = str
         .help = "Tristan specific - detector tick, in ps"
-      detector_frequency = 6.4e+08Hz
+      detector_frequency = None     # 6.4e+08Hz
         .type = str
         .help = "Tristan specific - detector frequency, in Hz"
-      timeslice_rollover = 18
+      timeslice_rollover = None     # 18
         .type = int
         .help = "Tristan specific - timeslice rollover bits"
     }

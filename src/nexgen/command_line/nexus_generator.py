@@ -697,7 +697,8 @@ def write_with_meta_cli(args):
 
 # Define subparsers
 subparsers = parser.add_subparsers(
-    help="Choose whether to write a NXmx NeXus file for a collection or a demo.",
+    help="Choose whether to write a NXmx NeXus file for a collection or a demo. \
+        Run generate_nexus <command> --help to see the parameters for each sub-command.",
     required=True,
     dest="sub-command",
 )
