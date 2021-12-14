@@ -1,0 +1,68 @@
+goniometer {
+  axes = omega kappa phi sam_z sam_y sam_x
+  depends = . omega kappa phi sam_z sam_y
+  vectors = -1,0,0,-0.642788,-0.766044,0,-1,0,0,0,0,-1,0,-1,0,-1,0,0
+  offsets = 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+  offset_units = mm mm mm mm mm mm
+  starts = None
+  ends = None
+  increments = None
+  types = rotation rotation rotation translation translation translation
+  units = deg deg deg mm mm mm
+}
+source {
+  name = Diamond Light Source
+  short_name = DLS
+  type = Synchrotron X-ray Source
+  beamline_name = I19-2
+}
+beam {
+  wavelength = None
+  flux = None
+}
+attenuator {
+  transmission = None
+}
+pump_probe {
+  pump_status = False
+  pump_exp = None
+  pump_delay = None
+}
+detector {
+  description = Tristan 10M
+  detector_type = Pixel
+  sensor_material = *Si CdTe
+  sensor_thickness = 0.0005m
+  overload = None
+  underload = None
+  pixel_size = 5.5e-05m 5.5e-05m
+  beam_center = None
+  flatfield = None
+  flatfield_applied = False
+  pixel_mask = None
+  pixel_mask_applied = False
+  image_size = 4183,3043
+  exposure_time = None
+  axes = two_theta det_z
+  depends = . two_theta
+  vectors = -1,0,0,0,0,1
+  starts = None
+  ends = None
+  increments = 0.0,0.0
+  types = rotation translation
+  units = deg mm
+  software_version = None
+}
+tristanSpec {
+  detector_tick = 1562.5ps
+  detector_frequency = 6.4e+08Hz
+  timeslice_rollover = 18
+}
+detector_module {
+  num_modules = 1
+  module_offset = 0 *1 2
+  fast_axis = -1,0,0
+  slow_axis = 0,1,0
+  offsets = 0,0,0,0,0,0
+  module_size = 0 0
+}

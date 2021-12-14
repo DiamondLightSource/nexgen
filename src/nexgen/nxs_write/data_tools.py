@@ -40,14 +40,16 @@ def data_writer(
 
 
 def generate_image_data(
-    filename: Optional[Union[Path, str]], shape: Tuple[int, int], write_mode: str = "x"
+    filename: Optional[Union[Path, str]],
+    shape: Tuple[int, int, int],
+    write_mode: str = "x",
 ):
     """
     Generate a HDF5 file with blank images.
 
     Args:
         filename:   Name of the output data file to be written.
-        shape:      Tuple defining dataset dimensions.
+        shape:      Tuple defining dataset dimensions as follows: (img_number, slow_axis, fast_axis).
         write_mode: Mode for writing the output HDF5 file.  Accepts any valid
                     h5py file opening mode.
     """
@@ -108,16 +110,21 @@ def vds_writer(nxsfile: h5py.File, datafiles: List[Path], vds_writer: str):
     """
     data_logger.info("Start creating VDS ...")
     entry_key = "data"
-    sh = h5py.File(datafiles[0], "r")[entry_key].shape
+    # Calculate total number of frames across the files
+    frames = [h5py.File(f, "r")[entry_key].shape[0] for f in datafiles]
+    tot_frames = sum(frames)
+    # Get shape of the detector
+    sh = h5py.File(datafiles[0], "r")[entry_key].shape[1:]
+
     dtyp = h5py.File(datafiles[0], "r")[entry_key].dtype
 
     # Create virtual layout
-    layout = h5py.VirtualLayout(shape=(len(datafiles) * sh[0],) + sh[1:], dtype=dtyp)
+    layout = h5py.VirtualLayout(shape=(tot_frames,) + sh, dtype=dtyp)
     start = 0
-    for _, filename in enumerate(datafiles):
-        end = start + sh[0]
+    for n, filename in enumerate(datafiles):
+        end = start + frames[n]
         vsource = h5py.VirtualSource(
-            filename.name, entry_key, shape=sh
+            filename.name, entry_key, shape=(frames[n],) + sh
         )  # Source definition
         layout[start:end:1, :, :] = vsource
         start = end

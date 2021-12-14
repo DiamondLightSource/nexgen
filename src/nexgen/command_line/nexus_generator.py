@@ -20,13 +20,15 @@ from . import (
     detectormode_parser,
     nexus_parser,
     demo_parser,
+    add_tristan_spec,
 )
 from .. import (
     get_nexus_filename,
     get_filename_template,
     get_iso_timestamp,
 )
-from ..nxs_write.NexusWriter import write_NXmx_nexus, write_nexus_demo
+from ..nxs_write.NexusWriter import write_nexus, write_nexus_demo
+from ..nxs_write.NXclassWriters import write_NXnote
 
 # Define a logger object and a formatter
 logger = logging.getLogger("NeXusGenerator")
@@ -187,6 +189,10 @@ def write_NXmx_cli(args):
         get_iso_timestamp(params.end_time),
     )
 
+    # If dealing with a tristan detector, add its specifications to detector scope.
+    if "TRISTAN" in detector.description.upper():
+        add_tristan_spec(detector, params.tristanSpec)
+
     # Log information
     logger.info("Source information")
     logger.info(f"Facility: {source.name} - {source.type}.")
@@ -279,7 +285,7 @@ def write_NXmx_cli(args):
     logger.info("Start writing NeXus file ...")
     try:
         with h5py.File(master_file, "x") as nxsfile:
-            write_NXmx_nexus(
+            write_nexus(
                 nxsfile,
                 datafiles,
                 goniometer,
@@ -292,6 +298,14 @@ def write_NXmx_cli(args):
                 cf,
                 params.input.vds_writer,
             )
+
+            # Check and save pump status
+            if params.pump_probe.pump_status is True:
+                logger.info(
+                    "Pump probe status is True, write relative metadata as NXnote."
+                )
+                write_NXnote(nxsfile, "/entry/source/notes", params.pump_probe.__dict__)
+
         logger.info(f"{master_file} correctly written.")
     except Exception as err:
         logger.info(
@@ -349,6 +363,10 @@ def write_demo_cli(args):
     source = params.source
     beam = params.beam
     attenuator = params.attenuator
+
+    # If dealing with a tristan detector, add its specifications to detector scope.
+    if "TRISTAN" in detector.description.upper():
+        add_tristan_spec(detector, params.tristanSpec)
 
     # Log information
     logger.info("Data type: %s" % data_type[0])
@@ -457,6 +475,13 @@ def write_demo_cli(args):
                 params.input.vds_writer,
             )
 
+            # Check and save pump status
+            if params.pump_probe.pump_status is True:
+                logger.info(
+                    "Pump probe status is True, write relative metadata as NXnote."
+                )
+                write_NXnote(nxsfile, "/entry/source/notes", params.pump_probe.__dict__)
+
             # Record string with end_time
             end_time = datetime.fromtimestamp(time.time()).strftime(
                 "%A, %d. %B %Y %I:%M%p"
@@ -533,7 +558,10 @@ def write_with_meta_cli(args):
         get_iso_timestamp(params.end_time),
     )
 
-    # TODO figure out how to handle logging of detector information in this case
+    # If dealing with a tristan detector, add its specifications to detector scope.
+    if "TRISTAN" in detector.description.upper():
+        add_tristan_spec(detector, params.tristanSpec)
+
     # Log information
     logger.info("Source information")
     logger.info(f"Facility: {source.name} - {source.type}.")
@@ -635,7 +663,7 @@ def write_with_meta_cli(args):
     logger.info("Start writing NeXus file ...")
     try:
         with h5py.File(master_file, "x") as nxsfile:
-            write_NXmx_nexus(
+            write_nexus(
                 nxsfile,
                 datafiles,
                 goniometer,
@@ -649,6 +677,14 @@ def write_with_meta_cli(args):
                 params.input.vds_writer,
                 metainfo,
             )
+
+            # Check and save pump status
+            if params.pump_probe.pump_status is True:
+                logger.info(
+                    "Pump probe status is True, write relative metadata as NXnote."
+                )
+                write_NXnote(nxsfile, "/entry/source/notes", params.pump_probe.__dict__)
+
             logger.info(f"{master_file} correctly written.")
     except Exception as err:
         logger.info(
@@ -656,10 +692,13 @@ def write_with_meta_cli(args):
         )
         logger.exception(err)
 
+    logger.info("EOF")
+
 
 # Define subparsers
 subparsers = parser.add_subparsers(
-    help="Choose whether to write a NXmx NeXus file for a collection or a demo.",
+    help="Choose whether to write a NXmx NeXus file for a collection or a demo. \
+        Run generate_nexus <command> --help to see the parameters for each sub-command.",
     required=True,
     dest="sub-command",
 )
@@ -709,4 +748,4 @@ def main():
     args.func(args)
 
 
-main()
+# main()

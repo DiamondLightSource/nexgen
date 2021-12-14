@@ -75,9 +75,9 @@ detector_scope = freephil.parse(
       pixel_mask_applied = False
         .type = bool
         .help = "If the mask location is known, specify whether it's been applied of not."
-      image_size = 4362 4148
+      image_size = 4148 4362
         .type = ints(size = 2)
-        .help = "Image size in pixels: (slow, fast)"
+        .help = "Image size in pixels: (fast, slow)"
       exposure_time = 0.004s
         .type = str
         .help = "Nominal exposure time, if unit is not specified defaults to seconds"
@@ -108,13 +108,15 @@ detector_scope = freephil.parse(
       software_version = None
         .type = str
         .help = "Detector software version"
-      detector_tick = 1562.5ps
+    }
+    tristanSpec {
+      detector_tick = None          # 1562.5ps
         .type = str
         .help = "Tristan specific - detector tick, in ps"
-      detector_frequency = 6.4e+08Hz
+      detector_frequency = None     # 6.4e+08Hz
         .type = str
         .help = "Tristan specific - detector frequency, in Hz"
-      timeslice_rollover = 18
+      timeslice_rollover = None     # 18
         .type = int
         .help = "Tristan specific - timeslice rollover bits"
     }
@@ -136,6 +138,9 @@ goniometer_scope = freephil.parse(
       offsets = 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
         .type = floats
         .help = "Axis offsets - one after the other"
+      offset_units = mm mm mm mm mm mm
+        .type = strings
+        .help = "Units of the axis offsets"
       starts = 0.0 0.0 0.0 0.0 0.0 0.0
         .type = floats
         .help = "Starting values for axes"
@@ -176,7 +181,7 @@ beamline_scope = freephil.parse(
       wavelength = 0.979590
         .type = float
         .help = "Wavelength of incident beam, angstroms"
-      flux = 268717230611.358
+      flux = None
         .type = float
         .help = "Flux of incident beam, ph / s"
     }
@@ -185,6 +190,17 @@ beamline_scope = freephil.parse(
       transmission = 1
         .type = float
         .help = "Attenuation of beam intensity"
+    }
+    pump_probe {
+      pump_status = False
+        .type = bool
+        .help = "Pump probe experiment status."
+      pump_exp = None
+        .type = float
+        .help = "Pump exposure time"
+      pump_delay = None
+        .type = float
+        .help = "Pump delay"
     }
     """
 )

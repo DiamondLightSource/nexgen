@@ -108,6 +108,18 @@ class DectrisMetafile(Metafile):
             return None
         return self.__getitem__(_loc[0])[0]
 
+    def get_detector_distance(self) -> float:
+        _loc = [obj for obj in self.walk if "detector_distance" in obj]
+        if len(_loc) == 0:
+            return None
+        return self.__getitem__(_loc[0])[0]
+
+    def get_saturation_value(self) -> float:
+        _loc = [obj for obj in self.walk if "countrate_correction_count_cutoff" in obj]
+        if len(_loc) == 0:
+            return None
+        return self.__getitem__(_loc[0])[0]
+
     def get_sensor_information(self) -> Tuple[bytes, float]:
         _loc_material = [obj for obj in self.walk if "sensor_material" in obj]
         _loc_thickness = [obj for obj in self.walk if "sensor_thickness" in obj]
