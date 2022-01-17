@@ -59,7 +59,9 @@ full_copy_parser.add_argument("phil_args", nargs="*")
 
 tristan_copy_parser = argparse.ArgumentParser(add_help=False)
 tristan_copy_parser.add_argument("phil_args", nargs="*")
-tristan_group = tristan_copy_parser.add_mutually_exclusive_group(required=True)
+tristan_group = tristan_copy_parser.add_mutually_exclusive_group(
+    required=False
+)  # required=True)
 tristan_group.add_argument(
     "-o",
     "--osc-angle",
