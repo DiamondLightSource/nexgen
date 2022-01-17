@@ -86,8 +86,12 @@ def get_nexus_filename(input_filename: Path) -> Path:
     Returns:
         NeXus file name (.nxs) path.
     """
-    filename_stem = P.fullmatch(input_filename.stem)[1]
-    nxs_filename = input_filename.parent / f"{filename_stem}.nxs"
+    filename_stem = P.fullmatch(input_filename.stem)
+    if filename_stem:
+        filename = filename_stem[1]
+    else:
+        filename = input_filename.stem
+    nxs_filename = input_filename.parent / f"{filename}.nxs"
     return nxs_filename
 
 
