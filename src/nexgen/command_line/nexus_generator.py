@@ -683,7 +683,11 @@ def write_with_meta_cli(args):
                 logger.info(
                     "Pump probe status is True, write relative metadata as NXnote."
                 )
-                write_NXnote(nxsfile, "/entry/source/notes", params.pump_probe.__dict__)
+                pump_info = {
+                    "pump_exposure_time": params.pump_probe.pump_exp,
+                    "pump_delay": params.pump_probe.pump_delay,
+                }
+                write_NXnote(nxsfile, "/entry/source/notes", pump_info)
 
             logger.info(f"{master_file} correctly written.")
     except Exception as err:
@@ -748,4 +752,4 @@ def main():
     args.func(args)
 
 
-# main()
+main()
