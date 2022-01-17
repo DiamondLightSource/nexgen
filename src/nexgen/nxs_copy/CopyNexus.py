@@ -18,7 +18,7 @@ copy_logger = logging.getLogger("CopyNeXus.copy")
 def images_nexus(
     data_file: List[Union[Path, str]],
     original_nexus: Optional[Union[Path, str]],
-    simple_copy: bool = False,
+    simple_copy: bool = True,
     skip_group: List[str] = ["data"],
 ):
     """
@@ -27,8 +27,9 @@ def images_nexus(
     Args:
         data_file:      String or Path pointing to the HDF5 file with images.
         original_nexus: String or Path pointing to the NeXus file with experiment metadata.
-        simple_copy:    Defaults to False. If True, copy everything directly.
-        skip_group:     If simple_copy is True, this is a list of the objects not to be copied.
+        simple_copy:    Defaults to True, copy everything from the original NeXus file.
+                        If False, a list of NX_class objects to be skipped should be passed.
+        skip_group:     If simple_copy is False, this is a list of the objects not to be copied.
                         For the moment, works only for NX_class objects.
     """
     copy_logger.info("Copying NeXus file for image dataset ...")
