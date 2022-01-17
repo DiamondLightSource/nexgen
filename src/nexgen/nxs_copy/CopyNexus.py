@@ -19,7 +19,7 @@ def images_nexus(
     data_file: List[Union[Path, str]],
     original_nexus: Optional[Union[Path, str]],
     simple_copy: bool = True,
-    skip_group: List[str] = ["data"],
+    skip_group: List[str] = ["NXdata"],
 ):
     """
     Copy NeXus metadata for images.
