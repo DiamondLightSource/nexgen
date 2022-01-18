@@ -164,6 +164,13 @@ def copy_tristan_nexus(args):
                 )
             elif args.num_bins:
                 logger.info(f"Scan_ axis will be a list of {args.num_bins} values.")
+            else:
+                logger.error(
+                    f"For a rotation dataset please pass either the oscillation angle or the number of bins."
+                )
+                sys.exit(
+                    "Missing input argument for rotation dataset. Please specify either oscillation angle or number of bins."
+                )
 
             for filename in data_file:
                 nxs_img = CopyTristanNexus.multiple_images_nexus(
