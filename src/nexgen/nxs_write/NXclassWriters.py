@@ -413,10 +413,6 @@ def write_NXdetector(
         y_pix_size = nxdetector.create_dataset("y_pixel_size", data=y_pix.magnitude)
         create_attributes(y_pix_size, ("units",), (format(y_pix.units, "~"),))
 
-        # Count time
-        exp_time = units_of_time(detector["exposure_time"])
-        nxdetector.create_dataset("count_time", data=exp_time.magnitude)
-
         # Sensor material, sensor thickness in m
         nxdetector.create_dataset(
             "sensor_material", data=np.string_(detector["sensor_material"])
@@ -444,6 +440,11 @@ def write_NXdetector(
         #     nxdetector.create_dataset("pixel_mask", data=detector["pixel_mask"])
     except (TypeError, ValueError, RuntimeError):
         pass
+
+    # Count time
+    if detector["exposure_time"]:
+        exp_time = units_of_time(detector["exposure_time"])
+        nxdetector.create_dataset("count_time", data=exp_time.magnitude)
 
     # If detector mode is images write overload and underload
     if data_type[0] == "images" and detector["overload"] is not None:
