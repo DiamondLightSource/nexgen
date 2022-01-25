@@ -362,6 +362,7 @@ def write_NXdetector(
     """
     NXclass_logger.info("Start writing NXdetector.")
     # Create NXdetector group, unless it already exists, in which case just open it.
+    # TODO try using require_group instead of the try except
     try:
         nxdetector = nxsfile.create_group("/entry/instrument/detector")
         create_attributes(
@@ -394,29 +395,36 @@ def write_NXdetector(
                 "pixel_mask_applied", data=detector["pixel_mask_applied"]
             )
             nxdetector.create_dataset("pixel_mask", data=detector["pixel_mask"])
-    try:
-        # Beam center
+
+    # Beam center
+    # Check that the information hasn't already been written by the meta file.
+    if nxdetector.__contains__("beam_center_x") is False:
         beam_center_x = nxdetector.create_dataset(
             "beam_center_x", data=detector["beam_center"][0]
         )
         create_attributes(beam_center_x, ("units",), ("pixels",))
+    if nxdetector.__contains__("beam_center_y") is False:
         beam_center_y = nxdetector.create_dataset(
             "beam_center_y", data=detector["beam_center"][1]
         )
         create_attributes(beam_center_y, ("units",), ("pixels",))
 
-        # Pixel size in m
+    # Pixel size in m
+    if nxdetector.__contains__("x_pixel_size") is False:
         x_pix = units_of_length(detector["pixel_size"][0], True)
         x_pix_size = nxdetector.create_dataset("x_pixel_size", data=x_pix.magnitude)
         create_attributes(x_pix_size, ("units",), (format(x_pix.units, "~"),))
+    if nxdetector.__contains__("y_pixel_size") is False:
         y_pix = units_of_length(detector["pixel_size"][1], True)
         y_pix_size = nxdetector.create_dataset("y_pixel_size", data=y_pix.magnitude)
         create_attributes(y_pix_size, ("units",), (format(y_pix.units, "~"),))
 
-        # Sensor material, sensor thickness in m
+    # Sensor material, sensor thickness in m
+    if nxdetector.__contains__("sensor_material") is False:
         nxdetector.create_dataset(
             "sensor_material", data=np.string_(detector["sensor_material"])
         )
+    if nxdetector.__contains__("sensor_thickness") is False:
         sensor_thickness = units_of_length(detector["sensor_thickness"], True)
         nxdetector.create_dataset("sensor_thickness", data=sensor_thickness.magnitude)
         create_attributes(
@@ -424,8 +432,6 @@ def write_NXdetector(
             ("units",),
             (format(sensor_thickness.units, "~"),),
         )
-    except (TypeError, ValueError, RuntimeError):
-        pass
 
     # Count time
     if detector["exposure_time"]:
@@ -433,7 +439,11 @@ def write_NXdetector(
         nxdetector.create_dataset("count_time", data=exp_time.magnitude)
 
     # If detector mode is images write overload and underload
-    if data_type[0] == "images" and detector["overload"] is not None:
+    if (
+        data_type[0] == "images"
+        and nxdetector.__contains__("saturation_value") is False
+    ):
+        # if detector["overload"] is not None:
         nxdetector.create_dataset("saturation_value", data=detector["overload"])
         nxdetector.create_dataset("underload_value", data=detector["underload"])
 
