@@ -15,7 +15,7 @@ version_parser.add_argument(
 )
 
 detectormode_parser = argparse.ArgumentParser(add_help=False)
-group = detectormode_parser.add_mutually_exclusive_group()
+group = detectormode_parser.add_mutually_exclusive_group(required=False)
 group.add_argument(
     "-i",
     "--num-images",
