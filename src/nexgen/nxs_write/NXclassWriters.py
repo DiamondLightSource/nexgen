@@ -30,13 +30,14 @@ from .data_tools import vds_writer
 NXclass_logger = logging.getLogger("NeXusGenerator.write.NXclass")
 
 # NXentry writer
-def write_NXentry(nxsfile: h5py.File) -> h5py.Group:
+def write_NXentry(nxsfile: h5py.File, definition: str = "NXmx") -> h5py.Group:
     """
     Write NXentry group at top level of the NeXus file.
     Also, write the application definition NXmx.
 
     Args:
-        nxsfile (h5py.File):    NeXus file handle
+        nxsfile (h5py.File):    NeXus file handle.
+        definition (str):       Application definition for NeXus file. Defaults to NXmx.
 
     Returns:
         NXentry group.
@@ -49,7 +50,7 @@ def write_NXentry(nxsfile: h5py.File) -> h5py.Group:
     create_attributes(nxentry, ("NX_class", "default"), ("NXentry", "data"))
 
     # Application definition: /entry/definition
-    nxentry.create_dataset("definition", data=np.string_("NXmx"))
+    nxentry.create_dataset("definition", data=np.string_(definition))
     return nxentry
 
 

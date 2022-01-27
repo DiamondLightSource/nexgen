@@ -200,6 +200,8 @@ def write_nexus_demo(
         scan_range=scan_range,
     )
 
+    write_NXentry(nxsfile)
+
     # Call the writers
     call_writers(
         nxsfile,

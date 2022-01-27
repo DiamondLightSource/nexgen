@@ -77,9 +77,6 @@ demo_phil = freephil.parse(
       coordinate_frame = *mcstas imgcif
         .type = choice
         .help = "Which coordinate system is being used to provide input vectors"
-      definition = NXmx
-        .type = str
-        .help = "Application definition for NeXus file. Deafults to Nxmx."
       n_files = 1
         .type = int
         .help = "Number of data files to write - defaults to 1."
@@ -451,20 +448,6 @@ def write_demo_cli(args):
     logger.info("Start writing NeXus and data files ...")
     try:
         with h5py.File(master_file, "x") as nxsfile:
-            # Set default attribute
-            nxsfile.attrs["default"] = "entry"
-
-            # Start writing the NeXus tree with NXentry at the top level
-            nxentry = nxsfile.create_group("entry")
-            nxentry.attrs["NX_class"] = "NXentry"
-            nxentry.attrs["default"] = "data"
-            # create_attributes(nxentry, ("NX_class", "default"), ("NXentry", "data"))
-
-            # Application definition: entry/definition
-            nxentry.create_dataset(
-                "definition", data=np.string_(params.input.definition)
-            )
-
             write_nexus_demo(
                 nxsfile,
                 data_file_list,
@@ -496,8 +479,8 @@ def write_demo_cli(args):
             )
 
             # Write /entry/start_time and /entry/end_time
-            nxentry.create_dataset("start_time", data=np.string_(start_time))
-            nxentry.create_dataset("end_time", data=np.string_(end_time))
+            nxsfile.create_dataset("/entry/start_time", data=np.string_(start_time))
+            nxsfile.create_dataset("/entry/end_time", data=np.string_(end_time))
         logger.info(f"{master_file} correctly written.")
     except Exception as err:
         logger.info(
@@ -760,4 +743,4 @@ def main():
     args.func(args)
 
 
-# main()
+main()
