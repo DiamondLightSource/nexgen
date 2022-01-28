@@ -30,13 +30,14 @@ from .data_tools import vds_writer
 NXclass_logger = logging.getLogger("NeXusGenerator.write.NXclass")
 
 # NXentry writer
-def write_NXentry(nxsfile: h5py.File) -> h5py.Group:
+def write_NXentry(nxsfile: h5py.File, definition: str = "NXmx") -> h5py.Group:
     """
     Write NXentry group at top level of the NeXus file.
     Also, write the application definition NXmx.
 
     Args:
-        nxsfile (h5py.File):    NeXus file handle
+        nxsfile (h5py.File):    NeXus file handle.
+        definition (str):       Application definition for NeXus file. Defaults to NXmx.
 
     Returns:
         NXentry group.
@@ -45,11 +46,11 @@ def write_NXentry(nxsfile: h5py.File) -> h5py.Group:
     nxsfile.attrs["default"] = "entry"
 
     # Start writing the NeXus tree with NXentry at the top level
-    nxentry = nxsfile.create_group("entry")
+    nxentry = nxsfile.require_group("entry")
     create_attributes(nxentry, ("NX_class", "default"), ("NXentry", "data"))
 
     # Application definition: /entry/definition
-    nxentry.create_dataset("definition", data=np.string_("NXmx"))
+    nxentry.create_dataset("definition", data=np.string_(definition))
     return nxentry
 
 
@@ -91,22 +92,35 @@ def write_NXdata(
         )
 
     # Create NXdata group, unless it already exists, in which case just open it.
-    try:
-        nxdata = nxsfile.create_group("/entry/data")
-        create_attributes(
-            nxdata,
-            ("NX_class", "axes", "signal", scan_axis + "_indices"),
-            (
-                "NXdata",
-                scan_axis,
-                "data",
-                [
-                    0,
-                ],
-            ),
-        )
-    except ValueError:
-        nxdata = nxsfile["/entry/data"]
+    nxdata = nxsfile.require_group("/entry/data")
+    create_attributes(
+        nxdata,
+        ("NX_class", "axes", "signal", scan_axis + "_indices"),
+        (
+            "NXdata",
+            scan_axis,
+            "data",
+            [
+                0,
+            ],
+        ),
+    )
+    # try:
+    #     nxdata = nxsfile.create_group("/entry/data")
+    #     create_attributes(
+    #         nxdata,
+    #         ("NX_class", "axes", "signal", scan_axis + "_indices"),
+    #         (
+    #             "NXdata",
+    #             scan_axis,
+    #             "data",
+    #             [
+    #                 0,
+    #             ],
+    #         ),
+    #     )
+    # except ValueError:
+    #     nxdata = nxsfile["/entry/data"]
 
     # If mode is images, link to blank image data. Else go to events.
     if data_type == "images":
@@ -171,26 +185,29 @@ def write_NXsample(
     """
     NXclass_logger.info("Start writing NXsample and NXtransformations.")
     # Create NXsample group, unless it already exists, in which case just open it.
-    try:
-        nxsample = nxsfile.create_group("/entry/sample")
-        create_attributes(
-            nxsample,
-            ("NX_class",),
-            ("NXsample",),
-        )
-    except ValueError:
-        nxsample = nxsfile["/entry/sample"]
+    nxsample = nxsfile.require_group("/entry/sample")
+    create_attributes(
+        nxsample,
+        ("NX_class",),
+        ("NXsample",),
+    )
+    # try:
+    #     nxsample = nxsfile.create_group("/entry/sample")
+    #     create_attributes(
+    #         nxsample,
+    #         ("NX_class",),
+    #         ("NXsample",),
+    #     )
+    # except ValueError:
+    #     nxsample = nxsfile["/entry/sample"]
 
     # Create NXtransformations group: /entry/sample/transformations
-    try:
-        nxtransformations = nxsample.create_group("transformations")
-        create_attributes(
-            nxtransformations,
-            ("NX_class",),
-            ("NXtransformations",),
-        )
-    except ValueError:
-        nxtransformations = nxsample["transformations"]
+    nxtransformations = nxsample.require_group("transformations")
+    create_attributes(
+        nxtransformations,
+        ("NX_class",),
+        ("NXtransformations",),
+    )
 
     # Save sample depends_on
     nxsample.create_dataset(
@@ -279,15 +296,12 @@ def write_NXinstrument(
     """
     NXclass_logger.info("Start writing NXinstrument.")
     # Create NXinstrument group, unless it already exists, in which case just open it.
-    try:
-        nxinstrument = nxsfile.create_group("/entry/instrument")
-        create_attributes(
-            nxinstrument,
-            ("NX_class",),
-            ("NXinstrument",),
-        )
-    except ValueError:
-        nxinstrument = nxsfile["/entry/instrument"]
+    nxinstrument = nxsfile.require_group("/entry/instrument")
+    create_attributes(
+        nxinstrument,
+        ("NX_class",),
+        ("NXinstrument",),
+    )
 
     # Write /name field and relative attribute
     NXclass_logger.info(f"DLS beamline {beamline_n}")
@@ -298,15 +312,16 @@ def write_NXinstrument(
 
     NXclass_logger.info("Write NXattenuator and NXbeam.")
     # Write NXattenuator group: entry/instrument/attenuator
-    nxatt = nxinstrument.create_group("attenuator")
+    nxatt = nxinstrument.require_group("attenuator")
     create_attributes(nxatt, ("NX_class",), ("NXattenuator",))
-    nxatt.create_dataset(
-        "attenuator_transmission",
-        data=attenuator["transmission"],
-    )
+    if attenuator["transmission"]:
+        nxatt.create_dataset(
+            "attenuator_transmission",
+            data=attenuator["transmission"],
+        )
 
     # Write NXbeam group: entry/instrument/beam
-    nxbeam = nxinstrument.create_group("beam")
+    nxbeam = nxinstrument.require_group("beam")
     create_attributes(nxbeam, ("NX_class",), ("NXbeam",))
     wl = nxbeam.create_dataset("incident_wavelength", data=beam["wavelength"])
     create_attributes(wl, ("units",), ("angstrom",))
@@ -325,15 +340,12 @@ def write_NXsource(nxsfile: h5py.File, source: Dict):
         source (Dict):          Dictionary containing the facility information
     """
     NXclass_logger.info("Start writing NXsource.")
-    try:
-        nxsource = nxsfile.create_group("/entry/source")
-        create_attributes(
-            nxsource,
-            ("NX_class",),
-            ("NXsource",),
-        )
-    except ValueError:
-        nxsource = nxsfile["/entry/source"]
+    nxsource = nxsfile.require_group("/entry/source")
+    create_attributes(
+        nxsource,
+        ("NX_class",),
+        ("NXsource",),
+    )
 
     nxsource.create_dataset("name", data=np.string_(source["name"]))
     create_attributes(nxsource["name"], ("short_name",), (source["short_name"],))
@@ -362,15 +374,12 @@ def write_NXdetector(
     """
     NXclass_logger.info("Start writing NXdetector.")
     # Create NXdetector group, unless it already exists, in which case just open it.
-    try:
-        nxdetector = nxsfile.create_group("/entry/instrument/detector")
-        create_attributes(
-            nxdetector,
-            ("NX_class",),
-            ("NXdetector",),
-        )
-    except ValueError:
-        nxdetector = nxsfile["/entry/instrument/detector"]
+    nxdetector = nxsfile.require_group("/entry/instrument/detector")
+    create_attributes(
+        nxdetector,
+        ("NX_class",),
+        ("NXdetector",),
+    )
 
     # Detector description
     nxdetector.create_dataset("description", data=np.string_(detector["description"]))
@@ -394,33 +403,36 @@ def write_NXdetector(
                 "pixel_mask_applied", data=detector["pixel_mask_applied"]
             )
             nxdetector.create_dataset("pixel_mask", data=detector["pixel_mask"])
-    try:
-        # Beam center
+
+    # Beam center
+    # Check that the information hasn't already been written by the meta file.
+    if nxdetector.__contains__("beam_center_x") is False:
         beam_center_x = nxdetector.create_dataset(
             "beam_center_x", data=detector["beam_center"][0]
         )
         create_attributes(beam_center_x, ("units",), ("pixels",))
+    if nxdetector.__contains__("beam_center_y") is False:
         beam_center_y = nxdetector.create_dataset(
             "beam_center_y", data=detector["beam_center"][1]
         )
         create_attributes(beam_center_y, ("units",), ("pixels",))
 
-        # Pixel size in m
+    # Pixel size in m
+    if nxdetector.__contains__("x_pixel_size") is False:
         x_pix = units_of_length(detector["pixel_size"][0], True)
         x_pix_size = nxdetector.create_dataset("x_pixel_size", data=x_pix.magnitude)
         create_attributes(x_pix_size, ("units",), (format(x_pix.units, "~"),))
+    if nxdetector.__contains__("y_pixel_size") is False:
         y_pix = units_of_length(detector["pixel_size"][1], True)
         y_pix_size = nxdetector.create_dataset("y_pixel_size", data=y_pix.magnitude)
         create_attributes(y_pix_size, ("units",), (format(y_pix.units, "~"),))
 
-        # Count time
-        exp_time = units_of_time(detector["exposure_time"])
-        nxdetector.create_dataset("count_time", data=exp_time.magnitude)
-
-        # Sensor material, sensor thickness in m
+    # Sensor material, sensor thickness in m
+    if nxdetector.__contains__("sensor_material") is False:
         nxdetector.create_dataset(
             "sensor_material", data=np.string_(detector["sensor_material"])
         )
+    if nxdetector.__contains__("sensor_thickness") is False:
         sensor_thickness = units_of_length(detector["sensor_thickness"], True)
         nxdetector.create_dataset("sensor_thickness", data=sensor_thickness.magnitude)
         create_attributes(
@@ -429,24 +441,17 @@ def write_NXdetector(
             (format(sensor_thickness.units, "~"),),
         )
 
-        # # Check for mask and flatfield files
-        # # Flatfield
-        # if detector["flatfield"]:
-        #     nxdetector.create_dataset(
-        #         "flatfield_applied", data=detector["flatfield_applied"]
-        #     )
-        #     nxdetector.create_dataset("flatfield", data=detector["flatfield"])
-        # # Bad pixel mask
-        # if detector["pixel_mask"]:
-        #     nxdetector.create_dataset(
-        #         "pixel_mask_applied", data=detector["pixel_mask_applied"]
-        #     )
-        #     nxdetector.create_dataset("pixel_mask", data=detector["pixel_mask"])
-    except (TypeError, ValueError, RuntimeError):
-        pass
+    # Count time
+    if detector["exposure_time"]:
+        exp_time = units_of_time(detector["exposure_time"])
+        nxdetector.create_dataset("count_time", data=exp_time.magnitude)
 
     # If detector mode is images write overload and underload
-    if data_type[0] == "images" and detector["overload"] is not None:
+    if (
+        data_type[0] == "images"
+        and nxdetector.__contains__("saturation_value") is False
+    ):
+        # if detector["overload"] is not None:
         nxdetector.create_dataset("saturation_value", data=detector["overload"])
         nxdetector.create_dataset("underload_value", data=detector["underload"])
 
@@ -454,7 +459,7 @@ def write_NXdetector(
     write_NXcollection(nxdetector, detector, data_type, meta, link_list)
 
     # Write NXtransformations: entry/instrument/detector/transformations/detector_z and two_theta
-    nxtransformations = nxdetector.create_group("transformations")
+    nxtransformations = nxdetector.require_group("transformations")
     create_attributes(
         nxtransformations,
         ("NX_class",),
@@ -522,15 +527,12 @@ def write_NXdetector_module(
     """
     NXclass_logger.info("Start writing NXdetector_module.")
     # Create NXdetector_module group, unless it already exists, in which case just open it.
-    try:
-        nxmodule = nxsfile.create_group("/entry/instrument/detector/module")
-        create_attributes(
-            nxmodule,
-            ("NX_class",),
-            ("NXdetector_module",),
-        )
-    except ValueError:
-        nxmodule = nxsfile["/entry/instrument/detector/module"]
+    nxmodule = nxsfile.require_group("/entry/instrument/detector/module")
+    create_attributes(
+        nxmodule,
+        ("NX_class",),
+        ("NXdetector_module",),
+    )
 
     # TODO check how many modules, and write as many, plus NXdetector_group
     nxmodule.create_dataset("data_origin", data=np.array([0, 0]))
@@ -661,7 +663,7 @@ def write_NXcollection(
     """
     NXclass_logger.info("Start writing detectorSpecific group as NXcollection.")
     # Create detectorSpecific group
-    grp = nxdetector.create_group("detectorSpecific")
+    grp = nxdetector.require_group("detectorSpecific")
     grp.create_dataset("x_pixels", data=detector["image_size"][0])
     grp.create_dataset("y_pixels", data=detector["image_size"][1])
     if data_type[0] == "images":
@@ -699,15 +701,12 @@ def write_NXnote(nxsfile: h5py.File, loc: str, info: Dict):
     """
     NXclass_logger.info("Start writing NXnote.")
     # Create the NXnote group in the specified location
-    try:
-        nxnote = nxsfile.create_group(loc)
-        create_attributes(
-            nxnote,
-            ("NX_class",),
-            ("NXnote",),
-        )
-    except ValueError:
-        nxnote = nxsfile[loc]
+    nxnote = nxsfile.require_group(loc)
+    create_attributes(
+        nxnote,
+        ("NX_class",),
+        ("NXnote",),
+    )
 
     # Write datasets
     for k, v in info.items():

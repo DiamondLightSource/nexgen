@@ -54,6 +54,17 @@ def generate_image_data(
                     h5py file opening mode.
     """
     data = np.zeros(shape[1:], dtype="i4")
+
+    # GW comments in conversation 2022-01-18
+    # thoughts -
+    # we should have a real mask here which looks like a
+    # mask from an Eiger e.g. with all the zero pixels in
+    # the right places then _also_ we could really speed
+    # this up by compressing the data into a chunk then
+    # using direct chunk write. Finally - should probably
+    # split the data sets into blocks of 1,000 (as a parameter)
+    # images so we have something more authentic.
+
     with h5py.File(filename, write_mode) as datafile:
         dset = datafile.create_dataset(
             "data",
@@ -64,8 +75,9 @@ def generate_image_data(
         )
         # Actually write the data in
         for i in range(shape[0]):
-            start_dset = dset[i, :, :]
-            dset[i, :, :] = start_dset + data
+            # start_dset = dset[i, :, :]
+            # print(i)
+            dset[i, :, :] = data
     print(f"{shape[0]} images written.")
 
 
