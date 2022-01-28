@@ -76,7 +76,7 @@ def generate_image_data(
         # Actually write the data in
         for i in range(shape[0]):
             # start_dset = dset[i, :, :]
-            print(i)
+            # print(i)
             dset[i, :, :] = data
     print(f"{shape[0]} images written.")
 
