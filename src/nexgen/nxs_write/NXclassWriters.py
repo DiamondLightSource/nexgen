@@ -25,7 +25,7 @@ from .. import (
     ureg,
 )
 
-from .data_tools import vds_writer
+from ..tools.VDS_tools import vds_writer
 
 NXclass_logger = logging.getLogger("NeXusGenerator.write.NXclass")
 
