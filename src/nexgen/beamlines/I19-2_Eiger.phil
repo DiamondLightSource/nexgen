@@ -29,6 +29,7 @@ pump_probe {
   pump_delay = None
 }
 detector {
+  mode = *images events
   description = Eiger 2X 4M
   detector_type = Pixel
   sensor_material = Si *CdTe

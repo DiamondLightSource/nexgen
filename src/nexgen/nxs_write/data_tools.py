@@ -29,7 +29,6 @@ def data_writer(
         image_size: Tuple or List defining image dimensions.
         scan_range: Numpy array containing the values of the rotation axis during the scan.
     """
-    # TODO FIXME if multiple files split number of images across them.
     for filename in datafiles:
         data_logger.info(f"Writing {filename} ...")
         if data_type[0] == "images":

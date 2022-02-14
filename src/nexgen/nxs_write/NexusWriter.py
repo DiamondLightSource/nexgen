@@ -74,36 +74,40 @@ def write_nexus(
     else:
         link_list = None
     writer_logger.info("Writing NXmx NeXus file ...")
-    # Find total number of images that have been written across the files.
-    if len(datafiles) == 1:
-        with h5py.File(datafiles[0], "r") as f:
-            num_images = f["data"].shape[0]
-    else:
-        num_images = find_number_of_images(datafiles)
-
-    # TODO add events option here
-    data_type = ("images", num_images)
-    writer_logger.info(f"Total number of images: {num_images}")
 
     # Identify scan axis
     osc_axis = find_scan_axis(
         goniometer.axes, goniometer.starts, goniometer.ends, goniometer.types
     )
-
-    # Compute scan_range
     idx = goniometer.axes.index(osc_axis)
-    if goniometer.increments[idx] != 0.0:
-        scan_range = calculate_scan_range(
-            goniometer.starts[idx],
-            goniometer.ends[idx],
-            axis_increment=goniometer.increments[idx],
-        )
+
+    if detector.mode == "events":
+        data_type = ("events", len(datafiles))
+        scan_range = (goniometer.starts[idx], goniometer.ends[idx])
     else:
-        scan_range = calculate_scan_range(
-            goniometer.starts[idx], goniometer.ends[idx], n_images=num_images
-        )
+        # Find total number of images that have been written across the files.
+        if len(datafiles) == 1:
+            with h5py.File(datafiles[0], "r") as f:
+                num_images = f["data"].shape[0]
+        else:
+            num_images = find_number_of_images(datafiles)
+        data_type = ("images", num_images)
+        writer_logger.info(f"Total number of images: {num_images}")
+
+        # Compute scan_range
+        if goniometer.increments[idx] != 0.0:
+            scan_range = calculate_scan_range(
+                goniometer.starts[idx],
+                goniometer.ends[idx],
+                axis_increment=goniometer.increments[idx],
+            )
+        else:
+            scan_range = calculate_scan_range(
+                goniometer.starts[idx], goniometer.ends[idx], n_images=num_images
+            )
 
     writer_logger.info(f"Scan axis: {osc_axis}")
+    writer_logger.info(f"Scan from {scan_range[0]} tp {scan_range[-1]}.")
 
     nxentry = write_NXentry(nxsfile)
 
@@ -135,7 +139,7 @@ def write_nexus(
 
 def write_nexus_demo(
     nxsfile: h5py.File,
-    datafiles: List[Path],
+    datafile_template: str,
     data_type: Tuple[str, int],
     coordinate_frame: str,
     goniometer,
@@ -166,7 +170,7 @@ def write_nexus_demo(
         attenuator:         Scope extract defining transmission.
         vds:                If passed, a Virtual Dataset will also be written.
     """
-    writer_logger.info("Writing demo ...")
+    writer_logger.info("Writing NXmx demo ...")
     writer_logger.info(f"The data file will contain {data_type[1]} {data_type[0]}")
     # Identify scan axis
     osc_axis = find_scan_axis(
@@ -190,7 +194,28 @@ def write_nexus_demo(
     elif data_type[0] == "events":
         scan_range = (goniometer.starts[idx], goniometer.ends[idx])
 
-    writer_logger.info(f"Scan axis: {osc_axis}")
+    writer_logger.info(f"Scan axis: {osc_axis}.")
+    writer_logger.info(f"Scan from {scan_range[0]} tp {scan_range[-1]}.")
+
+    # Figure out how many files will need to be written
+    writer_logger.info("Calculating number of files to write ...")
+    if data_type[0] == "events":
+        n_files = data_type[1]
+    else:
+        # The maximum number of images being written each dataset is 1000
+        if data_type[1] <= 1000:
+            n_files = 1
+        elif data_type[1] % 1000 == 0:
+            n_files = data_type[1] // 1000
+        else:
+            n_files = data_type[1] // 1000 + 1
+    writer_logger.info("%d file(s) containing blank data to be written." % n_files)
+
+    # Get datafile list
+    datafiles = [
+        Path(datafile_template % (n + 1)).expanduser().resolve() for n in range(n_files)
+    ]
+
     writer_logger.info("Calling data writer ...")
     # Write data files
     data_writer(

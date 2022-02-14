@@ -29,6 +29,7 @@ pump_probe {
   pump_delay = None
 }
 detector {
+  mode = *images events
   description = Tristan 10M
   detector_type = Pixel
   sensor_material = *Si CdTe
