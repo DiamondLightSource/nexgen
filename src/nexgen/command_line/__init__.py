@@ -24,7 +24,7 @@ group.add_argument(
 )
 group.add_argument(
     "-e",
-    "--num-events",
+    "--events",
     help="Write a demo file with fake events.",
     action="store_true",
 )
