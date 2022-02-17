@@ -137,8 +137,16 @@ def write_NXdata(
                 NXclass_logger.info("Calling VDS writer.")
                 vds_writer(nxsfile, datafiles, write_vds)
     elif data_type == "events":
-        for filename in datafiles:
-            nxdata[filename.stem] = h5py.ExternalLink(filename.name, "/")
+        # Look for meta file to avoid linking to up to 100 files
+        tbr = datafiles[0].stem.split("_")[-1]
+        mf = datafiles[0].stem.replace(tbr, "meta") + datafiles[0].suffix
+        meta = [f for f in datafiles[0].parent.iterdir() if mf in f.as_posix()]
+        # If metafile is not found, link to the data files
+        if len(meta) == 0:
+            for filename in datafiles:
+                nxdata[filename.stem] = h5py.ExternalLink(filename.name, "/")
+        else:
+            nxdata["meta_file"] = h5py.ExternalLink(meta[0].name, "/")
     else:
         sys.exit("Please pass a correct data_type (images or events)")
 
