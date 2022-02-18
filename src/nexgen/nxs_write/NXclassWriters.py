@@ -27,7 +27,7 @@ from .. import (
 
 from ..tools.VDS_tools import vds_writer
 
-NXclass_logger = logging.getLogger("NeXusGenerator.write.NXclass")
+NXclass_logger = logging.getLogger("NeXusGenerator.writer.NXclass")
 
 # NXentry writer
 def write_NXentry(nxsfile: h5py.File, definition: str = "NXmx") -> h5py.Group:

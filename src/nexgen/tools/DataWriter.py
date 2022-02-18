@@ -3,12 +3,16 @@ General tools for blank data writing.
 """
 
 import h5py
+import time
+import logging
 
 import numpy as np
 
 from pathlib import Path
 from hdf5plugin import Bitshuffle
 from typing import List, Tuple, Union
+
+data_logger = logging.getLogger("NeXusGenerator.writer.data")
 
 # Eiger specific
 eiger_modules = {"1M": (1, 2), "4M": (2, 4), "9M": (3, 6), "16M": (4, 8)}
@@ -146,6 +150,8 @@ def generate_image_files(
 
     # Start writing file
     for filename, sh0 in zip(datafiles, dset_shape):
+        data_logger.info(f"Writing {filename} ...")
+        tic = time.process_time()
         with h5py.File(filename, "w") as fh:
             dset = fh.create_dataset(
                 "data",
@@ -159,6 +165,8 @@ def generate_image_files(
             f, ch = dset.id.read_direct_chunk((0, 0, 0))
             for j in range(1, sh0):
                 dset.id.write_direct_chunk((j, 0, 0), ch, f)
+        toc = time.process_time()
+        data_logger.info(f"Writing {sh0} images took {toc - tic:.2f} s.")
 
 
 def generate_event_files():

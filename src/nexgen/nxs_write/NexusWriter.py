@@ -194,7 +194,7 @@ def write_nexus_demo(
         scan_range = (goniometer.starts[idx], goniometer.ends[idx])
 
     writer_logger.info(f"Scan axis: {osc_axis}.")
-    writer_logger.info(f"Scan from {scan_range[0]} tp {scan_range[-1]}.")
+    writer_logger.info(f"Scan from {scan_range[0]} to {scan_range[-1]}.")
 
     # Figure out how many files will need to be written
     writer_logger.info("Calculating number of files to write ...")
