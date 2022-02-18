@@ -21,9 +21,9 @@ eiger_gap_size = (38, 12)
 intra_mod_gap = 2
 
 # Tristan specific
-tristan_modules = {"10M": (2, 5)}
+tristan_modules = {"10M": (2, 5), "2M": (1, 2)}
 tristan_mod_size = (515, 2069)  # (H, V)
-tristan_gap_size = (117, 45)  # TODO Calculated value. Double check.
+tristan_gap_size = (117, 45)
 
 
 def build_an_eiger(
@@ -75,18 +75,23 @@ def build_an_eiger(
     return IM
 
 
-def build_a_tristan(image_size: Union[List, Tuple]) -> np.ndarray:
+def build_a_tristan(
+    image_size: Union[List, Tuple],
+    det_description: str,
+) -> np.ndarray:
     """
     Generate a Tristan-like blank image.
 
     Args:
         image_size (Union[List, Tuple]): Defines image dimensions as (slow_axis , fast_axis).
+        det_description (str): Identifies the type of Eiger detector.
 
     Returns:
         np.ndarray: Array of zeros with a Tristan-like mask.
     """
-    # FIXME This is hardcoded for a Tristan 10M.
-    n_modules = tristan_modules["10M"]
+    for k, v in tristan_modules.items():
+        if k in det_description.upper():
+            n_modules = v
 
     IM = np.zeros(image_size, dtype=np.uint16)
 
@@ -131,7 +136,7 @@ def generate_image_files(
     if "eiger" in det_description.lower():
         img = build_an_eiger(image_size, det_description)
     elif "tristan" in det_description.lower():
-        img = build_a_tristan(image_size)
+        img = build_a_tristan(image_size, det_description)
     else:
         # Do nothing for now, just add zeros
         img = np.zeros(image_size, dtype=np.uint16)
@@ -169,13 +174,24 @@ def generate_image_files(
         data_logger.info(f"Writing {sh0} images took {toc - tic:.2f} s.")
 
 
-def generate_event_files():
+def generate_event_files(
+    datafiles: List[Union[Path, str]],
+    det_description: str,
+    num_chunks: int,
+):
+    """_summary_
+
+    Args:
+        datafiles (List[Union[Path, str]]): _description_
+        det_description (str): _description_
+        num_chunks (int): _description_
+    """
     # Notes - what do I need to make this work ?
     # Args: datafile list, image size (for event_id),
     # number of chunks per file, probably module size (for the future anyway,
     # right now it's hard coded).
     # - what should it do ?
-    # I - get tristan mask to avoid writing in gaps
+    # I - get tristan mask to avoid writing in gaps -> NOT SURE NEEDED! SEE NOTEBOOK!
     # II - generate pseudo events
     # III - write cue_id and cue_timestamp_zero as 1 chunk of zeros
     # IV - same for event_energy for the moment
