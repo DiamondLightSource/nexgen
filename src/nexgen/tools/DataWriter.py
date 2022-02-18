@@ -10,15 +10,16 @@ from pathlib import Path
 from hdf5plugin import Bitshuffle
 from typing import List, Tuple, Union
 
-# Eiger specifics
+# Eiger specific
 eiger_modules = {"1M": (1, 2), "4M": (2, 4), "9M": (3, 6), "16M": (4, 8)}
 eiger_mod_size = (512, 1028)
 eiger_gap_size = (38, 12)
 intra_mod_gap = 2
 
-# Tristan specifics
-tristan_mod_size = ()
-tristan_gap_size = ()
+# Tristan specific
+tristan_modules = {"10M": (2, 5)}
+tristan_mod_size = (515, 2069)  # (H, V)
+tristan_gap_size = (117, 45)  # TODO Calculated value. Double check.
 
 
 def build_an_eiger(
@@ -70,8 +71,41 @@ def build_an_eiger(
     return IM
 
 
-def build_a_tristan():
-    pass
+def build_a_tristan(image_size: Union[List, Tuple]) -> np.ndarray:
+    """
+    Generate a Tristan-like blank image.
+
+    Args:
+        image_size (Union[List, Tuple]): Defines image dimensions as (slow_axis , fast_axis).
+
+    Returns:
+        np.ndarray: Array of zeros with a Tristan-like mask.
+    """
+    # FIXME This is hardcoded for a Tristan 10M.
+    n_modules = tristan_modules["10M"]
+
+    IM = np.zeros(image_size, dtype=np.uint16)
+
+    # Horizontal modules
+    for i in range(1, n_modules[0] + 1):
+        IM[
+            :,
+            i * tristan_mod_size[1]
+            + (i - 1)
+            * tristan_gap_size[1] : i
+            * (tristan_mod_size[1] + tristan_gap_size[1]),
+        ] = -1
+    # Vertical modules
+    for j in range(1, n_modules[1] + 1):
+        IM[
+            j * tristan_mod_size[0]
+            + (j - 1)
+            * tristan_gap_size[0] : j
+            * (tristan_mod_size[0] + tristan_gap_size[0]),
+            :,
+        ] = -1
+
+    return IM
 
 
 def generate_image_files(
@@ -92,6 +126,8 @@ def generate_image_files(
     # Write some blank data in the shape of a detector
     if "eiger" in det_description.lower():
         img = build_an_eiger(image_size, det_description)
+    elif "tristan" in det_description.lower():
+        img = build_a_tristan(image_size)
     else:
         # Do nothing for now, just add zeros
         img = np.zeros(image_size, dtype=np.uint16)
@@ -123,3 +159,7 @@ def generate_image_files(
             f, ch = dset.id.read_direct_chunk((0, 0, 0))
             for j in range(1, sh0):
                 dset.id.write_direct_chunk((j, 0, 0), ch, f)
+
+
+def generate_event_files():
+    pass
