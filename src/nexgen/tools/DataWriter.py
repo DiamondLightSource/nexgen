@@ -135,7 +135,7 @@ def generate_image_files(
     # Determine single dataset shape: (num, *img_size), where max(num)=1000.
     # Really dumb version ...
     if tot_num_images <= 1000:
-        dset_shape = [1000]
+        dset_shape = [tot_num_images]
     elif tot_num_images % 1000 == 0:
         dset_shape = (tot_num_images // 1000) * [1000]
     else:
