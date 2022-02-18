@@ -162,4 +162,20 @@ def generate_image_files(
 
 
 def generate_event_files():
+    # Notes - what do I need to make this work ?
+    # Args: datafile list, image size (for event_id),
+    # number of chunks per file, probably module size (for the future anyway,
+    # right now it's hard coded).
+    # - what should it do ?
+    # I - get tristan mask to avoid writing in gaps
+    # II - generate pseudo events
+    # III - write cue_id and cue_timestamp_zero as 1 chunk of zeros
+    # IV - same for event_energy for the moment
+    # NB. Here's a list of dtypes for the datasets:
+    # cue_id:  uint16
+    # cue_timestamp_zero:  uint64
+    # event_id:  uint32
+    # event_time_offset:  uint64
+    # event_energy:  uint32
+    # V - figure out the vds once everything else works
     pass
