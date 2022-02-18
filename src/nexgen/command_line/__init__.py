@@ -33,7 +33,8 @@ detectormode_parser.add_argument(
     "--force",
     help="Overrides other instructions relevant to number of images/ "
     "stream of events already parsed. For images, please pass the desired number to be written. "
-    "For events, the number of chunks, where each chunk will write one file.",
+    "For events, the number of chunks to be written per file. "
+    "The number of files will be determined by the number of detector modules.",
     type=int,
     default=None,
 )

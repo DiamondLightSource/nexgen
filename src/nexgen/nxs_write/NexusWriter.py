@@ -12,7 +12,7 @@ from typing import Dict, List, Tuple, Union
 
 from . import find_scan_axis, calculate_scan_range, find_number_of_images
 
-from .data_tools import data_writer
+# from .data_tools import data_writer
 
 from .NXclassWriters import (
     write_NXentry,
@@ -25,6 +25,7 @@ from .NXclassWriters import (
 )
 
 from ..tools.MetaReader import overwrite_beam, overwrite_detector
+from ..tools.DataWriter import generate_image_files
 
 writer_logger = logging.getLogger("NeXusGenerator.writer")
 
@@ -200,15 +201,21 @@ def write_nexus_demo(
     # Figure out how many files will need to be written
     writer_logger.info("Calculating number of files to write ...")
     if data_type[0] == "events":
-        n_files = data_type[1]
+        # FIXME data_type[1] is actually the number of chunks per file.
+        # Determine the number of files to be written from the number of modules in the detector.
+        # Default is one if size unspecified. Otherwise one/twoh files per module right now.
+        # n_files = data_type[1]
+        n_files = 10  # For the moment, assuming a 10M
     else:
         # The maximum number of images being written each dataset is 1000
         if data_type[1] <= 1000:
             n_files = 1
-        elif data_type[1] % 1000 == 0:
-            n_files = data_type[1] // 1000
         else:
-            n_files = data_type[1] // 1000 + 1
+            n_files = int(np.ceil(data_type[1] / 1000))
+        # elif data_type[1] % 1000 == 0:
+        #     n_files = data_type[1] // 1000
+        # else:
+        #     n_files = data_type[1] // 1000 + 1
     writer_logger.info("%d file(s) containing blank data to be written." % n_files)
 
     # Get datafile list
@@ -218,12 +225,19 @@ def write_nexus_demo(
 
     writer_logger.info("Calling data writer ...")
     # Write data files
-    data_writer(
-        datafiles,
-        data_type,
-        image_size=detector.image_size,
-        scan_range=scan_range,
-    )
+    if data_type[0] == "images":
+        generate_image_files(
+            datafiles, detector.image_size, detector.description, data_type[1]
+        )
+    else:
+        # TODO Event writing goes here
+        pass
+    # data_writer(
+    #     datafiles,
+    #     data_type,
+    #     image_size=detector.image_size,
+    #     scan_range=scan_range,
+    # )
 
     write_NXentry(nxsfile)
 

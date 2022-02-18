@@ -345,17 +345,10 @@ def write_demo_cli(args):
 
     # Get data file name template
     data_file_template = get_filename_template(master_file)
-    # data_file_list = [
-    #     Path(data_file_template % (n + 1)).expanduser().resolve()
-    #     for n in range(params.input.n_files)
-    # ]
 
     # Add some information to logger
     logger.info("NeXus file will be saved as %s" % params.output.master_filename)
     logger.info("Data file(s) template: %s" % data_file_template)
-    # logger.info(
-    #     "%d file(s) containing blank data to be written." % params.input.n_files
-    # )
 
     # Next: go through technical info (goniometer, detector, beamline etc ...)
     cf = params.input.coordinate_frame
@@ -744,4 +737,4 @@ def main():
     args.func(args)
 
 
-# main()
+main()
