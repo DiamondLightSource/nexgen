@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Dict, List, Tuple, Union
 
 from . import find_scan_axis, calculate_scan_range, find_number_of_images
+from .. import units_of_time
 
 from .NXclassWriters import (
     write_NXentry,
@@ -23,7 +24,7 @@ from .NXclassWriters import (
 )
 
 from ..tools.MetaReader import overwrite_beam, overwrite_detector
-from ..tools.DataWriter import generate_image_files
+from ..tools.DataWriter import generate_event_files, generate_image_files
 
 writer_logger = logging.getLogger("NeXusGenerator.writer")
 
@@ -199,11 +200,9 @@ def write_nexus_demo(
     # Figure out how many files will need to be written
     writer_logger.info("Calculating number of files to write ...")
     if data_type[0] == "events":
-        # FIXME data_type[1] is actually the number of chunks per file.
-        # Determine the number of files to be written from the number of modules in the detector.
-        # Default is one if size unspecified. Otherwise one/twoh files per module right now.
-        # n_files = data_type[1]
-        n_files = 10  # For the moment, assuming a 10M
+        # Determine the number of files. Write one file per module.
+        # FIXME Either a 10M or a 2M, no other possibilities at this moment.
+        n_files = 10 if "10M" in detector.description.upper() else 2
     else:
         # The maximum number of images being written each dataset is 1000
         if data_type[1] <= 1000:
@@ -225,8 +224,10 @@ def write_nexus_demo(
             datafiles, detector.image_size, detector.description, data_type[1]
         )
     else:
-        # TODO Event writing goes here
-        pass
+        exp_time = units_of_time(detector.exposure_time)
+        generate_event_files(
+            datafiles, data_type[1], detector.desctiption, exp_time.magnitude
+        )
 
     write_NXentry(nxsfile)
 
