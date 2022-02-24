@@ -14,6 +14,9 @@ from typing import List, Tuple, Union
 
 data_logger = logging.getLogger("NeXusGenerator.writer.data")
 
+# Random number generator
+rng = np.random.default_rng()
+
 # Eiger specific
 eiger_modules = {"1M": (1, 2), "4M": (2, 4), "9M": (3, 6), "16M": (4, 8)}
 eiger_mod_size = (512, 1028)
@@ -21,9 +24,13 @@ eiger_gap_size = (38, 12)
 intra_mod_gap = 2
 
 # Tristan specific
+clock_freq = int(6.4e8)
 tristan_modules = {"10M": (2, 5), "2M": (1, 2)}
 tristan_mod_size = (515, 2069)  # (H, V)
 tristan_gap_size = (117, 45)
+
+# Pre-defined chunk size
+tristan_chunk = 2097152
 
 
 def build_an_eiger(
@@ -153,7 +160,7 @@ def generate_image_files(
     # Just a quick check
     assert len(dset_shape) == len(datafiles), "Number of files desn't match shape."
 
-    # Start writing file
+    # Start writing files
     for filename, sh0 in zip(datafiles, dset_shape):
         data_logger.info(f"Writing {filename} ...")
         tic = time.process_time()
@@ -174,32 +181,129 @@ def generate_image_files(
         data_logger.info(f"Writing {sh0} images took {toc - tic:.2f} s.")
 
 
-def generate_event_files(
-    datafiles: List[Union[Path, str]],
-    det_description: str,
-    num_chunks: int,
-):
-    """_summary_
+# TODO Better than before, but this is still pretty slow.
+def pseudo_event_list(
+    x_lim: Tuple[int, Union[int, None]],
+    y_lim: Tuple[int, Union[int, None]],
+    exp_time: float,
+) -> Tuple[List, List]:
+    """
+    Generate a pseudo-events list with positions and timestamps.
 
     Args:
-        datafiles (List[Union[Path, str]]): _description_
-        det_description (str): _description_
-        num_chunks (int): _description_
+        x_lim (Tuple[int, Union[int, None]]): Minimum and maximum position along the fast axis.
+        y_lim (Tuple[int, Union[int, None]]): Minimum and maximum position along the slow axis.
+        exp_time (float): Total exposure time, in seconds.
+
+    Returns:
+        pos_list, time_list (Tuple[List, List]): Lists of pseudo-event positions and relative timestamps.
     """
-    # Notes - what do I need to make this work ?
-    # Args: datafile list, image size (for event_id),
-    # number of chunks per file, probably module size (for the future anyway,
-    # right now it's hard coded).
-    # - what should it do ?
-    # I - get tristan mask to avoid writing in gaps -> NOT SURE NEEDED! SEE NOTEBOOK!
-    # II - generate pseudo events
-    # III - write cue_id and cue_timestamp_zero as 1 chunk of zeros
-    # IV - same for event_energy for the moment
-    # NB. Here's a list of dtypes for the datasets:
-    # cue_id:  uint16
-    # cue_timestamp_zero:  uint64
-    # event_id:  uint32
-    # event_time_offset:  uint64
-    # event_energy:  uint32
-    # V - figure out the vds once everything else works
-    pass
+    pos_list = []
+    time_list = []
+
+    for _ in range(tristan_chunk):
+        dist = rng.uniform(0, 1)
+        x = (
+            np.random.randint(x_lim[0], x_lim[1])
+            if len(x_lim) > 1
+            else np.random.randint(x_lim[0])
+        )
+        y = (
+            np.random.randint(y_lim[0], y_lim[1])
+            if len(y_lim) > 1
+            else np.random.randint(y_lim[0])
+        )
+        loc = np.uint32(x * np.uint32(0x2000) + y)
+        pos_list.append(loc)
+        t = np.uint64((exp_time + dist) * clock_freq)
+        time_list.append(t)
+
+    return pos_list, time_list
+
+
+def generate_event_files(
+    datafiles: List[Union[Path, str]],
+    num_chunks: int,
+    det_description: str,
+    exp_time: float,
+):
+    """
+    Generate HDF5 files of pseudo events.
+
+    Args:
+        datafiles (List[Union[Path, str]]): List of HDF5 files to be written.
+        num_chunks (int): Chunks of events to be written per file.
+        det_description (str): Type of detector. The string should include the number of modules.
+        exp_time (float): Total exposure time, in seconds.
+    """
+    # A bunch of things to be done here first ...
+    # Get number of modules in the Tristan detector
+    for k, v in tristan_modules.items():
+        if k in det_description.upper():
+            n_modules = v
+
+    # Some blank cues
+    blank_cues = np.zeros(tristan_chunk, dtype=np.uint16)
+
+    # TODO FIXME speed this up!
+    data_logger.info(
+        f"Start generating one chunk of pseudo events for {n_modules} modules of {det_description}"
+    )
+    EV_dict = {}
+    for i in range(n_modules[0]):
+        for j in range(n_modules[1]):
+            I = (
+                i * (tristan_mod_size[1] + tristan_gap_size[1]),
+                (i + 1) * tristan_mod_size[1] + i * tristan_gap_size[1],
+            )
+            J = (
+                j * (tristan_mod_size[0] + tristan_gap_size[0]),
+                (j + 1) * tristan_mod_size[0] + j * tristan_gap_size[0],
+            )
+            EV_dict[(i, j)] = pseudo_event_list(I, J, exp_time)
+
+    # Find total number of events to be written to file
+    num_events = tristan_chunk * num_chunks
+
+    # Start writing files
+    for filename, K in zip(datafiles, EV_dict.keys()):
+        data_logger.info(f"Writing {filename} ...")
+        tic = time.process_time()
+        with h5py.File(filename, "w") as fh:
+            fh.create_dataset("cue_id", data=blank_cues, **Bitshuffle())
+            fh.create_dataset("cue_timestamp_zero", data=blank_cues, **Bitshuffle())
+            ev_id = fh.create_dataset(
+                "event_id",
+                shape=(num_events,),
+                dtype=np.uint32,
+                chunks=(tristan_chunk,),
+                **Bitshuffle(),
+            )
+            ev_t = fh.create_dataset(
+                "event_timestamp_zero",
+                shape=(num_events,),
+                dtype=np.uint64,
+                chunks=(tristan_chunk,),
+                **Bitshuffle(),
+            )
+            ev_en = fh.create_dataset(
+                "event_energy",
+                shape=(num_events,),
+                dtype=np.uint32,
+                chunks=(tristan_chunk,),
+                **Bitshuffle(),
+            )
+
+            # Use direct chunk write
+            ev_id[:tristan_chunk] = EV_dict[K][0]
+            ev_t[:tristan_chunk] = EV_dict[K][1]
+            ev_en[:tristan_chunk] = blank_cues
+            f_id, ch_id = ev_id.id.read_direct_chunk((0,))
+            f_t, ch_t = ev_t.id.read_direct_chunk((0,))
+            f_en, ch_en = ev_en.id.read_direct_chunk((0,))
+            for h in range(1, num_chunks):
+                ev_id.id.write_direct_chunk((h * tristan_chunk), ch_id, f_id)
+                ev_t.id.write_direct_chunk((h * tristan_chunk), ch_t, f_t)
+                ev_en.id.write_direct_chunk((h * tristan_chunk), ch_en, f_en)
+        toc = time.process_time()
+        data_logger.info(f"Writing {num_events} events took {toc - tic:.2f} s.")
