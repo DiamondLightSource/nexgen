@@ -226,7 +226,7 @@ def write_nexus_demo(
     else:
         exp_time = units_of_time(detector.exposure_time)
         generate_event_files(
-            datafiles, data_type[1], detector.desctiption, exp_time.magnitude
+            datafiles, data_type[1], detector.description, exp_time.magnitude
         )
 
     write_NXentry(nxsfile)
