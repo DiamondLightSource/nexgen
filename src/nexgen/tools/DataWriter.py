@@ -33,6 +33,7 @@ tristan_gap_size = (117, 45)
 tristan_chunk = 2097152
 
 
+# Build-a-detector functions
 def build_an_eiger(
     image_size: Union[List, Tuple],
     det_description: str,
@@ -181,6 +182,7 @@ def generate_image_files(
         data_logger.info(f"Writing {sh0} images took {toc - tic:.2f} s.")
 
 
+# Event list generator
 # TODO Better than before, but this is still pretty slow.
 def pseudo_event_list(
     x_lim: Tuple[int, Union[int, None]],
