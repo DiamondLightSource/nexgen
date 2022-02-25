@@ -305,8 +305,8 @@ def generate_event_files(
             f_t, ch_t = ev_t.id.read_direct_chunk((0,))
             f_en, ch_en = ev_en.id.read_direct_chunk((0,))
             for h in range(1, num_chunks):
-                ev_id.id.write_direct_chunk((h * tristan_chunk), ch_id, f_id)
-                ev_t.id.write_direct_chunk((h * tristan_chunk), ch_t, f_t)
-                ev_en.id.write_direct_chunk((h * tristan_chunk), ch_en, f_en)
+                ev_id.id.write_direct_chunk((h * tristan_chunk,), ch_id, f_id)
+                ev_t.id.write_direct_chunk((h * tristan_chunk,), ch_t, f_t)
+                ev_en.id.write_direct_chunk((h * tristan_chunk,), ch_en, f_en)
         toc = time.process_time()
         data_logger.info(f"Writing {num_events} events took {toc - tic:.2f} s.")
