@@ -105,22 +105,6 @@ def write_NXdata(
             ],
         ),
     )
-    # try:
-    #     nxdata = nxsfile.create_group("/entry/data")
-    #     create_attributes(
-    #         nxdata,
-    #         ("NX_class", "axes", "signal", scan_axis + "_indices"),
-    #         (
-    #             "NXdata",
-    #             scan_axis,
-    #             "data",
-    #             [
-    #                 0,
-    #             ],
-    #         ),
-    #     )
-    # except ValueError:
-    #     nxdata = nxsfile["/entry/data"]
 
     # If mode is images, link to blank image data. Else go to events.
     if data_type == "images":
@@ -199,15 +183,6 @@ def write_NXsample(
         ("NX_class",),
         ("NXsample",),
     )
-    # try:
-    #     nxsample = nxsfile.create_group("/entry/sample")
-    #     create_attributes(
-    #         nxsample,
-    #         ("NX_class",),
-    #         ("NXsample",),
-    #     )
-    # except ValueError:
-    #     nxsample = nxsfile["/entry/sample"]
 
     # Create NXtransformations group: /entry/sample/transformations
     nxtransformations = nxsample.require_group("transformations")
@@ -657,7 +632,6 @@ def write_NXcollection(
     data_type: Tuple[str, int],
     meta: Path = None,
     link_list: List = None,
-    # nxdetector: h5py.Group, image_size: Union[List, Tuple], data_type: Tuple[str, int]
 ):
     """
     Write a NXcollection group inside NXdetector as detectorSpecific.
