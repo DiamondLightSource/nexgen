@@ -249,6 +249,7 @@ def generate_event_files(
     data_logger.info(
         f"Start generating one chunk of pseudo events for {n_modules} modules of {det_description}"
     )
+    t0 = time.process_time()
     EV_dict = {}
     for i in range(n_modules[0]):
         for j in range(n_modules[1]):
@@ -261,6 +262,8 @@ def generate_event_files(
                 (j + 1) * tristan_mod_size[0] + j * tristan_gap_size[0],
             )
             EV_dict[(i, j)] = pseudo_event_list(I, J, exp_time)
+    t1 = time.process_time()
+    data_logger.info(f"Time taken to generate pseudo-event list: {t1-t0:.2f} s.")
 
     # Find total number of events to be written to file
     num_events = tristan_chunk * num_chunks
