@@ -111,12 +111,13 @@ def write_NXdata(
         if len(datafiles) == 1 and write_vds is None:
             nxdata["data"] = h5py.ExternalLink(datafiles[0].name, "data")
         elif len(datafiles) == 1 and write_vds:
-            nxdata[datafiles[0].stem] = h5py.ExternalLink(datafiles[0].name, "data")
+            nxdata["data_000001"] = h5py.ExternalLink(datafiles[0].name, "data")
             NXclass_logger.info("Calling VDS writer.")
             vds_writer(nxsfile, datafiles, write_vds)
         else:
-            for filename in datafiles:
-                nxdata[filename.stem] = h5py.ExternalLink(filename.name, "data")
+            for n, filename in enumerate(datafiles):
+                tmp_name = f"data_%0{6}d"
+                nxdata[tmp_name % (n + 1)] = h5py.ExternalLink(filename.name, "data")
             if write_vds:
                 NXclass_logger.info("Calling VDS writer.")
                 vds_writer(nxsfile, datafiles, write_vds)
