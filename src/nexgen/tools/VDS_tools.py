@@ -32,12 +32,12 @@ def vds_writer(nxsfile: h5py.File, datafiles: List[Path], vds_writer: str):
     dtyp = h5py.File(datafiles[0], "r")[entry_key].dtype
 
     # Create virtual layout
-    layout = h5py.VirtualLayout(shape=(tot_frames,) + sh, dtype=dtyp)
+    layout = h5py.VirtualLayout(shape=(tot_frames, *sh), dtype=dtyp)
     start = 0
     for n, filename in enumerate(datafiles):
         end = start + frames[n]
         vsource = h5py.VirtualSource(
-            filename.name, entry_key, shape=(frames[n],) + sh
+            filename.name, entry_key, shape=(frames[n], *sh)
         )  # Source definition
         layout[start:end:1, :, :] = vsource
         start = end
