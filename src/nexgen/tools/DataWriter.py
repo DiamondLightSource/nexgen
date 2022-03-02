@@ -150,13 +150,13 @@ def generate_image_files(
         img = np.zeros(image_size, dtype=np.uint16)
 
     # Determine single dataset shape: (num, *img_size), where max(num)=1000.
-    # Really dumb version ...
-    if tot_num_images <= 1000:
-        dset_shape = [tot_num_images]
-    elif tot_num_images % 1000 == 0:
-        dset_shape = (tot_num_images // 1000) * [1000]
-    else:
-        dset_shape = (tot_num_images // 1000) * [1000] + [tot_num_images % 1000]
+    dset_shape = (tot_num_images // 1000) * [1000] + [tot_num_images % 1000]
+    # if tot_num_images <= 1000:
+    #    dset_shape = [tot_num_images]
+    # elif tot_num_images % 1000 == 0:
+    #    dset_shape = (tot_num_images // 1000) * [1000]
+    # else:
+    #    dset_shape = (tot_num_images // 1000) * [1000] + [tot_num_images % 1000]
 
     # Just a quick check
     assert len(dset_shape) == len(datafiles), "Number of files desn't match shape."
