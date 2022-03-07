@@ -25,7 +25,7 @@ from .. import (
     ureg,
 )
 
-from ..tools.VDS_tools import vds_writer
+# from ..tools.VDS_tools import vds_writer
 
 NXclass_logger = logging.getLogger("NeXusGenerator.writer.NXclass")
 
@@ -112,15 +112,15 @@ def write_NXdata(
             nxdata["data"] = h5py.ExternalLink(datafiles[0].name, "data")
         elif len(datafiles) == 1 and write_vds:
             nxdata["data_000001"] = h5py.ExternalLink(datafiles[0].name, "data")
-            NXclass_logger.info("Calling VDS writer.")
-            vds_writer(nxsfile, datafiles, write_vds)
+            # NXclass_logger.info("Calling VDS writer.")
+            # vds_writer(nxsfile, datafiles, write_vds)
         else:
             for n, filename in enumerate(datafiles):
                 tmp_name = f"data_%0{6}d"
                 nxdata[tmp_name % (n + 1)] = h5py.ExternalLink(filename.name, "data")
-            if write_vds:
-                NXclass_logger.info("Calling VDS writer.")
-                vds_writer(nxsfile, datafiles, write_vds)
+            # if write_vds:
+            #     NXclass_logger.info("Calling VDS writer.")
+            #     vds_writer(nxsfile, datafiles, write_vds)
     elif data_type == "events":
         # Look for meta file to avoid linking to up to 100 files
         tbr = datafiles[0].stem.split("_")[-1]
@@ -212,6 +212,11 @@ def write_NXsample(
             idx = goniometer["axes"].index(scan_axis)
             try:
                 for k in nxsfile["/entry/data"].keys():
+                    if isinstance(
+                        nxsfile["/entry/data"].get(k, getlink=True), h5py.ExternalLink
+                    ):
+                        # Don't even try to open!
+                        continue
                     if nxsfile["/entry/data"][k].attrs.get("depends_on"):
                         nxsample_ax[ax] = nxsfile[nxsfile["/entry/data"][k].name]
                         nxtransformations[ax] = nxsfile[nxsfile["/entry/data"][k].name]

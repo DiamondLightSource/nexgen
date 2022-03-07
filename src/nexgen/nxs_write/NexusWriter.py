@@ -25,6 +25,7 @@ from .NXclassWriters import (
 
 from ..tools.MetaReader import overwrite_beam, overwrite_detector
 from ..tools.DataWriter import generate_event_files, generate_image_files
+from ..tools.VDS_tools import image_vds_writer
 
 writer_logger = logging.getLogger("NeXusGenerator.writer")
 
@@ -129,6 +130,11 @@ def write_nexus(
         meta[0],
         link_list,
     )
+
+    # Write VDS
+    if data_type[0] == "images" and vds:
+        writer_logger.info("Calling VDS writer ...")
+        image_vds_writer(nxsfile, (data_type[1], *detector.image_size), np.uint16, vds)
 
     # NX_DATE_TIME: /entry/start_time and /entry/end_time
     if timestamps[0] is not None:
@@ -247,6 +253,11 @@ def write_nexus_demo(
         attenuator.__dict__,
         vds,
     )
+
+    # Write VDS
+    if data_type[0] == "images" and vds:
+        writer_logger.info("Calling VDS writer ...")
+        image_vds_writer(nxsfile, (data_type[1], *detector.image_size), np.uint16, vds)
 
 
 # def call_writers(*args,**kwargs):
