@@ -22,8 +22,8 @@ def image_vds_writer(
     Virtual DataSet writer function for image data.
 
     Args:
-        nxsfile (h5py.File): NeXus file being written
-        data_shape (Union[Tuple, List]): Shape of the dataset, usually defined as (num_frames, *image_size)
+        nxsfile (h5py.File): NeXus file being written.
+        data_shape (Union[Tuple, List]): Shape of the dataset, usually defined as (num_frames, *image_size).
         data_type (Any, optional): Dtype. Defaults to np.uint16.
     """
     vds_logger.info("Start creating VDS ...")
@@ -65,10 +65,10 @@ def vds_file_writer(
     Write a Virtual DataSet _vds.h5 file for image data.
 
     Args:
-        nxsfile (h5py.File): _description_
-        datafiles (List[Path]): _description_
-        data_shape (Union[Tuple, List]): _description_
-        data_type (Any, optional): _description_. Defaults to np.uint16.
+        nxsfile (h5py.File): NeXus file being written.
+        datafiles (List[Path]): List of paths to source files.
+        data_shape (Union[Tuple, List]): Shape of the dataset, usually defined as (num_frames, *image_size).
+        data_type (Any, optional): Dtype. Defaults to np.uint16.
     """
     vds_logger.info("Start creating VDS ...")
     # Where the vds will go
