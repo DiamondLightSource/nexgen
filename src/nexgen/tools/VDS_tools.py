@@ -46,7 +46,7 @@ def image_vds_writer(
     start = 0
     for n, dset in enumerate(dsets):
         end = start + frames[n]
-        vsource = h5py.VirtualSource(".", "/entry/data" + dset, shape=sshape[n])
+        vsource = h5py.VirtualSource(".", "/entry/data/" + dset, shape=sshape[n])
         layout[start:end:1, :, :] = vsource
         start = end
 
