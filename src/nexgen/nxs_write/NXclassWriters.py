@@ -467,6 +467,7 @@ def write_NXdetector(
                 detector["depends"][idx],
                 nxtransformations.name + "/two_theta/",
             )
+            dist = detector["starts"][idx]
         else:
             grp_name = ax
             _dep = set_dependency(
@@ -492,6 +493,9 @@ def write_NXdetector(
                 "depends_on",
                 data=set_dependency(ax, path=nxgrp_ax.name),
             )
+
+    # Detector distance
+    nxdetector.create_dataset("distance", data=dist)
 
 
 # NXdetector_module writer
