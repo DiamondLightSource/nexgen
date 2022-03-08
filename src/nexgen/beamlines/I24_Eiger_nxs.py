@@ -34,6 +34,8 @@ from ..nxs_write import (
 from ..nxs_write.NexusWriter import call_writers
 from ..nxs_write.NXclassWriters import write_NXentry, write_NXnote
 
+from ..tools.VDS_tools import image_vds_writer
+
 # Define a logger object and a formatter
 logger = logging.getLogger("NeXusGenerator.I24")
 logger.setLevel(logging.DEBUG)
@@ -180,6 +182,9 @@ def extruder(
                 loc = "/entry/source/notes"
                 write_NXnote(nxsfile, loc, pump_info)
 
+            # Write VDS
+            image_vds_writer(nxsfile, (SSX.num_imgs, *detector["image_size"]))
+
             if timestamps[1]:
                 nxentry.create_dataset("end_time", data=np.string_(timestamps[1]))
             logger.info(f"{master_file} correctly written.")
@@ -280,26 +285,26 @@ def write_nxs(**ssx_params):
         grid_scan_3D()
 
 
-# Example usage
-if __name__ == "__main__":
-    from datetime import datetime
+# # Example usage
+# if __name__ == "__main__":
+#     from datetime import datetime
 
-    write_nxs(
-        visitpath=sys.argv[1],
-        filename=sys.argv[2],
-        exp_type="extruder",
-        num_imgs=2450,
-        beam_center=[1590.7, 1643.7],
-        det_dist=0.5,
-        # start_time=None,
-        # stop_time=None,
-        start_time=datetime.now(),
-        stop_time=datetime.now(),
-        exp_time=0.002,
-        transmission=1.0,
-        wavelength=0.649,
-        flux=None,
-        pump_status="true",  # this is a string on the beamline
-        pump_exp=None,
-        pump_delay=None,
-    )
+#     write_nxs(
+#         visitpath=sys.argv[1],
+#         filename=sys.argv[2],
+#         exp_type="extruder",
+#         num_imgs=2450,
+#         beam_center=[1590.7, 1643.7],
+#         det_dist=0.5,
+#         # start_time=None,
+#         # stop_time=None,
+#         start_time=datetime.now(),
+#         stop_time=datetime.now(),
+#         exp_time=0.002,
+#         transmission=1.0,
+#         wavelength=0.649,
+#         flux=None,
+#         pump_status="true",  # this is a string on the beamline
+#         pump_exp=None,
+#         pump_delay=None,
+#     )
