@@ -39,6 +39,9 @@ module_scope = freephil.parse(
 detector_scope = freephil.parse(
     """
     detector {
+      mode = *images events
+        .type = choice
+        .help = "Detector acquisition mode. Defaults to images. Only relevant for Tristan collections."
       description = Eiger 2XE 16M
         .type = str
         .help = "Detector class to record"
@@ -78,9 +81,9 @@ detector_scope = freephil.parse(
       image_size = 4148 4362
         .type = ints(size = 2)
         .help = "Image size in pixels: (fast, slow)"
-      exposure_time = 0.004s
+      exposure_time = None
         .type = str
-        .help = "Nominal exposure time, if unit is not specified defaults to seconds"
+        .help = "Nominal exposure time, eg 0.004s, if unit is not specified defaults to seconds"
       axes = two_theta det_z
         .type = strings
         .help = "Axis names for the detector axes. The detector sits on the last one."

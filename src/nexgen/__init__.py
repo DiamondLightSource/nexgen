@@ -4,7 +4,7 @@ General tools useful to create NeXus format files.
 
 __author__ = "Diamond Light Source - Scientific Software"
 __email__ = "scientificsoftware@diamond.ac.uk"
-__version__ = "0.6.0"
+__version__ = "0.6.2"
 __version_tuple__ = tuple(int(x) for x in __version__.split("."))
 
 import re
@@ -86,8 +86,12 @@ def get_nexus_filename(input_filename: Path) -> Path:
     Returns:
         NeXus file name (.nxs) path.
     """
-    filename_stem = P.fullmatch(input_filename.stem)[1]
-    nxs_filename = input_filename.parent / f"{filename_stem}.nxs"
+    filename_stem = P.fullmatch(input_filename.stem)
+    if filename_stem:
+        filename = filename_stem[1]
+    else:
+        filename = input_filename.stem
+    nxs_filename = input_filename.parent / f"{filename}.nxs"
     return nxs_filename
 
 

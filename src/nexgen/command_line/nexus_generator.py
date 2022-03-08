@@ -77,12 +77,6 @@ demo_phil = freephil.parse(
       coordinate_frame = *mcstas imgcif
         .type = choice
         .help = "Which coordinate system is being used to provide input vectors"
-      definition = NXmx
-        .type = str
-        .help = "Application definition for NeXus file. Deafults to Nxmx."
-      n_files = 1
-        .type = int
-        .help = "Number of data files to write - defaults to 1."
       vds_writer = *None dataset file
         .type = choice
         .help = "If not None, either write a vds in the nexus file or create also a _vds.h5 file."
@@ -304,7 +298,11 @@ def write_NXmx_cli(args):
                 logger.info(
                     "Pump probe status is True, write relative metadata as NXnote."
                 )
-                write_NXnote(nxsfile, "/entry/source/notes", params.pump_probe.__dict__)
+                pump_info = {
+                    "pump_exposure_time": params.pump_probe.pump_exp,
+                    "pump_delay": params.pump_probe.pump_delay,
+                }
+                write_NXnote(nxsfile, "/entry/source/notes", pump_info)
 
         logger.info(f"{master_file} correctly written.")
     except Exception as err:
@@ -337,25 +335,22 @@ def write_demo_cli(args):
     # Add handlers to logger
     logger.addHandler(FH)
 
+    # Images or events ?
+    if args.events is True:
+        num_events = args.force if args.force else 1
+        data_type = ("events", num_events)
+    else:
+        num_images = args.force if args.force else None
+        data_type = ("images", num_images)
+
     # Get data file name template
     data_file_template = get_filename_template(master_file)
-    data_file_list = [
-        Path(data_file_template % (n + 1)).expanduser().resolve()
-        for n in range(params.input.n_files)
-    ]
 
     # Add some information to logger
     logger.info("NeXus file will be saved as %s" % params.output.master_filename)
     logger.info("Data file(s) template: %s" % data_file_template)
-    logger.info(
-        "%d file(s) containing blank data to be written." % params.input.n_files
-    )
 
     # Next: go through technical info (goniometer, detector, beamline etc ...)
-    if args.num_events:
-        data_type = ("events", args.num_events)
-    else:
-        data_type = ("images", args.num_images)
     cf = params.input.coordinate_frame
     goniometer = params.goniometer
     detector = params.detector
@@ -447,23 +442,9 @@ def write_demo_cli(args):
     logger.info("Start writing NeXus and data files ...")
     try:
         with h5py.File(master_file, "x") as nxsfile:
-            # Set default attribute
-            nxsfile.attrs["default"] = "entry"
-
-            # Start writing the NeXus tree with NXentry at the top level
-            nxentry = nxsfile.create_group("entry")
-            nxentry.attrs["NX_class"] = "NXentry"
-            nxentry.attrs["default"] = "data"
-            # create_attributes(nxentry, ("NX_class", "default"), ("NXentry", "data"))
-
-            # Application definition: entry/definition
-            nxentry.create_dataset(
-                "definition", data=np.string_(params.input.definition)
-            )
-
             write_nexus_demo(
                 nxsfile,
-                data_file_list,
+                data_file_template,
                 data_type,
                 cf,
                 goniometer,
@@ -480,7 +461,11 @@ def write_demo_cli(args):
                 logger.info(
                     "Pump probe status is True, write relative metadata as NXnote."
                 )
-                write_NXnote(nxsfile, "/entry/source/notes", params.pump_probe.__dict__)
+                pump_info = {
+                    "pump_exposure_time": params.pump_probe.pump_exp,
+                    "pump_delay": params.pump_probe.pump_delay,
+                }
+                write_NXnote(nxsfile, "/entry/source/notes", pump_info)
 
             # Record string with end_time
             end_time = datetime.fromtimestamp(time.time()).strftime(
@@ -488,8 +473,8 @@ def write_demo_cli(args):
             )
 
             # Write /entry/start_time and /entry/end_time
-            nxentry.create_dataset("start_time", data=np.string_(start_time))
-            nxentry.create_dataset("end_time", data=np.string_(end_time))
+            nxsfile.create_dataset("/entry/start_time", data=np.string_(start_time))
+            nxsfile.create_dataset("/entry/end_time", data=np.string_(end_time))
         logger.info(f"{master_file} correctly written.")
     except Exception as err:
         logger.info(
@@ -683,7 +668,11 @@ def write_with_meta_cli(args):
                 logger.info(
                     "Pump probe status is True, write relative metadata as NXnote."
                 )
-                write_NXnote(nxsfile, "/entry/source/notes", params.pump_probe.__dict__)
+                pump_info = {
+                    "pump_exposure_time": params.pump_probe.pump_exp,
+                    "pump_delay": params.pump_probe.pump_delay,
+                }
+                write_NXnote(nxsfile, "/entry/source/notes", pump_info)
 
             logger.info(f"{master_file} correctly written.")
     except Exception as err:
