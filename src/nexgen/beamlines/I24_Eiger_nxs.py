@@ -34,6 +34,8 @@ from ..nxs_write import (
 from ..nxs_write.NexusWriter import call_writers
 from ..nxs_write.NXclassWriters import write_NXentry, write_NXnote
 
+from ..tools.VDS_tools import image_vds_writer
+
 # Define a logger object and a formatter
 logger = logging.getLogger("NeXusGenerator.I24")
 logger.setLevel(logging.DEBUG)
@@ -180,6 +182,9 @@ def extruder(
                 loc = "/entry/source/notes"
                 write_NXnote(nxsfile, loc, pump_info)
 
+            # Write VDS
+            image_vds_writer(nxsfile, (SSX.num_imgs, *detector["image_size"]))
+
             if timestamps[1]:
                 nxentry.create_dataset("end_time", data=np.string_(timestamps[1]))
             logger.info(f"{master_file} correctly written.")
@@ -280,7 +285,7 @@ def write_nxs(**ssx_params):
         grid_scan_3D()
 
 
-# Example usage
+# # Example usage
 # if __name__ == "__main__":
 #     from datetime import datetime
 

@@ -25,9 +25,9 @@ from .. import (
     ureg,
 )
 
-from .data_tools import vds_writer
+# from ..tools.VDS_tools import vds_writer
 
-NXclass_logger = logging.getLogger("NeXusGenerator.write.NXclass")
+NXclass_logger = logging.getLogger("NeXusGenerator.writer.NXclass")
 
 # NXentry writer
 def write_NXentry(nxsfile: h5py.File, definition: str = "NXmx") -> h5py.Group:
@@ -105,40 +105,33 @@ def write_NXdata(
             ],
         ),
     )
-    # try:
-    #     nxdata = nxsfile.create_group("/entry/data")
-    #     create_attributes(
-    #         nxdata,
-    #         ("NX_class", "axes", "signal", scan_axis + "_indices"),
-    #         (
-    #             "NXdata",
-    #             scan_axis,
-    #             "data",
-    #             [
-    #                 0,
-    #             ],
-    #         ),
-    #     )
-    # except ValueError:
-    #     nxdata = nxsfile["/entry/data"]
 
     # If mode is images, link to blank image data. Else go to events.
     if data_type == "images":
         if len(datafiles) == 1 and write_vds is None:
             nxdata["data"] = h5py.ExternalLink(datafiles[0].name, "data")
         elif len(datafiles) == 1 and write_vds:
-            nxdata[datafiles[0].stem] = h5py.ExternalLink(datafiles[0].name, "data")
-            NXclass_logger.info("Calling VDS writer.")
-            vds_writer(nxsfile, datafiles, write_vds)
+            nxdata["data_000001"] = h5py.ExternalLink(datafiles[0].name, "data")
+            # NXclass_logger.info("Calling VDS writer.")
+            # vds_writer(nxsfile, datafiles, write_vds)
         else:
-            for filename in datafiles:
-                nxdata[filename.stem] = h5py.ExternalLink(filename.name, "data")
-            if write_vds:
-                NXclass_logger.info("Calling VDS writer.")
-                vds_writer(nxsfile, datafiles, write_vds)
+            for n, filename in enumerate(datafiles):
+                tmp_name = f"data_%0{6}d"
+                nxdata[tmp_name % (n + 1)] = h5py.ExternalLink(filename.name, "data")
+            # if write_vds:
+            #     NXclass_logger.info("Calling VDS writer.")
+            #     vds_writer(nxsfile, datafiles, write_vds)
     elif data_type == "events":
-        for filename in datafiles:
-            nxdata[filename.stem] = h5py.ExternalLink(filename.name, "/")
+        # Look for meta file to avoid linking to up to 100 files
+        tbr = datafiles[0].stem.split("_")[-1]
+        mf = datafiles[0].stem.replace(tbr, "meta") + datafiles[0].suffix
+        meta = [f for f in datafiles[0].parent.iterdir() if mf in f.as_posix()]
+        # If metafile is not found, link to the data files
+        if len(meta) == 0:
+            for filename in datafiles:
+                nxdata[filename.stem] = h5py.ExternalLink(filename.name, "/")
+        else:
+            nxdata["meta_file"] = h5py.ExternalLink(meta[0].name, "/")
     else:
         sys.exit("Please pass a correct data_type (images or events)")
 
@@ -191,15 +184,6 @@ def write_NXsample(
         ("NX_class",),
         ("NXsample",),
     )
-    # try:
-    #     nxsample = nxsfile.create_group("/entry/sample")
-    #     create_attributes(
-    #         nxsample,
-    #         ("NX_class",),
-    #         ("NXsample",),
-    #     )
-    # except ValueError:
-    #     nxsample = nxsfile["/entry/sample"]
 
     # Create NXtransformations group: /entry/sample/transformations
     nxtransformations = nxsample.require_group("transformations")
@@ -228,6 +212,11 @@ def write_NXsample(
             idx = goniometer["axes"].index(scan_axis)
             try:
                 for k in nxsfile["/entry/data"].keys():
+                    if isinstance(
+                        nxsfile["/entry/data"].get(k, getlink=True), h5py.ExternalLink
+                    ):
+                        # Don't even try to open!
+                        continue
                     if nxsfile["/entry/data"][k].attrs.get("depends_on"):
                         nxsample_ax[ax] = nxsfile[nxsfile["/entry/data"][k].name]
                         nxtransformations[ax] = nxsfile[nxsfile["/entry/data"][k].name]
@@ -649,7 +638,6 @@ def write_NXcollection(
     data_type: Tuple[str, int],
     meta: Path = None,
     link_list: List = None,
-    # nxdetector: h5py.Group, image_size: Union[List, Tuple], data_type: Tuple[str, int]
 ):
     """
     Write a NXcollection group inside NXdetector as detectorSpecific.

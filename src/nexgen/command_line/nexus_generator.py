@@ -77,9 +77,6 @@ demo_phil = freephil.parse(
       coordinate_frame = *mcstas imgcif
         .type = choice
         .help = "Which coordinate system is being used to provide input vectors"
-      n_files = 1
-        .type = int
-        .help = "Number of data files to write - defaults to 1."
       vds_writer = *None dataset file
         .type = choice
         .help = "If not None, either write a vds in the nexus file or create also a _vds.h5 file."
@@ -338,25 +335,22 @@ def write_demo_cli(args):
     # Add handlers to logger
     logger.addHandler(FH)
 
+    # Images or events ?
+    if args.events is True:
+        num_events = args.force if args.force else 1
+        data_type = ("events", num_events)
+    else:
+        num_images = args.force if args.force else None
+        data_type = ("images", num_images)
+
     # Get data file name template
     data_file_template = get_filename_template(master_file)
-    data_file_list = [
-        Path(data_file_template % (n + 1)).expanduser().resolve()
-        for n in range(params.input.n_files)
-    ]
 
     # Add some information to logger
     logger.info("NeXus file will be saved as %s" % params.output.master_filename)
     logger.info("Data file(s) template: %s" % data_file_template)
-    logger.info(
-        "%d file(s) containing blank data to be written." % params.input.n_files
-    )
 
     # Next: go through technical info (goniometer, detector, beamline etc ...)
-    if args.num_events:
-        data_type = ("events", args.num_events)
-    else:
-        data_type = ("images", args.num_images)
     cf = params.input.coordinate_frame
     goniometer = params.goniometer
     detector = params.detector
@@ -450,7 +444,7 @@ def write_demo_cli(args):
         with h5py.File(master_file, "x") as nxsfile:
             write_nexus_demo(
                 nxsfile,
-                data_file_list,
+                data_file_template,
                 data_type,
                 cf,
                 goniometer,

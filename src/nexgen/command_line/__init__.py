@@ -15,18 +15,28 @@ version_parser.add_argument(
 )
 
 detectormode_parser = argparse.ArgumentParser(add_help=False)
-group = detectormode_parser.add_mutually_exclusive_group(required=False)
+group = detectormode_parser.add_mutually_exclusive_group(required=True)
 group.add_argument(
     "-i",
-    "--num-images",
-    help="Number of blank images to be written per file. Overrides increment.",
-    type=int,
+    "--images",
+    help="Write a demo file with blank images.",
+    action="store_true",
 )
 group.add_argument(
     "-e",
-    "--num-events",
-    help="Size of event stream to be written per file.",
+    "--events",
+    help="Write a demo file with fake events.",
+    action="store_true",
+)
+detectormode_parser.add_argument(
+    "-f",
+    "--force",
+    help="Overrides other instructions relevant to number of images/ "
+    "stream of events already parsed. For images, please pass the desired number to be written. "
+    "For events, the number of chunks to be written per file. "
+    "The number of files will be determined by the number of detector modules.",
     type=int,
+    default=None,
 )
 
 

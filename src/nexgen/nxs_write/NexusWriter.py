@@ -11,8 +11,7 @@ from pathlib import Path
 from typing import Dict, List, Tuple, Union
 
 from . import find_scan_axis, calculate_scan_range, find_number_of_images
-
-from .data_tools import data_writer
+from .. import units_of_time
 
 from .NXclassWriters import (
     write_NXentry,
@@ -25,6 +24,8 @@ from .NXclassWriters import (
 )
 
 from ..tools.MetaReader import overwrite_beam, overwrite_detector
+from ..tools.DataWriter import generate_event_files, generate_image_files
+from ..tools.VDS_tools import image_vds_writer, vds_file_writer
 
 writer_logger = logging.getLogger("NeXusGenerator.writer")
 
@@ -74,36 +75,40 @@ def write_nexus(
     else:
         link_list = None
     writer_logger.info("Writing NXmx NeXus file ...")
-    # Find total number of images that have been written across the files.
-    if len(datafiles) == 1:
-        with h5py.File(datafiles[0], "r") as f:
-            num_images = f["data"].shape[0]
-    else:
-        num_images = find_number_of_images(datafiles)
-
-    # TODO add events option here
-    data_type = ("images", num_images)
-    writer_logger.info(f"Total number of images: {num_images}")
 
     # Identify scan axis
     osc_axis = find_scan_axis(
         goniometer.axes, goniometer.starts, goniometer.ends, goniometer.types
     )
-
-    # Compute scan_range
     idx = goniometer.axes.index(osc_axis)
-    if goniometer.increments[idx] != 0.0:
-        scan_range = calculate_scan_range(
-            goniometer.starts[idx],
-            goniometer.ends[idx],
-            axis_increment=goniometer.increments[idx],
-        )
+
+    if detector.mode == "events":
+        data_type = ("events", len(datafiles))
+        scan_range = (goniometer.starts[idx], goniometer.ends[idx])
     else:
-        scan_range = calculate_scan_range(
-            goniometer.starts[idx], goniometer.ends[idx], n_images=num_images
-        )
+        # Find total number of images that have been written across the files.
+        if len(datafiles) == 1:
+            with h5py.File(datafiles[0], "r") as f:
+                num_images = f["data"].shape[0]
+        else:
+            num_images = find_number_of_images(datafiles)
+        data_type = ("images", num_images)
+        writer_logger.info(f"Total number of images: {num_images}")
+
+        # Compute scan_range
+        if goniometer.increments[idx] != 0.0:
+            scan_range = calculate_scan_range(
+                goniometer.starts[idx],
+                goniometer.ends[idx],
+                axis_increment=goniometer.increments[idx],
+            )
+        else:
+            scan_range = calculate_scan_range(
+                goniometer.starts[idx], goniometer.ends[idx], n_images=num_images
+            )
 
     writer_logger.info(f"Scan axis: {osc_axis}")
+    writer_logger.info(f"Scan from {scan_range[0]} tp {scan_range[-1]}.")
 
     nxentry = write_NXentry(nxsfile)
 
@@ -126,6 +131,18 @@ def write_nexus(
         link_list,
     )
 
+    # Write VDS
+    if data_type[0] == "images" and vds == "dataset":
+        writer_logger.info("Calling VDS writer ...")
+        image_vds_writer(nxsfile, (data_type[1], *detector.image_size))
+    elif data_type[0] == "images" and vds == "file":
+        writer_logger.info(
+            "Calling VDS writer to write a Virtual Dataset file and relative link."
+        )
+        vds_file_writer(nxsfile, datafiles, (data_type[1], *detector.image_size))
+    else:
+        writer_logger.info("VDS won't be written.")
+
     # NX_DATE_TIME: /entry/start_time and /entry/end_time
     if timestamps[0] is not None:
         nxentry.create_dataset("start_time", data=np.string_(timestamps[0]))
@@ -135,7 +152,7 @@ def write_nexus(
 
 def write_nexus_demo(
     nxsfile: h5py.File,
-    datafiles: List[Path],
+    datafile_template: str,
     data_type: Tuple[str, int],
     coordinate_frame: str,
     goniometer,
@@ -166,7 +183,7 @@ def write_nexus_demo(
         attenuator:         Scope extract defining transmission.
         vds:                If passed, a Virtual Dataset will also be written.
     """
-    writer_logger.info("Writing demo ...")
+    writer_logger.info("Writing NXmx demo ...")
     writer_logger.info(f"The data file will contain {data_type[1]} {data_type[0]}")
     # Identify scan axis
     osc_axis = find_scan_axis(
@@ -190,15 +207,40 @@ def write_nexus_demo(
     elif data_type[0] == "events":
         scan_range = (goniometer.starts[idx], goniometer.ends[idx])
 
-    writer_logger.info(f"Scan axis: {osc_axis}")
+    writer_logger.info(f"Scan axis: {osc_axis}.")
+    writer_logger.info(f"Scan from {scan_range[0]} to {scan_range[-1]}.")
+
+    # Figure out how many files will need to be written
+    writer_logger.info("Calculating number of files to write ...")
+    if data_type[0] == "events":
+        # Determine the number of files. Write one file per module.
+        # FIXME Either a 10M or a 2M, no other possibilities at this moment.
+        n_files = 10 if "10M" in detector.description.upper() else 2
+    else:
+        # The maximum number of images being written each dataset is 1000
+        if data_type[1] <= 1000:
+            n_files = 1
+        else:
+            n_files = int(np.ceil(data_type[1] / 1000))
+
+    writer_logger.info("%d file(s) containing blank data to be written." % n_files)
+
+    # Get datafile list
+    datafiles = [
+        Path(datafile_template % (n + 1)).expanduser().resolve() for n in range(n_files)
+    ]
+
     writer_logger.info("Calling data writer ...")
     # Write data files
-    data_writer(
-        datafiles,
-        data_type,
-        image_size=detector.image_size,
-        scan_range=scan_range,
-    )
+    if data_type[0] == "images":
+        generate_image_files(
+            datafiles, detector.image_size, detector.description, data_type[1]
+        )
+    else:
+        exp_time = units_of_time(detector.exposure_time)
+        generate_event_files(
+            datafiles, data_type[1], detector.description, exp_time.magnitude
+        )
 
     write_NXentry(nxsfile)
 
@@ -218,6 +260,20 @@ def write_nexus_demo(
         attenuator.__dict__,
         vds,
     )
+
+    # Write VDS
+    if data_type[0] == "images" and vds == "dataset":
+        writer_logger.info(
+            "Calling VDS writer to write a Virtual Dataset under /entry/data/data"
+        )
+        image_vds_writer(nxsfile, (data_type[1], *detector.image_size))
+    elif data_type[0] == "images" and vds == "file":
+        writer_logger.info(
+            "Calling VDS writer to write a Virtual Dataset file and relative link."
+        )
+        vds_file_writer(nxsfile, datafiles, (data_type[1], *detector.image_size))
+    else:
+        writer_logger.info("VDS won't be written.")
 
 
 # def call_writers(*args,**kwargs):

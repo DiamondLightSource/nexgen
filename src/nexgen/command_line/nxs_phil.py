@@ -39,6 +39,9 @@ module_scope = freephil.parse(
 detector_scope = freephil.parse(
     """
     detector {
+      mode = *images events
+        .type = choice
+        .help = "Detector acquisition mode. Defaults to images. Only relevant for Tristan collections."
       description = Eiger 2XE 16M
         .type = str
         .help = "Detector class to record"
