@@ -3,13 +3,13 @@ Create a NeXus file for time resolved collections on I19-2 Tristan 10M detector.
 """
 
 import sys
-
-# import json
+import json
 import logging
 
-# from pathlib import Path
+from pathlib import Path
 
 from collections import namedtuple
+from typing import Union
 
 # from .. import (
 #     get_iso_timestamp,
@@ -20,6 +20,8 @@ from collections import namedtuple
 #     calculate_scan_range,
 #     find_scan_axis,
 # )
+
+# from ..tools.ExtendedRequest import ExtendedRequestIO
 
 # Define a logger object and a formatter
 logger = logging.getLogger("NeXusGenerator.I19-2")
@@ -36,10 +38,30 @@ flatfieldfile = "Tristan10M_flat_field_coeff_with_Mo_17.479keV.h5"
 
 tr_collect = namedtuple(
     "tr_collect",
-    [],
+    [
+        "meta_file",
+        "xml_file",
+        "geometry_json",
+        "detector_json",
+        "exposure_time",
+        "wavelength",
+        "beam_pos_x",
+        "beam_pos_y",
+        "start_time",
+        "end_time",
+        # "pump_status",
+        # "pump_exp",
+        # "pump_delay",
+    ],
 )
 
 # Initialize dictionaries
+source = {
+    "name": "Diamond Light Source",
+    "short_name": "DLS",
+    "type": "Synchrotron X-ray Source",
+    "beamline_name": "I19-2",
+}
 goniometer = {}
 detector = {}
 module = {}
@@ -47,11 +69,27 @@ beam = {}
 attenuator = {}
 
 
-def read_geometry_from_json():
+def read_geometry_from_json(axes_geometry: Union[Path, str]):
+    """_summary_
+
+    Args:
+        axes_geometry (Union[Path, str]): _description_
+    """
+    # Load information from JSON file
+    with open(axes_geometry, "r") as f:
+        geom = json.load(f)
+    print(geom)
     pass
 
 
-def read_detector_params_from_json():
+def read_detector_params_from_json(
+    detector_params: Union[Path, str],
+):
+    """_summary_
+
+    Args:
+        detector_params (Union[Path, str]): _description_
+    """
     pass
 
 
