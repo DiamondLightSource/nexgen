@@ -67,7 +67,7 @@ def write_nxs(**ssx_params):
     """
     # Get info from the beamline
     SSX_TR = ssx_tr_collect(
-        visitpath=Path(["visitpath"]).expanduser().resolve(),
+        visitpath=Path(ssx_params["visitpath"]).expanduser().resolve(),
         filename=ssx_params["filename"],
         tot_num_X=ssx_params["tot_num_X"],
         beam_center=ssx_params["beam_center"],
@@ -90,11 +90,19 @@ def write_nxs(**ssx_params):
     detector["exposure_time"] = SSX_TR.exposure_time
     detector["beam_center"] = SSX_TR.beam_center
 
+    # Module
+    module["fast_axis"] = detector.pop("fast_axis")
+    module["slow_axis"] = detector.pop("slow_axis")
+    # goniometer, detector, module = read_params_from_json()
+    # Set value for module_offset calculation.
+    module["module_offset"] = "1"
+
     # Attenuator
     attenuator["transmission"] = SSX_TR.transmission
 
     # Beam
     beam["wavelength"] = SSX_TR.wavelength
+    beam["flux"] = None
 
     # Goniometer
     goniometer["starts"] = goniometer["ends"] = goniometer["increments"] = [
@@ -204,20 +212,20 @@ def write_nxs(**ssx_params):
         )
 
 
-# # Example usage
-# if __name__ == "__main__":
-#     from datetime import datetime
+# Example usage
+if __name__ == "__main__":
+    from datetime import datetime
 
-#     write_nxs(
-#         visitpath=sys.argv[1],
-#         filename=sys.argv[2],
-#         tot_num_X = 100,
-#         beam_center=[1590.7, 1643.7],
-#         det_dist=0.5,
-#         start_time=datetime.now(),
-#         stop_time=datetime.now(),
-#         exp_time=0.002,
-#         transmission=1.0,
-#         wavelength=0.649,
-#         pump_status=True,
-#     )
+    write_nxs(
+        visitpath=sys.argv[1],
+        filename=sys.argv[2],
+        tot_num_X=100,
+        beam_center=[1590.7, 1643.7],
+        det_dist=0.5,
+        start_time=datetime.now(),
+        stop_time=datetime.now(),
+        exp_time=0.002,
+        transmission=1.0,
+        wavelength=0.649,
+        pump_status=True,
+    )
