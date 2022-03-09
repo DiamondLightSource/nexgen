@@ -156,7 +156,6 @@ def extruder(
                 source,
                 beam,
                 attenuator,
-                vds="dataset",
                 metafile=metafile,
                 link_list=dset_links,
             )

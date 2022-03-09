@@ -192,7 +192,6 @@ def write_nxs(**ssx_params):
                 source,
                 beam,
                 attenuator,
-                vds=None,
                 metafile=metafile,
                 link_list=None,
             )
