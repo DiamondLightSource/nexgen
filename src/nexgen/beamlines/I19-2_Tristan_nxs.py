@@ -79,7 +79,6 @@ def read_geometry_from_json(axes_geometry: Union[Path, str]):
     with open(axes_geometry, "r") as f:
         geom = json.load(f)
     print(geom)
-    pass
 
 
 def read_detector_params_from_json(
