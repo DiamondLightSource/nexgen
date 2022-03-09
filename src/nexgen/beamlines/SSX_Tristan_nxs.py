@@ -115,7 +115,7 @@ def write_nxs(**ssx_params):
     ]
 
     # Get scan range array and rotation axis
-    scan_axis = "omega"
+    scan_axis = "phi"
     scan_range = (0.0, 0.0)
     # scan_axis = find_scan_axis(
     #     goniometer["axes"],
@@ -197,10 +197,13 @@ def write_nxs(**ssx_params):
                 link_list=None,
             )
 
+            # TODO I'd register the number of cells like this:
+            nxsfile["/entry/data"].create_dataset(
+                "tot_num_cells", data=SSX_TR.tot_num_X
+            )
+
             # Register pump status (hard coded)
             write_NXnote(nxsfile, "/entry/source/notes", {"pump_status": True})
-
-            # TODO figure out where to write information about tot_num_x
 
             if timestamps[1]:
                 nxentry.create_dataset("end_time", data=np.string_(timestamps[1]))
@@ -212,20 +215,20 @@ def write_nxs(**ssx_params):
         )
 
 
-# Example usage
-if __name__ == "__main__":
-    from datetime import datetime
+# # Example usage
+# if __name__ == "__main__":
+#     from datetime import datetime
 
-    write_nxs(
-        visitpath=sys.argv[1],
-        filename=sys.argv[2],
-        tot_num_X=100,
-        beam_center=[1590.7, 1643.7],
-        det_dist=0.5,
-        start_time=datetime.now(),
-        stop_time=datetime.now(),
-        exp_time=0.002,
-        transmission=1.0,
-        wavelength=0.649,
-        pump_status=True,
-    )
+#     write_nxs(
+#         visitpath=sys.argv[1],
+#         filename=sys.argv[2],
+#         tot_num_X=100,
+#         beam_center=[1590.7, 1643.7],
+#         det_dist=0.5,
+#         start_time=datetime.now(),
+#         stop_time=datetime.now(),
+#         exp_time=0.002,
+#         transmission=1.0,
+#         wavelength=0.649,
+#         pump_status=True,
+#     )
