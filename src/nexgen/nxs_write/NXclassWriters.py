@@ -122,6 +122,7 @@ def write_NXdata(
             #     NXclass_logger.info("Calling VDS writer.")
             #     vds_writer(nxsfile, datafiles, write_vds)
     elif data_type == "events":
+        # FIXME this needs to consider the fact that the input might simply be a meta file.
         # Look for meta file to avoid linking to up to 100 files
         tbr = datafiles[0].stem.split("_")[-1]
         mf = datafiles[0].stem.replace(tbr, "meta") + datafiles[0].suffix
