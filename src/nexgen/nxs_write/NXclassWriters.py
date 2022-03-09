@@ -122,6 +122,7 @@ def write_NXdata(
             #     NXclass_logger.info("Calling VDS writer.")
             #     vds_writer(nxsfile, datafiles, write_vds)
     elif data_type == "events":
+        # FIXME this needs to consider the fact that the input might simply be a meta file.
         # Look for meta file to avoid linking to up to 100 files
         tbr = datafiles[0].stem.split("_")[-1]
         mf = datafiles[0].stem.replace(tbr, "meta") + datafiles[0].suffix
@@ -375,7 +376,7 @@ def write_NXdetector(
     nxdetector.create_dataset("type", data=np.string_(detector["detector_type"]))
 
     # If there is a meta file, a lot of information will be linked instead of copied
-    if meta:
+    if meta and detector["mode"] == "images":
         for ll in link_list[0]:
             nxdetector[ll] = h5py.ExternalLink(meta.name, detector[ll])
     else:
@@ -660,7 +661,7 @@ def write_NXcollection(
     grp.create_dataset("y_pixels", data=detector["image_size"][1])
     if data_type[0] == "images":
         grp.create_dataset("nimages", data=data_type[1])
-    if meta:
+    if meta and data_type[0] == "images":
         for l in link_list[1]:
             grp[l] = h5py.ExternalLink(meta.name, detector[l])
     else:
