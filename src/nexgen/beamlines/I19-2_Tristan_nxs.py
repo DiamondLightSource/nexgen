@@ -11,6 +11,8 @@ from pathlib import Path
 from collections import namedtuple
 from typing import Union
 
+# from .I19_2_params import source
+
 # from .. import (
 #     get_iso_timestamp,
 #     get_nexus_filename,
@@ -56,12 +58,6 @@ tr_collect = namedtuple(
 )
 
 # Initialize dictionaries
-source = {
-    "name": "Diamond Light Source",
-    "short_name": "DLS",
-    "type": "Synchrotron X-ray Source",
-    "beamline_name": "I19-2",
-}
 goniometer = {}
 detector = {}
 module = {}
