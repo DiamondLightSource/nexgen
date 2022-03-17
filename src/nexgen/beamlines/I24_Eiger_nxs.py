@@ -161,11 +161,13 @@ def extruder(
             )
 
             # Write pump-probe information if requested
+            # TODO have pump exposure and delay also as units of time
             if SSX.pump_status == "true":
                 logger.info("Pump status is True, write pump information to file.")
                 pump_info = {}
                 if SSX.pump_exp:
                     pump_info["pump_exposure_time"] = SSX.pump_exp
+                    logger.info(f"Recorded pump exposure time: {SSX.pump_exp}")
                 else:
                     pump_info["pump_exposure_time"] = None
                     logger.warning(
@@ -173,6 +175,7 @@ def extruder(
                     )
                 if SSX.pump_delay:
                     pump_info["pump_delay"] = SSX.pump_delay
+                    logger.info(f"Recorded pump delay time: {SSX.pump_delay}")
                 else:
                     pump_info["pump_delay"] = None
                     logger.warning(
