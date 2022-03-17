@@ -78,7 +78,7 @@ def write_nxs(**ssx_params):
         if ssx_params["start_time"]
         else None,  # This should be datetiem type
         stop_time=ssx_params["stop_time"].strftime("%Y-%m-%dT%H:%M:%S")
-        if ssx_params["start_time"]
+        if ssx_params["stop_time"]
         else None,  # idem.
         exposure_time=ssx_params["exp_time"],
         transmission=ssx_params["transmission"],
@@ -86,6 +86,9 @@ def write_nxs(**ssx_params):
         pump_status=True,
         pump_exp=ssx_params["pump_exp"],
         pump_delay=ssx_params["pump_delay"],
+    )
+    logger.info(
+        f"Start NeXus File Writer for time-resolved SSX on {source['beamline_name']}."
     )
 
     # Add to dictionaries
