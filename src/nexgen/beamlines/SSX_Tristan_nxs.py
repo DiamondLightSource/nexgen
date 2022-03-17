@@ -87,6 +87,9 @@ def write_nxs(**ssx_params):
         pump_exp=ssx_params["pump_exp"],
         pump_delay=ssx_params["pump_delay"],
     )
+    logger.info(
+        f"Start NeXus File Writer for time-resolved SSX on {source['beamline_name']}."
+    )
 
     # Add to dictionaries
     # Detector
