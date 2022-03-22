@@ -112,12 +112,13 @@ def write_nexus(
 
     nxentry = write_NXentry(nxsfile)
 
+    scan_range = {osc_axis: scan_range}
+
     # Call the writers
     call_writers(
         nxsfile,
         datafiles,
         coordinate_frame,
-        osc_axis,
         scan_range,
         data_type,
         goniometer.__dict__,
@@ -168,7 +169,7 @@ def write_nexus_demo(
 
     This function writes a new nexus file from the information contained in the phil scopes passed as input.
     It also writes a specified number of blank data HDF5 files.
-    The nuber of these files can be passed as input parameter, if it isn't it defaults to 1.
+    The number of these files can be passed as input parameter, if it isn't it defaults to 1.
 
     Args:
         nxsfile:            NeXus file to be written.
@@ -244,12 +245,13 @@ def write_nexus_demo(
 
     write_NXentry(nxsfile)
 
+    scan_range = {osc_axis: scan_range}
+
     # Call the writers
     call_writers(
         nxsfile,
         datafiles,
         coordinate_frame,
-        osc_axis,
         scan_range,
         data_type,
         goniometer.__dict__,
@@ -281,8 +283,7 @@ def call_writers(
     nxsfile: h5py.File,
     datafiles: List[Path],
     coordinate_frame: str,
-    scan_axis: str,
-    scan_range: Union[Tuple, np.ndarray],
+    scan_range: Dict[str, Union[Tuple, np.ndarray]],
     data_type: Tuple[str, int],
     goniometer: Dict,
     detector: Dict,
@@ -294,7 +295,7 @@ def call_writers(
     metafile: Path = None,
     link_list: List = None,
 ):
-    """ Call the writers for the NeXus base classes."""
+    """Call the writers for the NeXus base classes."""
     logger = logging.getLogger("NeXusGenerator.writer.call")
     logger.info("Calling the writers ...")
 
@@ -306,7 +307,6 @@ def call_writers(
         data_type[0],
         coordinate_frame,
         scan_range,
-        scan_axis,
         vds,
     )
 
@@ -347,6 +347,5 @@ def call_writers(
         goniometer,
         coordinate_frame,
         data_type[0],
-        scan_axis,
         scan_range,
     )

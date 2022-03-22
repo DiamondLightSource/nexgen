@@ -45,7 +45,7 @@ def dummy_nexus_file():
 def test_given_no_data_files_when_write_NXdata_then_assert_error():
     mock_hdf5_file = MagicMock()
     with pytest.raises(AssertionError):
-        write_NXdata(mock_hdf5_file, [], {}, "", "", [])
+        write_NXdata(mock_hdf5_file, [], {}, "", "", {"sam_z": []})
 
 
 def test_given_no_data_type_specified_when_write_NXdata_then_exception_raised(
@@ -53,7 +53,7 @@ def test_given_no_data_type_specified_when_write_NXdata_then_exception_raised(
 ):
     with pytest.raises(SystemExit):
         write_NXdata(
-            dummy_nexus_file, [Path("tmp")], test_goniometer_axes, "", "", [], "sam_z"
+            dummy_nexus_file, [Path("tmp")], test_goniometer_axes, "", "", {"sam_z": []}
         )
 
 
@@ -61,20 +61,15 @@ def test_given_one_data_file_when_write_NXdata_then_data_entry_in_file(
     dummy_nexus_file,
 ):
     write_NXdata(
-        dummy_nexus_file, [Path("tmp")], test_goniometer_axes, "images", "", [], "sam_z"
+        dummy_nexus_file,
+        [Path("tmp")],
+        test_goniometer_axes,
+        "images",
+        "",
+        {"sam_z": []},
     )
     assert dummy_nexus_file["/entry/data"].attrs["NX_class"] == b"NXdata"
     assert "data" in dummy_nexus_file["/entry/data"]
-
-
-@patch("nexgen.nxs_write.NXclassWriters.find_scan_axis", return_value="sam_z")
-def test_given_no_scan_axis_when_write_NXdata_then_find_scan_axis_called(
-    mock_find_scan_axis, dummy_nexus_file
-):
-    write_NXdata(
-        dummy_nexus_file, [Path("tmp")], test_goniometer_axes, "images", "", []
-    )
-    mock_find_scan_axis.assert_called_once()
 
 
 def test_given_scan_axis_when_write_NXdata_then_axis_in_data_entry_with_correct_data_and_attributes(
@@ -90,11 +85,11 @@ def test_given_scan_axis_when_write_NXdata_then_axis_in_data_entry_with_correct_
         test_goniometer_axes,
         "images",
         "",
-        test_scan_range,
-        test_axis,
+        {test_axis: test_scan_range},
     )
 
     assert test_axis in dummy_nexus_file["/entry/data"]
+    assert dummy_nexus_file["/entry/data"].attrs["axes"] == b"sam_z"
     assert_array_equal(test_scan_range, dummy_nexus_file[axis_entry][:])
     assert (
         dummy_nexus_file[axis_entry].attrs["depends_on"]
@@ -103,6 +98,40 @@ def test_given_scan_axis_when_write_NXdata_then_axis_in_data_entry_with_correct_
     assert dummy_nexus_file[axis_entry].attrs["transformation_type"] == b"translation"
     assert dummy_nexus_file[axis_entry].attrs["units"] == b"mm"
     assert_array_equal(dummy_nexus_file[axis_entry].attrs["vector"][:], [0.0, -1.0, 0])
+
+
+def test_given_multiple_scan_axes_when_write_NXdata_then_axis_in_data_entry_with_correct_data_and_attributes(
+    dummy_nexus_file,
+):
+    test_scan = {"sam_z": [0, 1, 2], "omega": [3, 4, 5]}
+
+    write_NXdata(
+        dummy_nexus_file,
+        [Path("tmp")],
+        test_goniometer_axes,
+        "images",
+        "",
+        test_scan,
+    )
+
+    axis_entry = f"/entry/data/sam_z"
+    assert "sam_z" in dummy_nexus_file["/entry/data"]
+    assert_array_equal(test_scan["sam_z"], dummy_nexus_file[axis_entry][:])
+    assert (
+        dummy_nexus_file[axis_entry].attrs["depends_on"]
+        == b"/entry/sample/transformations/omega"
+    )
+    assert dummy_nexus_file[axis_entry].attrs["transformation_type"] == b"translation"
+    assert dummy_nexus_file[axis_entry].attrs["units"] == b"mm"
+    assert_array_equal(dummy_nexus_file[axis_entry].attrs["vector"][:], [0.0, -1.0, 0])
+
+    axis_entry = f"/entry/data/omega"
+    assert "omega" in dummy_nexus_file["/entry/data"]
+    assert_array_equal(test_scan["omega"], dummy_nexus_file[axis_entry][:])
+    assert dummy_nexus_file[axis_entry].attrs["depends_on"] == b"."
+    assert dummy_nexus_file[axis_entry].attrs["transformation_type"] == b"rotation"
+    assert dummy_nexus_file[axis_entry].attrs["units"] == b"deg"
+    assert_array_equal(dummy_nexus_file[axis_entry].attrs["vector"][:], [-1.0, 0.0, 0])
 
 
 def test_given_scan_axis_when_write_NXsample_then_scan_axis_data_copied_from_data_group_as_well_as_increment_set_and_end(
@@ -119,8 +148,7 @@ def test_given_scan_axis_when_write_NXsample_then_scan_axis_data_copied_from_dat
         test_goniometer_axes,
         "images",
         "",
-        test_scan_range,
-        test_axis,
+        {test_axis: test_scan_range},
     )
 
     write_NXsample(
@@ -128,8 +156,7 @@ def test_given_scan_axis_when_write_NXsample_then_scan_axis_data_copied_from_dat
         test_goniometer_axes,
         "",
         "images",
-        test_axis,
-        test_scan_range,
+        {test_axis: test_scan_range},
     )
 
     assert f"sample_{test_axis}" in dummy_nexus_file["/entry/sample"]

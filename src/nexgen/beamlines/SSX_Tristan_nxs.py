@@ -122,8 +122,7 @@ def write_nxs(**ssx_params):
     ]
 
     # Get scan range array and rotation axis
-    scan_axis = "phi"
-    scan_range = (0.0, 0.0)
+    scan_range = {"phi": (0.0, 0.0)}
     # scan_axis = find_scan_axis(
     #     goniometer["axes"],
     #     goniometer["starts"],
@@ -187,7 +186,6 @@ def write_nxs(**ssx_params):
                 nxsfile,
                 [metafile],
                 "mcstas",
-                scan_axis,
                 scan_range,
                 (
                     detector["mode"],

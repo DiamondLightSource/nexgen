@@ -124,11 +124,13 @@ def extruder(
         goniometer["types"],
     )
     scan_idx = goniometer["axes"].index(scan_axis)
-    scan_range = calculate_scan_range(
-        goniometer["starts"][scan_idx],
-        goniometer["ends"][scan_idx],
-        n_images=SSX.num_imgs,
-    )
+    scan_range = {
+        scan_axis: calculate_scan_range(
+            goniometer["starts"][scan_idx],
+            goniometer["ends"][scan_idx],
+            n_images=SSX.num_imgs,
+        )
+    }
 
     logger.info("Goniometer information")
     for j in range(len(goniometer["axes"])):
@@ -147,7 +149,6 @@ def extruder(
                 nxsfile,
                 filename,
                 "mcstas",
-                scan_axis,  # This should be omega
                 scan_range,
                 (detector["mode"], SSX.num_imgs),
                 goniometer,
