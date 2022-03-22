@@ -8,7 +8,10 @@ import numpy as np
 
 from pathlib import Path
 from h5py import AttributeManager
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, Dict
+
+from scanspec.core import Path
+from scanspec.specs import Spec, Line
 
 
 def create_attributes(
@@ -97,6 +100,21 @@ def find_scan_axis(
     return scan_axis
 
 
+def calculate_scan_from_scanspec(spec: Spec) -> Dict[str, np.ndarray]:
+    """Returns the numpy arrarys describing a scan based on a specscan object
+    (see https://dls-controls.github.io/scanspec/master/index.html).
+
+    Args:
+        spec (Spec): A specification for the scan
+
+    Returns:
+        Dict[str, np.ndarray]: A dictionary with the axis name and numpy
+        array describing the movement of that axis
+    """
+    path = Path(spec.calculate())
+    return path.consume().midpoints
+
+
 def calculate_scan_range(
     axis_start: float,
     axis_end: float,
@@ -117,10 +135,9 @@ def calculate_scan_range(
         scan_range (np.ndarray):    Numpy array of values for the rotation axis.
     """
     if n_images:
-        if axis_start == axis_end:
-            scan_range = np.repeat(axis_start, n_images)
-        else:
-            scan_range = np.linspace(axis_start, axis_end, n_images)
+        tmp_axis_name = ""
+        scan_spec = Line(tmp_axis_name, axis_start, axis_end, n_images)
+        scan_range = calculate_scan_from_scanspec(scan_spec)[tmp_axis_name]
     else:
         scan_range = np.arange(axis_start, axis_end, axis_increment)
     return scan_range
