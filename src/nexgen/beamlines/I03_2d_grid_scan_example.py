@@ -38,7 +38,7 @@ goniometer_axes = {
         0.0, 0.0, 1.0,
         0.0, 1.0, 0.0,
         1.0, 0.0, 0.0,
-        0.006, -0.0264, 0.9996
+        0.006, -0.0264, 0.9996,
         -1, -0.0025, -0.0056,
     ],
     "types": [
@@ -132,7 +132,7 @@ def example_nexus_file():
     scan_range = calculate_scan_from_scanspec(scan_spec)
 
     containing_foler = Path("/scratch/ffv81422/artemis/example data/protk_1")
-    test_nexus_file = containing_foler / "protk_1_1_test.nxs"
+    test_nexus_file = containing_foler / "protk_1_1_nexgen.nxs"
     image_data = [containing_foler / "protk_1_1_000001.h5"]
     metafile = containing_foler / "protk_1_1_meta.h5"
 
