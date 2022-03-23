@@ -34,7 +34,7 @@ class ExtendedRequestIO:
         ax = self.root.find(".//axisChoice").text
         return ax.lower()
 
-    def getOtherAxis(self) -> str:
+    def getOtherAxis(self) -> float:
         val = float(self.root.find(".//otherAxis").text)
         return val
 

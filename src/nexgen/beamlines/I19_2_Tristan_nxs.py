@@ -54,7 +54,7 @@ tr_collect = namedtuple(
         # "beam_pos_x",
         # "beam_pos_y",
         "start_time",
-        "end_time",
+        "stop_time",
         # "pump_status",
         # "pump_exp",
         # "pump_delay",
@@ -95,7 +95,7 @@ def read_from_xml(xmlfile: Union[Path, str]):
     if ecr.getAxisChoice() == "omega":
         scan_axis = "omega"
         omega_pos = (*scan_range, 0.0)
-        phi_pos = (*2 * (ecr.getOtherAxis()), 0.0)
+        phi_pos = (*2 * (ecr.getOtherAxis(),), 0.0)
     else:
         scan_axis = "phi"
         phi_pos = (*scan_range, 0.0)
@@ -111,7 +111,7 @@ def read_from_xml(xmlfile: Union[Path, str]):
         "sam_z": (0.0, 0.0, 0.0),
     }
 
-    print(scan_axis, pos)
+    return scan_axis, scan_range, pos
 
 
 def write_nxs(**tr_params):
@@ -129,10 +129,14 @@ def write_nxs(**tr_params):
         if tr_params["start_time"]
         else None,  # This should be datetiem type
         stop_time=tr_params["stop_time"].strftime("%Y-%m-%dT%H:%M:%S")
-        if tr_params["start_time"]
+        if tr_params["stop_time"]
         else None,  # idem.
-        geometry_json=None,  # tr_params["geometry_json"] if tr_params["geometry_json"] else None,
-        detector_json=None,  # tr_params["detector_json"] if tr_params["detector_json"] else None,
+        geometry_json=tr_params["geometry_json"]
+        if tr_params["geometry_json"]
+        else None,
+        detector_json=tr_params["detector_json"]
+        if tr_params["detector_json"]
+        else None,
     )
 
     # Get goniometer and detector parameters
@@ -141,37 +145,60 @@ def write_nxs(**tr_params):
         # here call json reader
         pass
     else:
-        for k, v in goniometer_axes:
+        for k, v in goniometer_axes.items():
             goniometer[k] = v
-    print("--- Goniometer info ---")
-    print(goniometer)
 
     if TR.detector_json:
         # idem aedem idem
         pass
     else:
-        for k, v in tristan10M_params:
+        for k, v in tristan10M_params.items():
             detector[k] = v
-            # mah ...
-    print("--- Detector info ---")
-    print(detector)
+
+    # Read information from xml file
+    scan_axis, scan_range, pos = read_from_xml(TR.xml_file)
+    print(scan_axis, scan_range)
+
+    # Finish adding to dictionaries
+    # Goniometer
+    goniometer["starts"] = []
+    goniometer["ends"] = []
+    goniometer["increments"] = []
+    for ax in goniometer["axes"]:
+        goniometer["starts"].append(pos[ax][0])
+        goniometer["ends"].append(pos[ax][1])
+        goniometer["increments"].append(pos[ax][2])
+
+    # Detector
+    detector["exposure_time"] = TR.exposure_time
+    detector["beam_center"] = TR.beam_center
+
+    # Module
+    module["fast_axis"] = detector.pop("fast_axis")
+    module["slow_axis"] = detector.pop("slow_axis")
+    # Set value for module_offset calculation.
+    module["module_offset"] = "1"
+
+    # Beam
+    beam["wavelength"] = TR.wavelength
+    beam["flux"] = None
 
 
-# # Example usage
-# if __name__ == "__main__":
-#     from datetime import datetime
+# Example usage
+if __name__ == "__main__":
+    from datetime import datetime
 
-#     write_nxs(
-#         meta_file=sys.argv[1],
-#         xml_file=sys.argv[2],
-#         exposure_time=100,
-#         wavelength= 0.649,
-#         beam_center=[1590.7, 1643.7],
-#         start_time=datetime.now(),
-#         stop_time=datetime.now(),
-#         geometry_json=None,
-#         detector_json=None,
-#     )
+    write_nxs(
+        meta_file=sys.argv[1],
+        xml_file=sys.argv[2],
+        exposure_time=100,
+        wavelength=0.649,
+        beam_center=[1590.7, 1643.7],
+        start_time=datetime.now(),
+        stop_time=datetime.now(),
+        geometry_json=None,
+        detector_json=None,
+    )
 
 # TODO separated from this make some sort of json2params tool (see jupyter notebook)
 # def read_geometry_from_json(axes_geometry: Union[Path, str]):
