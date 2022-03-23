@@ -614,8 +614,8 @@ def write_NXdetector_module(
 
         # Correct dependency tree accordingly
         _path = "/entry/instrument/detector/module/module_offset"
-        create_attributes(fast_pixel, ("depends_on"), (_path,))
-        create_attributes(slow_pixel, ("depends_on"), (_path,))
+        create_attributes(fast_pixel, ("depends_on",), (_path,))
+        create_attributes(slow_pixel, ("depends_on",), (_path,))
 
 
 # NXdetector_group writer
