@@ -16,16 +16,16 @@ from .I19_2_params import (
     # source,
     goniometer_axes,
     tristan10M_params,
+    eiger4M_params,
 )
 
-# from .. import (
-#     get_iso_timestamp,
-#     get_nexus_filename,
-# )
+from .. import (
+    get_iso_timestamp,
+    get_nexus_filename,
+)
 
 # from ..nxs_write import (
 #     calculate_scan_range,
-#     find_scan_axis,
 # )
 
 from ..tools.ExtendedRequest import ExtendedRequestIO
@@ -33,8 +33,7 @@ from ..tools.ExtendedRequest import ExtendedRequestIO
 # Define a logger object and a formatter
 logger = logging.getLogger("NeXusGenerator.I19-2")
 logger.setLevel(logging.DEBUG)
-formatter = logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s")
-# Define a stream handler
+formatter = logging.Formatter("%(name)s %(levelname)s %(message)s")  # %(asctime)s
 CH = logging.StreamHandler(sys.stdout)
 CH.setLevel(logging.DEBUG)
 CH.setFormatter(formatter)
@@ -48,6 +47,7 @@ tr_collect = namedtuple(
     [
         "meta_file",
         "xml_file",
+        "detector_name",
         "exposure_time",
         "wavelength",
         "beam_center",  # This will have a command line call anyway because I can't call it from bash
@@ -55,9 +55,6 @@ tr_collect = namedtuple(
         # "beam_pos_y",
         "start_time",
         "stop_time",
-        # "pump_status",
-        # "pump_exp",
-        # "pump_delay",
         "geometry_json",  # Define these 2 ase None
         "detector_json",
     ],
@@ -71,15 +68,17 @@ beam = {"flux": None}
 attenuator = {}
 
 
-def read_from_xml(xmlfile: Union[Path, str]):
+def read_from_xml(xmlfile: Union[Path, str], detector_name: str):
     ecr = ExtendedRequestIO(xmlfile)
 
     # Attenuator
     attenuator["transmission"] = ecr.getTransmission()
 
     # Detector [2theta, det_z]
-    # detector["starts"] = [ecr.getTwoTheta(), ecr.getSampleDetectorDistance()]
-    detector["starts"] = [0.0, ecr.getSampleDetectorDistance()]
+    if "tristan" in detector_name.lower():
+        detector["starts"] = [0.0, ecr.getSampleDetectorDistance()]
+    else:
+        detector["starts"] = [ecr.getTwoTheta(), ecr.getSampleDetectorDistance()]
 
     # Goniometer
     osc_seq = ecr.getOscillationSequence()
@@ -111,7 +110,15 @@ def read_from_xml(xmlfile: Union[Path, str]):
         "sam_z": (0.0, 0.0, 0.0),
     }
 
-    return scan_axis, scan_range, pos
+    return scan_axis, pos
+
+
+def tristan_writer():
+    pass
+
+
+def eiger_writer():
+    pass
 
 
 def write_nxs(**tr_params):
@@ -122,6 +129,7 @@ def write_nxs(**tr_params):
     TR = tr_collect(
         meta_file=Path(tr_params["meta_file"]).expanduser().resolve(),
         xml_file=Path(tr_params["xml_file"]).expanduser().resolve(),
+        detector_name=tr_params["detector_name"],
         exposure_time=tr_params["exposure_time"],
         wavelength=tr_params["wavelength"],
         beam_center=tr_params["beam_center"],
@@ -139,6 +147,13 @@ def write_nxs(**tr_params):
         else None,
     )
 
+    logger.info(f"Current collection directory: {TR.meta_file.parent}")
+    # Add some information to logger
+    logger.info("Creating a NeXus file for %s ..." % TR.meta_file.name)
+    # Get NeXus filename
+    master_file = get_nexus_filename(TR.meta_file)
+    logger.info("NeXus file will be saved as %s" % master_file)
+
     # Get goniometer and detector parameters
     # FIXME I mean, it works but ... TODO
     if TR.geometry_json:
@@ -152,12 +167,17 @@ def write_nxs(**tr_params):
         # idem aedem idem
         pass
     else:
-        for k, v in tristan10M_params.items():
-            detector[k] = v
+        if "tristan" in TR.detector_name.lower():
+            for k, v in tristan10M_params.items():
+                detector[k] = v
+        else:
+            for k, v in eiger4M_params.items():
+                detector[k] = v
 
     # Read information from xml file
-    scan_axis, scan_range, pos = read_from_xml(TR.xml_file)
-    print(scan_axis, scan_range)
+    scan_axis, pos = read_from_xml(TR.xml_file, TR.detector_name)
+    print(scan_axis)
+    print(pos[scan_axis][:-1])  # this is scan range
 
     # Finish adding to dictionaries
     # Goniometer
@@ -183,6 +203,31 @@ def write_nxs(**tr_params):
     beam["wavelength"] = TR.wavelength
     beam["flux"] = None
 
+    # Get timestamps in the correct format
+    timestamps = (
+        get_iso_timestamp(TR.start_time),
+        get_iso_timestamp(TR.stop_time),
+    )
+    print(timestamps)
+
+    logger.info("Goniometer information")
+    for j in range(len(goniometer["axes"])):
+        logger.info(
+            f"Goniometer axis: {goniometer['axes'][j]} => {goniometer['starts'][j]}, {goniometer['types'][j]} on {goniometer['depends'][j]}"
+        )
+    logger.info("Detector information")
+    logger.info(f"{detector['description']}")
+    logger.info(
+        f"Sensor made of {detector['sensor_material']} x {detector['sensor_thickness']}"
+    )
+    logger.info(
+        f"Detector is a {detector['image_size']} array of {detector['pixel_size']} pixels"
+    )
+    for k in range(len(detector["axes"])):
+        logger.info(
+            f"Detector axis: {detector['axes'][k]} => {detector['starts'][k]}, {detector['types'][k]} on {detector['depends'][k]}"
+        )
+
 
 # Example usage
 if __name__ == "__main__":
@@ -191,6 +236,7 @@ if __name__ == "__main__":
     write_nxs(
         meta_file=sys.argv[1],
         xml_file=sys.argv[2],
+        detector_name=sys.argv[3],  # "tristan",
         exposure_time=100,
         wavelength=0.649,
         beam_center=[1590.7, 1643.7],
