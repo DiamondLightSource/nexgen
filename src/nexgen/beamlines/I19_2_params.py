@@ -104,3 +104,17 @@ eiger4M_params = {
     "fast_axis": [0, 1, 0],
     "slow_axis": [-1, 0, 0],
 }
+
+dset_links = [
+    [
+        "pixel_mask",
+        "pixel_mask_applied",
+        "flatfield",
+        "flatfield_applied",
+        "threshold_energy",
+        "bit_depth_readout",
+        "detector_readout_time",
+        "serial_number",
+    ],
+    ["software_version"],
+]

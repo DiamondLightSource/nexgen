@@ -6,6 +6,7 @@ import sys
 
 # import json
 import h5py
+import glob
 import logging
 
 import numpy as np
@@ -20,6 +21,7 @@ from .I19_2_params import (
     goniometer_axes,
     tristan10M_params,
     eiger4M_params,
+    dset_links,
 )
 
 from .. import (
@@ -27,9 +29,9 @@ from .. import (
     get_nexus_filename,
 )
 
-# from ..nxs_write import (
-#     calculate_scan_range,
-# )
+from ..nxs_write import (
+    calculate_scan_range,
+)
 
 from ..nxs_write.NexusWriter import call_writers
 from ..nxs_write.NXclassWriters import write_NXentry
@@ -91,6 +93,7 @@ def read_from_xml(xmlfile: Union[Path, str], detector_name: str):
     # Find scan range
     if osc_seq["range"] == 0.0:
         scan_range = (osc_seq["start"], osc_seq["start"])
+        num = osc_seq["number_of_images"]
     else:
         start = osc_seq["start"]
         num = osc_seq["number_of_images"]
@@ -99,11 +102,11 @@ def read_from_xml(xmlfile: Union[Path, str], detector_name: str):
     # Determine scan axis
     if ecr.getAxisChoice() == "omega":
         scan_axis = "omega"
-        omega_pos = (*scan_range, 0.0)
+        omega_pos = (*scan_range, osc_seq["range"])  # 0.0)
         phi_pos = (*2 * (ecr.getOtherAxis(),), 0.0)
     else:
         scan_axis = "phi"
-        phi_pos = (*scan_range, 0.0)
+        phi_pos = (*scan_range, osc_seq["range"])  # 0.0)
         omega_pos = (*2 * (ecr.getOtherAxis(),), 0.0)
     kappa_pos = (*2 * (ecr.getKappa(),), 0.0)
 
@@ -116,7 +119,7 @@ def read_from_xml(xmlfile: Union[Path, str], detector_name: str):
         "sam_z": (0.0, 0.0, 0.0),
     }
 
-    return scan_axis, pos
+    return scan_axis, pos, int(num)
 
 
 def tristan_writer(
@@ -174,9 +177,76 @@ def tristan_writer(
         )
 
 
-def eiger_writer():
-    # JIC. Non si sa mai ...
-    pass
+def eiger_writer(
+    master_file: Path,
+    TR: namedtuple,
+    scan_axis: str,
+    n_frames: int,
+    timestamps: Tuple[str, str] = (None, None),
+):
+    """
+    _summary_
+
+    Args:
+        master_file (Path): _description_
+        TR (namedtuple): _description_
+        scan_axis (str): _description_
+        n_frames (int): _description_
+        timestamps (Tuple[str, str], optional): _description_. Defaults to (None, None).
+    """
+    # Find datafiles
+    logger.info("Looking for data files ...")
+    filename_template = (
+        TR.meta_file.parent / TR.meta_file.name.replace("meta", f"{6*'[0-9]'}")
+    ).as_posix()
+    filenames = [
+        Path(f).expanduser().resolve() for f in sorted(glob.glob(filename_template))
+    ]
+    logger.info(f"Found {len(filenames)} files in directory.")
+
+    # Get scan range array
+    logger.info("Calculating scan range...")
+    scan_idx = goniometer["axes"].index(scan_axis)
+    scan_range = calculate_scan_range(
+        goniometer["starts"][scan_idx],
+        goniometer["ends"][scan_idx],
+        goniometer["increments"][scan_idx],
+        n_images=n_frames,
+    )
+
+    # Get on with the writing now...
+    try:
+        with h5py.File(master_file, "x") as nxsfile:
+            nxentry = write_NXentry(nxsfile)
+
+            if timestamps[0]:
+                nxentry.create_dataset("start_time", data=np.string_(timestamps[0]))
+
+            call_writers(
+                nxsfile,
+                filenames,
+                "mcstas",
+                scan_axis,  # This should be omega
+                scan_range,
+                (detector["mode"], n_frames),
+                goniometer,
+                detector,
+                module,
+                source,
+                beam,
+                attenuator,
+                metafile=TR.meta_file,
+                link_list=dset_links,
+            )
+
+            if timestamps[1]:
+                nxentry.create_dataset("end_time", data=np.string_(timestamps[1]))
+            logger.info(f"{master_file} correctly written.")
+    except Exception as err:
+        logger.exception(err)
+        logger.info(
+            f"An error occurred and {master_file} couldn't be written correctly."
+        )
 
 
 def write_nxs(**tr_params):
@@ -205,6 +275,7 @@ def write_nxs(**tr_params):
         else None,
     )
 
+    logger.info(f"{TR.detector_name} NeXus file writer.")
     logger.info(f"Current collection directory: {TR.meta_file.parent}")
     # Add some information to logger
     logger.info("Creating a NeXus file for %s ..." % TR.meta_file.name)
@@ -233,7 +304,8 @@ def write_nxs(**tr_params):
                 detector[k] = v
 
     # Read information from xml file
-    scan_axis, pos = read_from_xml(TR.xml_file, TR.detector_name)
+    scan_axis, pos, n_frames = read_from_xml(TR.xml_file, TR.detector_name)
+    # n_Frames is only useful for eiger
     # pos[scan_axis][::-1] is scan range
 
     # Finish adding to dictionaries
@@ -265,7 +337,6 @@ def write_nxs(**tr_params):
         get_iso_timestamp(TR.start_time),
         get_iso_timestamp(TR.stop_time),
     )
-    print(timestamps, type(timestamps[0]))
 
     logger.info("Goniometer information")
     for j in range(len(goniometer["axes"])):
@@ -288,7 +359,7 @@ def write_nxs(**tr_params):
     if "tristan" in TR.detector_name:
         tristan_writer(master_file, TR, scan_axis, pos[scan_axis][:-1], timestamps)
     else:
-        eiger_writer()
+        eiger_writer(master_file, TR, scan_axis, n_frames, timestamps)
 
 
 # Example usage
@@ -303,7 +374,7 @@ if __name__ == "__main__":
         wavelength=0.649,
         beam_center=[1590.7, 1643.7],
         start_time=datetime.now(),
-        stop_time=datetime.now(),
+        stop_time=None,  # datetime.now(),
         geometry_json=None,
         detector_json=None,
     )
