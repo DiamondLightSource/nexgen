@@ -362,42 +362,19 @@ def write_nxs(**tr_params):
         eiger_writer(master_file, TR, scan_axis, n_frames, timestamps)
 
 
-# Example usage
-if __name__ == "__main__":
-    from datetime import datetime
+# # Example usage
+# if __name__ == "__main__":
+#     from datetime import datetime
 
-    write_nxs(
-        meta_file=sys.argv[1],
-        xml_file=sys.argv[2],
-        detector_name=sys.argv[3],  # "tristan",
-        exposure_time=100,
-        wavelength=0.649,
-        beam_center=[1590.7, 1643.7],
-        start_time=datetime.now(),
-        stop_time=None,  # datetime.now(),
-        geometry_json=None,
-        detector_json=None,
-    )
-
-# TODO separated from this make some sort of json2params tool (see jupyter notebook)
-# def read_geometry_from_json(axes_geometry: Union[Path, str]):
-#     """_summary_
-
-#     Args:
-#         axes_geometry (Union[Path, str]): _description_
-#     """
-#     # Load information from JSON file
-#     with open(axes_geometry, "r") as f:
-#         geom = json.load(f)
-#     print(geom)
-
-
-# def read_detector_params_from_json(
-#     detector_params: Union[Path, str],
-# ):
-#     """_summary_
-
-#     Args:
-#         detector_params (Union[Path, str]): _description_
-#     """
-#     pass
+#     write_nxs(
+#         meta_file=sys.argv[1],
+#         xml_file=sys.argv[2],
+#         detector_name=sys.argv[3],  # "tristan",
+#         exposure_time=100,
+#         wavelength=0.649,
+#         beam_center=[1590.7, 1643.7],
+#         start_time=datetime.now(),
+#         stop_time=None,  # datetime.now(),
+#         geometry_json=None,
+#         detector_json=None,
+#     )
