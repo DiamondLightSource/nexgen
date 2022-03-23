@@ -143,6 +143,8 @@ def write_nxs(**tr_params):
     else:
         for k, v in goniometer_axes:
             goniometer[k] = v
+    print("--- Goniometer info ---")
+    print(goniometer)
 
     if TR.detector_json:
         # idem aedem idem
@@ -151,6 +153,8 @@ def write_nxs(**tr_params):
         for k, v in tristan10M_params:
             detector[k] = v
             # mah ...
+    print("--- Detector info ---")
+    print(detector)
 
 
 # # Example usage
