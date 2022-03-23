@@ -197,7 +197,9 @@ def write_NXsample(
         # Save sample depends_on
         nxsample.create_dataset(
             "depends_on",
-            data=set_dependency(list(scan_range.keys())[0], path=nxtransformations.name),
+            data=set_dependency(
+                list(scan_range.keys())[0], path=nxtransformations.name
+            ),
         )
     else:
         # I'm not sure what this should be?
@@ -216,15 +218,8 @@ def write_NXsample(
             # If we're dealing with the scan axis
             idx = goniometer["axes"].index(ax)
             try:
-                for k in nxsfile["/entry/data"].keys():
-                    if isinstance(
-                        nxsfile["/entry/data"].get(k, getlink=True), h5py.ExternalLink
-                    ):
-                        # Don't even try to open!
-                        continue
-                    if nxsfile["/entry/data"][k].attrs.get("depends_on"):
-                        nxsample_ax[ax] = nxsfile[nxsfile["/entry/data"][k].name]
-                        nxtransformations[ax] = nxsfile[nxsfile["/entry/data"][k].name]
+                nxsample_ax[ax] = nxsfile[nxsfile["/entry/data"][ax].name]
+                nxtransformations[ax] = nxsfile[nxsfile["/entry/data"][ax].name]
             except KeyError:
                 nxax = nxsample_ax.create_dataset(ax, data=scan_range[ax])
                 _dep = set_dependency(
