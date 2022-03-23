@@ -108,11 +108,13 @@ def write_NXdata(
         for n, filename in enumerate(datafiles):
             nxdata[tmp_name % (n + 1)] = h5py.ExternalLink(filename.name, "data")
     elif data_type == "events":
-        # FIXME this needs to consider the fact that the input might simply be a meta file.
-        # Look for meta file to avoid linking to up to 100 files
-        tbr = datafiles[0].stem.split("_")[-1]
-        mf = datafiles[0].stem.replace(tbr, "meta") + datafiles[0].suffix
-        meta = [f for f in datafiles[0].parent.iterdir() if mf in f.as_posix()]
+        if len(datafiles) == 1 and "meta" in datafiles[0].as_posix():
+            meta = datafiles
+        else:
+            # Look for meta file to avoid linking to up to 100 files
+            tbr = datafiles[0].stem.split("_")[-1]
+            mf = datafiles[0].stem.replace(tbr, "meta") + datafiles[0].suffix
+            meta = [f for f in datafiles[0].parent.iterdir() if mf in f.as_posix()]
         # If metafile is not found, link to the data files
         if len(meta) == 0:
             for filename in datafiles:
