@@ -10,7 +10,7 @@ from pathlib import Path
 from h5py import AttributeManager
 from typing import List, Tuple, Union, Dict
 
-from scanspec.core import Path
+from scanspec.core import Path as ScanPath
 from scanspec.specs import Spec, Line
 
 
@@ -111,7 +111,7 @@ def calculate_scan_from_scanspec(spec: Spec) -> Dict[str, np.ndarray]:
         Dict[str, np.ndarray]: A dictionary with the axis name and numpy
         array describing the movement of that axis
     """
-    path = Path(spec.calculate())
+    path = ScanPath(spec.calculate())
     return path.consume().midpoints
 
 

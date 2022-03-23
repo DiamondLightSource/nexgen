@@ -1,11 +1,9 @@
 from pathlib import Path
 from nexgen.nxs_write.NXclassWriters import write_NXdata, find_scan_axis, write_NXsample
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 import pytest
 import tempfile
 import h5py
-from h5py import AttributeManager
-import numpy as np
 from numpy.testing import assert_array_equal
 
 test_goniometer_axes = {
@@ -214,6 +212,4 @@ def test_given_two_moving_axes_when_find_scan_axis_called_then_exception():
     test_types = ["rotation", "rotation"]
     default_axis = "default_axis"
     with pytest.raises(SystemExit):
-        scan_axis = find_scan_axis(
-            test_names, test_starts, test_ends, test_types, default_axis
-        )
+        find_scan_axis(test_names, test_starts, test_ends, test_types, default_axis)
