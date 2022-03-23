@@ -5,15 +5,18 @@ Create a NeXus file for time resolved collections on I19-2 Tristan 10M detector.
 import sys
 
 # import json
+import h5py
 import logging
+
+import numpy as np
 
 from pathlib import Path
 
 from collections import namedtuple
-from typing import Union
+from typing import Union, Tuple
 
 from .I19_2_params import (
-    # source,
+    source,
     goniometer_axes,
     tristan10M_params,
     eiger4M_params,
@@ -27,6 +30,9 @@ from .. import (
 # from ..nxs_write import (
 #     calculate_scan_range,
 # )
+
+from ..nxs_write.NexusWriter import call_writers
+from ..nxs_write.NXclassWriters import write_NXentry
 
 from ..tools.ExtendedRequest import ExtendedRequestIO
 
@@ -113,11 +119,63 @@ def read_from_xml(xmlfile: Union[Path, str], detector_name: str):
     return scan_axis, pos
 
 
-def tristan_writer():
-    pass
+def tristan_writer(
+    master_file: Path,
+    TR: namedtuple,
+    scan_axis: str,
+    scan_range: Tuple[float, float],
+    timestamps: Tuple[str, str] = (None, None),
+):
+    """
+    _summary_
+
+    Args:
+        master_file (Path): _description_
+        TR (namedtuple): _description_
+        scan_axis (str): _description_
+        scan_range (Tuple[float, float]): _description_
+        timestamps (Tuple[str, str], optional): _description_. Defaults to None.
+    """
+    # Add mask and flatfield file to detector
+    detector["pixel_mask"] = maskfile
+    detector["flatfield"] = flatfieldfile
+    # If these two could instead be passed, I'd be happier...
+
+    # Get on with the writing now...
+    try:
+        with h5py.File(master_file, "x") as nxsfile:
+            nxentry = write_NXentry(nxsfile)
+
+            if timestamps[0]:
+                nxentry.create_dataset("start_time", data=np.string_(timestamps[0]))
+
+            call_writers(
+                nxsfile,
+                [TR.meta_file],
+                "mcstas",
+                scan_axis,  # This should be omega
+                scan_range,
+                (detector["mode"], None),
+                goniometer,
+                detector,
+                module,
+                source,
+                beam,
+                attenuator,
+            )
+
+            if timestamps[1]:
+                nxentry.create_dataset("end_time", data=np.string_(timestamps[1]))
+            logger.info(f"{master_file} correctly written.")
+    except Exception as err:
+        logger.exception(err)
+        logger.info(
+            f"An error occurred and {master_file} couldn't be written correctly."
+        )
 
 
 def eiger_writer():
+    # JIC. Non si sa mai ...
     pass
 
 
@@ -176,8 +234,7 @@ def write_nxs(**tr_params):
 
     # Read information from xml file
     scan_axis, pos = read_from_xml(TR.xml_file, TR.detector_name)
-    print(scan_axis)
-    print(pos[scan_axis][:-1])  # this is scan range
+    # pos[scan_axis][::-1] is scan range
 
     # Finish adding to dictionaries
     # Goniometer
@@ -208,7 +265,7 @@ def write_nxs(**tr_params):
         get_iso_timestamp(TR.start_time),
         get_iso_timestamp(TR.stop_time),
     )
-    print(timestamps)
+    print(timestamps, type(timestamps[0]))
 
     logger.info("Goniometer information")
     for j in range(len(goniometer["axes"])):
@@ -227,6 +284,11 @@ def write_nxs(**tr_params):
         logger.info(
             f"Detector axis: {detector['axes'][k]} => {detector['starts'][k]}, {detector['types'][k]} on {detector['depends'][k]}"
         )
+
+    if "tristan" in TR.detector_name:
+        tristan_writer(master_file, TR, scan_axis, pos[scan_axis][:-1], timestamps)
+    else:
+        eiger_writer()
 
 
 # Example usage
