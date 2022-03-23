@@ -1,22 +1,18 @@
 """
 Define beamline parameters for I03, Eiger detector and give an example of writing a gridscan.
 """
-import sys
 
 # import json
-import glob
 import h5py
-import logging
 from scanspec.specs import Line
 import numpy as np
 
-from typing import List
 from pathlib import Path
 import os
 from nexgen.nxs_write import calculate_scan_from_scanspec
 
 from nexgen.nxs_write.NexusWriter import call_writers
-from nexgen.nxs_write.NXclassWriters import write_NXentry, write_NXnote
+from nexgen.nxs_write.NXclassWriters import write_NXentry
 
 from nexgen.tools.VDS_tools import image_vds_writer
 
