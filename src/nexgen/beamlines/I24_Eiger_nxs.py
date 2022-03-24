@@ -156,17 +156,18 @@ def extruder(
                 source,
                 beam,
                 attenuator,
-                vds="dataset",
                 metafile=metafile,
                 link_list=dset_links,
             )
 
             # Write pump-probe information if requested
+            # TODO have pump exposure and delay also as units of time
             if SSX.pump_status == "true":
                 logger.info("Pump status is True, write pump information to file.")
                 pump_info = {}
                 if SSX.pump_exp:
                     pump_info["pump_exposure_time"] = SSX.pump_exp
+                    logger.info(f"Recorded pump exposure time: {SSX.pump_exp}")
                 else:
                     pump_info["pump_exposure_time"] = None
                     logger.warning(
@@ -174,6 +175,7 @@ def extruder(
                     )
                 if SSX.pump_delay:
                     pump_info["pump_delay"] = SSX.pump_delay
+                    logger.info(f"Recorded pump delay time: {SSX.pump_delay}")
                 else:
                     pump_info["pump_delay"] = None
                     logger.warning(
@@ -219,7 +221,7 @@ def write_nxs(**ssx_params):
         if ssx_params["start_time"]
         else None,  # This should be datetiem type
         stop_time=ssx_params["stop_time"].strftime("%Y-%m-%dT%H:%M:%S")
-        if ssx_params["start_time"]
+        if ssx_params["stop_time"]
         else None,  # idem.
         exposure_time=ssx_params["exp_time"],
         transmission=ssx_params["transmission"],
@@ -251,7 +253,7 @@ def write_nxs(**ssx_params):
         logger.warning(
             "No _meta.h5 file found in directory. External links in the NeXus file will be broken."
         )
-        sys.exit(
+        logger.error(
             "Missing metadata, unable to write NeXus file. Please use command line tool."
         )
         # TODO add instructions for using command line tool

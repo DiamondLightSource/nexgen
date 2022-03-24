@@ -50,6 +50,8 @@ ssx_tr_collect = namedtuple(
         "transmission",
         "wavelength",
         "pump_status",
+        "pump_exp",
+        "pump_delay",
     ],
 )
 
@@ -76,12 +78,17 @@ def write_nxs(**ssx_params):
         if ssx_params["start_time"]
         else None,  # This should be datetiem type
         stop_time=ssx_params["stop_time"].strftime("%Y-%m-%dT%H:%M:%S")
-        if ssx_params["start_time"]
+        if ssx_params["stop_time"]
         else None,  # idem.
         exposure_time=ssx_params["exp_time"],
         transmission=ssx_params["transmission"],
         wavelength=ssx_params["wavelength"],
         pump_status=True,
+        pump_exp=ssx_params["pump_exp"],
+        pump_delay=ssx_params["pump_delay"],
+    )
+    logger.info(
+        f"Start NeXus File Writer for time-resolved SSX on {source['beamline_name']}."
     )
 
     # Add to dictionaries
@@ -192,8 +199,7 @@ def write_nxs(**ssx_params):
                 source,
                 beam,
                 attenuator,
-                vds=None,
-                metafile=metafile,
+                metafile=metafile,  # Since there are no links, this could also be None
                 link_list=None,
             )
 
@@ -202,8 +208,27 @@ def write_nxs(**ssx_params):
                 "tot_num_cells", data=SSX_TR.tot_num_X
             )
 
-            # Register pump status (hard coded)
-            write_NXnote(nxsfile, "/entry/source/notes", {"pump_status": True})
+            # Register pump status (hard coded as True)
+            # TODO have pump exposure and delay also as units of time
+            pump_info = {"pump_status": True}
+            logger.info("Add pump information.")
+            if SSX_TR.pump_exp:
+                pump_info["pump_exposure_time"] = SSX_TR.pump_exp
+                logger.info(f"Recorded pump exposure time: {SSX_TR.pump_exp}")
+            else:
+                pump_info["pump_exposure_time"] = None
+                logger.warning(
+                    "Pump exposure time has not been recorded and won't be written to file."
+                )
+            if SSX_TR.pump_delay:
+                pump_info["pump_delay"] = SSX_TR.pump_delay
+                logger.info(f"Recorded pump delay time: {SSX_TR.pump_delay}")
+            else:
+                pump_info["pump_delay"] = None
+                logger.warning(
+                    "Pump delay has not been recorded and won't be written to file."
+                )
+            write_NXnote(nxsfile, "/entry/source/notes", pump_info)
 
             if timestamps[1]:
                 nxentry.create_dataset("end_time", data=np.string_(timestamps[1]))
@@ -231,4 +256,6 @@ def write_nxs(**ssx_params):
 #         transmission=1.0,
 #         wavelength=0.649,
 #         pump_status=True,
+#         pump_exp=3.0,
+#         pump_delay=1.0,
 #     )

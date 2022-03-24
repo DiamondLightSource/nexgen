@@ -4,7 +4,7 @@ General tools useful to create NeXus format files.
 
 __author__ = "Diamond Light Source - Scientific Software"
 __email__ = "scientificsoftware@diamond.ac.uk"
-__version__ = "0.6.3"
+__version__ = "0.6.5"
 __version_tuple__ = tuple(int(x) for x in __version__.split("."))
 
 import re

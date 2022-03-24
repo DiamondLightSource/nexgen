@@ -126,7 +126,6 @@ def write_nexus(
         source.__dict__,
         beam.__dict__,
         attenuator.__dict__,
-        vds,
         meta[0],
         link_list,
     )
@@ -258,7 +257,6 @@ def write_nexus_demo(
         source.__dict__,
         beam.__dict__,
         attenuator.__dict__,
-        vds,
     )
 
     # Write VDS
@@ -290,7 +288,6 @@ def call_writers(
     source: Dict,
     beam: Dict,
     attenuator: Dict,
-    vds: str = None,
     metafile: Path = None,
     link_list: List = None,
 ):
@@ -307,7 +304,6 @@ def call_writers(
         coordinate_frame,
         scan_range,
         scan_axis,
-        vds,
     )
 
     # NXinstrument: entry/instrument
