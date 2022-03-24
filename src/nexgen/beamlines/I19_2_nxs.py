@@ -345,6 +345,7 @@ def write_nxs(**tr_params):
     logger.info(f"Timestamps recorded: {timestamps}")
 
     logger.info("Goniometer information")
+    logger.info(f"Scan axis is: {scan_axis}")
     for j in range(len(goniometer["axes"])):
         logger.info(
             f"Goniometer axis: {goniometer['axes'][j]} => {goniometer['starts'][j]}, {goniometer['types'][j]} on {goniometer['depends'][j]}"
