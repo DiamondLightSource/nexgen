@@ -14,6 +14,7 @@ import numpy as np
 from pathlib import Path
 
 from collections import namedtuple
+from datetime import datetime
 from typing import Union, Tuple
 
 from .I19_2_params import (
@@ -261,10 +262,12 @@ def write_nxs(**tr_params):
         exposure_time=tr_params["exposure_time"],
         wavelength=tr_params["wavelength"],
         beam_center=tr_params["beam_center"],
-        start_time=tr_params["start_time"].strftime("%Y-%m-%dT%H:%M:%S")
+        start_time=tr_params["start_time"].strftime("%Y-%m-%dT%H:%M:%S")  #
         if tr_params["start_time"]
         else None,  # This should be datetiem type
-        stop_time=tr_params["stop_time"].strftime("%Y-%m-%dT%H:%M:%S")
+        stop_time=tr_params["stop_time"].strftime(
+            "%Y-%m-%dT%H:%M:%S"
+        )  # .strftime("%Y-%m-%dT%H:%M:%S")
         if tr_params["stop_time"]
         else None,  # idem.
         geometry_json=tr_params["geometry_json"]
@@ -332,11 +335,13 @@ def write_nxs(**tr_params):
     beam["wavelength"] = TR.wavelength
     beam["flux"] = None
 
-    # Get timestamps in the correct format
+    # Get timestamps in the correct format if they aren't already
     timestamps = (
         get_iso_timestamp(TR.start_time),
         get_iso_timestamp(TR.stop_time),
     )
+
+    logger.info(f"Timestamps recorded: {timestamps}")
 
     logger.info("Goniometer information")
     for j in range(len(goniometer["axes"])):
@@ -356,6 +361,8 @@ def write_nxs(**tr_params):
             f"Detector axis: {detector['axes'][k]} => {detector['starts'][k]}, {detector['types'][k]} on {detector['depends'][k]}"
         )
 
+    logger.info(f"Recorded beam center is: {TR.beam_center}.")
+
     if "tristan" in TR.detector_name:
         tristan_writer(master_file, TR, scan_axis, pos[scan_axis][:-1], timestamps)
     else:
@@ -363,29 +370,53 @@ def write_nxs(**tr_params):
 
 
 def main():
+    # Not the best but it should do the job
+    import argparse
+    from ..command_line import version_parser
+
+    parser = argparse.ArgumentParser(description=__doc__, parents=[version_parser])
+    parser.add_argument("meta_file", type=str)
+    parser.add_argument("xml_file", type=str)
+    parser.add_argument("detector_name", type=str)
+    parser.add_argument("exp_time", type=str)
+    parser.add_argument("wavelength", type=str)
+    parser.add_argument("beam_center_x", type=str)
+    parser.add_argument("beam_center_y", type=str)
+    parser.add_argument("--start", "--start-time", type=str, default=None)
+    parser.add_argument("--stop", "--stop-time", type=str, default=None)
+    parser.add_argument("--geom", "--geometry-json", type=str, default=None)
+    parser.add_argument("--det", "--detector-json", type=str, default=None)
+    args = parser.parse_args()
+
     write_nxs(
-        meta_file=sys.argv[1],
-        xml_file=sys.argv[2],
-        detector_name=sys.argv[3],  # "tristan",
-        exposure_time=sys.argv[4],
-        wavelength=sys.argv[5],
-        beam_center=sys.argv[6],  # [1590.7, 1643.7],
-        start_time=sys.argv[7],
-        stop_time=sys.argv[7],  # datetime.now(),
-        geometry_json=sys.argv[8],
-        detector_json=sys.argv[9],
+        meta_file=args.meta_file,
+        xml_file=args.xml_file,
+        detector_name=args.detector_name,  # "tristan",
+        exposure_time=float(args.exp_time),
+        wavelength=float(args.wavelength),
+        beam_center=[
+            float(args.beam_center_x),
+            float(args.beam_center_y),
+        ],  # [1590.7, 1643.7],
+        start_time=datetime.strptime(args.start, "%Y-%m-%dT%H:%M:%SZ")
+        if args.start
+        else None,
+        stop_time=datetime.strptime(args.stop, "%Y-%m-%dT%H:%M:%SZ")
+        if args.stop
+        else None,  # datetime.now(),
+        geometry_json=args.geom if args.geom else None,
+        detector_json=args.det if args.det else None,
     )
 
 
 # # Example usage
 # if __name__ == "__main__":
-#     from datetime import datetime
 
 #     write_nxs(
 #         meta_file=sys.argv[1],
 #         xml_file=sys.argv[2],
 #         detector_name=sys.argv[3],  # "tristan",
-#         exposure_time=100,
+#         exposure_time=100.0,
 #         wavelength=0.649,
 #         beam_center=[1590.7, 1643.7],
 #         start_time=datetime.now(),
