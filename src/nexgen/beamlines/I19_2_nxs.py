@@ -375,17 +375,35 @@ def main():
     from ..command_line import version_parser
 
     parser = argparse.ArgumentParser(description=__doc__, parents=[version_parser])
-    parser.add_argument("meta_file", type=str)
-    parser.add_argument("xml_file", type=str)
-    parser.add_argument("detector_name", type=str)
-    parser.add_argument("exp_time", type=str)
-    parser.add_argument("wavelength", type=str)
-    parser.add_argument("beam_center_x", type=str)
-    parser.add_argument("beam_center_y", type=str)
-    parser.add_argument("--start", "--start-time", type=str, default=None)
-    parser.add_argument("--stop", "--stop-time", type=str, default=None)
-    parser.add_argument("--geom", "--geometry-json", type=str, default=None)
-    parser.add_argument("--det", "--detector-json", type=str, default=None)
+    parser.add_argument("meta_file", type=str, help="Path to _meta.h5 file")
+    parser.add_argument("xml_file", type=str, help="Path to GDA generated xml file")
+    parser.add_argument(
+        "detector_name", type=str, help="Detector currently in use on beamline"
+    )
+    parser.add_argument("exp_time", type=str, help="Exposure time")
+    parser.add_argument("wavelength", type=str, help="Incident beam wavelength")
+    parser.add_argument("beam_center_x", type=str, help="Beam center x position")
+    parser.add_argument("beam_center_y", type=str, help="Beam center y position")
+    parser.add_argument(
+        "--start", "--start-time", type=str, default=None, help="Collection start time"
+    )
+    parser.add_argument(
+        "--stop", "--stop-time", type=str, default=None, help="Collection end time"
+    )
+    parser.add_argument(
+        "--geom",
+        "--geometry-json",
+        type=str,
+        default=None,
+        help="Path to GDA generated geometry json file",
+    )
+    parser.add_argument(
+        "--det",
+        "--detector-json",
+        type=str,
+        default=None,
+        help="Path to GDA generated detector json file",
+    )
     args = parser.parse_args()
 
     write_nxs(
