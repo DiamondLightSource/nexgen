@@ -132,14 +132,14 @@ def tristan_writer(
     timestamps: Tuple[str, str] = (None, None),
 ):
     """
-    _summary_
+    A function to call the nexus writer for Tristan 10M detector.
 
     Args:
-        master_file (Path): _description_
-        TR (namedtuple): _description_
-        scan_axis (str): _description_
-        scan_range (Tuple[float, float]): _description_
-        timestamps (Tuple[str, str], optional): _description_. Defaults to None.
+        master_file (Path): Path to nexus file to be written.
+        TR (namedtuple): Parameters passed from the beamline.
+        scan_axis (str): Rotation axis name.
+        scan_range (Tuple[float, float]): Start and end value of rotation axis.
+        timestamps (Tuple[str, str], optional): Collection start and end time. Defaults to None.
     """
     # Add mask and flatfield file to detector
     detector["pixel_mask"] = maskfile
@@ -187,14 +187,14 @@ def eiger_writer(
     timestamps: Tuple[str, str] = (None, None),
 ):
     """
-    _summary_
+    A function to call the nexus writer for Eiger 2X 4M detector.
 
     Args:
-        master_file (Path): _description_
-        TR (namedtuple): _description_
-        scan_axis (str): _description_
-        n_frames (int): _description_
-        timestamps (Tuple[str, str], optional): _description_. Defaults to (None, None).
+        master_file (Path): Path to nexus file to be written.
+        TR (namedtuple): Parameters passed from the beamline.
+        scan_axis (str): Rotation axis name.
+        n_frames (int): Number of images.
+        timestamps (Tuple[str, str], optional): Collection start and end time. Defaults to (None, None).
     """
     # Find datafiles
     logger.info("Looking for data files ...")
@@ -371,6 +371,7 @@ def write_nxs(**tr_params):
 
 
 def main():
+    " Call from the beamline"
     # Not the best but it should do the job
     import argparse
     from ..command_line import version_parser
