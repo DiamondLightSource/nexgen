@@ -362,6 +362,21 @@ def write_nxs(**tr_params):
         eiger_writer(master_file, TR, scan_axis, n_frames, timestamps)
 
 
+def main():
+    write_nxs(
+        meta_file=sys.argv[1],
+        xml_file=sys.argv[2],
+        detector_name=sys.argv[3],  # "tristan",
+        exposure_time=sys.argv[4],
+        wavelength=sys.argv[5],
+        beam_center=sys.argv[6],  # [1590.7, 1643.7],
+        start_time=sys.argv[7],
+        stop_time=sys.argv[7],  # datetime.now(),
+        geometry_json=sys.argv[8],
+        detector_json=sys.argv[9],
+    )
+
+
 # # Example usage
 # if __name__ == "__main__":
 #     from datetime import datetime
