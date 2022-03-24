@@ -1,5 +1,6 @@
 """
-Create a NeXus file for time resolved collections on I19-2 Tristan 10M detector.
+Create a NeXus file for time-resolved collections on I19-2.
+Available detectors: Tristan 10M, Eiger 2X 4M.
 """
 
 import sys
