@@ -25,8 +25,6 @@ from .. import (
     ureg,
 )
 
-# from ..tools.VDS_tools import vds_writer
-
 NXclass_logger = logging.getLogger("NeXusGenerator.writer.NXclass")
 
 # NXentry writer
@@ -63,20 +61,18 @@ def write_NXdata(
     coord_frame: str,
     scan_range: Union[Tuple, np.ndarray],
     scan_axis: str = None,
-    write_vds: str = None,
 ):
     """
     Write NXdata group at entry/data
 
     Args:
-        nxsfile (h5py.File):        NeXus file to be written
-        datafiles (List):           List of Path objects
-        goniometer (Dict):          Dictionary containing all the axes information
-        data_type (str):            Images or events
-        coord_frame (str):          Coordinate system the axes are currently in
-        scan_range (Tuple|array):   If writing events, this is just a (start, end) tuple
-        scan_axis (str):            Rotation axis
-        write_vds (str):            If not None, writes a Virtual Dataset.
+        nxsfile (h5py.File):        NeXus file to be written.
+        datafiles (List):           List of Path objects.
+        goniometer (Dict):          Dictionary containing all the axes information.
+        data_type (str):            Images or events.
+        coord_frame (str):          Coordinate system the axes are currently in.
+        scan_range (Tuple|array):   If writing events, this is just a (start, end) tuple.
+        scan_axis (str):            Rotation axis.
     """
     NXclass_logger.info("Start writing NXdata.")
     # Check that a valid datafile_list has been passed.
@@ -108,25 +104,17 @@ def write_NXdata(
 
     # If mode is images, link to blank image data. Else go to events.
     if data_type == "images":
-        if len(datafiles) == 1 and write_vds is None:
-            nxdata["data"] = h5py.ExternalLink(datafiles[0].name, "data")
-        elif len(datafiles) == 1 and write_vds:
-            nxdata["data_000001"] = h5py.ExternalLink(datafiles[0].name, "data")
-            # NXclass_logger.info("Calling VDS writer.")
-            # vds_writer(nxsfile, datafiles, write_vds)
-        else:
-            for n, filename in enumerate(datafiles):
-                tmp_name = f"data_%0{6}d"
-                nxdata[tmp_name % (n + 1)] = h5py.ExternalLink(filename.name, "data")
-            # if write_vds:
-            #     NXclass_logger.info("Calling VDS writer.")
-            #     vds_writer(nxsfile, datafiles, write_vds)
+        tmp_name = f"data_%0{6}d"
+        for n, filename in enumerate(datafiles):
+            nxdata[tmp_name % (n + 1)] = h5py.ExternalLink(filename.name, "data")
     elif data_type == "events":
-        # FIXME this needs to consider the fact that the input might simply be a meta file.
-        # Look for meta file to avoid linking to up to 100 files
-        tbr = datafiles[0].stem.split("_")[-1]
-        mf = datafiles[0].stem.replace(tbr, "meta") + datafiles[0].suffix
-        meta = [f for f in datafiles[0].parent.iterdir() if mf in f.as_posix()]
+        if len(datafiles) == 1 and "meta" in datafiles[0].as_posix():
+            meta = datafiles
+        else:
+            # Look for meta file to avoid linking to up to 100 files
+            tbr = datafiles[0].stem.split("_")[-1]
+            mf = datafiles[0].stem.replace(tbr, "meta") + datafiles[0].suffix
+            meta = [f for f in datafiles[0].parent.iterdir() if mf in f.as_posix()]
         # If metafile is not found, link to the data files
         if len(meta) == 0:
             for filename in datafiles:

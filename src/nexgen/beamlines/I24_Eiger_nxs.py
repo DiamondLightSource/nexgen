@@ -156,7 +156,6 @@ def extruder(
                 source,
                 beam,
                 attenuator,
-                vds="dataset",
                 metafile=metafile,
                 link_list=dset_links,
             )
@@ -254,7 +253,7 @@ def write_nxs(**ssx_params):
         logger.warning(
             "No _meta.h5 file found in directory. External links in the NeXus file will be broken."
         )
-        sys.exit(
+        logger.error(
             "Missing metadata, unable to write NeXus file. Please use command line tool."
         )
         # TODO add instructions for using command line tool
