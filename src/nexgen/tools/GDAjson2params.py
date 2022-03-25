@@ -85,11 +85,51 @@ def read_detector_params_from_json(
     # Load information from JSON file
     with open(detector_params, "r") as f:
         det = json.load(f)
-    print(det)
 
     if "tristan" in det.keys():
-        print("tristan")
+        detector["mode"] = "events"
+        detector["description"] = det["tristan"]["description"]
+        detector["image_size"] = det["tristan"]["data_size_sf"][::-1]
+        detector["detector_type"] = det["tristan"]["detector_type"]
+        detector["sensor_material"] = (
+            "Si"
+            if det["tristan"]["sensor_material"] == "Silicon"
+            else det["tristan"]["sensor_material"]
+        )
+        detector["sensor_thickness"] = (
+            str(det["tristan"]["sensor_thickness"])
+            + det["tristan"]["sensor_thickness_units"]
+        )
+        detector["pixel_size"] = [
+            str(i) + det["tristan"]["pixel_size_units"]
+            for i in det["tristan"]["pixel_size_sf"][::-1]
+        ]
+        detector["fast_axis"] = det["tristan"]["fast_dir"]
+        detector["slow_axis"] = det["tristan"]["slow_dir"]
+        # ... and the tristan specifics
+        spec = det["detector_specific"]
+        detector["software_version"] = spec["software_version"]
+        detector["detector_tick"] = (
+            str(spec["detector_tick"]) + spec["detector_tick_units"]
+        )
+        detector["detector_frequency"] = (
+            str(spec["detector_frequency"]) + spec["detector_frequency_units"]
+        )
+        detector["timeslice_rollover"] = spec["timeslice_rollover_bits"]
     elif "eiger" in det.keys():
-        print("eiger")
+        detector["mode"] = "images"
+        detector["description"] = det["eiger"]["description"]
+        detector["detector_type"] = det["eiger"]["type"]
+        detector["image_size"] = det["eiger"]["size"]
+        detector["sensor_material"] = det["eiger"]["sensor_material"]
+        detector["sensor_thickness"] = (
+            str(det["eiger"]["thickness"]) + det["eiger"]["thickness_units"]
+        )
+        detector["pixel_size"] = [
+            str(i) + det["eiger"]["pixel_Size_units"]
+            for i in det["eiger"]["pixel_size"]
+        ]
+        detector["fast_axis"] = det["eiger"]["fast_dir"]
+        detector["slow_axis"] = det["eiger"]["slow_dir"]
     else:
         print("which detector is this then?")

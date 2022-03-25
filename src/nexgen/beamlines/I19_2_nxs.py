@@ -41,7 +41,7 @@ from ..nxs_write.NXclassWriters import write_NXentry
 from ..tools.ExtendedRequest import ExtendedRequestIO
 from ..tools.GDAjson2params import (
     read_geometry_from_json,
-    # read_detector_params_from_json,
+    read_detector_params_from_json,
 )
 
 # Define a logger object and a formatter
@@ -303,7 +303,7 @@ def write_nxs(**tr_params):
     # Get goniometer and detector parameters
     # FIXME I mean, it works but ...
     if TR.geometry_json:
-        _gonio, _det = read_geometry_from_json(TR.geometry_json, goniometer, detector)
+        _gonio, _det = read_geometry_from_json(TR.geometry_json)
         for k, v in _gonio.items():
             goniometer[k] = v
         for k, v in _det.items():
@@ -313,8 +313,9 @@ def write_nxs(**tr_params):
             goniometer[k] = v
 
     if TR.detector_json:
-        # idem aedem idem
-        pass
+        _det = read_detector_params_from_json(TR.detector_json)
+        for k, v in _det.items():
+            detector[k] = v
     else:
         if "tristan" in TR.detector_name.lower():
             for k, v in tristan10M_params.items():
