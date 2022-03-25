@@ -16,7 +16,6 @@ from pathlib import Path
 from collections import namedtuple
 
 from .I24_Eiger_params import (
-    coordinate_frame,
     goniometer_axes,
     eiger9M_params,
     source,
@@ -67,6 +66,8 @@ ssx_collect = namedtuple(
         "pump_delay",
     ],
 )
+
+coordinate_frame = "mcstas"
 
 # Initialize dictionaries
 goniometer = goniometer_axes

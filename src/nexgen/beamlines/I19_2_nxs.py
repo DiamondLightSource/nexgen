@@ -19,7 +19,6 @@ from datetime import datetime
 from typing import Union, Tuple
 
 from .I19_2_params import (
-    coordinate_frame,
     source,
     goniometer_axes,
     tristan10M_params,
@@ -40,6 +39,10 @@ from ..nxs_write.NexusWriter import call_writers
 from ..nxs_write.NXclassWriters import write_NXentry
 
 from ..tools.ExtendedRequest import ExtendedRequestIO
+from ..tools.GDAjson2params import (
+    read_geometry_from_json,
+    # read_detector_params_from_json,
+)
 
 # Define a logger object and a formatter
 logger = logging.getLogger("NeXusGenerator.I19-2")
@@ -70,6 +73,8 @@ tr_collect = namedtuple(
         "detector_json",
     ],
 )
+
+coordinate_frame = "mcstas"
 
 # Initialize dictionaries
 goniometer = {}  # goniometer_axes
@@ -228,7 +233,7 @@ def eiger_writer(
             call_writers(
                 nxsfile,
                 filenames,
-                "mcstas",
+                coordinate_frame,
                 scan_axis,  # This should be omega
                 scan_range,
                 (detector["mode"], n_frames),
@@ -296,10 +301,13 @@ def write_nxs(**tr_params):
     logger.info("NeXus file will be saved as %s" % master_file)
 
     # Get goniometer and detector parameters
-    # FIXME I mean, it works but ... TODO
+    # FIXME I mean, it works but ...
     if TR.geometry_json:
-        # here call json reader
-        pass
+        _gonio, _det = read_geometry_from_json(TR.geometry_json, goniometer, detector)
+        for k, v in _gonio.items():
+            goniometer[k] = v
+        for k, v in _det.items():
+            detector[k] = v
     else:
         for k, v in goniometer_axes.items():
             goniometer[k] = v
