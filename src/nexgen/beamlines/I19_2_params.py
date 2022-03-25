@@ -1,6 +1,9 @@
 """
 Define beamline parameters for I19-2, Tristan and Eiger detectors.
 """
+
+coordinate_frame = "mcstas"
+
 source = {
     "name": "Diamond Light Source",
     "short_name": "DLS",

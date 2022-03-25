@@ -1,6 +1,9 @@
 """
 Define beamline parameters for I24 with Eiger 9M detector.
 """
+
+coordinate_frame = "mcstas"
+
 source = {
     "name": "Diamond Light Source",
     "short_name": "DLS",

@@ -16,6 +16,7 @@ from pathlib import Path
 from collections import namedtuple
 
 from .I24_Eiger_params import (
+    coordinate_frame,
     goniometer_axes,
     eiger9M_params,
     source,
@@ -146,7 +147,7 @@ def extruder(
             call_writers(
                 nxsfile,
                 filename,
-                "mcstas",
+                coordinate_frame,
                 scan_axis,  # This should be omega
                 scan_range,
                 (detector["mode"], SSX.num_imgs),

@@ -19,6 +19,7 @@ from datetime import datetime
 from typing import Union, Tuple
 
 from .I19_2_params import (
+    coordinate_frame,
     source,
     goniometer_axes,
     tristan10M_params,
@@ -50,6 +51,7 @@ CH.setLevel(logging.DEBUG)
 CH.setFormatter(formatter)
 logger.addHandler(CH)
 
+# Tristan mask and flatfield files
 maskfile = "Tristan10M_mask_with_spec.h5"
 flatfieldfile = "Tristan10M_flat_field_coeff_with_Mo_17.479keV.h5"
 
@@ -61,12 +63,10 @@ tr_collect = namedtuple(
         "detector_name",
         "exposure_time",
         "wavelength",
-        "beam_center",  # This will have a command line call anyway because I can't call it from bash
-        # "beam_pos_x",
-        # "beam_pos_y",
+        "beam_center",
         "start_time",
         "stop_time",
-        "geometry_json",  # Define these 2 ase None
+        "geometry_json",  # Define these 2 as None
         "detector_json",
     ],
 )
@@ -158,7 +158,7 @@ def tristan_writer(
             call_writers(
                 nxsfile,
                 [TR.meta_file],
-                "mcstas",
+                coordinate_frame,
                 scan_axis,  # This should be omega
                 scan_range,
                 (detector["mode"], None),
