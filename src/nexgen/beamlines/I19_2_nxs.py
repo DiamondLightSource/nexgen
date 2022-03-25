@@ -44,6 +44,7 @@ from ..tools.ExtendedRequest import ExtendedRequestIO
 logger = logging.getLogger("NeXusGenerator.I19-2")
 logger.setLevel(logging.DEBUG)
 formatter = logging.Formatter("%(name)s %(levelname)s %(message)s")  # %(asctime)s
+# Define a stream handler
 CH = logging.StreamHandler(sys.stdout)
 CH.setLevel(logging.DEBUG)
 CH.setFormatter(formatter)
@@ -278,6 +279,13 @@ def write_nxs(**tr_params):
         if tr_params["detector_json"]
         else None,
     )
+
+    # Define a file handler
+    logfile = TR.meta_file.parent / "nexus_writer.log"
+    FH = logging.FileHandler(logfile, mode="a")
+    FH.setLevel(logging.DEBUG)
+    FH.setFormatter(formatter)
+    logger.addHandler(FH)
 
     logger.info(f"{TR.detector_name} NeXus file writer.")
     logger.info(f"Current collection directory: {TR.meta_file.parent}")
