@@ -8,19 +8,20 @@ from pathlib import Path
 
 
 def read_geometry_from_json(
-    axes_geometry: Union[Path, str], goniometer: Dict = None, detector: Dict = None
+    axes_geometry: Union[Path, str],
 ) -> Tuple[Dict, Dict]:
     """
     A function to read the axes information from the GDA-supplied json file.
 
     Args:
         axes_geometry (Union[Path, str]): Description of the axes and their location.
-        goniometer (Dict, optional): _description_. Defaults to {}.
-        detector (Dict, optional): _description_. Defaults to {}.
 
     Returns:
         Tuple[Dict, Dict]: Returns the updated dictionaries describing goniometer and detector.
     """
+    goniometer = {}
+    detector = {}
+
     # Load information from JSON file
     with open(axes_geometry, "r") as f:
         geom = json.load(f)
@@ -76,7 +77,6 @@ def read_detector_params_from_json(
 
     Args:
         detector_params (Union[Path, str]): Definition of detector parameters.
-        detector (Dict, optional): _description_. Defaults to {}.
 
     Returns:
         Dict: Updated detector dictionary
@@ -107,6 +107,8 @@ def read_detector_params_from_json(
         ]
         detector["fast_axis"] = det["tristan"]["fast_dir"]
         detector["slow_axis"] = det["tristan"]["slow_dir"]
+        detector["flatfield_applied"] = False
+        detector["pixel_mask_applied"] = False
         # ... and the tristan specifics
         spec = det["detector_specific"]
         detector["software_version"] = spec["software_version"]
