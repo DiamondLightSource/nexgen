@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 def read_geometry_from_json(
-    axes_geometry: Union[Path, str], goniometer: Dict = {}, detector: Dict = {}
+    axes_geometry: Union[Path, str], goniometer: Dict = None, detector: Dict = None
 ) -> Tuple[Dict, Dict]:
     """
     A function to read the axes information from the GDA-supplied json file.
@@ -70,7 +70,6 @@ def read_geometry_from_json(
 
 def read_detector_params_from_json(
     detector_params: Union[Path, str],
-    detector: Dict = {},
 ) -> Dict:
     """
     A function to read the detector parameters from the GDA-supplied json file.
@@ -82,6 +81,8 @@ def read_detector_params_from_json(
     Returns:
         Dict: Updated detector dictionary
     """
+    detector = {}
+
     # Load information from JSON file
     with open(detector_params, "r") as f:
         det = json.load(f)
@@ -133,3 +134,5 @@ def read_detector_params_from_json(
         detector["slow_axis"] = det["eiger"]["slow_dir"]
     else:
         print("which detector is this then?")
+
+    return detector
