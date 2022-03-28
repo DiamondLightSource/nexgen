@@ -31,5 +31,5 @@ Next Generation Nexus Generator
 * Free software: BSD license
 * Documentation: https://nexgen.readthedocs.io.
 
-This package provides tools to generate Nexus files.
+This package provides a set of tools to generate NeXus files following the `NXmx <https://manual.nexusformat.org/classes/applications/NXmx.html#nxmx>`_ `Gold Standard <https://journals.iucr.org/m/issues/2020/05/00/ti5018/>`_.
 
