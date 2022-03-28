@@ -67,6 +67,8 @@ ssx_collect = namedtuple(
     ],
 )
 
+coordinate_frame = "mcstas"
+
 # Initialize dictionaries
 goniometer = goniometer_axes
 detector = eiger9M_params
@@ -146,7 +148,7 @@ def extruder(
             call_writers(
                 nxsfile,
                 filename,
-                "mcstas",
+                coordinate_frame,
                 scan_axis,  # This should be omega
                 scan_range,
                 (detector["mode"], SSX.num_imgs),
