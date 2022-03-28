@@ -376,7 +376,8 @@ def write_NXdetector(
                 "flatfield_applied", data=detector["flatfield_applied"]
             )
             flatfield = Path(detector["flatfield"])
-            nxdetector["flatfield"] = h5py.ExternalLink(flatfield.name, "image")
+            image_key = "image" if "tristan" in detector["description"].lower() else "/"
+            nxdetector["flatfield"] = h5py.ExternalLink(flatfield.name, image_key)
             # nxdetector.create_dataset("flatfield", data=detector["flatfield"])
         # Bad pixel mask
         if detector["pixel_mask"]:
@@ -384,7 +385,8 @@ def write_NXdetector(
                 "pixel_mask_applied", data=detector["pixel_mask_applied"]
             )
             mask = Path(detector["pixel_mask"])
-            nxdetector["pixel_mask"] = h5py.ExternalLink(mask.name, "image")
+            image_key = "image" if "tristan" in detector["description"].lower() else "/"
+            nxdetector["pixel_mask"] = h5py.ExternalLink(mask.name, image_key)
             # nxdetector.create_dataset("pixel_mask", data=detector["pixel_mask"])
 
     # Beam center
