@@ -55,6 +55,8 @@ ssx_tr_collect = namedtuple(
     ],
 )
 
+coordinate_frame = "mcstas"
+
 # Initialize dictionaries
 goniometer = goniometer_axes
 detector = tristan10M_params
@@ -186,7 +188,7 @@ def write_nxs(**ssx_params):
             call_writers(
                 nxsfile,
                 [metafile],
-                "mcstas",
+                coordinate_frame,
                 scan_axis,
                 scan_range,
                 (

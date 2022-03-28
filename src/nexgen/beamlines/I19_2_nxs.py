@@ -39,6 +39,10 @@ from ..nxs_write.NexusWriter import call_writers
 from ..nxs_write.NXclassWriters import write_NXentry
 
 from ..tools.ExtendedRequest import ExtendedRequestIO
+from ..tools.GDAjson2params import (
+    read_geometry_from_json,
+    read_detector_params_from_json,
+)
 
 # Define a logger object and a formatter
 logger = logging.getLogger("NeXusGenerator.I19-2")
@@ -50,6 +54,7 @@ CH.setLevel(logging.DEBUG)
 CH.setFormatter(formatter)
 logger.addHandler(CH)
 
+# Tristan mask and flatfield files
 maskfile = "Tristan10M_mask_with_spec.h5"
 flatfieldfile = "Tristan10M_flat_field_coeff_with_Mo_17.479keV.h5"
 
@@ -61,15 +66,15 @@ tr_collect = namedtuple(
         "detector_name",
         "exposure_time",
         "wavelength",
-        "beam_center",  # This will have a command line call anyway because I can't call it from bash
-        # "beam_pos_x",
-        # "beam_pos_y",
+        "beam_center",
         "start_time",
         "stop_time",
-        "geometry_json",  # Define these 2 ase None
+        "geometry_json",  # Define these 2 as None
         "detector_json",
     ],
 )
+
+coordinate_frame = "mcstas"
 
 # Initialize dictionaries
 goniometer = {}  # goniometer_axes
@@ -158,7 +163,7 @@ def tristan_writer(
             call_writers(
                 nxsfile,
                 [TR.meta_file],
-                "mcstas",
+                coordinate_frame,
                 scan_axis,  # This should be omega
                 scan_range,
                 (detector["mode"], None),
@@ -228,7 +233,7 @@ def eiger_writer(
             call_writers(
                 nxsfile,
                 filenames,
-                "mcstas",
+                coordinate_frame,
                 scan_axis,  # This should be omega
                 scan_range,
                 (detector["mode"], n_frames),
@@ -296,18 +301,26 @@ def write_nxs(**tr_params):
     logger.info("NeXus file will be saved as %s" % master_file)
 
     # Get goniometer and detector parameters
-    # FIXME I mean, it works but ... TODO
+    # FIXME I mean, it works but ...
     if TR.geometry_json:
-        # here call json reader
-        pass
+        logger.info("Reading geometry from json file.")
+        _gonio, _det = read_geometry_from_json(TR.geometry_json)
+        for k, v in _gonio.items():
+            goniometer[k] = v
+        for k, v in _det.items():
+            detector[k] = v
     else:
+        logger.info("Load goniometer from I19-2.")
         for k, v in goniometer_axes.items():
             goniometer[k] = v
 
     if TR.detector_json:
-        # idem aedem idem
-        pass
+        logger.info("Reading detector parameters from json file.")
+        _det = read_detector_params_from_json(TR.detector_json)
+        for k, v in _det.items():
+            detector[k] = v
     else:
+        logger.info("Load detector parameters for I19-2.")
         if "tristan" in TR.detector_name.lower():
             for k, v in tristan10M_params.items():
                 detector[k] = v
@@ -316,6 +329,7 @@ def write_nxs(**tr_params):
                 detector[k] = v
 
     # Read information from xml file
+    logger.info("Read xml file.")
     scan_axis, pos, n_frames = read_from_xml(TR.xml_file, TR.detector_name)
     # n_Frames is only useful for eiger
     # pos[scan_axis][::-1] is scan range
