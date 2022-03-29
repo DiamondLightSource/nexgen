@@ -31,6 +31,14 @@ scopes = freephil.parse(
 
 parser = argparse.ArgumentParser(description=__doc__, parents=[version_parser])
 parser.add_argument("--debug", action="store_const", const=True)
+parser.add_argument(
+    "-c",
+    "--show-config",
+    action="store_true",
+    default=False,
+    dest="show_config",
+    help="Show the configuration parameters.",
+)
 
 
 def list_available_phil():
@@ -62,6 +70,9 @@ def get_beamline_phil(args):
 def create_new_phil(args):
     cl = scopes.command_line_argument_interpreter()
     working_phil = scopes.fetch(cl.process_and_fetch(args.phil_args))
+
+    if args.show_config:
+        print(args.phil_args)
 
     # Write to file
     if args.filename:

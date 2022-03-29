@@ -147,6 +147,10 @@ def write_NXmx_cli(args):
     working_phil = master_phil.fetch(cl.process_and_fetch(args.phil_args))
     params = working_phil.extract()
 
+    if args.show_config:
+        working_phil.show()
+        sys.exit()
+
     # Path to data file
     datafiles = [Path(d).expanduser().resolve() for d in params.input.datafile]
 
@@ -320,6 +324,10 @@ def write_demo_cli(args):
     working_phil = demo_phil.fetch(cl.process_and_fetch(args.phil_args))
     params = working_phil.extract()
 
+    if args.show_config:
+        working_phil.show()
+        sys.exit()
+
     # Path to file
     master_file = Path(params.output.master_filename).expanduser().resolve()
     # Just in case ...
@@ -489,6 +497,10 @@ def write_with_meta_cli(args):
     cl = meta_phil.command_line_argument_interpreter()
     working_phil = meta_phil.fetch(cl.process_and_fetch(args.phil_args))
     params = working_phil.extract()
+
+    if args.show_config:
+        working_phil.show()
+        sys.exit()
 
     # Path to meta file
     if params.input.metafile:
