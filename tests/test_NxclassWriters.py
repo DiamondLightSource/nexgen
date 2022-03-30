@@ -1,5 +1,6 @@
 from pathlib import Path
-from nexgen.nxs_write.NXclassWriters import write_NXdata, find_scan_axis, write_NXsample
+from nexgen.nxs_write import find_scan_axis
+from nexgen.nxs_write.NXclassWriters import write_NXdata, write_NXsample
 from unittest.mock import MagicMock
 import pytest
 import tempfile
