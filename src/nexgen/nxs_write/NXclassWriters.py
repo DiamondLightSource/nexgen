@@ -369,18 +369,25 @@ def write_NXdetector(
             nxdetector[ll] = h5py.ExternalLink(meta.name, detector[ll])
     else:
         # Check for mask and flatfield files
+        # This is mostly for Tristan where there are external files
         # Flatfield
         if detector["flatfield"]:
             nxdetector.create_dataset(
                 "flatfield_applied", data=detector["flatfield_applied"]
             )
-            nxdetector.create_dataset("flatfield", data=detector["flatfield"])
+            flatfield = Path(detector["flatfield"])
+            image_key = "image" if "tristan" in detector["description"].lower() else "/"
+            nxdetector["flatfield"] = h5py.ExternalLink(flatfield.name, image_key)
+            # nxdetector.create_dataset("flatfield", data=detector["flatfield"])
         # Bad pixel mask
         if detector["pixel_mask"]:
             nxdetector.create_dataset(
                 "pixel_mask_applied", data=detector["pixel_mask_applied"]
             )
-            nxdetector.create_dataset("pixel_mask", data=detector["pixel_mask"])
+            mask = Path(detector["pixel_mask"])
+            image_key = "image" if "tristan" in detector["description"].lower() else "/"
+            nxdetector["pixel_mask"] = h5py.ExternalLink(mask.name, image_key)
+            # nxdetector.create_dataset("pixel_mask", data=detector["pixel_mask"])
 
     # Beam center
     # Check that the information hasn't already been written by the meta file.
