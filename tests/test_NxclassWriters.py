@@ -68,7 +68,7 @@ def test_given_one_data_file_when_write_NXdata_then_data_entry_in_file(
         {"sam_z": []},
     )
     assert dummy_nexus_file["/entry/data"].attrs["NX_class"] == b"NXdata"
-    assert "data" in dummy_nexus_file["/entry/data"]
+    assert "data_000001" in dummy_nexus_file["/entry/data"]
 
 
 def test_given_scan_axis_when_write_NXdata_then_axis_in_data_entry_with_correct_data_and_attributes(
