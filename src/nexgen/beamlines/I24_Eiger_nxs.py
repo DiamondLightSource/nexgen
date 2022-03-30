@@ -67,6 +67,8 @@ ssx_collect = namedtuple(
     ],
 )
 
+coordinate_frame = "mcstas"
+
 # Initialize dictionaries
 goniometer = goniometer_axes
 detector = eiger9M_params
@@ -148,7 +150,7 @@ def extruder(
             call_writers(
                 nxsfile,
                 filename,
-                "mcstas",
+                coordinate_frame,
                 scan_range,
                 (detector["mode"], SSX.num_imgs),
                 goniometer,
@@ -157,7 +159,6 @@ def extruder(
                 source,
                 beam,
                 attenuator,
-                vds="dataset",
                 metafile=metafile,
                 link_list=dset_links,
             )
@@ -255,7 +256,7 @@ def write_nxs(**ssx_params):
         logger.warning(
             "No _meta.h5 file found in directory. External links in the NeXus file will be broken."
         )
-        sys.exit(
+        logger.error(
             "Missing metadata, unable to write NeXus file. Please use command line tool."
         )
         # TODO add instructions for using command line tool

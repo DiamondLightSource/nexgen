@@ -24,8 +24,6 @@ from .. import (
     ureg,
 )
 
-# from ..tools.VDS_tools import vds_writer
-
 NXclass_logger = logging.getLogger("NeXusGenerator.writer.NXclass")
 
 # NXentry writer
@@ -61,7 +59,6 @@ def write_NXdata(
     data_type: str,
     coord_frame: str,
     scan_range: Dict[str, Union[Tuple, np.ndarray]],
-    write_vds: str = None,
 ):
     """
     Write NXdata group at entry/data
@@ -73,7 +70,6 @@ def write_NXdata(
         data_type (str):            Images or events
         coord_frame (str):          Coordinate system the axes are currently in
         scan_range (Dict):          A dictionary of the scan axes and their movements
-        write_vds (str):            If not None, writes a Virtual Dataset.
     """
     NXclass_logger.info("Start writing NXdata.")
     # Check that a valid datafile_list has been passed.
@@ -107,25 +103,17 @@ def write_NXdata(
 
     # If mode is images, link to blank image data. Else go to events.
     if data_type == "images":
-        if len(datafiles) == 1 and write_vds is None:
-            nxdata["data"] = h5py.ExternalLink(datafiles[0].name, "data")
-        elif len(datafiles) == 1 and write_vds:
-            nxdata["data_000001"] = h5py.ExternalLink(datafiles[0].name, "data")
-            # NXclass_logger.info("Calling VDS writer.")
-            # vds_writer(nxsfile, datafiles, write_vds)
-        else:
-            for n, filename in enumerate(datafiles):
-                tmp_name = f"data_%0{6}d"
-                nxdata[tmp_name % (n + 1)] = h5py.ExternalLink(filename.name, "data")
-            # if write_vds:
-            #     NXclass_logger.info("Calling VDS writer.")
-            #     vds_writer(nxsfile, datafiles, write_vds)
+        tmp_name = f"data_%0{6}d"
+        for n, filename in enumerate(datafiles):
+            nxdata[tmp_name % (n + 1)] = h5py.ExternalLink(filename.name, "data")
     elif data_type == "events":
-        # FIXME this needs to consider the fact that the input might simply be a meta file.
-        # Look for meta file to avoid linking to up to 100 files
-        tbr = datafiles[0].stem.split("_")[-1]
-        mf = datafiles[0].stem.replace(tbr, "meta") + datafiles[0].suffix
-        meta = [f for f in datafiles[0].parent.iterdir() if mf in f.as_posix()]
+        if len(datafiles) == 1 and "meta" in datafiles[0].as_posix():
+            meta = datafiles
+        else:
+            # Look for meta file to avoid linking to up to 100 files
+            tbr = datafiles[0].stem.split("_")[-1]
+            mf = datafiles[0].stem.replace(tbr, "meta") + datafiles[0].suffix
+            meta = [f for f in datafiles[0].parent.iterdir() if mf in f.as_posix()]
         # If metafile is not found, link to the data files
         if len(meta) == 0:
             for filename in datafiles:
@@ -381,18 +369,25 @@ def write_NXdetector(
             nxdetector[ll] = h5py.ExternalLink(meta.name, detector[ll])
     else:
         # Check for mask and flatfield files
+        # This is mostly for Tristan where there are external files
         # Flatfield
         if detector["flatfield"]:
             nxdetector.create_dataset(
                 "flatfield_applied", data=detector["flatfield_applied"]
             )
-            nxdetector.create_dataset("flatfield", data=detector["flatfield"])
+            flatfield = Path(detector["flatfield"])
+            image_key = "image" if "tristan" in detector["description"].lower() else "/"
+            nxdetector["flatfield"] = h5py.ExternalLink(flatfield.name, image_key)
+            # nxdetector.create_dataset("flatfield", data=detector["flatfield"])
         # Bad pixel mask
         if detector["pixel_mask"]:
             nxdetector.create_dataset(
                 "pixel_mask_applied", data=detector["pixel_mask_applied"]
             )
-            nxdetector.create_dataset("pixel_mask", data=detector["pixel_mask"])
+            mask = Path(detector["pixel_mask"])
+            image_key = "image" if "tristan" in detector["description"].lower() else "/"
+            nxdetector["pixel_mask"] = h5py.ExternalLink(mask.name, image_key)
+            # nxdetector.create_dataset("pixel_mask", data=detector["pixel_mask"])
 
     # Beam center
     # Check that the information hasn't already been written by the meta file.
@@ -626,8 +621,8 @@ def write_NXdetector_module(
 
         # Correct dependency tree accordingly
         _path = "/entry/instrument/detector/module/module_offset"
-        create_attributes(fast_pixel, ("depends_on"), (_path,))
-        create_attributes(slow_pixel, ("depends_on"), (_path,))
+        create_attributes(fast_pixel, ("depends_on",), (_path,))
+        create_attributes(slow_pixel, ("depends_on",), (_path,))
 
 
 # NXdetector_group writer

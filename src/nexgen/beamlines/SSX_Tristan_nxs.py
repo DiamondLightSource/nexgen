@@ -55,6 +55,8 @@ ssx_tr_collect = namedtuple(
     ],
 )
 
+coordinate_frame = "mcstas"
+
 # Initialize dictionaries
 goniometer = goniometer_axes
 detector = tristan10M_params
@@ -185,7 +187,7 @@ def write_nxs(**ssx_params):
             call_writers(
                 nxsfile,
                 [metafile],
-                "mcstas",
+                coordinate_frame,
                 scan_range,
                 (
                     detector["mode"],
@@ -197,8 +199,7 @@ def write_nxs(**ssx_params):
                 source,
                 beam,
                 attenuator,
-                vds=None,
-                metafile=metafile,
+                metafile=metafile,  # Since there are no links, this could also be None
                 link_list=None,
             )
 
