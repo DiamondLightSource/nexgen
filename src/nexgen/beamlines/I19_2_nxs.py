@@ -152,6 +152,8 @@ def tristan_writer(
     detector["flatfield"] = flatfieldfile
     # If these two could instead be passed, I'd be happier...
 
+    scan_range = {scan_axis: scan_range}
+
     # Get on with the writing now...
     try:
         with h5py.File(master_file, "x") as nxsfile:
@@ -164,7 +166,6 @@ def tristan_writer(
                 nxsfile,
                 [TR.meta_file],
                 coordinate_frame,
-                scan_axis,  # This should be omega
                 scan_range,
                 (detector["mode"], None),
                 goniometer,
@@ -222,6 +223,8 @@ def eiger_writer(
         n_images=n_frames,
     )
 
+    scan_range = {scan_axis: scan_range}
+
     # Get on with the writing now...
     try:
         with h5py.File(master_file, "x") as nxsfile:
@@ -234,7 +237,6 @@ def eiger_writer(
                 nxsfile,
                 filenames,
                 coordinate_frame,
-                scan_axis,  # This should be omega
                 scan_range,
                 (detector["mode"], n_frames),
                 goniometer,
@@ -394,7 +396,7 @@ def write_nxs(**tr_params):
 
 
 def main():
-    " Call from the beamline"
+    "Call from the beamline"
     # Not the best but it should do the job
     import argparse
     from ..command_line import version_parser
