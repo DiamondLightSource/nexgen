@@ -10,7 +10,7 @@ import numpy as np
 from pathlib import Path
 from typing import Dict, List, Tuple, Union
 
-from . import find_scan_axis, calculate_scan_range, find_number_of_images
+from . import find_scan_axis, calculate_rotation_scan_range, find_number_of_images
 from .. import units_of_time
 
 from .NXclassWriters import (
@@ -97,13 +97,13 @@ def write_nexus(
 
         # Compute scan_range
         if goniometer.increments[idx] != 0.0:
-            scan_range = calculate_scan_range(
+            scan_range = calculate_rotation_scan_range(
                 goniometer.starts[idx],
                 goniometer.ends[idx],
                 axis_increment=goniometer.increments[idx],
             )
         else:
-            scan_range = calculate_scan_range(
+            scan_range = calculate_rotation_scan_range(
                 goniometer.starts[idx], goniometer.ends[idx], n_images=num_images
             )
 
@@ -193,14 +193,14 @@ def write_nexus_demo(
     idx = goniometer.axes.index(osc_axis)
     if data_type[0] == "images":
         if data_type[1] is None:
-            scan_range = calculate_scan_range(
+            scan_range = calculate_rotation_scan_range(
                 goniometer.starts[idx],
                 goniometer.ends[idx],
                 axis_increment=goniometer.increments[idx],
             )
             data_type = ("images", len(scan_range))
         else:
-            scan_range = calculate_scan_range(
+            scan_range = calculate_rotation_scan_range(
                 goniometer.starts[idx], goniometer.ends[idx], n_images=data_type[1]
             )
     elif data_type[0] == "events":

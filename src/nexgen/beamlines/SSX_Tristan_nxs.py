@@ -225,22 +225,22 @@ def write_nxs(**ssx_params):
         )
 
 
-# # Example usage
-# if __name__ == "__main__":
-#     from datetime import datetime
+# Example usage
+if __name__ == "__main__":
+    from datetime import datetime
 
-#     write_nxs(
-#         visitpath=sys.argv[1],
-#         filename=sys.argv[2],
-#         tot_num_X=100,
-#         beam_center=[1590.7, 1643.7],
-#         det_dist=0.5,
-#         start_time=datetime.now(),
-#         stop_time=datetime.now(),
-#         exp_time=0.002,
-#         transmission=1.0,
-#         wavelength=0.649,
-#         pump_status=True,
-#         pump_exp=3.0,
-#         pump_delay=1.0,
-#     )
+    write_nxs(
+        visitpath=sys.argv[1],
+        filename=sys.argv[2],
+        tot_num_X=100,
+        beam_center=[1590.7, 1643.7],
+        det_dist=0.5,
+        start_time=datetime.now(),
+        stop_time=datetime.now(),
+        exp_time=0.002,
+        transmission=1.0,
+        wavelength=0.649,
+        pump_status=True,
+        pump_exp=3.0,
+        pump_delay=1.0,
+    )
