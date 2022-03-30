@@ -154,7 +154,6 @@ def example_nexus_file():
             source,
             beam,
             attenuator,
-            vds="dataset",
             metafile=metafile,
             link_list=dset_links,
         )
