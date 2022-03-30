@@ -28,7 +28,7 @@ from .. import (
 )
 
 from ..nxs_write import (
-    calculate_scan_range,
+    calculate_rotation_scan_range,
     find_scan_axis,
 )
 from ..nxs_write.NexusWriter import call_writers
@@ -126,7 +126,7 @@ def extruder(
         goniometer["types"],
     )
     scan_idx = goniometer["axes"].index(scan_axis)
-    scan_range = calculate_scan_range(
+    scan_range = calculate_rotation_scan_range(
         goniometer["starts"][scan_idx],
         goniometer["ends"][scan_idx],
         n_images=SSX.num_imgs,
@@ -199,7 +199,12 @@ def extruder(
         )
 
 
-def fixed_target():
+def fixed_target(
+    master_file: Path,
+    filename: List[Path],
+    SSX: namedtuple,
+    metafile: Path = None,
+):
     pass
 
 
@@ -284,7 +289,7 @@ def write_nxs(**ssx_params):
     if SSX.exp_type == "extruder":
         extruder(master_file, filename, SSX, metafile)
     elif SSX.exp_type == "fixed_target":
-        fixed_target()
+        fixed_target(master_file, filename, SSX, metafile)
     elif SSX.exp_type == "3Dgridscan":
         grid_scan_3D()
 

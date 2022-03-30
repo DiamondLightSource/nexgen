@@ -32,7 +32,7 @@ from .. import (
 )
 
 from ..nxs_write import (
-    calculate_scan_range,
+    calculate_rotation_scan_range,
 )
 
 from ..nxs_write.NexusWriter import call_writers
@@ -215,7 +215,7 @@ def eiger_writer(
     # Get scan range array
     logger.info("Calculating scan range...")
     scan_idx = goniometer["axes"].index(scan_axis)
-    scan_range = calculate_scan_range(
+    scan_range = calculate_rotation_scan_range(
         goniometer["starts"][scan_idx],
         goniometer["ends"][scan_idx],
         goniometer["increments"][scan_idx],

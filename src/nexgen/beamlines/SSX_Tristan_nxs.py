@@ -18,11 +18,6 @@ from .. import (
     get_nexus_filename,
 )
 
-# from ..nxs_write import (
-#     calculate_scan_range,
-#     find_scan_axis,
-# )
-
 from ..nxs_write.NexusWriter import call_writers
 from ..nxs_write.NXclassWriters import write_NXentry, write_NXnote
 
@@ -126,18 +121,6 @@ def write_nxs(**ssx_params):
     # Get scan range array and rotation axis
     scan_axis = "phi"
     scan_range = (0.0, 0.0)
-    # scan_axis = find_scan_axis(
-    #     goniometer["axes"],
-    #     goniometer["starts"],
-    #     goniometer["ends"],
-    #     goniometer["types"],
-    # )
-    # scan_idx = goniometer["axes"].index(scan_axis)
-    # scan_range = calculate_scan_range(
-    #     goniometer["starts"][scan_idx],
-    #     goniometer["ends"][scan_idx],
-    #     n_images=SSX.num_imgs,
-    # )
 
     logger.info("Goniometer information")
     for j in range(len(goniometer["axes"])):

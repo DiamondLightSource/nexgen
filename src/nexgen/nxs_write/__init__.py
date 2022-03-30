@@ -97,7 +97,7 @@ def find_scan_axis(
     return scan_axis
 
 
-def calculate_scan_range(
+def calculate_rotation_scan_range(
     axis_start: float,
     axis_end: float,
     axis_increment: float = None,
@@ -106,7 +106,7 @@ def calculate_scan_range(
     """
     Calculate the scan range for a rotation collection and return as a numpy array.
     For this calculation axes_increments and n_images are mutually exclusive.
-    If there are multiple images but no rotation scan, renurn a numpy array of axis_start repeated n_images times.
+    If there are multiple images but no rotation scan, return a numpy array of axis_start repeated n_images times.
 
     Args:
         axis_start (float):         Rotation axis position at the beginning of the scan, float.
