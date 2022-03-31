@@ -205,7 +205,25 @@ def fixed_target(
     SSX: namedtuple,
     metafile: Path = None,
 ):
-    pass
+    """
+    _summary_
+
+    Args:
+        master_file (Path):         _description_
+        filename (List[Path]):      _description_
+        SSX (namedtuple):           _description_
+        metafile (Path, optional):  _description_. Defaults to None.
+    """
+    logger.info(f"Write NeXus file for {SSX.exp_type}")
+
+    # Get timestamps in the correct format
+    timestamps = (
+        get_iso_timestamp(SSX.start_time),
+        get_iso_timestamp(SSX.stop_time),
+    )
+    print(timestamps)
+
+    # Goniometer
 
 
 def grid_scan_3D():
