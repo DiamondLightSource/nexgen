@@ -1,7 +1,7 @@
 """
 Utilities for writing new NeXus format files.
 """
-import sys
+
 import math
 import h5py
 import numpy as np
@@ -93,7 +93,8 @@ def find_scan_axis(
         elif idx.count(True) == 1:
             scan_axis = axes_names[idx.index(True)]
         else:
-            sys.exit("Unable to correctly identify the scan axis.")
+            raise SystemExit("Unable to correctly identify the scan axis.")
+            # sys.exit("Unable to correctly identify the scan axis.")
     return scan_axis
 
 

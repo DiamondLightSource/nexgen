@@ -2,7 +2,6 @@
 Writer functions for different groups of a NeXus file.
 """
 
-import sys
 import h5py
 import logging
 
@@ -122,7 +121,8 @@ def write_NXdata(
         else:
             nxdata["meta_file"] = h5py.ExternalLink(meta[0].name, "/")
     else:
-        sys.exit("Please pass a correct data_type (images or events)")
+        raise SystemExit("Please pass a correct data_type (images or events)")
+        # sys.exit("Please pass a correct data_type (images or events)")
 
     # Write rotation axis dataset
     ax = nxdata.create_dataset(scan_axis, data=scan_range)
