@@ -132,7 +132,7 @@ def split_arrays(coord_frame: str, axes_names: List, array: List) -> dict:
     return array_dict
 
 
-def get_iso_timestamp(ts: str) -> str:
+def get_iso_timestamp(ts: Union[str, float]) -> str:
     """
     Format a timestamp string to be stores in a NeXus file according to ISO8601:
     'YY-MM-DDThh:mm:ssZ'
