@@ -5,12 +5,9 @@ Available detectors: Tristan 10M, Eiger 2X 4M.
 
 import sys
 
-# import json
 import h5py
 import glob
 import logging
-
-import numpy as np
 
 from pathlib import Path
 
@@ -36,7 +33,7 @@ from ..nxs_write import (
 )
 
 from ..nxs_write.NexusWriter import call_writers
-from ..nxs_write.NXclassWriters import write_NXentry
+from ..nxs_write.NXclassWriters import write_NXdatetime, write_NXentry
 
 from ..tools.ExtendedRequest import ExtendedRequestIO
 from ..tools.GDAjson2params import (
@@ -155,10 +152,11 @@ def tristan_writer(
     # Get on with the writing now...
     try:
         with h5py.File(master_file, "x") as nxsfile:
-            nxentry = write_NXentry(nxsfile)
+            write_NXentry(nxsfile)
 
             if timestamps[0]:
-                nxentry.create_dataset("start_time", data=np.string_(timestamps[0]))
+                write_NXdatetime(nxsfile, (timestamps[0], None))
+            #    nxentry.create_dataset("start_time", data=np.string_(timestamps[0]))
 
             call_writers(
                 nxsfile,
@@ -175,8 +173,10 @@ def tristan_writer(
                 attenuator,
             )
 
+            # write_NXdatetime(nxsfile, (None, timestamps[1]))
             if timestamps[1]:
-                nxentry.create_dataset("end_time", data=np.string_(timestamps[1]))
+                write_NXdatetime(nxsfile, (None, timestamps[1]))
+            #    nxentry.create_dataset("end_time", data=np.string_(timestamps[1]))
             logger.info(f"{master_file} correctly written.")
     except Exception as err:
         logger.exception(err)
@@ -225,10 +225,10 @@ def eiger_writer(
     # Get on with the writing now...
     try:
         with h5py.File(master_file, "x") as nxsfile:
-            nxentry = write_NXentry(nxsfile)
+            write_NXentry(nxsfile)
 
             if timestamps[0]:
-                nxentry.create_dataset("start_time", data=np.string_(timestamps[0]))
+                write_NXdatetime(nxsfile, (timestamps[0], None))
 
             call_writers(
                 nxsfile,
@@ -248,7 +248,7 @@ def eiger_writer(
             )
 
             if timestamps[1]:
-                nxentry.create_dataset("end_time", data=np.string_(timestamps[1]))
+                write_NXdatetime(nxsfile, (None, timestamps[1]))
             logger.info(f"{master_file} correctly written.")
     except Exception as err:
         logger.exception(err)

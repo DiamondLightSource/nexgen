@@ -8,6 +8,7 @@ import logging
 import numpy as np
 
 from pathlib import Path
+from datetime import datetime
 from typing import List, Dict, Tuple, Union, Optional
 
 from . import (
@@ -19,6 +20,7 @@ from . import (
 from .. import (
     imgcif2mcstas,
     split_arrays,
+    get_iso_timestamp,
     units_of_length,
     units_of_time,
     ureg,
@@ -674,6 +676,35 @@ def write_NXcollection(
         grp.create_dataset(
             "timeslice_rollover_bits", data=detector["timeslice_rollover"]
         )
+
+
+# NXdatetime writer
+def write_NXdatetime(nxsfile: h5py.File, timestamps: Tuple):
+    """_summary_
+
+    Args:
+        nxsfile (h5py.File): _description_
+        timestamps (Tuple): _description_
+    """
+    nxentry = nxsfile.require_group("entry")
+
+    start = timestamps[0]
+    if start:
+        if type(start) is datetime:
+            start = start.strftime("%Y-%m-%dT%H:%M:%S")
+            start = get_iso_timestamp(start)
+        if start.endswith("Z") is False:  # Just in case
+            start += "Z"
+        nxentry.create_dataset("start_time", data=np.string_(start))
+
+    stop = timestamps[1]
+    if stop:
+        if type(stop) is datetime:
+            stop = stop.strftime("%Y-%m-%dT%H:%M:%S")
+            stop = get_iso_timestamp(stop)
+        if stop.endswith("Z") is False:
+            stop += "Z"
+        nxentry.create_dataset("end_time", data=np.string_(stop))
 
 
 # NXnote writer

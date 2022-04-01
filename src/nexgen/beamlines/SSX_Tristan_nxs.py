@@ -6,8 +6,6 @@ import sys
 import h5py
 import logging
 
-import numpy as np
-
 from pathlib import Path
 from collections import namedtuple
 
@@ -19,7 +17,7 @@ from .. import (
 )
 
 from ..nxs_write.NexusWriter import call_writers
-from ..nxs_write.NXclassWriters import write_NXentry, write_NXnote
+from ..nxs_write.NXclassWriters import write_NXentry, write_NXnote, write_NXdatetime
 
 # Define a logger object and a formatter
 logger = logging.getLogger("NeXusGenerator.I19-2_ssx")
@@ -145,6 +143,7 @@ def write_nxs(**ssx_params):
         get_iso_timestamp(SSX_TR.start_time),
         get_iso_timestamp(SSX_TR.stop_time),
     )
+    logger.info(f"Timestamps recorded: {timestamps}")
 
     logger.info(f"Current collection directory: {SSX_TR.visitpath}")
     # Find metafile in directory and get info from it
@@ -163,10 +162,10 @@ def write_nxs(**ssx_params):
 
     try:
         with h5py.File(master_file, "x") as nxsfile:
-            nxentry = write_NXentry(nxsfile)
+            write_NXentry(nxsfile)
 
             if timestamps[0]:
-                nxentry.create_dataset("start_time", data=np.string_(timestamps[0]))
+                write_NXdatetime(nxsfile, (timestamps[0], None))
 
             call_writers(
                 nxsfile,
@@ -216,7 +215,7 @@ def write_nxs(**ssx_params):
             write_NXnote(nxsfile, "/entry/source/notes", pump_info)
 
             if timestamps[1]:
-                nxentry.create_dataset("end_time", data=np.string_(timestamps[1]))
+                write_NXdatetime(nxsfile, (None, timestamps[1]))
             logger.info(f"{master_file} correctly written.")
     except Exception as err:
         logger.exception(err)
@@ -236,7 +235,7 @@ def write_nxs(**ssx_params):
 #         beam_center=[1590.7, 1643.7],
 #         det_dist=0.5,
 #         start_time=datetime.now(),
-#         stop_time=datetime.now(),
+#         stop_time=None,
 #         exp_time=0.002,
 #         transmission=1.0,
 #         wavelength=0.649,
