@@ -23,7 +23,7 @@ def read_geometry_from_json(
     detector = {}
 
     # Load information from JSON file
-    with open(axes_geometry, "r") as f:
+    with open(axes_geometry) as f:
         geom = json.load(f)
 
     coordinate_frame = geom["geometry"]
@@ -84,7 +84,7 @@ def read_detector_params_from_json(
     detector = {}
 
     # Load information from JSON file
-    with open(detector_params, "r") as f:
+    with open(detector_params) as f:
         det = json.load(f)
 
     if "tristan" in det.keys():
