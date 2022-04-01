@@ -11,7 +11,7 @@ version_parser.add_argument(
     "-V",
     "--version",
     action="version",
-    version="%(prog)s: NeXus generation tools {version}".format(version=__version__),
+    version=f"%(prog)s: NeXus generation tools {__version__}",
 )
 
 detectormode_parser = argparse.ArgumentParser(add_help=False)
