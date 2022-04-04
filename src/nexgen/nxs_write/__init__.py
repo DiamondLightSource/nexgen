@@ -50,7 +50,7 @@ def set_dependency(dep_info: str, path: str = None):
         return np.string_(dep_info)
 
 
-def find_scan_axis(
+def find_osc_axis(
     axes_names: List,
     axes_starts: List,
     axes_ends: List,
@@ -125,6 +125,10 @@ def calculate_rotation_scan_range(
     else:
         scan_range = np.arange(axis_start, axis_end, axis_increment)
     return scan_range
+
+
+def calculate_grid_scan_range():
+    pass
 
 
 def calculate_origin(

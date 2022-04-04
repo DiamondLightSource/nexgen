@@ -29,7 +29,7 @@ from .. import (
 
 from ..nxs_write import (
     calculate_rotation_scan_range,
-    find_scan_axis,
+    find_osc_axis,
 )
 from ..nxs_write.NexusWriter import call_writers
 from ..nxs_write.NXclassWriters import write_NXentry, write_NXnote, write_NXdatetime
@@ -120,7 +120,7 @@ def extruder(
     logger.info(f"Timestamps recorded: {timestamps}")
 
     # Get scan range array and rotation axis
-    scan_axis = find_scan_axis(
+    scan_axis = find_osc_axis(
         goniometer["axes"],
         goniometer["starts"],
         goniometer["ends"],

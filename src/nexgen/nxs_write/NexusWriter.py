@@ -10,7 +10,7 @@ import numpy as np
 from pathlib import Path
 from typing import Dict, List, Tuple, Union
 
-from . import find_scan_axis, calculate_rotation_scan_range, find_number_of_images
+from . import find_osc_axis, calculate_rotation_scan_range, find_number_of_images
 from .. import units_of_time
 
 from .NXclassWriters import (
@@ -77,7 +77,7 @@ def write_nexus(
     writer_logger.info("Writing NXmx NeXus file ...")
 
     # Identify scan axis
-    osc_axis = find_scan_axis(
+    osc_axis = find_osc_axis(
         goniometer.axes, goniometer.starts, goniometer.ends, goniometer.types
     )
     idx = goniometer.axes.index(osc_axis)
@@ -185,7 +185,7 @@ def write_nexus_demo(
     writer_logger.info("Writing NXmx demo ...")
     writer_logger.info(f"The data file will contain {data_type[1]} {data_type[0]}")
     # Identify scan axis
-    osc_axis = find_scan_axis(
+    osc_axis = find_osc_axis(
         goniometer.axes, goniometer.starts, goniometer.ends, goniometer.types
     )
 
