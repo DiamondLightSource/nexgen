@@ -3,7 +3,6 @@ Create a NeXus file for serial crystallography datasets collected on I24 Eiger 2
 """
 import sys
 
-# import json
 import glob
 import h5py
 import logging
@@ -75,17 +74,6 @@ detector = eiger9M_params
 module = {}
 beam = {}
 attenuator = {}
-
-# def read_params_from_json():
-#     # Paramters files path ...
-#     with open(goniometer_json_path, "r") as f:
-#         gonio = json.load(f)
-
-#     with open(detector_json_path, "r") as f:
-#         det = json.load(f)
-
-#     mod = {"fast_axis": det.pop("fast_axis"), "slow_axis": det.pop("slow_axis")}
-#     return gonio, det, mod
 
 
 def extruder(

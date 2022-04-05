@@ -76,7 +76,7 @@ def write_nexus(
         link_list = None
     writer_logger.info("Writing NXmx NeXus file ...")
 
-    # Identify scan axis
+    # Identify rotation scan axis
     osc_axis = find_osc_axis(
         goniometer.axes, goniometer.starts, goniometer.ends, goniometer.types
     )
@@ -95,7 +95,7 @@ def write_nexus(
         data_type = ("images", num_images)
         writer_logger.info(f"Total number of images: {num_images}")
 
-        # Compute scan_range
+        # Compute rotation scan_range
         if goniometer.increments[idx] != 0.0:
             scan_range = calculate_rotation_scan_range(
                 goniometer.starts[idx],
@@ -184,12 +184,12 @@ def write_nexus_demo(
     """
     writer_logger.info("Writing NXmx demo ...")
     writer_logger.info(f"The data file will contain {data_type[1]} {data_type[0]}")
-    # Identify scan axis
+    # Identify rotation scan axis
     osc_axis = find_osc_axis(
         goniometer.axes, goniometer.starts, goniometer.ends, goniometer.types
     )
 
-    # Compute scan_range
+    # Compute scan_range for rotation axis
     idx = goniometer.axes.index(osc_axis)
     if data_type[0] == "images":
         if data_type[1] is None:
