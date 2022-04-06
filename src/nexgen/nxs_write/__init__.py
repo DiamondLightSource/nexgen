@@ -202,12 +202,12 @@ def calculate_grid_scan_range(
         Dict[str, np.ndarray]: A dictionary of ("axis_name": axis_range) key-value pairs.
     """
     # Just to double check that nothing weird is going on
-    assert len(axes_names) <= 2, "Too many axes for a linear or grid scan."
+    # assert len(axes_names) > 2, "Too many axes for a linear or grid scan."
 
     if len(axes_names) == 1:
         if not n_images:
             n_images = int(abs(axes_starts[0] - axes_ends[0]) / axes_increments[0])
-        spec = Line(axes_names[0], axes_names[0], axes_ends[0], n_images)
+        spec = Line(axes_names[0], axes_starts[0], axes_ends[0], n_images)
         scan_path = ScanPath(spec.calculate())
     else:
         if not n_images:
@@ -218,8 +218,8 @@ def calculate_grid_scan_range(
             n_images1 = n_images
         # TODO add snaked option ?
         # spec = Line(axes_names[0], axes_names[0], axes_ends[0], n_images0) * ~Line(axes_names[1], axes_names[1], axes_ends[1], n_images1)
-        spec = Line(axes_names[0], axes_names[0], axes_ends[0], n_images0) * Line(
-            axes_names[1], axes_names[1], axes_ends[1], n_images1
+        spec = Line(axes_names[0], axes_starts[0], axes_ends[0], n_images0) * Line(
+            axes_names[1], axes_starts[1], axes_ends[1], n_images1
         )
         scan_path = ScanPath(spec.calculate())
 
