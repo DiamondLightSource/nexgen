@@ -8,7 +8,10 @@ import numpy as np
 
 from pathlib import Path
 from h5py import AttributeManager
-from typing import List, Tuple, Union
+from typing import List, Dict, Tuple, Union
+
+from scanspec.core import Path as ScanPath
+from scanspec.specs import Line
 
 
 def create_attributes(
@@ -72,7 +75,7 @@ def find_osc_axis(
         axes_types (list):      List of axes types, useful to identify only the rotation axes.
         default (str):          String to deafult to in case scan axis is not found.
     Returns:
-        scan_axis (str):        String identifying the scan axis.
+        scan_axis (str):        String identifying the rotation scan axis.
     """
     # This assumes that at least one rotation axis is always passed.
     # Assuming all list are of the same length ...
@@ -144,8 +147,83 @@ def calculate_rotation_scan_range(
     return scan_range
 
 
-def calculate_grid_scan_range():
-    pass
+def find_grid_scan_axes(
+    axes_names: List,
+    axes_starts: List,
+    axes_ends: List,
+    axes_types: List,
+) -> List[str]:
+    """
+    Identify the scan axes for a linear/grid scan.
+
+    Args:
+        axes_names (List): List of names associated to goniometer axes.
+        axes_starts (List): List of start values.
+        axes_ends (List): List of end values.
+        axes_types (List): List of axes types, useful to identify only the translation axes.
+
+    Returns:
+        List[str]: List of strings identifying the linear/grid scan axes. If no axes are identified, it will return an empty list.
+    """
+    assert len(axes_names) > 0, "Please pass at least one axis"
+
+    # Look only at translation axes
+    grid_idx = [i for i in range(len(axes_names)) if axes_types[i] == "translation"]
+    axes_names = [axes_names[j] for j in grid_idx]
+    axes_starts = [axes_starts[j] for j in grid_idx]
+    axes_ends = [axes_ends[j] for j in grid_idx]
+
+    scan_axis = []
+    for n, ax in enumerate(axes_names):
+        if axes_starts[n] != axes_ends[n]:
+            scan_axis.append(ax)
+    return scan_axis
+
+
+def calculate_grid_scan_range(
+    axes_names: List,
+    axes_starts: List,
+    axes_ends: List,
+    axes_increments: List = None,
+    n_images: int = None,
+) -> Dict[str, np.ndarray]:
+    """
+    Calculate the scan range for a linear/grid scan from the number of images to be written.
+    If the number of images is not provided, it can be calculated from the increment value of the axis.
+
+    Args:
+        axes_names (List): List of names for the axes involved in the scan.
+        axes_starts (List): List of axis positions at the beginning of the scan.
+        axes_ends (List): List of axis positions at the end of the scan.
+        axes_increments (List, optional): List of ranges through which the axes move each frame. Defaults to None.
+        n_images (int, optional): Number of images to be written. Defaults to None.
+
+    Returns:
+        Dict[str, np.ndarray]: A dictionary of ("axis_name": axis_range) key-value pairs.
+    """
+    # Just to double check that nothing weird is going on
+    assert len(axes_names) <= 2, "Too many axes for a linear or grid scan."
+
+    if len(axes_names) == 1:
+        if not n_images:
+            n_images = int(abs(axes_starts[0] - axes_ends[0]) / axes_increments[0])
+        spec = Line(axes_names[0], axes_names[0], axes_ends[0], n_images)
+        scan_path = ScanPath(spec.calculate())
+    else:
+        if not n_images:
+            n_images0 = int(abs(axes_starts[0] - axes_ends[0]) / axes_increments[0])
+            n_images1 = int(abs(axes_starts[1] - axes_ends[1]) / axes_increments[1])
+        else:
+            n_images0 = n_images
+            n_images1 = n_images
+        # TODO add snaked option ?
+        # spec = Line(axes_names[0], axes_names[0], axes_ends[0], n_images0) * ~Line(axes_names[1], axes_names[1], axes_ends[1], n_images1)
+        spec = Line(axes_names[0], axes_names[0], axes_ends[0], n_images0) * Line(
+            axes_names[1], axes_names[1], axes_ends[1], n_images1
+        )
+        scan_path = ScanPath(spec.calculate())
+
+    return scan_path.consume().midpoints
 
 
 def calculate_origin(
