@@ -129,7 +129,7 @@ def test_calc_scan_range():
         test_goniometer["starts"][2:],
         test_goniometer["ends"][2:],
         test_goniometer["increments"][2:],
-        10,
+        (10, 10),
     )
     assert len(grid) == 2
     assert "sam_x" in grid.keys() and "sam_y" in grid.keys()

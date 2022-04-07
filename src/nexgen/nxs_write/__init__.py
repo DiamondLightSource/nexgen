@@ -185,7 +185,7 @@ def calculate_grid_scan_range(
     axes_starts: List,
     axes_ends: List,
     axes_increments: List = None,
-    n_images: int = None,
+    n_images: Union[Tuple, int] = None,
     snaked: bool = False,
 ) -> Dict[str, np.ndarray]:
     """
@@ -197,7 +197,9 @@ def calculate_grid_scan_range(
         axes_starts (List): List of axis positions at the beginning of the scan.
         axes_ends (List): List of axis positions at the end of the scan.
         axes_increments (List, optional): List of ranges through which the axes move each frame. Defaults to None.
-        n_images (int, optional): Number of images to be written. Defaults to None.
+        n_images (Tuple|int, optional): Number of images to be written. If writing a 2D scan, it should be a (nx, ny) tuple, \
+                                        where tot_n_img=nx*ny. Defaults to None.
+        snaked (bool): If True, scanspec will "draw" a snaked grid. Defaults to False.
 
     Returns:
         Dict[str, np.ndarray]: A dictionary of ("axis_name": axis_range) key-value pairs.
@@ -215,8 +217,10 @@ def calculate_grid_scan_range(
             n_images0 = int(abs(axes_starts[0] - axes_ends[0]) / axes_increments[0])
             n_images1 = int(abs(axes_starts[1] - axes_ends[1]) / axes_increments[1])
         else:
-            n_images0 = n_images
-            n_images1 = n_images
+            # FIXME Need to be careful with n_images, it's not the total that should be passed here.
+            # Tot number of images (those passed in CLI or from beamline I guess) = n0*n1
+            n_images0 = n_images[0]
+            n_images1 = n_images[1]
         if snaked is True:
             spec = Line(axes_names[0], axes_starts[0], axes_ends[0], n_images0) * ~Line(
                 axes_names[1], axes_starts[1], axes_ends[1], n_images1
