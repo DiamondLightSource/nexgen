@@ -186,6 +186,7 @@ def calculate_grid_scan_range(
     axes_ends: List,
     axes_increments: List = None,
     n_images: int = None,
+    snaked: bool = False,
 ) -> Dict[str, np.ndarray]:
     """
     Calculate the scan range for a linear/grid scan from the number of images to be written.
@@ -216,11 +217,14 @@ def calculate_grid_scan_range(
         else:
             n_images0 = n_images
             n_images1 = n_images
-        # TODO add snaked option ?
-        # spec = Line(axes_names[0], axes_names[0], axes_ends[0], n_images0) * ~Line(axes_names[1], axes_names[1], axes_ends[1], n_images1)
-        spec = Line(axes_names[0], axes_starts[0], axes_ends[0], n_images0) * Line(
-            axes_names[1], axes_starts[1], axes_ends[1], n_images1
-        )
+        if snaked is True:
+            spec = Line(axes_names[0], axes_starts[0], axes_ends[0], n_images0) * ~Line(
+                axes_names[1], axes_starts[1], axes_ends[1], n_images1
+            )
+        else:
+            spec = Line(axes_names[0], axes_starts[0], axes_ends[0], n_images0) * Line(
+                axes_names[1], axes_starts[1], axes_ends[1], n_images1
+            )
         scan_path = ScanPath(spec.calculate())
 
     return scan_path.consume().midpoints
