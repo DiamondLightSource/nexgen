@@ -216,7 +216,29 @@ def fixed_target(
     )
     logger.info(f"Timestamps recorded: {timestamps}")
 
+    # Define SCANS dictionary
+    SCANS = {}
+    print(SCANS)
+
     # Goniometer
+    # Set start and end values from input
+    # Identify rotation and grid scan axes, calculate ranges
+
+    # Log data
+    logger.info("Goniometer information")
+    for j in range(len(goniometer["axes"])):
+        logger.info(
+            f"Goniometer axis: {goniometer['axes'][j]} => {goniometer['starts'][j]}, {goniometer['types'][j]} on {goniometer['depends'][j]}"
+        )
+
+    try:
+        with h5py.File(master_file, "x") as nxsfile:
+            write_NXentry(nxsfile)
+    except Exception as err:
+        logger.exception(err)
+        logger.info(
+            f"An error occurred and {master_file} couldn't be written correctly."
+        )
 
 
 def grid_scan_3D():
