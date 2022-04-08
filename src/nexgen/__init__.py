@@ -153,7 +153,7 @@ def get_iso_timestamp(ts: Union[str, float]) -> str:
             try:
                 ts_iso = datetime.strptime(ts, fmt).isoformat()
             except ValueError:
-                pass
+                ts_iso = str(ts)
     if ts_iso.endswith("Z") is False:
         ts_iso += "Z"
     return ts_iso

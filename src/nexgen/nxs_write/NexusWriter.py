@@ -8,7 +8,7 @@ import logging
 import numpy as np
 
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Union
 
 from . import (
     find_osc_axis,
@@ -186,10 +186,10 @@ def write_nexus(
 
     # NX_DATE_TIME: /entry/start_time and /entry/end_time
     if timestamps[0] is not None:
-        write_NXdatetime(nxsfile, timestamps[0])
+        write_NXdatetime(nxsfile, (timestamps[0], None))
         # nxentry.create_dataset("start_time", data=np.string_(timestamps[0]))
     if timestamps[1] is not None:
-        write_NXdatetime(nxsfile, timestamps[1])
+        write_NXdatetime(nxsfile, (None, timestamps[1]))
         # nxentry.create_dataset("end_time", data=np.string_(timestamps[1]))
 
 
@@ -361,7 +361,7 @@ def write_nexus_demo(
 # def call_writers(*args,**kwargs):
 def call_writers(
     nxsfile: h5py.File,
-    datafiles: List[Path],
+    datafiles: List[Union[Path, str]],
     coordinate_frame: str,
     SCANS: Dict,
     data_type: Tuple[str, int],
@@ -371,7 +371,7 @@ def call_writers(
     source: Dict,
     beam: Dict,
     attenuator: Dict,
-    metafile: Path = None,
+    metafile: Union[Path, str] = None,
     link_list: List = None,
 ):
     """ Call the writers for the NeXus base classes."""
@@ -384,6 +384,14 @@ def call_writers(
         transl_scan = SCANS["translation"]
     else:
         transl_scan = None
+
+    # Check that filenames are paths
+    if all(isinstance(f, Path) for f in datafiles) is False:
+        datafiles = [Path(f).expanduser().resolve() for f in datafiles]
+
+    if metafile:
+        if type(metafile) is str:
+            metafile = Path(metafile).expanduser().resolve()
 
     # NXdata: entry/data
     write_NXdata(

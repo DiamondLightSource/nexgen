@@ -722,11 +722,12 @@ def write_NXcollection(
 
 # NXdatetime writer
 def write_NXdatetime(nxsfile: h5py.File, timestamps: Tuple):
-    """_summary_
+    """
+    Write start and end timestamps under /entry/start_time and /entry/end_time.
 
     Args:
-        nxsfile (h5py.File): _description_
-        timestamps (Tuple): _description_
+        nxsfile (h5py.File): Nexus file to be written.
+        timestamps (Tuple): Timestamps (start, end).
     """
     nxentry = nxsfile.require_group("entry")
 

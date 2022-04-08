@@ -124,6 +124,7 @@ def calculate_rotation_scan_range(
         scan_range (np.ndarray):    Numpy array of values for the rotation axis.
     """
     if scan3D:
+        # FIXME this just half an idea, it will need more work once we get to 3D scans
         scan_range = np.array([])
         # Make a provision in case there's more than 2 values
         if axis_increment and len(scan3D) > 2:
