@@ -8,9 +8,15 @@ import logging
 import numpy as np
 
 from pathlib import Path
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Tuple
 
-from . import find_osc_axis, calculate_rotation_scan_range, find_number_of_images
+from . import (
+    find_osc_axis,
+    calculate_rotation_scan_range,
+    find_grid_scan_axes,
+    calculate_grid_scan_range,
+    find_number_of_images,
+)
 from .. import units_of_time
 
 from .NXclassWriters import (
@@ -76,6 +82,9 @@ def write_nexus(
         link_list = None
     writer_logger.info("Writing NXmx NeXus file ...")
 
+    # Define a SCANS dictionary to save both rotation and eventually translation scan ranges
+    SCANS = {}
+
     # Identify rotation scan axis
     osc_axis = find_osc_axis(
         goniometer.axes, goniometer.starts, goniometer.ends, goniometer.types
@@ -84,7 +93,7 @@ def write_nexus(
 
     if detector.mode == "events":
         data_type = ("events", len(datafiles))
-        scan_range = (goniometer.starts[idx], goniometer.ends[idx])
+        osc_range = (goniometer.starts[idx], goniometer.ends[idx])
     else:
         # Find total number of images that have been written across the files.
         if len(datafiles) == 1:
@@ -97,18 +106,45 @@ def write_nexus(
 
         # Compute rotation scan_range
         if goniometer.increments[idx] != 0.0:
-            scan_range = calculate_rotation_scan_range(
+            osc_range = calculate_rotation_scan_range(
                 goniometer.starts[idx],
                 goniometer.ends[idx],
                 axis_increment=goniometer.increments[idx],
             )
         else:
-            scan_range = calculate_rotation_scan_range(
+            osc_range = calculate_rotation_scan_range(
                 goniometer.starts[idx], goniometer.ends[idx], n_images=num_images
             )
 
-    writer_logger.info(f"Scan axis: {osc_axis}")
-    writer_logger.info(f"Scan from {scan_range[0]} tp {scan_range[-1]}.")
+    SCANS["rotation"] = {osc_axis: osc_range}
+
+    writer_logger.info(f"Rotatin scan axis: {osc_axis}")
+    writer_logger.info(f"Scan from {osc_range[0]} tp {osc_range[-1]}.")
+
+    # Look for a translation scan (usually on xy)
+    transl_axes = find_grid_scan_axes(
+        goniometer.axes, goniometer.starts, goniometer.ends, goniometer.types
+    )
+    # If xy scan axes are identified, add to dictionary
+    if len(transl_axes) > 0:
+        writer_logger.info(f"Scan along {transl_axes} axes.")
+        tr_idx = [goniometer.axes.index(j) for j in transl_axes]
+        transl_starts = [goniometer.starts[i] for i in tr_idx]
+        transl_ends = [goniometer.ends[i] for i in tr_idx]
+        transl_increments = [goniometer.increments[i] for i in tr_idx]
+        for tr in range(len(transl_axes)):
+            writer_logger.info(
+                f"{transl_axes[tr]} scan from {transl_starts[tr]} to {transl_ends[tr]}, with a step of {transl_increments[tr]}"
+            )
+        # TODO decide what to do for n_images=(nx,ny) in this case...
+        # Tbh, it should work without it anyway
+        transl_range = calculate_grid_scan_range(
+            transl_axes,
+            transl_starts,
+            transl_ends,
+            transl_increments,
+        )  # NB. leaving snaked = False for demo. TODO change at some point.
+        SCANS["translation"] = transl_range
 
     nxentry = write_NXentry(nxsfile)
 
@@ -117,8 +153,7 @@ def write_nexus(
         nxsfile,
         datafiles,
         coordinate_frame,
-        osc_axis,
-        scan_range,
+        SCANS,
         data_type,
         goniometer.__dict__,
         detector.__dict__,
@@ -184,6 +219,9 @@ def write_nexus_demo(
     """
     writer_logger.info("Writing NXmx demo ...")
     writer_logger.info(f"The data file will contain {data_type[1]} {data_type[0]}")
+    # Define a SCANS dictionary to save both rotation and eventually translation scan ranges
+    SCANS = {}
+
     # Identify rotation scan axis
     osc_axis = find_osc_axis(
         goniometer.axes, goniometer.starts, goniometer.ends, goniometer.types
@@ -193,21 +231,48 @@ def write_nexus_demo(
     idx = goniometer.axes.index(osc_axis)
     if data_type[0] == "images":
         if data_type[1] is None:
-            scan_range = calculate_rotation_scan_range(
+            osc_range = calculate_rotation_scan_range(
                 goniometer.starts[idx],
                 goniometer.ends[idx],
                 axis_increment=goniometer.increments[idx],
             )
-            data_type = ("images", len(scan_range))
+            data_type = ("images", len(osc_range))
         else:
-            scan_range = calculate_rotation_scan_range(
+            osc_range = calculate_rotation_scan_range(
                 goniometer.starts[idx], goniometer.ends[idx], n_images=data_type[1]
             )
     elif data_type[0] == "events":
-        scan_range = (goniometer.starts[idx], goniometer.ends[idx])
+        osc_range = (goniometer.starts[idx], goniometer.ends[idx])
 
-    writer_logger.info(f"Scan axis: {osc_axis}.")
-    writer_logger.info(f"Scan from {scan_range[0]} to {scan_range[-1]}.")
+    SCANS["rotation"] = {osc_axis: osc_range}
+
+    writer_logger.info(f"Rotation scan axis: {osc_axis}.")
+    writer_logger.info(f"Scan from {osc_range[0]} to {osc_range[-1]}.")
+
+    # Look for a translation scan (usually on xy)
+    transl_axes = find_grid_scan_axes(
+        goniometer.axes, goniometer.starts, goniometer.ends, goniometer.types
+    )
+    # If xy scan axes are identified, add to dictionary
+    if len(transl_axes) > 0:
+        writer_logger.info(f"Scan along {transl_axes} axes.")
+        tr_idx = [goniometer.axes.index(j) for j in transl_axes]
+        transl_starts = [goniometer.starts[i] for i in tr_idx]
+        transl_ends = [goniometer.ends[i] for i in tr_idx]
+        transl_increments = [goniometer.increments[i] for i in tr_idx]
+        for tr in range(len(transl_axes)):
+            writer_logger.info(
+                f"{transl_axes[tr]} scan from {transl_starts[tr]} to {transl_ends[tr]}, with a step of {transl_increments[tr]}"
+            )
+        # TODO decide what to do for n_images=(nx,ny) in this case...
+        # Tbh, it should work without it anyway
+        transl_range = calculate_grid_scan_range(
+            transl_axes,
+            transl_starts,
+            transl_ends,
+            transl_increments,
+        )  # NB. leaving snaked = False for demo. TODO change at some point.
+        SCANS["translation"] = transl_range
 
     # Figure out how many files will need to be written
     writer_logger.info("Calculating number of files to write ...")
@@ -248,8 +313,7 @@ def write_nexus_demo(
         nxsfile,
         datafiles,
         coordinate_frame,
-        osc_axis,
-        scan_range,
+        SCANS,
         data_type,
         goniometer.__dict__,
         detector.__dict__,
@@ -279,8 +343,7 @@ def call_writers(
     nxsfile: h5py.File,
     datafiles: List[Path],
     coordinate_frame: str,
-    scan_axis: str,
-    scan_range: Union[Tuple, np.ndarray],
+    SCANS: Dict,
     data_type: Tuple[str, int],
     goniometer: Dict,
     detector: Dict,
@@ -295,15 +358,22 @@ def call_writers(
     logger = logging.getLogger("NeXusGenerator.writer.call")
     logger.info("Calling the writers ...")
 
+    # Get scan details first
+    osc_scan = SCANS["rotation"]
+    if "translation" in SCANS.keys():
+        transl_scan = SCANS["translation"]
+    else:
+        transl_scan = None
+
     # NXdata: entry/data
     write_NXdata(
         nxsfile,
         datafiles,
         goniometer,
-        data_type[0],
+        data_type,
         coordinate_frame,
-        scan_range,
-        scan_axis,
+        osc_scan,
+        transl_scan,
     )
 
     # NXinstrument: entry/instrument
@@ -342,7 +412,7 @@ def call_writers(
         nxsfile,
         goniometer,
         coordinate_frame,
-        data_type[0],
-        scan_axis,
-        scan_range,
+        data_type,
+        osc_scan,
+        transl_scan,
     )

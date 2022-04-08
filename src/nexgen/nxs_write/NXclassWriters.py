@@ -12,7 +12,6 @@ from datetime import datetime
 from typing import List, Dict, Tuple, Union, Optional
 
 from . import (
-    find_osc_axis,
     calculate_origin,
     create_attributes,
     set_dependency,
@@ -58,10 +57,10 @@ def write_NXdata(
     nxsfile: h5py.File,
     datafiles: List[Path],
     goniometer: Dict,
-    data_type: str,
+    data_type: Tuple[str, int],
     coord_frame: str,
-    scan_range: Union[Tuple, np.ndarray],
-    scan_axis: str = None,
+    osc_scan: Dict[str, np.ndarray],
+    transl_scan: Dict[str, np.ndarray] = None,
 ):
     """
     Write NXdata group at entry/data
@@ -70,32 +69,26 @@ def write_NXdata(
         nxsfile (h5py.File):        NeXus file to be written.
         datafiles (List):           List of Path objects.
         goniometer (Dict):          Dictionary containing all the axes information.
-        data_type (str):            Images or events.
+        data_type (Tuple):          Images or events.
         coord_frame (str):          Coordinate system the axes are currently in.
-        scan_range (Tuple|array):   If writing events, this is just a (start, end) tuple.
-        scan_axis (str):            Rotation axis.
+        osc_scan (Dict):            Rotation scan. If writing events, this is just a (start, end) tuple.
+        transl_scan (Dict):         Scan along the xy (one or both) axes.
     """
     NXclass_logger.info("Start writing NXdata.")
     # Check that a valid datafile_list has been passed.
     assert len(datafiles) > 0, "Please pass at least a list of one HDF5 data file."
 
-    # If scan_axis hasn't been passed, identify it.
-    if not scan_axis:
-        scan_axis = find_osc_axis(
-            goniometer["axes"],
-            goniometer["starts"],
-            goniometer["ends"],
-            goniometer["types"],
-        )
+    # This assumes that a rotation scan is always passed
+    osc_axis, osc_range = list(osc_scan.items())[0]
 
     # Create NXdata group, unless it already exists, in which case just open it.
     nxdata = nxsfile.require_group("/entry/data")
     create_attributes(
         nxdata,
-        ("NX_class", "axes", "signal", scan_axis + "_indices"),
+        ("NX_class", "axes", "signal", osc_axis + "_indices"),
         (
             "NXdata",
-            scan_axis,
+            osc_axis,
             "data",
             [
                 0,
@@ -127,9 +120,9 @@ def write_NXdata(
         # sys.exit("Please pass a correct data_type (images or events)")
 
     # Write rotation axis dataset
-    ax = nxdata.create_dataset(scan_axis, data=scan_range)
-    idx = goniometer["axes"].index(scan_axis)
-    _dep = set_dependency(
+    ax = nxdata.create_dataset(osc_axis, data=osc_range)
+    idx = goniometer["axes"].index(osc_axis)
+    dep = set_dependency(
         goniometer["depends"][idx], path="/entry/sample/transformations/"
     )
 
@@ -139,12 +132,31 @@ def write_NXdata(
         ax,
         ("depends_on", "transformation_type", "units", "vector"),
         (
-            _dep,
+            dep,
             goniometer["types"][idx],
             goniometer["units"][idx],
-            vectors[scan_axis],
+            vectors[osc_axis],
         ),
     )
+
+    # If present, add linear/grid scan details
+    if transl_scan:
+        for k, v in transl_scan.items():
+            ax_dset = nxdata.create_dataset(k, data=v)
+            ax_idx = goniometer["axes"].index(k)
+            ax_dep = set_dependency(
+                goniometer["depends"][ax_idx], path="/entry/sample/transformations/"
+            )
+            create_attributes(
+                ax_dset,
+                ("depends_on", "transformation_type", "units", "vector"),
+                (
+                    ax_dep,
+                    goniometer["types"][ax_idx],
+                    goniometer["units"][ax_idx],
+                    vectors[k],
+                ),
+            )
 
 
 # NXsample
@@ -152,9 +164,9 @@ def write_NXsample(
     nxsfile: h5py.File,
     goniometer: Dict,
     coord_frame: str,
-    data_type: str,
-    scan_axis: str,
-    scan_range: Union[Tuple, np.ndarray] = None,
+    data_type: Tuple[str, int],
+    osc_scan: Dict[str, np.ndarray],
+    transl_scan: Dict[str, np.ndarray] = None,
 ):
     """
     Write NXsample group at entry/sample
@@ -163,9 +175,9 @@ def write_NXsample(
         nxsfile (h5py.File):        NeXus file to be written
         goniometer (Dict):          Dictionary containing all the axes information
         coord_frame (str):          Coordinate system the axes are currently expressed in
-        data_type (str):            Images or events
-        scan_axis (str):            Rotation axis
-        scan_range (Tuple|array):   List/tuple/array of scan axis values
+        data_type (Tuple):            Images or events
+        osc_scan (Dict):            Rotation scan. If writing events, this is just a (start, end) tuple.
+        transl_scan (Dict):         Scan along the xy (one or both) axes.
     """
     NXclass_logger.info("Start writing NXsample and NXtransformations.")
     # Create NXsample group, unless it already exists, in which case just open it.
@@ -184,10 +196,19 @@ def write_NXsample(
         ("NXtransformations",),
     )
 
+    # Get rotation details
+    osc_axis, osc_range = list(osc_scan.items())[0]
+
     # Save sample depends_on
     nxsample.create_dataset(
-        "depends_on", data=set_dependency(scan_axis, path=nxtransformations.name)
+        "depends_on", data=set_dependency(osc_axis, path=nxtransformations.name)
     )
+
+    # Get xy details if passed
+    scan_axes = []
+    if transl_scan:
+        for k in transl_scan.keys():
+            scan_axes.append(k)
 
     # Create sample_{axisname} groups
     vectors = split_arrays(coord_frame, goniometer["axes"], goniometer["vectors"])
@@ -198,43 +219,62 @@ def write_NXsample(
             grp_name = "sample_" + ax
         nxsample_ax = nxsample.create_group(grp_name)
         create_attributes(nxsample_ax, ("NX_class",), ("NXpositioner",))
-        if ax == scan_axis:
+        if ax == osc_axis:
             # If we're dealing with the scan axis
-            idx = goniometer["axes"].index(scan_axis)
-            try:
-                for k in nxsfile["/entry/data"].keys():
-                    if isinstance(
-                        nxsfile["/entry/data"].get(k, getlink=True), h5py.ExternalLink
-                    ):
-                        # Don't even try to open!
-                        continue
-                    if nxsfile["/entry/data"][k].attrs.get("depends_on"):
-                        nxsample_ax[ax] = nxsfile[nxsfile["/entry/data"][k].name]
-                        nxtransformations[ax] = nxsfile[nxsfile["/entry/data"][k].name]
-            except KeyError:
-                nxax = nxsample_ax.create_dataset(ax, data=scan_range)
+            idx = goniometer["axes"].index(osc_axis)
+            # ... I was clearly overthinking this
+            if (
+                "data" in nxsfile["/entry"].keys()
+                and ax in nxsfile["/entry/data"].keys()
+            ):
+                nxsample_ax[ax] = nxsfile[nxsfile["/entry/data"][ax].name]
+                nxtransformations[ax] = nxsfile[nxsfile["/entry/data"][ax].name]
+            else:
+                nxax = nxsample_ax.create_dataset(ax, data=osc_range)
                 _dep = set_dependency(
                     goniometer["depends"][idx], path="/entry/sample/transformations/"
                 )
                 create_attributes(
-                    ax,
+                    nxax,
                     ("depends_on", "transformation_type", "units", "vector"),
                     (
                         _dep,
                         goniometer["types"][idx],
                         goniometer["units"][idx],
-                        vectors[scan_axis],
+                        vectors[osc_axis],
                     ),
                 )
                 nxtransformations[ax] = nxsfile[nxax.name]
-            # TODO handle the case where scan range has not been passed.
             # Write {axisname}_increment_set and {axis_name}_end datasets
             if data_type == "images":
-                increment_set = np.repeat(
-                    goniometer["increments"][idx], len(scan_range)
-                )
+                increment_set = np.repeat(goniometer["increments"][idx], len(osc_range))
                 nxsample_ax.create_dataset(ax + "_increment_set", data=increment_set)
-                nxsample_ax.create_dataset(ax + "_end", data=scan_range + increment_set)
+                nxsample_ax.create_dataset(ax + "_end", data=osc_range + increment_set)
+        elif ax in scan_axes:
+            # For translations
+            if (
+                "data" in nxsfile["/entry"].keys()
+                and ax in nxsfile["/entry/data"].keys()
+            ):
+                nxsample_ax[ax] = nxsfile[nxsfile["/entry/data"][ax].name]
+                nxtransformations[ax] = nxsfile[nxsfile["/entry/data"][ax].name]
+            else:
+                idx = goniometer["axes"].index(ax)
+                nxax = nxsample_ax.create_dataset(ax, data=transl_scan[ax])
+                _dep = set_dependency(
+                    goniometer["depends"][idx], path="/entry/sample/transformations/"
+                )
+                create_attributes(
+                    nxax,
+                    ("depends_on", "transformation_type", "units", "vector"),
+                    (
+                        _dep,
+                        goniometer["types"][idx],
+                        goniometer["units"][idx],
+                        vectors[ax],
+                    ),
+                )
+                nxtransformations[ax] = nxsfile[nxax.name]
         else:
             # For all other axes
             idx = goniometer["axes"].index(ax)
@@ -253,6 +293,8 @@ def write_NXsample(
                 ),
             )
             nxtransformations[ax] = nxsfile[nxax.name]
+
+    # Not the best but it works ...
 
     # Look for nxbeam in file, if it's there make link
     try:
