@@ -3,12 +3,11 @@ Create a NeXus file for serial crystallography datasets collected on I24 Eiger 2
 """
 import sys
 
-# import json
 import glob
 import h5py
 import logging
 
-import numpy as np
+# import numpy as np
 
 from typing import List
 from pathlib import Path
@@ -28,11 +27,11 @@ from .. import (
 )
 
 from ..nxs_write import (
-    calculate_scan_range,
-    find_scan_axis,
+    calculate_rotation_scan_range,
+    find_osc_axis,
 )
 from ..nxs_write.NexusWriter import call_writers
-from ..nxs_write.NXclassWriters import write_NXentry, write_NXnote
+from ..nxs_write.NXclassWriters import write_NXentry, write_NXnote, write_NXdatetime
 
 from ..tools.VDS_tools import image_vds_writer
 
@@ -76,17 +75,6 @@ module = {}
 beam = {}
 attenuator = {}
 
-# def read_params_from_json():
-#     # Paramters files path ...
-#     with open(goniometer_json_path, "r") as f:
-#         gonio = json.load(f)
-
-#     with open(detector_json_path, "r") as f:
-#         det = json.load(f)
-
-#     mod = {"fast_axis": det.pop("fast_axis"), "slow_axis": det.pop("slow_axis")}
-#     return gonio, det, mod
-
 
 def extruder(
     master_file: Path,
@@ -117,20 +105,26 @@ def extruder(
         get_iso_timestamp(SSX.start_time),
         get_iso_timestamp(SSX.stop_time),
     )
+    logger.info(f"Timestamps recorded: {timestamps}")
+
+    # Define SCANS dictionary
+    SCANS = {}
 
     # Get scan range array and rotation axis
-    scan_axis = find_scan_axis(
+    osc_axis = find_osc_axis(
         goniometer["axes"],
         goniometer["starts"],
         goniometer["ends"],
         goniometer["types"],
     )
-    scan_idx = goniometer["axes"].index(scan_axis)
-    scan_range = calculate_scan_range(
-        goniometer["starts"][scan_idx],
-        goniometer["ends"][scan_idx],
+    osc_idx = goniometer["axes"].index(osc_axis)
+    osc_range = calculate_rotation_scan_range(
+        goniometer["starts"][osc_idx],
+        goniometer["ends"][osc_idx],
         n_images=SSX.num_imgs,
     )
+
+    SCANS["rotation"] = {osc_axis: osc_range}
 
     logger.info("Goniometer information")
     for j in range(len(goniometer["axes"])):
@@ -140,17 +134,16 @@ def extruder(
 
     try:
         with h5py.File(master_file, "x") as nxsfile:
-            nxentry = write_NXentry(nxsfile)
+            write_NXentry(nxsfile)
 
             if timestamps[0]:
-                nxentry.create_dataset("start_time", data=np.string_(timestamps[0]))
+                write_NXdatetime(nxsfile, (timestamps[0], None))
 
             call_writers(
                 nxsfile,
                 filename,
                 coordinate_frame,
-                scan_axis,  # This should be omega
-                scan_range,
+                SCANS,
                 (detector["mode"], SSX.num_imgs),
                 goniometer,
                 detector,
@@ -190,7 +183,7 @@ def extruder(
             image_vds_writer(nxsfile, (SSX.num_imgs, *detector["image_size"]))
 
             if timestamps[1]:
-                nxentry.create_dataset("end_time", data=np.string_(timestamps[1]))
+                write_NXdatetime(nxsfile, (None, timestamps[1]))
             logger.info(f"{master_file} correctly written.")
     except Exception as err:
         logger.exception(err)
@@ -199,8 +192,31 @@ def extruder(
         )
 
 
-def fixed_target():
-    pass
+def fixed_target(
+    master_file: Path,
+    filename: List[Path],
+    SSX: namedtuple,
+    metafile: Path = None,
+):
+    """
+    _summary_
+
+    Args:
+        master_file (Path):         _description_
+        filename (List[Path]):      _description_
+        SSX (namedtuple):           _description_
+        metafile (Path, optional):  _description_. Defaults to None.
+    """
+    logger.info(f"Write NeXus file for {SSX.exp_type}")
+
+    # Get timestamps in the correct format
+    timestamps = (
+        get_iso_timestamp(SSX.start_time),
+        get_iso_timestamp(SSX.stop_time),
+    )
+    logger.info(f"Timestamps recorded: {timestamps}")
+
+    # Goniometer
 
 
 def grid_scan_3D():
@@ -284,7 +300,7 @@ def write_nxs(**ssx_params):
     if SSX.exp_type == "extruder":
         extruder(master_file, filename, SSX, metafile)
     elif SSX.exp_type == "fixed_target":
-        fixed_target()
+        fixed_target(master_file, filename, SSX, metafile)
     elif SSX.exp_type == "3Dgridscan":
         grid_scan_3D()
 

@@ -343,14 +343,6 @@ def write_demo_cli(args):
     # Add handlers to logger
     logger.addHandler(FH)
 
-    # Images or events ?
-    if args.events is True:
-        num_events = args.force if args.force else 1
-        data_type = ("events", num_events)
-    else:
-        num_images = args.force if args.force else None
-        data_type = ("images", num_images)
-
     # Get data file name template
     data_file_template = get_filename_template(master_file)
 
@@ -370,6 +362,14 @@ def write_demo_cli(args):
     # If dealing with a tristan detector, add its specifications to detector scope.
     if "TRISTAN" in detector.description.upper():
         add_tristan_spec(detector, params.tristanSpec)
+
+    # Images or events ?
+    if args.events is True:
+        num_events = args.force if args.force else 1
+        data_type = ("events", num_events)
+    else:
+        num_images = args.force if args.force else None
+        data_type = ("images", num_images)
 
     # Log information
     logger.info("Data type: %s" % data_type[0])
