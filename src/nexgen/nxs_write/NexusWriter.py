@@ -237,7 +237,7 @@ def write_nexus_demo(
         goniometer.axes, goniometer.starts, goniometer.ends, goniometer.types
     )
 
-    # NB. doing this first so that number of images is None, it can be overwritten.
+    # NB. doing this first so that if number of images is None, it can be overwritten.
     # If xy scan axes are identified, add to dictionary
     if len(transl_axes) > 0:
         writer_logger.info(f"Scan along {transl_axes} axes.")

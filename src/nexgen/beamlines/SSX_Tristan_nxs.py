@@ -116,9 +116,14 @@ def write_nxs(**ssx_params):
         0.0,
     ]
 
-    # Get scan range array and rotation axis
-    scan_axis = "phi"
-    scan_range = (0.0, 0.0)
+    # Define SCANS dictionary
+    SCANS = {}
+
+    # Get rotation scan range array and axis
+    osc_axis = "phi"
+    osc_range = (0.0, 0.0)
+
+    SCANS["rotation"] = {osc_axis: osc_range}
 
     logger.info("Goniometer information")
     for j in range(len(goniometer["axes"])):
@@ -171,8 +176,7 @@ def write_nxs(**ssx_params):
                 nxsfile,
                 [metafile],
                 coordinate_frame,
-                scan_axis,
-                scan_range,
+                SCANS,
                 (
                     detector["mode"],
                     None,
@@ -193,7 +197,6 @@ def write_nxs(**ssx_params):
             )
 
             # Register pump status (hard coded as True)
-            # TODO have pump exposure and delay also as units of time
             pump_info = {"pump_status": True}
             logger.info("Add pump information.")
             if SSX_TR.pump_exp:
