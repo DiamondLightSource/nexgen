@@ -97,11 +97,11 @@ def write_NXdata(
     )
 
     # If mode is images, link to blank image data. Else go to events.
-    if data_type == "images":
+    if data_type[0] == "images":
         tmp_name = f"data_%0{6}d"
         for n, filename in enumerate(datafiles):
             nxdata[tmp_name % (n + 1)] = h5py.ExternalLink(filename.name, "data")
-    elif data_type == "events":
+    elif data_type[0] == "events":
         if len(datafiles) == 1 and "meta" in datafiles[0].as_posix():
             meta = datafiles
         else:
@@ -246,7 +246,7 @@ def write_NXsample(
                 )
                 nxtransformations[ax] = nxsfile[nxax.name]
             # Write {axisname}_increment_set and {axis_name}_end datasets
-            if data_type == "images":
+            if data_type[0] == "images":
                 increment_set = np.repeat(goniometer["increments"][idx], len(osc_range))
                 nxsample_ax.create_dataset(ax + "_increment_set", data=increment_set)
                 nxsample_ax.create_dataset(ax + "_end", data=osc_range + increment_set)
