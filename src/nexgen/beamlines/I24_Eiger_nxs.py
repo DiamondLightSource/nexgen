@@ -107,19 +107,24 @@ def extruder(
     )
     logger.info(f"Timestamps recorded: {timestamps}")
 
+    # Define SCANS dictionary
+    SCANS = {}
+
     # Get scan range array and rotation axis
-    scan_axis = find_osc_axis(
+    osc_axis = find_osc_axis(
         goniometer["axes"],
         goniometer["starts"],
         goniometer["ends"],
         goniometer["types"],
     )
-    scan_idx = goniometer["axes"].index(scan_axis)
-    scan_range = calculate_rotation_scan_range(
-        goniometer["starts"][scan_idx],
-        goniometer["ends"][scan_idx],
+    osc_idx = goniometer["axes"].index(osc_axis)
+    osc_range = calculate_rotation_scan_range(
+        goniometer["starts"][osc_idx],
+        goniometer["ends"][osc_idx],
         n_images=SSX.num_imgs,
     )
+
+    SCANS["rotation"] = {osc_axis: osc_range}
 
     logger.info("Goniometer information")
     for j in range(len(goniometer["axes"])):
@@ -138,8 +143,7 @@ def extruder(
                 nxsfile,
                 filename,
                 coordinate_frame,
-                scan_axis,  # This should be omega
-                scan_range,
+                SCANS,
                 (detector["mode"], SSX.num_imgs),
                 goniometer,
                 detector,
