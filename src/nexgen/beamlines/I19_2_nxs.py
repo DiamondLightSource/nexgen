@@ -149,6 +149,10 @@ def tristan_writer(
     detector["flatfield"] = flatfieldfile
     # If these two could instead be passed, I'd be happier...
 
+    # Define SCANS dictionary
+    SCANS = {}
+    SCANS["rotation"] = {scan_axis: scan_range}
+
     # Get on with the writing now...
     try:
         with h5py.File(master_file, "x") as nxsfile:
@@ -162,8 +166,7 @@ def tristan_writer(
                 nxsfile,
                 [TR.meta_file],
                 coordinate_frame,
-                scan_axis,  # This should be omega
-                scan_range,
+                SCANS,
                 (detector["mode"], None),
                 goniometer,
                 detector,
@@ -222,6 +225,10 @@ def eiger_writer(
         n_images=n_frames,
     )
 
+    # Define SCANS dictionary
+    SCANS = {}
+    SCANS["rotation"] = {scan_axis: scan_range}
+
     # Get on with the writing now...
     try:
         with h5py.File(master_file, "x") as nxsfile:
@@ -234,8 +241,7 @@ def eiger_writer(
                 nxsfile,
                 filenames,
                 coordinate_frame,
-                scan_axis,  # This should be omega
-                scan_range,
+                SCANS,
                 (detector["mode"], n_frames),
                 goniometer,
                 detector,
@@ -330,7 +336,7 @@ def write_nxs(**tr_params):
 
     # Read information from xml file
     logger.info("Read xml file.")
-    scan_axis, pos, n_frames = read_from_xml(TR.xml_file, TR.detector_name)
+    osc_axis, pos, n_frames = read_from_xml(TR.xml_file, TR.detector_name)
     # n_Frames is only useful for eiger
     # pos[scan_axis][::-1] is scan range
 
@@ -367,7 +373,7 @@ def write_nxs(**tr_params):
     logger.info(f"Timestamps recorded: {timestamps}")
 
     logger.info("Goniometer information")
-    logger.info(f"Scan axis is: {scan_axis}")
+    logger.info(f"Scan axis is: {osc_axis}")
     for j in range(len(goniometer["axes"])):
         logger.info(
             f"Goniometer axis: {goniometer['axes'][j]} => {goniometer['starts'][j]}, {goniometer['types'][j]} on {goniometer['depends'][j]}"
@@ -388,9 +394,9 @@ def write_nxs(**tr_params):
     logger.info(f"Recorded beam center is: {TR.beam_center}.")
 
     if "tristan" in TR.detector_name:
-        tristan_writer(master_file, TR, scan_axis, pos[scan_axis][:-1], timestamps)
+        tristan_writer(master_file, TR, osc_axis, pos[osc_axis][:-1], timestamps)
     else:
-        eiger_writer(master_file, TR, scan_axis, n_frames, timestamps)
+        eiger_writer(master_file, TR, osc_axis, n_frames, timestamps)
 
 
 def main():

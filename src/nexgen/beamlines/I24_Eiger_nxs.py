@@ -305,26 +305,26 @@ def write_nxs(**ssx_params):
         grid_scan_3D()
 
 
-# Example usage
-if __name__ == "__main__":
-    from datetime import datetime
+# # Example usage
+# if __name__ == "__main__":
+#     from datetime import datetime
 
-    write_nxs(
-        visitpath=sys.argv[1],
-        filename=sys.argv[2],
-        exp_type="extruder",
-        num_imgs=2450,
-        beam_center=[1590.7, 1643.7],
-        det_dist=0.5,
-        # start_time=None,
-        # stop_time=None,
-        start_time=datetime.now(),
-        stop_time=datetime.now(),
-        exp_time=0.002,
-        transmission=1.0,
-        wavelength=0.649,
-        flux=None,
-        pump_status="true",  # this is a string on the beamline
-        pump_exp=None,
-        pump_delay=None,
-    )
+#     write_nxs(
+#         visitpath=sys.argv[1],
+#         filename=sys.argv[2],
+#         exp_type="extruder",
+#         num_imgs=2450,
+#         beam_center=[1590.7, 1643.7],
+#         det_dist=0.5,
+#         # start_time=None,
+#         # stop_time=None,
+#         start_time=datetime.now(),
+#         stop_time=datetime.now(),
+#         exp_time=0.002,
+#         transmission=1.0,
+#         wavelength=0.649,
+#         flux=None,
+#         pump_status="true",  # this is a string on the beamline
+#         pump_exp=None,
+#         pump_delay=None,
+#     )
