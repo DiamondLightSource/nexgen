@@ -13,11 +13,12 @@ Writing tools
 NXmx writers
 ------------
 
-.. automodule:: nexgen.nxs_write.NexusWriter
-    :members:
-
 .. automodule:: nexgen.nxs_write.NXclassWriters
     :members:
+
+All the writers above can be called using the ``call_writers`` function, with the exception of ``write_NXentry``, ``write_NXdatetime`` and ``write_NXnote``.  
+
+.. autofunction:: nexgen.nxs_write.NexusWriter.call_writers
 
 
 Writing blank datasets

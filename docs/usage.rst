@@ -2,7 +2,23 @@
 Usage
 =====
 
-**Nexgen** is a Python package bla bla ...
+**Nexgen** is a Python package that provides a set of tools to write NeXus files for experiments at at Synchrotron, following 
+the NXmx application definition for macromolecular crystallography. This is meant to include all relevant experiment metadata
+required to process the datasets, including detector and goniometer description.
+
+Installation
+------------
+
+Nexgen can be installed using pip.
+
+.. code-block:: console
+    
+    pip install nexgen
+
+
+.. note::
+    This project is under development.
+
 
 Command line tools
 ==================
@@ -31,16 +47,3 @@ DLS beamline specific Utilities
 ===============================
 
 I19-2 & I24 stuff goes here ...
-
-Installation
-------------
-
-Nexgen can be installed using pip.
-
-.. code-block:: console
-    
-    pip install nexgen
-
-
-.. note::
-    This project is under development.
