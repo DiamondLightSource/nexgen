@@ -132,7 +132,7 @@ def split_arrays(coord_frame: str, axes_names: List, array: List) -> dict:
     return array_dict
 
 
-def get_iso_timestamp(ts: str) -> str:
+def get_iso_timestamp(ts: Union[str, float]) -> str:
     """
     Format a timestamp string to be stores in a NeXus file according to ISO8601:
     'YY-MM-DDThh:mm:ssZ'
@@ -153,7 +153,7 @@ def get_iso_timestamp(ts: str) -> str:
             try:
                 ts_iso = datetime.strptime(ts, fmt).isoformat()
             except ValueError:
-                pass
+                ts_iso = str(ts)
     if ts_iso.endswith("Z") is False:
         ts_iso += "Z"
     return ts_iso

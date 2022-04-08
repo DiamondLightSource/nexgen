@@ -1,6 +1,7 @@
 import nexgen
 
 import pint
+import time
 
 ureg = pint.UnitRegistry()
 
@@ -12,9 +13,29 @@ def test_cif2nxs():
     assert nexgen.imgcif2mcstas([0, 0, 1]) == (0, 0, -1)
 
 
+def test_split_arrays():
+    assert nexgen.split_arrays("imgcif", ["phi"], [1, 0, 0]) == {"phi": (-1, 0, 0)}
+    two_axes = nexgen.split_arrays("mcstas", ["omega", "phi"], [1, 0, 0, 0, 1, 0])
+    assert two_axes["omega"] == (1, 0, 0) and two_axes["phi"] == (0, 1, 0)
+    assert (
+        len(
+            nexgen.split_arrays(
+                "mcstas", ["omega", "phi", "chi"], [1, 0, 0, 0, 1, 0, 0, 0, 1]
+            )
+        )
+        == 3
+    )
+
+
+def test_iso_timestamps():
+    assert nexgen.get_iso_timestamp(None) is None
+    # Check that no exceptions are raised when passing a time.time() object
+    assert nexgen.get_iso_timestamp(time.time())
+
+
 def test_units_of_length():
     assert nexgen.units_of_length("1.5m") == ureg.Quantity(1.5, "m")
-    # Check that a diensionless unit defaults to mm
+    # Check that a dimensionless unit defaults to mm
     assert nexgen.units_of_length(100) == ureg.Quantity(100, "m")
     # Check conversion to base units
     assert nexgen.units_of_length("5cm", True) == ureg.Quantity(0.05, "m")
