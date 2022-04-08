@@ -27,6 +27,7 @@ from .NXclassWriters import (
     write_NXsource,
     write_NXdetector,
     write_NXdetector_module,
+    write_NXdatetime,
 )
 
 from ..tools.MetaReader import overwrite_beam, overwrite_detector
@@ -152,7 +153,7 @@ def write_nexus(
             transl_range[ax1]
         ), "The total number of images doesn't match the number of scan points, please double check the input."
 
-    nxentry = write_NXentry(nxsfile)
+    write_NXentry(nxsfile)
 
     # Call the writers
     call_writers(
@@ -185,9 +186,11 @@ def write_nexus(
 
     # NX_DATE_TIME: /entry/start_time and /entry/end_time
     if timestamps[0] is not None:
-        nxentry.create_dataset("start_time", data=np.string_(timestamps[0]))
+        write_NXdatetime(nxsfile, timestamps[0])
+        # nxentry.create_dataset("start_time", data=np.string_(timestamps[0]))
     if timestamps[1] is not None:
-        nxentry.create_dataset("end_time", data=np.string_(timestamps[1]))
+        write_NXdatetime(nxsfile, timestamps[1])
+        # nxentry.create_dataset("end_time", data=np.string_(timestamps[1]))
 
 
 def write_nexus_demo(
