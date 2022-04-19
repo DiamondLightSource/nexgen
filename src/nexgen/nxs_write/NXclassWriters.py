@@ -189,8 +189,12 @@ def write_NXsample(
             ),
         )
     else:
-        # I'm not sure what this should be?
-        pass
+        nxsample.create_dataset(
+            "depends_on",
+            data=set_dependency(
+                "phi", path=nxtransformations.name
+            ),
+        )
 
     # Create sample_{axisname} groups
     vectors = split_arrays(coord_frame, goniometer["axes"], goniometer["vectors"])
