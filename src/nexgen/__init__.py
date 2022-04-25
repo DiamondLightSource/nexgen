@@ -8,11 +8,8 @@ __version__ = "0.6.5"
 __version_tuple__ = tuple(int(x) for x in __version__.split("."))
 
 import re
-import sys
 import h5py
 import pint
-
-# import freephil
 
 import numpy as np
 
@@ -70,9 +67,12 @@ def get_filename_template(input_filename: Path) -> str:
         filename = input_filename.stem.replace("meta", f"%0{6}d")
         filename_template = input_filename.parent / f"{filename}.h5"
     else:
-        sys.exit(
+        raise NameError(
             "Input file did not have the expected format for a master or meta file."
         )
+        # sys.exit(
+        #     "Input file did not have the expected format for a master or meta file."
+        # )
     # so that filename_template.as_posix() % 1 will become filename_000001.h5
     return filename_template.as_posix()
 
