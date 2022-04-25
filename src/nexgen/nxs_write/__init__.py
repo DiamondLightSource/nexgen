@@ -96,7 +96,7 @@ def find_osc_axis(
         elif idx.count(True) == 1:
             scan_axis = axes_names[idx.index(True)]
         else:
-            raise SystemExit("Unable to correctly identify the scan axis.")
+            raise ValueError("Unable to correctly identify the scan axis.")
             # sys.exit("Unable to correctly identify the scan axis.")
     return scan_axis
 

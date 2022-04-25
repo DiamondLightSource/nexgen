@@ -116,7 +116,9 @@ def write_NXdata(
         else:
             nxdata["meta_file"] = h5py.ExternalLink(meta[0].name, "/")
     else:
-        raise SystemExit("Please pass a correct data_type (images or events)")
+        raise ValueError(
+            "Unknown data type. Please pass a correct data_type (images or events)"
+        )
         # sys.exit("Please pass a correct data_type (images or events)")
 
     # Write rotation axis dataset
