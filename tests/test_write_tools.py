@@ -107,9 +107,6 @@ def test_calc_rotation_range():
         calculate_rotation_scan_range(0.0, 1.0, 0.1, n_images=2) == np.array([0.0, 1.0])
     )
 
-    # Check that the 3D option works
-    assert len(calculate_rotation_scan_range(0.0, 1.0, scan3D=[5, 5])) == 10
-
 
 def test_calc_scan_range():
     # Check linear scan
