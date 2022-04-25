@@ -106,7 +106,6 @@ def calculate_rotation_scan_range(
     axis_end: float,
     axis_increment: float = None,
     n_images: int = None,
-    scan3D: List = None,
 ) -> np.ndarray:
     """
     Calculate the scan range for a rotation collection and return as a numpy array.
@@ -118,27 +117,10 @@ def calculate_rotation_scan_range(
         axis_end (float):           Rotation axis position at the end of the scan, float.
         axis_increment (float):     Range through which the axis moves each frame, float.
         n_images (int):             Alternatively, number of images, int.
-        scan3D (List):              Option to write the rotation angle values for a 3D grid scan. \
-                                    A List of int should be passed indicating how many images per angle value.
     Returns:
         scan_range (np.ndarray):    Numpy array of values for the rotation axis.
     """
-    if scan3D:
-        # FIXME this just half an idea, it will need more work once we get to 3D scans
-        scan_range = np.array([])
-        # Make a provision in case there's more than 2 values
-        if axis_increment and len(scan3D) > 2:
-            for n, i in enumerate(scan3D):
-                val = axis_start + n * axis_increment
-                scan = np.repeat(val, i)
-                scan_range = np.concatenate((scan_range, scan), axis=None)
-        else:
-            scan1 = np.repeat(axis_start, scan3D[0])
-            scan2 = (
-                np.repeat(axis_end, scan3D[1]) if len(scan3D) > 1 else np.empty_like([])
-            )  # Just because I'm paranoid tbh
-            scan_range = np.concatenate((scan1, scan2), axis=None)
-    elif n_images:
+    if n_images:
         if axis_start == axis_end:
             scan_range = np.repeat(axis_start, n_images)
         else:
