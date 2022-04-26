@@ -29,7 +29,12 @@ Q_ = ureg.Quantity
 P = re.compile(r"(.*)_(?:meta|\d+)")
 
 # Format strings for timestamps
-format_list = ["%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%a %b %d %Y %H:%M:%S"]
+format_list = [
+    "%Y-%m-%dT%H:%M:%S",
+    "%Y-%m-%d %H:%M:%S",
+    "%a %b %d %Y %H:%M:%S",
+    "%A, %d. %B %Y %I:%M%p",
+]
 
 
 def imgcif2mcstas(vector):
@@ -139,7 +144,7 @@ def get_iso_timestamp(ts: Union[str, float]) -> str:
 
     Args:
         ts:     Input string, can also be a timestamp (eg. time.time()) string.
-                Allowed formats: "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%a %b %d %Y %H:%M:%S".
+                Allowed formats: "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%a %b %d %Y %H:%M:%S", "%A, %d. %B %Y %I:%M%p".
     Returns:
         ts_iso: Output formatted string.
     """

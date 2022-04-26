@@ -10,7 +10,7 @@ import logging
 import argparse
 import freephil
 
-import numpy as np
+# import numpy as np
 
 from pathlib import Path
 from datetime import datetime
@@ -27,8 +27,8 @@ from .. import (
     get_filename_template,
     get_iso_timestamp,
 )
-from ..nxs_write.NexusWriter import write_nexus, write_nexus_demo
-from ..nxs_write.NXclassWriters import write_NXnote
+from ..nxs_write.NexusWriter import write_nexus, write_nexus_demo  # , call_writers
+from ..nxs_write.NXclassWriters import write_NXnote, write_NXdatetime
 
 # Define a logger object and a formatter
 logger = logging.getLogger("NeXusGenerator")
@@ -473,8 +473,11 @@ def write_demo_cli(args):
             )
 
             # Write /entry/start_time and /entry/end_time
-            nxsfile.create_dataset("/entry/start_time", data=np.string_(start_time))
-            nxsfile.create_dataset("/entry/end_time", data=np.string_(end_time))
+            timestamps = (get_iso_timestamp(start_time), get_iso_timestamp(end_time))
+            logger.info("Writing timestamps to NeXus.")
+            logger.info(f"Start time: {timestamps[0]}")
+            logger.info(f"End time: {timestamps[1]}")
+            write_NXdatetime(nxsfile, timestamps)
         logger.info(f"{master_file} correctly written.")
     except Exception as err:
         logger.info(
