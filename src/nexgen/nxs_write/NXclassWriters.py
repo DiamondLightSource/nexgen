@@ -76,7 +76,9 @@ def write_NXdata(
     """
     NXclass_logger.info("Start writing NXdata.")
     # Check that a valid datafile_list has been passed.
-    assert len(datafiles) > 0, "Please pass at least a list of one HDF5 data file."
+    if len(datafiles) == 0:
+        raise OSError("No HDF5 data files. Please pass at least one.")
+    # assert len(datafiles) > 0, "Please pass at least a list of one HDF5 data file."
 
     # This assumes that a rotation scan is always passed
     osc_axis, osc_range = list(osc_scan.items())[0]

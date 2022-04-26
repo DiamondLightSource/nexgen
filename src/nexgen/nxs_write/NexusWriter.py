@@ -149,9 +149,13 @@ def write_nexus(
 
         # Just a check
         ax1 = transl_axes[0]
-        assert num_images == len(
-            transl_range[ax1]
-        ), "The total number of images doesn't match the number of scan points, please double check the input."
+        if num_images != len(transl_range[ax1]):
+            raise ValueError(
+                "The total number of images doesn't match the number of scan points, please double check the input."
+            )
+        # assert num_images == len(
+        #     transl_range[ax1]
+        # ), "The total number of images doesn't match the number of scan points, please double check the input."
 
     write_NXentry(nxsfile)
 
@@ -280,9 +284,13 @@ def write_nexus_demo(
             data_type = ("images", num_imgs)
         else:
             ax1 = transl_axes[0]
-            assert data_type[1] == len(
-                transl_range[ax1]
-            ), "The total number of images doesn't match the number of scan points, please double check the input."
+            if data_type[1] != len(transl_range[ax1]):
+                raise ValueError(
+                    "The total number of images doesn't match the number of scan points, please double check the input."
+                )
+            # assert data_type[1] == len(
+            #     transl_range[ax1]
+            # ), "The total number of images doesn't match the number of scan points, please double check the input."
             osc_range = calculate_rotation_scan_range(
                 goniometer.starts[idx], goniometer.ends[idx], n_images=data_type[1]
             )
