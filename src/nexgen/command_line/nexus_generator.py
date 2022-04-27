@@ -10,7 +10,7 @@ import logging
 import argparse
 import freephil
 
-# import numpy as np
+import numpy as np
 
 from pathlib import Path
 from datetime import datetime
@@ -26,9 +26,18 @@ from .. import (
     get_nexus_filename,
     get_filename_template,
     get_iso_timestamp,
+    units_of_time,
 )
-from ..nxs_write.NexusWriter import write_nexus, write_nexus_demo  # , call_writers
-from ..nxs_write.NXclassWriters import write_NXnote, write_NXdatetime
+from ..nxs_write import (
+    find_osc_axis,
+    calculate_rotation_scan_range,
+    find_grid_scan_axes,
+    calculate_grid_scan_range,
+)
+from ..nxs_write.NexusWriter import write_nexus, call_writers  # write_nexus_demo,
+from ..nxs_write.NXclassWriters import write_NXnote, write_NXdatetime, write_NXentry
+from ..tools.DataWriter import generate_image_files, generate_event_files
+from ..tools.VDS_tools import image_vds_writer, vds_file_writer
 
 # Define a logger object and a formatter
 logger = logging.getLogger("NeXusGenerator")
@@ -80,6 +89,9 @@ demo_phil = freephil.parse(
       vds_writer = *None dataset file
         .type = choice
         .help = "If not None, either write a vds in the nexus file or create also a _vds.h5 file."
+      snaked = False
+        .type = bool
+        .help = "Grid scan parameter. If True, the writer will draw a snaked grid."
     }
 
     include scope nexgen.command_line.nxs_phil.goniometer_scope
@@ -395,6 +407,70 @@ def write_demo_cli(args):
 
     logger.info("")
 
+    SCANS = {}
+    # Identify the rotation scan axis
+    osc_axis = find_osc_axis(
+        goniometer.axes, goniometer.starts, goniometer.ends, goniometer.types
+    )
+    # Look for a translation scan (usually on xy)
+    transl_axes = find_grid_scan_axes(
+        goniometer.axes, goniometer.starts, goniometer.ends, goniometer.types
+    )
+    # If xy scan axes are identified, add to dictionary
+    if len(transl_axes) > 0:
+        logger.info(f"Scan along {transl_axes} axes.")
+        tr_idx = [goniometer.axes.index(j) for j in transl_axes]
+        transl_starts = [goniometer.starts[i] for i in tr_idx]
+        transl_ends = [goniometer.ends[i] for i in tr_idx]
+        transl_increments = [goniometer.increments[i] for i in tr_idx]
+        for tr in range(len(transl_axes)):
+            logger.info(
+                f"{transl_axes[tr]} scan from {transl_starts[tr]} to {transl_ends[tr]}, with a step of {transl_increments[tr]}"
+            )
+        transl_range = calculate_grid_scan_range(
+            transl_axes,
+            transl_starts,
+            transl_ends,
+            transl_increments,
+            snaked=params.input.snaked,
+        )
+        SCANS["translation"] = transl_range
+    # Compute scan_range for rotation axis
+    idx = goniometer.axes.index(osc_axis)
+    if data_type[0] == "images":
+        if data_type[1] is None and len(transl_axes) == 0:
+            osc_range = calculate_rotation_scan_range(
+                goniometer.starts[idx],
+                goniometer.ends[idx],
+                axis_increment=goniometer.increments[idx],
+            )
+            data_type = ("images", len(osc_range))
+        elif data_type[1] is None and len(transl_axes) > 0:
+            ax1 = transl_axes[0]
+            num_imgs = len(transl_range[ax1])
+            osc_range = calculate_rotation_scan_range(
+                goniometer.starts[idx], goniometer.ends[idx], n_images=num_imgs
+            )
+            data_type = ("images", num_imgs)
+        else:
+            ax1 = transl_axes[0]
+            if data_type[1] != len(transl_range[ax1]):
+                raise ValueError(
+                    "The total number of images doesn't match the number of scan points, please double check the input."
+                )
+            osc_range = calculate_rotation_scan_range(
+                goniometer.starts[idx], goniometer.ends[idx], n_images=data_type[1]
+            )
+    elif data_type[0] == "events":
+        osc_range = (goniometer.starts[idx], goniometer.ends[idx])
+
+    SCANS["rotation"] = {osc_axis: osc_range}
+
+    logger.info(f"Rotation scan axis: {osc_axis}.")
+    logger.info(f"Scan from {osc_range[0]} to {osc_range[-1]}.")
+
+    logger.info("\n")
+
     logger.info("Detector information:\n%s" % detector.description)
     logger.info(
         f"Sensor made of {detector.sensor_material} x {detector.sensor_thickness}"
@@ -436,25 +512,90 @@ def write_demo_cli(args):
     logger.info(f"Slow_axis at datum position: {module.slow_axis}")
     logger.info("")
 
+    # Figure out how many files will need to be written
+    logger.info("Calculating number of files to write ...")
+    if data_type[0] == "events":
+        # Determine the number of files. Write one file per module.
+        # FIXME Either a 10M or a 2M, no other possibilities at this moment.
+        n_files = 10 if "10M" in detector.description.upper() else 2
+    else:
+        # The maximum number of images being written each dataset is 1000
+        if data_type[1] <= 1000:
+            n_files = 1
+        else:
+            n_files = int(np.ceil(data_type[1] / 1000))
+
+    logger.info("%d file(s) containing blank data to be written." % n_files)
+
+    # Get datafile list
+    datafiles = [
+        Path(data_file_template % (n + 1)).expanduser().resolve()
+        for n in range(n_files)
+    ]
+
+    logger.info("Calling data writer ...")
+    # Write data files
+    if data_type[0] == "images":
+        generate_image_files(
+            datafiles, detector.image_size, detector.description, data_type[1]
+        )
+    else:
+        exp_time = units_of_time(detector.exposure_time)
+        generate_event_files(
+            datafiles, data_type[1], detector.description, exp_time.magnitude
+        )
+
+    logger.info("\n")
+
     # Record string with start_time
     start_time = datetime.fromtimestamp(time.time()).strftime("%A, %d. %B %Y %I:%M%p")
 
     logger.info("Start writing NeXus and data files ...")
     try:
         with h5py.File(master_file, "x") as nxsfile:
-            write_nexus_demo(
+            write_NXentry(nxsfile)
+            call_writers(
                 nxsfile,
-                data_file_template,
-                data_type,
+                datafiles,
                 cf,
-                goniometer,
-                detector,
-                module,
-                source,
-                beam,
-                attenuator,
-                params.input.vds_writer,
+                SCANS,
+                data_type,
+                goniometer.__dict__,
+                detector.__dict__,
+                module.__dict__,
+                source.__dict__,
+                beam.__dict__,
+                attenuator.__dict__,
             )
+
+            # Write VDS
+            if data_type[0] == "images" and params.input.vds_writer == "dataset":
+                logger.info(
+                    "Calling VDS writer to write a Virtual Dataset under /entry/data/data"
+                )
+                image_vds_writer(nxsfile, (data_type[1], *detector.image_size))
+            elif data_type[0] == "images" and params.input.vds_writer == "file":
+                logger.info(
+                    "Calling VDS writer to write a Virtual Dataset file and relative link."
+                )
+                vds_file_writer(
+                    nxsfile, datafiles, (data_type[1], *detector.image_size)
+                )
+            else:
+                logger.info("VDS won't be written.")
+            # write_nexus_demo(
+            #     nxsfile,
+            #     data_file_template,
+            #     data_type,
+            #     cf,
+            #     goniometer,
+            #     detector,
+            #     module,
+            #     source,
+            #     beam,
+            #     attenuator,
+            #     params.input.vds_writer,
+            # )
 
             # Check and save pump status
             if params.pump_probe.pump_status is True:
