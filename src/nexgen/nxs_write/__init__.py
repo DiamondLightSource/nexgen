@@ -171,7 +171,7 @@ def calculate_grid_scan_range(
     axes_names: List,
     axes_starts: List,
     axes_ends: List,
-    axes_increments: List = None,
+    axes_increments: List,
     n_images: Union[Tuple, int] = None,
     snaked: bool = False,
 ) -> Dict[str, np.ndarray]:
@@ -183,31 +183,34 @@ def calculate_grid_scan_range(
         axes_names (List): List of names for the axes involved in the scan.
         axes_starts (List): List of axis positions at the beginning of the scan.
         axes_ends (List): List of axis positions at the end of the scan.
-        axes_increments (List, optional): List of ranges through which the axes move each frame. Defaults to None.
+        axes_increments (List, optional): List of ranges through which the axes move each frame.
         n_images (Tuple|int, optional): Number of images to be written. If writing a 2D scan, it should be a (nx, ny) tuple, \
-                                        where tot_n_img=nx*ny. Defaults to None.
+                                        where tot_n_img=nx*ny, any int value is at this time ignored. Defaults to None.
         snaked (bool): If True, scanspec will "draw" a snaked grid. Defaults to False.
 
     Returns:
         Dict[str, np.ndarray]: A dictionary of ("axis_name": axis_range) key-value pairs.
     """
-    # Just to double check that nothing weird is going on
-    # assert len(axes_names) > 2, "Too many axes for a linear or grid scan."
-
     if len(axes_names) == 1:
         if not n_images:
             n_images = int(abs(axes_starts[0] - axes_ends[0]) / axes_increments[0])
         spec = Line(axes_names[0], axes_starts[0], axes_ends[0], n_images)
         scan_path = ScanPath(spec.calculate())
     else:
-        if not n_images:
-            n_images0 = int(abs(axes_starts[0] - axes_ends[0]) / axes_increments[0])
-            n_images1 = int(abs(axes_starts[1] - axes_ends[1]) / axes_increments[1])
-        else:
-            # FIXME Need to be careful with n_images, it's not the total that should be passed here.
-            # Tot number of images (those passed in CLI or from beamline I guess) = n0*n1
+        n_images0 = int(abs(axes_starts[0] - axes_ends[0]) / axes_increments[0])
+        n_images1 = int(abs(axes_starts[1] - axes_ends[1]) / axes_increments[1])
+        if n_images and type(n_images) is tuple:
+            # Overwrite
             n_images0 = n_images[0]
             n_images1 = n_images[1]
+        # if not n_images:
+        #     n_images0 = int(abs(axes_starts[0] - axes_ends[0]) / axes_increments[0])
+        #     n_images1 = int(abs(axes_starts[1] - axes_ends[1]) / axes_increments[1])
+        # else:
+        #     # FIXME Need to be careful with n_images, it's not the total that should be passed here.
+        #     # Tot number of images (those passed in CLI or from beamline I guess) = n0*n1
+        #     n_images0 = n_images[0]
+        #     n_images1 = n_images[1]
         if snaked is True:
             spec = Line(axes_names[0], axes_starts[0], axes_ends[0], n_images0) * ~Line(
                 axes_names[1], axes_starts[1], axes_ends[1], n_images1
