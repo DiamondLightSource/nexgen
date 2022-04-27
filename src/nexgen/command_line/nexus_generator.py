@@ -407,7 +407,6 @@ def write_demo_cli(args):
 
     logger.info("")
 
-    SCANS = {}
     # Identify the rotation scan axis
     osc_axis = find_osc_axis(
         goniometer.axes, goniometer.starts, goniometer.ends, goniometer.types
@@ -427,14 +426,16 @@ def write_demo_cli(args):
             logger.info(
                 f"{transl_axes[tr]} scan from {transl_starts[tr]} to {transl_ends[tr]}, with a step of {transl_increments[tr]}"
             )
-        transl_range = calculate_grid_scan_range(
+        # transl_range
+        TRANSL = calculate_grid_scan_range(
             transl_axes,
             transl_starts,
             transl_ends,
             transl_increments,
             snaked=params.input.snaked,
         )
-        SCANS["translation"] = transl_range
+    else:
+        TRANSL = None
     # Compute scan_range for rotation axis
     idx = goniometer.axes.index(osc_axis)
     if data_type[0] == "images":
@@ -447,14 +448,14 @@ def write_demo_cli(args):
             data_type = ("images", len(osc_range))
         elif data_type[1] is None and len(transl_axes) > 0:
             ax1 = transl_axes[0]
-            num_imgs = len(transl_range[ax1])
+            num_imgs = len(TRANSL[ax1])
             osc_range = calculate_rotation_scan_range(
                 goniometer.starts[idx], goniometer.ends[idx], n_images=num_imgs
             )
             data_type = ("images", num_imgs)
         else:
             ax1 = transl_axes[0]
-            if data_type[1] != len(transl_range[ax1]):
+            if data_type[1] != len(TRANSL[ax1]):
                 raise ValueError(
                     "The total number of images doesn't match the number of scan points, please double check the input."
                 )
@@ -464,7 +465,8 @@ def write_demo_cli(args):
     elif data_type[0] == "events":
         osc_range = (goniometer.starts[idx], goniometer.ends[idx])
 
-    SCANS["rotation"] = {osc_axis: osc_range}
+    # SCANS["rotation"] = {osc_axis: osc_range}
+    OSC = {osc_axis: osc_range}
 
     logger.info(f"Rotation scan axis: {osc_axis}.")
     logger.info(f"Scan from {osc_range[0]} to {osc_range[-1]}.")
@@ -558,7 +560,6 @@ def write_demo_cli(args):
                 nxsfile,
                 datafiles,
                 cf,
-                SCANS,
                 data_type,
                 goniometer.__dict__,
                 detector.__dict__,
@@ -566,6 +567,8 @@ def write_demo_cli(args):
                 source.__dict__,
                 beam.__dict__,
                 attenuator.__dict__,
+                OSC,
+                TRANSL,
             )
 
             # Write VDS

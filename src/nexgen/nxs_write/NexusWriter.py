@@ -83,9 +83,6 @@ def write_nexus(
         link_list = None
     writer_logger.info("Writing NXmx NeXus file ...")
 
-    # Define a SCANS dictionary to save both rotation and eventually translation scan ranges
-    SCANS = {}
-
     # Identify rotation scan axis
     osc_axis = find_osc_axis(
         goniometer.axes, goniometer.starts, goniometer.ends, goniometer.types
@@ -117,7 +114,7 @@ def write_nexus(
                 goniometer.starts[idx], goniometer.ends[idx], n_images=num_images
             )
 
-    SCANS["rotation"] = {osc_axis: osc_range}
+    OSC = {osc_axis: osc_range}
 
     writer_logger.info(f"Rotatin scan axis: {osc_axis}")
     writer_logger.info(f"Scan from {osc_range[0]} tp {osc_range[-1]}.")
@@ -145,7 +142,7 @@ def write_nexus(
             transl_ends,
             transl_increments,
         )  # NB. leaving snaked = False for demo. TODO change at some point.
-        SCANS["translation"] = transl_range
+        TRANSL = transl_range
 
         # Just a check
         ax1 = transl_axes[0]
@@ -156,6 +153,8 @@ def write_nexus(
         # assert num_images == len(
         #     transl_range[ax1]
         # ), "The total number of images doesn't match the number of scan points, please double check the input."
+    else:
+        TRANSL = None
 
     write_NXentry(nxsfile)
 
@@ -164,7 +163,6 @@ def write_nexus(
         nxsfile,
         datafiles,
         coordinate_frame,
-        SCANS,
         data_type,
         goniometer.__dict__,
         detector.__dict__,
@@ -172,6 +170,8 @@ def write_nexus(
         source.__dict__,
         beam.__dict__,
         attenuator.__dict__,
+        OSC,
+        TRANSL,
         meta[0],
         link_list,
     )
@@ -232,8 +232,6 @@ def write_nexus_demo(
     """
     writer_logger.info("Writing NXmx demo ...")
     writer_logger.info(f"The data file will contain {data_type[1]} {data_type[0]}")
-    # Define a SCANS dictionary to save both rotation and eventually translation scan ranges
-    SCANS = {}
 
     # Identify rotation scan axis
     osc_axis = find_osc_axis(
@@ -262,7 +260,9 @@ def write_nexus_demo(
             transl_ends,
             transl_increments,
         )  # NB. leaving snaked = False for demo. TODO change at some point.
-        SCANS["translation"] = transl_range
+        TRANSL = transl_range
+    else:
+        TRANSL = {}
 
     # TODO FIXME the number of images should come from CLI if it's a xy scan.
     # Compute scan_range for rotation axis
@@ -297,7 +297,7 @@ def write_nexus_demo(
     elif data_type[0] == "events":
         osc_range = (goniometer.starts[idx], goniometer.ends[idx])
 
-    SCANS["rotation"] = {osc_axis: osc_range}
+    OSC = {osc_axis: osc_range}
 
     writer_logger.info(f"Rotation scan axis: {osc_axis}.")
     writer_logger.info(f"Scan from {osc_range[0]} to {osc_range[-1]}.")
@@ -341,7 +341,6 @@ def write_nexus_demo(
         nxsfile,
         datafiles,
         coordinate_frame,
-        SCANS,
         data_type,
         goniometer.__dict__,
         detector.__dict__,
@@ -349,6 +348,8 @@ def write_nexus_demo(
         source.__dict__,
         beam.__dict__,
         attenuator.__dict__,
+        OSC,
+        TRANSL,
     )
 
     # Write VDS
@@ -371,7 +372,6 @@ def call_writers(
     nxsfile: h5py.File,
     datafiles: List[Union[Path, str]],
     coordinate_frame: str,
-    SCANS: Dict,
     data_type: Tuple[str, int],
     goniometer: Dict,
     detector: Dict,
@@ -379,19 +379,14 @@ def call_writers(
     source: Dict,
     beam: Dict,
     attenuator: Dict,
+    osc_scan: Dict,
+    transl_scan: Dict = None,
     metafile: Union[Path, str] = None,
     link_list: List = None,
 ):
     """ Call the writers for the NeXus base classes."""
     logger = logging.getLogger("NeXusGenerator.writer.call")
     logger.info("Calling the writers ...")
-
-    # Get scan details first
-    osc_scan = SCANS["rotation"]
-    if "translation" in SCANS.keys():
-        transl_scan = SCANS["translation"]
-    else:
-        transl_scan = None
 
     # Check that filenames are paths
     if all(isinstance(f, Path) for f in datafiles) is False:

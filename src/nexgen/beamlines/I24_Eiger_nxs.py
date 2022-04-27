@@ -107,9 +107,6 @@ def extruder(
     )
     logger.info(f"Timestamps recorded: {timestamps}")
 
-    # Define SCANS dictionary
-    SCANS = {}
-
     # Get scan range array and rotation axis
     osc_axis = find_osc_axis(
         goniometer["axes"],
@@ -124,7 +121,7 @@ def extruder(
         n_images=SSX.num_imgs,
     )
 
-    SCANS["rotation"] = {osc_axis: osc_range}
+    OSC = {osc_axis: osc_range}
 
     logger.info("Goniometer information")
     for j in range(len(goniometer["axes"])):
@@ -143,7 +140,6 @@ def extruder(
                 nxsfile,
                 filename,
                 coordinate_frame,
-                SCANS,
                 (detector["mode"], SSX.num_imgs),
                 goniometer,
                 detector,
@@ -151,6 +147,8 @@ def extruder(
                 source,
                 beam,
                 attenuator,
+                OSC,
+                transl_scan=None,
                 metafile=metafile,
                 link_list=dset_links,
             )
@@ -215,10 +213,6 @@ def fixed_target(
         get_iso_timestamp(SSX.stop_time),
     )
     logger.info(f"Timestamps recorded: {timestamps}")
-
-    # Define SCANS dictionary
-    SCANS = {}
-    print(SCANS)
 
     # Goniometer
     # Set start and end values from input

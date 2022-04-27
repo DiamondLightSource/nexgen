@@ -150,8 +150,7 @@ def tristan_writer(
     # If these two could instead be passed, I'd be happier...
 
     # Define SCANS dictionary
-    SCANS = {}
-    SCANS["rotation"] = {scan_axis: scan_range}
+    OSC = {scan_axis: scan_range}
 
     # Get on with the writing now...
     try:
@@ -166,7 +165,6 @@ def tristan_writer(
                 nxsfile,
                 [TR.meta_file],
                 coordinate_frame,
-                SCANS,
                 (detector["mode"], None),
                 goniometer,
                 detector,
@@ -174,6 +172,7 @@ def tristan_writer(
                 source,
                 beam,
                 attenuator,
+                OSC,
             )
 
             # write_NXdatetime(nxsfile, (None, timestamps[1]))
@@ -226,8 +225,7 @@ def eiger_writer(
     )
 
     # Define SCANS dictionary
-    SCANS = {}
-    SCANS["rotation"] = {scan_axis: scan_range}
+    OSC = {scan_axis: scan_range}
 
     # Get on with the writing now...
     try:
@@ -241,7 +239,6 @@ def eiger_writer(
                 nxsfile,
                 filenames,
                 coordinate_frame,
-                SCANS,
                 (detector["mode"], n_frames),
                 goniometer,
                 detector,
@@ -249,6 +246,8 @@ def eiger_writer(
                 source,
                 beam,
                 attenuator,
+                OSC,
+                transl_scan=None,
                 metafile=TR.meta_file,
                 link_list=dset_links,
             )
