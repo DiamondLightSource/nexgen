@@ -26,11 +26,7 @@ from .. import (
     get_nexus_filename,
 )
 
-from ..nxs_write import (
-    calculate_rotation_scan_range,
-    find_osc_axis,
-)
-from ..nxs_write.NexusWriter import call_writers
+from ..nxs_write.NexusWriter import call_writers, ScanReader
 from ..nxs_write.NXclassWriters import write_NXentry, write_NXnote, write_NXdatetime
 
 from ..tools.VDS_tools import image_vds_writer
@@ -108,20 +104,8 @@ def extruder(
     logger.info(f"Timestamps recorded: {timestamps}")
 
     # Get scan range array and rotation axis
-    osc_axis = find_osc_axis(
-        goniometer["axes"],
-        goniometer["starts"],
-        goniometer["ends"],
-        goniometer["types"],
-    )
-    osc_idx = goniometer["axes"].index(osc_axis)
-    osc_range = calculate_rotation_scan_range(
-        goniometer["starts"][osc_idx],
-        goniometer["ends"][osc_idx],
-        n_images=SSX.num_imgs,
-    )
-
-    OSC = {osc_axis: osc_range}
+    OSC, TRANSL = ScanReader(goniometer, n_images=SSX.num_imgs)
+    del TRANSL
 
     logger.info("Goniometer information")
     for j in range(len(goniometer["axes"])):
