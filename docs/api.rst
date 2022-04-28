@@ -64,15 +64,19 @@ Generally useful tools
 .. automodule:: nexgen
     :members:
 
+**Writing tools**
+
 .. automodule:: nexgen.nxs_write
     :members:
+
+**Copying tools**
 
 .. automodule:: nexgen.nxs_copy
     :members:
 
 
-HDF5 metafile
--------------
+HDF5 metafile reader
+--------------------
 
 GDA integration tools
 ---------------------
