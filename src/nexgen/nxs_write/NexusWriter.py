@@ -456,11 +456,19 @@ def ScanReader(
                 n_images=n_images,
             )
         else:
-            osc_range = calculate_rotation_scan_range(
-                goniometer["starts"][osc_idx],
-                goniometer["ends"][osc_idx],
-                n_images=n_images,
-            )
+            # FIXME not great but for now it avoids issues when it's just rotation.
+            if goniometer["increments"][osc_idx] != 0.0:
+                osc_range = calculate_rotation_scan_range(
+                    goniometer["starts"][osc_idx],
+                    goniometer["ends"][osc_idx],
+                    axis_increment=goniometer["increments"][osc_idx],
+                )
+            else:
+                osc_range = calculate_rotation_scan_range(
+                    goniometer["starts"][osc_idx],
+                    goniometer["ends"][osc_idx],
+                    n_images=n_images,
+                )
 
     OSC = {osc_axis: osc_range}
     return OSC, TRANSL
