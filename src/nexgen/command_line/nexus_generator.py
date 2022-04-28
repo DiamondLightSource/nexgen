@@ -28,13 +28,18 @@ from .. import (
     get_iso_timestamp,
     units_of_time,
 )
-from ..nxs_write import (
-    find_osc_axis,
-    calculate_rotation_scan_range,
-    find_grid_scan_axes,
-    calculate_grid_scan_range,
-)
-from ..nxs_write.NexusWriter import write_nexus, call_writers  # write_nexus_demo,
+
+# from ..nxs_write import (
+#    find_osc_axis,
+#    calculate_rotation_scan_range,
+#    find_grid_scan_axes,
+#    calculate_grid_scan_range,
+# )
+from ..nxs_write.NexusWriter import (
+    write_nexus,
+    call_writers,
+    ScanReader,
+)  # write_nexus_demo,
 from ..nxs_write.NXclassWriters import write_NXnote, write_NXdatetime, write_NXentry
 from ..tools.DataWriter import generate_image_files, generate_event_files
 from ..tools.VDS_tools import image_vds_writer, vds_file_writer
@@ -407,71 +412,29 @@ def write_demo_cli(args):
 
     logger.info("")
 
-    # Identify the rotation scan axis
-    osc_axis = find_osc_axis(
-        goniometer.axes, goniometer.starts, goniometer.ends, goniometer.types
+    # Define rotation and translation axes
+    OSC, TRANSL = ScanReader(
+        goniometer.__dict__,
+        data_type[0],
+        n_images=data_type[1],
+        snaked=params.input.snaked,
     )
-    # Look for a translation scan (usually on xy)
-    transl_axes = find_grid_scan_axes(
-        goniometer.axes, goniometer.starts, goniometer.ends, goniometer.types
+    # Log scan information
+    logger.info(f"Rotation scan axis: {list(OSC.keys())[0]}.")
+    logger.info(
+        f"Scan from {list(OSC.values())[0][0]} to {list(OSC.values())[0][-1]}.\n"
     )
-    # If xy scan axes are identified, add to dictionary
-    if len(transl_axes) > 0:
-        logger.info(f"Scan along {transl_axes} axes.")
-        tr_idx = [goniometer.axes.index(j) for j in transl_axes]
-        transl_starts = [goniometer.starts[i] for i in tr_idx]
-        transl_ends = [goniometer.ends[i] for i in tr_idx]
-        transl_increments = [goniometer.increments[i] for i in tr_idx]
-        for tr in range(len(transl_axes)):
-            logger.info(
-                f"{transl_axes[tr]} scan from {transl_starts[tr]} to {transl_ends[tr]}, with a step of {transl_increments[tr]}"
-            )
-        # transl_range
-        TRANSL = calculate_grid_scan_range(
-            transl_axes,
-            transl_starts,
-            transl_ends,
-            transl_increments,
-            snaked=params.input.snaked,
-        )
-    else:
-        TRANSL = None
-    # Compute scan_range for rotation axis
-    idx = goniometer.axes.index(osc_axis)
-    if data_type[0] == "images":
-        if data_type[1] is None and len(transl_axes) == 0:
-            osc_range = calculate_rotation_scan_range(
-                goniometer.starts[idx],
-                goniometer.ends[idx],
-                axis_increment=goniometer.increments[idx],
-            )
-            data_type = ("images", len(osc_range))
-        elif data_type[1] is None and len(transl_axes) > 0:
-            ax1 = transl_axes[0]
-            num_imgs = len(TRANSL[ax1])
-            osc_range = calculate_rotation_scan_range(
-                goniometer.starts[idx], goniometer.ends[idx], n_images=num_imgs
-            )
-            data_type = ("images", num_imgs)
-        else:
-            ax1 = transl_axes[0]
-            if data_type[1] != len(TRANSL[ax1]):
-                raise ValueError(
-                    "The total number of images doesn't match the number of scan points, please double check the input."
-                )
-            osc_range = calculate_rotation_scan_range(
-                goniometer.starts[idx], goniometer.ends[idx], n_images=data_type[1]
-            )
-    elif data_type[0] == "events":
-        osc_range = (goniometer.starts[idx], goniometer.ends[idx])
-
-    # Define OSC scan dictionary (even if there's no rotation)
-    OSC = {osc_axis: osc_range}
-
-    logger.info(f"Rotation scan axis: {osc_axis}.")
-    logger.info(f"Scan from {osc_range[0]} to {osc_range[-1]}.")
-
+    if TRANSL:
+        logger.info(f"Scan along the {list(TRANSL.keys())} axes.")
+        for k, v in TRANSL.items():
+            logger.info(f"{k} scan from {v[0]} to {v[-1]}.")
     logger.info("\n")
+
+    # Fix the number of images if not passed from command line.
+    if data_type[0] == "images" and data_type[1] is None:
+        data_type = ("images", len(list(OSC.values())[0]))
+        logger.warning(f"Total number of images updated to: {data_type[1]}")
+        logger.warning("\n")
 
     logger.info("Detector information:\n%s" % detector.description)
     logger.info(
