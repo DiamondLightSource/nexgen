@@ -149,7 +149,7 @@ def tristan_writer(
     detector["flatfield"] = flatfieldfile
     # If these two could instead be passed, I'd be happier...
 
-    # Define SCANS dictionary
+    # Define OSC scans dictionary
     OSC = {scan_axis: scan_range}
 
     # Get on with the writing now...
@@ -224,7 +224,7 @@ def eiger_writer(
         n_images=n_frames,
     )
 
-    # Define SCANS dictionary
+    # Define OSC scans dictionary
     OSC = {scan_axis: scan_range}
 
     # Get on with the writing now...

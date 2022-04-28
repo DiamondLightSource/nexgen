@@ -197,6 +197,7 @@ def write_nexus(
         # nxentry.create_dataset("end_time", data=np.string_(timestamps[1]))
 
 
+# Hopefully obsolete
 def write_nexus_demo(
     nxsfile: h5py.File,
     datafile_template: str,
@@ -365,6 +366,10 @@ def write_nexus_demo(
         vds_file_writer(nxsfile, datafiles, (data_type[1], *detector.image_size))
     else:
         writer_logger.info("VDS won't be written.")
+
+
+def ScanWriter():
+    pass
 
 
 # def call_writers(*args,**kwargs):

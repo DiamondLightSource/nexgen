@@ -2,7 +2,6 @@
 Tools for copying the metadata from Tristan NeXus files.
 """
 
-import sys
 import h5py
 import logging
 import numpy as np
@@ -165,47 +164,3 @@ def multiple_images_nexus(
         convert_scan_axis(nxsample, nxdata, ax)
 
     return nxs_filename.as_posix()
-
-
-# Redundant but temporarily re-added to avoid breaking tristan tools.
-def pump_probe_nexus(
-    data_file: Optional[Union[Path, str]],
-    tristan_nexus: Optional[Union[Path, str]],
-    write_mode: str = "x",
-    expt_type: str = "stationary",
-    osc: float = None,
-    nbins: int = None,
-) -> str:
-    """
-    Create a NeXus file for pump-probe image datasets.
-
-    Copy the nexus tree from the original NeXus file for a collection on Tristan
-    detector. In the case of a stationary experiment, single_image_nexus is called.
-    For multiple sequences instead, the function multi_image_nexus is called and
-    at least one value between osc and nbins needs to have been passed.
-    Args:
-        data_file:      String or Path pointing to the HDF5 file containing the newly binned images.
-        tristan_nexus:  String or Path pointing to the input NeXus file with experiment metadata to be copied.
-        write_mode:     String indicating writing mode for the output NeXus file.  Accepts any valid
-                        h5py file opening mode.
-        expt_type:      String definition of experiment type: defaults to "stationary".
-        osc:            Oscillation angle (degrees).
-        nbins:          Number of binned images.
-    Returns:
-        nxs_filename:   The name of the output NeXus file
-    """
-    # Call the correct copy function
-    if expt_type in ["stationary", "pump-probe"]:
-        nxs_filename = single_image_nexus(data_file, tristan_nexus, write_mode)
-    elif expt_type in ["rotation", "multi-sequence"]:
-        nxs_filename = multiple_images_nexus(
-            data_file, tristan_nexus, write_mode, osc, nbins
-        )
-    else:
-        sys.exit(
-            "Experiment type passed is not valid. Please choose one of the following options:\n"
-            "'pump-probe' or 'stationary' for a simple pump-probe exeriment\n"
-            "'rotation' or 'multi-sequences' for a multiple sweeps collection.\n"
-        )
-
-    return nxs_filename

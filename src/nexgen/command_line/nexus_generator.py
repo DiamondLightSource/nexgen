@@ -465,7 +465,7 @@ def write_demo_cli(args):
     elif data_type[0] == "events":
         osc_range = (goniometer.starts[idx], goniometer.ends[idx])
 
-    # SCANS["rotation"] = {osc_axis: osc_range}
+    # Define OSC scan dictionary (even if there's no rotation)
     OSC = {osc_axis: osc_range}
 
     logger.info(f"Rotation scan axis: {osc_axis}.")
