@@ -30,10 +30,9 @@ from .. import (
 )
 
 from ..nxs_write.NexusWriter import (
-    write_nexus,
     call_writers,
     ScanReader,
-)  # write_nexus_demo,
+)  # write_nexus_demo, write_nexus
 from ..nxs_write.NXclassWriters import (
     write_NXnote,
     write_NXdatetime,
@@ -41,6 +40,7 @@ from ..nxs_write.NXclassWriters import (
 )
 from ..tools.DataWriter import generate_image_files, generate_event_files
 from ..tools.VDS_tools import image_vds_writer, vds_file_writer
+from ..tools.MetaReader import overwrite_beam, overwrite_detector
 
 # Define a logger object and a formatter
 logger = logging.getLogger("NeXusGenerator")
@@ -127,6 +127,9 @@ meta_phil = freephil.parse(
       vds_writer = *None dataset file
         .type = choice
         .help = "If not None, write vds along with external link to data in NeXus file, or create _vds.h5 file."
+      snaked = False
+        .type = bool
+        .help = "Grid scan parameter. If True, the writer will draw a snaked grid."
     }
 
     include scope nexgen.command_line.nxs_phil.goniometer_scope
@@ -260,7 +263,7 @@ def write_NXmx_cli(args):
             f"Goniometer axis: {axes[j]} => {vector} ({goniometer.types[j]}) on {goniometer.depends[j]}. {goniometer.starts[j]} {goniometer.ends[j]} {goniometer.increments[j]}"
         )
 
-    logger.info("")
+    logger.info("\n")
 
     # Define rotation and translation axes
     OSC, TRANSL = ScanReader(
@@ -726,6 +729,21 @@ def write_with_meta_cli(args):
     if "TRISTAN" in detector.description.upper():
         add_tristan_spec(detector, params.tristanSpec)
 
+    # Define images vs events based on detector mode
+    logger.info(f"Data type: {detector.mode}.")
+    if detector.mode == "events":
+        data_type = ("events", None)
+    else:
+        if len(datafiles) == 1:
+            with h5py.File(datafiles[0], "r") as f:
+                num_images = f["data"].shape[0]
+        else:
+            from ..nxs_write import find_number_of_images
+
+            num_images = find_number_of_images(datafiles)
+        data_type = ("images", num_images)
+        logger.info(f"Total number of images: {num_images}")
+
     # Log information
     logger.info("Source information")
     logger.info(f"Facility: {source.name} - {source.type}.")
@@ -765,7 +783,25 @@ def write_with_meta_cli(args):
             f"Goniometer axis: {axes[j]} => {vector} ({goniometer.types[j]}) on {goniometer.depends[j]}. {goniometer.starts[j]} {goniometer.ends[j]} {goniometer.increments[j]}"
         )
 
-    logger.info("")
+    logger.info("\n")
+
+    # Define rotation and translation axes
+    OSC, TRANSL = ScanReader(
+        goniometer.__dict__,
+        data_type[0],
+        n_images=data_type[1],
+        snaked=params.input.snaked,
+    )
+    # Log scan information
+    logger.info(f"Rotation scan axis: {list(OSC.keys())[0]}.")
+    logger.info(
+        f"Scan from {list(OSC.values())[0][0]} to {list(OSC.values())[0][-1]}.\n"
+    )
+    if TRANSL:
+        logger.info(f"Scan along the {list(TRANSL.keys())} axes.")
+        for k, v in TRANSL.items():
+            logger.info(f"{k} scan from {v[0]} to {v[-1]}.")
+    logger.info("\n")
 
     if detector.description is None:
         logger.warning("No detector description provided, exit.")
@@ -821,26 +857,54 @@ def write_with_meta_cli(args):
 
     if args.no_ow:
         logger.warning(f"The following datasets will not be overwritten: {args.no_ow}")
-        metainfo = (metafile, args.no_ow)
+        ignore = args.no_ow
+        # metainfo = (metafile, args.no_ow)
     else:
-        metainfo = (metafile, None)
+        ignore = None
+        # metainfo = (metafile, None)
+
+    logger.info("Looking through _meta.h5 file for metadata.")
+    # overwrite detector, overwrite beam, get list of links for nxdetector and nxcollection
+
+    with h5py.File(metafile, "r") as mf:
+        overwrite_beam(mf, detector.description, beam)
+        link_list = overwrite_detector(mf, detector, ignore)
+
     logger.info("Start writing NeXus file ...")
     try:
         with h5py.File(master_file, "x") as nxsfile:
-            write_nexus(
+            write_NXentry(nxsfile)
+
+            call_writers(
                 nxsfile,
                 datafiles,
-                goniometer,
-                detector,
-                module,
-                source,
-                beam,
-                attenuator,
-                timestamps,
                 cf,
-                params.input.vds_writer,
-                metainfo,
+                data_type,
+                goniometer.__dict__,
+                detector.__dict__,
+                module.__dict__,
+                source.__dict__,
+                beam.__dict__,
+                attenuator.__dict__,
+                OSC,
+                TRANSL,
+                metafile,
+                link_list,
             )
+            # write_nexus(
+            #     nxsfile,
+            #     datafiles,
+            #     goniometer,
+            #     detector,
+            #     module,
+            #     source,
+            #     beam,
+            #     attenuator,
+            #     timestamps,
+            #     cf,
+            #     params.input.vds_writer,
+            #     metainfo,
+            # )
 
             # Check and save pump status
             if params.pump_probe.pump_status is True:
@@ -852,6 +916,23 @@ def write_with_meta_cli(args):
                     "pump_delay": params.pump_probe.pump_delay,
                 }
                 write_NXnote(nxsfile, "/entry/source/notes", pump_info)
+
+            # Write VDS
+            if data_type[0] == "images" and params.input.vds_writer == "dataset":
+                logger.info("Calling VDS writer ...")
+                image_vds_writer(nxsfile, (data_type[1], *detector.image_size))
+            elif data_type[0] == "images" and params.input.vds_writer == "file":
+                logger.info(
+                    "Calling VDS writer to write a Virtual Dataset file and relative link."
+                )
+                vds_file_writer(
+                    nxsfile, datafiles, (data_type[1], *detector.image_size)
+                )
+            else:
+                logger.info("VDS won't be written.")
+
+            # Write /entry/start_time and /entry/end_time
+            write_NXdatetime(nxsfile, timestamps)
 
             logger.info(f"{master_file} correctly written.")
     except Exception as err:

@@ -37,6 +37,7 @@ from ..tools.VDS_tools import image_vds_writer, vds_file_writer
 writer_logger = logging.getLogger("NeXusGenerator.writer")
 
 # General writing
+# Hopefully obsolete
 def write_nexus(
     nxsfile: h5py.File,
     datafiles: List[Path],
