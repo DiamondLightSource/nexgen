@@ -350,19 +350,6 @@ def write_NXmx_cli(args):
                 OSC,
                 TRANSL,
             )
-            # write_nexus(
-            #     nxsfile,
-            #     datafiles,
-            #     goniometer,
-            #     detector,
-            #     module,
-            #     source,
-            #     beam,
-            #     attenuator,
-            #     timestamps,
-            #     cf,
-            #     params.input.vds_writer,
-            # )
 
             # Check and save pump status
             if params.pump_probe.pump_status is True:
@@ -621,19 +608,6 @@ def write_demo_cli(args):
                 )
             else:
                 logger.info("VDS won't be written.")
-            # write_nexus_demo(
-            #     nxsfile,
-            #     data_file_template,
-            #     data_type,
-            #     cf,
-            #     goniometer,
-            #     detector,
-            #     module,
-            #     source,
-            #     beam,
-            #     attenuator,
-            #     params.input.vds_writer,
-            # )
 
             # Check and save pump status
             if params.pump_probe.pump_status is True:
@@ -891,20 +865,6 @@ def write_with_meta_cli(args):
                 metafile,
                 link_list,
             )
-            # write_nexus(
-            #     nxsfile,
-            #     datafiles,
-            #     goniometer,
-            #     detector,
-            #     module,
-            #     source,
-            #     beam,
-            #     attenuator,
-            #     timestamps,
-            #     cf,
-            #     params.input.vds_writer,
-            #     metainfo,
-            # )
 
             # Check and save pump status
             if params.pump_probe.pump_status is True:

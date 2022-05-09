@@ -37,7 +37,7 @@ from ..tools.VDS_tools import image_vds_writer, vds_file_writer
 writer_logger = logging.getLogger("NeXusGenerator.writer")
 
 # General writing
-# Hopefully obsolete
+# TODO REMOVE. Hopefully obsolete
 def write_nexus(
     nxsfile: h5py.File,
     datafiles: List[Path],
@@ -198,7 +198,7 @@ def write_nexus(
         # nxentry.create_dataset("end_time", data=np.string_(timestamps[1]))
 
 
-# Hopefully obsolete
+# TODO REMOVE. Hopefully obsolete
 def write_nexus_demo(
     nxsfile: h5py.File,
     datafile_template: str,
