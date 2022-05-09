@@ -450,25 +450,20 @@ def ScanReader(
                 raise ValueError(
                     "The value passed as the total number of images doesn't match the number of scan points, please check the input."
                 )
+            # FIXME alternatively I could write a warning message and force it to
+            # obey one or the other directive. TBD
             osc_range = calculate_rotation_scan_range(
                 goniometer["starts"][osc_idx],
                 goniometer["ends"][osc_idx],
                 n_images=n_images,
             )
         else:
-            # FIXME not great but for now it avoids issues when it's just rotation.
-            if goniometer["increments"][osc_idx] != 0.0:
-                osc_range = calculate_rotation_scan_range(
-                    goniometer["starts"][osc_idx],
-                    goniometer["ends"][osc_idx],
-                    axis_increment=goniometer["increments"][osc_idx],
-                )
-            else:
-                osc_range = calculate_rotation_scan_range(
-                    goniometer["starts"][osc_idx],
-                    goniometer["ends"][osc_idx],
-                    n_images=n_images,
-                )
+            osc_range = calculate_rotation_scan_range(
+                goniometer["starts"][osc_idx],
+                goniometer["ends"][osc_idx],
+                axis_increment=goniometer["increments"][osc_idx],
+                n_images=n_images,
+            )
 
     OSC = {osc_axis: osc_range}
     return OSC, TRANSL

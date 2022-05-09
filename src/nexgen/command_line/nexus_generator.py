@@ -487,6 +487,7 @@ def write_demo_cli(args):
         n_images=data_type[1],
         snaked=params.input.snaked,
     )
+    print(OSC)
     # Log scan information
     logger.info(f"Rotation scan axis: {list(OSC.keys())[0]}.")
     logger.info(
