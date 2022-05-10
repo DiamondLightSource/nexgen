@@ -181,13 +181,13 @@ def fixed_target(
     metafile: Path = None,
 ):
     """
-    _summary_
+    Write the NeXus file for fixed target collections, pump probe and not.
 
     Args:
-        master_file (Path):         _description_
-        filename (List[Path]):      _description_
-        SSX (namedtuple):           _description_
-        metafile (Path, optional):  _description_. Defaults to None.
+        master_file (Path):         Path to the NeXus file to be written.
+        filename (List[Path]):      List of paths to file.
+        SSX (namedtuple):           Parameters passed from the beamline.
+        metafile (Path, optional):  Path to the _meta.h5 file. Defaults to None.
     """
     logger.info(f"Write NeXus file for {SSX.exp_type}")
 
@@ -201,6 +201,16 @@ def fixed_target(
     # Goniometer
     # Set start and end values from input
     # Identify rotation and grid scan axes, calculate ranges
+
+    # Check number of images makes sense with whtever xy scan range is passed
+
+    # OSC, TRANSL = ScanReader(goniometer, n_images=SSX.num_imgs)
+
+    logger.info("Goniometer information")
+    for j in range(len(goniometer["axes"])):
+        logger.info(
+            f"Goniometer axis: {goniometer['axes'][j]} => {goniometer['starts'][j]}, {goniometer['types'][j]} on {goniometer['depends'][j]}"
+        )
 
     # Log data
     logger.info("Goniometer information")
