@@ -80,7 +80,9 @@ def find_osc_axis(
     # This assumes that at least one rotation axis is always passed.
     # Assuming all list are of the same length ...
     if len(axes_names) == 0:
-        raise ValueError("No axes found. Please pass at least one.")
+        raise ValueError(
+            "Impossible to determine translation scan. No axes passed to find_osc_axis function. Please make sure at least one value is passed."
+        )
     # assert len(axes_names) > 0, "Please pass at least one axis."
     # Look only for rotation axes
     rot_idx = [i for i in range(len(axes_types)) if axes_types[i] == "rotation"]
@@ -98,8 +100,7 @@ def find_osc_axis(
         elif idx.count(True) == 1:
             scan_axis = axes_names[idx.index(True)]
         else:
-            raise ValueError("Unable to correctly identify the scan axis.")
-            # sys.exit("Unable to correctly identify the scan axis.")
+            raise ValueError("Unable to correctly identify the rotation scan axis.")
     return scan_axis
 
 
@@ -151,8 +152,9 @@ def find_grid_scan_axes(
         List[str]: List of strings identifying the linear/grid scan axes. If no axes are identified, it will return an empty list.
     """
     if len(axes_names) == 0:
-        raise ValueError("No axes found. Please pass at least one.")
-    # assert len(axes_names) > 0, "Please pass at least one axis"
+        raise ValueError(
+            "Impossible to determine translation scan. No axes passed to find_grid_scan_axes function. Please make sure at least one value is passed."
+        )
 
     # Look only at translation axes
     grid_idx = [i for i in range(len(axes_names)) if axes_types[i] == "translation"]

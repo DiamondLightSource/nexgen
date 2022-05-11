@@ -160,9 +160,9 @@ def generate_image_files(
 
     # Just a quick check
     if len(dset_shape) != len(datafiles):
-        # FIXME Probably not the right exception for this
-        raise ValueError("Number of files desn't match the dataset shape.")
-    # assert len(dset_shape) == len(datafiles), "Number of files desn't match shape."
+        raise ValueError(
+            "Impossible to write blank images to file: number of files desn't match the dataset shape."
+        )
 
     # Start writing files
     for filename, sh0 in zip(datafiles, dset_shape):

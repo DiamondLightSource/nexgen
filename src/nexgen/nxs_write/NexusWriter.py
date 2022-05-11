@@ -423,10 +423,8 @@ def ScanReader(
     # Return either 2 dictionaries or (Dict, None)
     if data_type == "events" and len(transl_axes) == 0:
         osc_range = (goniometer["starts"][osc_idx], goniometer["ends"][osc_idx])
-        # OSC = {osc_axis: osc_range}
     elif data_type == "events" and len(transl_axes) > 0:
         osc_range = (goniometer["starts"][osc_idx], goniometer["ends"][osc_idx])
-        # OSC = {osc_axis: osc_range}
         # Overwrite TRANSL
         for k, s, e in zip(transl_axes, transl_start, transl_end):
             TRANSL[k] = (s, e)
@@ -506,7 +504,7 @@ def call_writers(
         metafile (Union[Path, str], optional): _description_. Defaults to None.
         link_list (List, optional): _description_. Defaults to None.
     """
-    logger = logging.getLogger("NeXusGenerator.writer.call")
+    logger = logging.getLogger("NeXusGenerator.writer")
     logger.info("Calling the writers ...")
 
     # Check that filenames are paths

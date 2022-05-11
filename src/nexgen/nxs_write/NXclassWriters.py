@@ -77,8 +77,9 @@ def write_NXdata(
     NXclass_logger.info("Start writing NXdata.")
     # Check that a valid datafile_list has been passed.
     if len(datafiles) == 0:
-        raise OSError("No HDF5 data files. Please pass at least one.")
-    # assert len(datafiles) > 0, "Please pass at least a list of one HDF5 data file."
+        raise OSError(
+            "No HDF5 data filenames have been found. Please pass at least one."
+        )
 
     # This assumes that a rotation scan is always passed
     osc_axis, osc_range = list(osc_scan.items())[0]
@@ -119,9 +120,8 @@ def write_NXdata(
             nxdata["meta_file"] = h5py.ExternalLink(meta[0].name, "/")
     else:
         raise ValueError(
-            "Unknown data type. Please pass a correct data_type (images or events)"
+            "Unknown data type. Please pass one value for data_type from : [images, events]"
         )
-        # sys.exit("Please pass a correct data_type (images or events)")
 
     # Write rotation axis dataset
     ax = nxdata.create_dataset(osc_axis, data=osc_range)
@@ -602,7 +602,6 @@ def write_NXdetector_module(
         (
             "/entry/instrument/detector/transformations/detector_z/det_z",
             [0, 0, 0],
-            # offsets["fast_axis"],
             "mm",
             "translation",
             format(x_pix.units, "~"),
@@ -625,7 +624,6 @@ def write_NXdetector_module(
         (
             "/entry/instrument/detector/module/fast_pixel_direction",
             [0, 0, 0],
-            # offsets["slow_axis"],
             "mm",
             "translation",
             format(y_pix.units, "~"),
