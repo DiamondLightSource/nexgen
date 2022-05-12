@@ -489,20 +489,20 @@ def call_writers(
     Call the writers for the NeXus base classes.
 
     Args:
-        nxsfile (h5py.File): _description_
-        datafiles (List[Union[Path, str]]): _description_
-        coordinate_frame (str): _description_
-        data_type (Tuple[str, int]): _description_
-        goniometer (Dict): _description_
-        detector (Dict): _description_
-        module (Dict): _description_
-        source (Dict): _description_
-        beam (Dict): _description_
-        attenuator (Dict): _description_
-        osc_scan (Dict): _description_
-        transl_scan (Dict, optional): _description_. Defaults to None.
-        metafile (Union[Path, str], optional): _description_. Defaults to None.
-        link_list (List, optional): _description_. Defaults to None.
+        nxsfile (h5py.File): NeXus file to be written.
+        datafiles (List[Union[Path, str]]): List of at least 1 Path object to a HDF5 data file.
+        coordinate_frame (str): Coordinate system being used. Accepted frames are imgcif and mcstas.
+        data_type (Tuple[str, int]): Images or event-mode data, and eventually how many are being written.
+        goniometer (Dict): Goniometer geometry description.
+        detector (Dict): Detector specific parameters and its axes.
+        module (Dict): Geometry and description of detector module.
+        source (Dict): Facility information.
+        beam (Dict): Beam properties.
+        attenuator (Dict): Attenuator properties.
+        osc_scan (Dict): Axis defining the rotation scan. It should be passed even when still.
+        transl_scan (Dict, optional): Axes defining a linear or 2D scan. Defaults to None.
+        metafile (Union[Path, str], optional): File containing the metadata. Defaults to None.
+        link_list (List, optional): List of datasets that can be copied from the metafile. Defaults to None.
     """
     logger = logging.getLogger("NeXusGenerator.writer")
     logger.info("Calling the writers ...")
