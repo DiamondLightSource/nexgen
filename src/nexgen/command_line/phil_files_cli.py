@@ -3,6 +3,7 @@ Command line tool to get an existing .phil file with goniometer/detector metadat
 These files can be used as input for the NeXus generator CLI.
 """
 
+import sys
 import shutil
 import argparse
 import freephil
@@ -31,6 +32,22 @@ scopes = freephil.parse(
 
 parser = argparse.ArgumentParser(description=__doc__, parents=[version_parser])
 parser.add_argument("--debug", action="store_const", const=True)
+parser.add_argument(
+    "-c",
+    "--show-config",
+    action="store_true",
+    default=False,
+    dest="show_config",
+    help="Show the configuration parameters.",
+)
+parser.add_argument(
+    "-a",
+    "--attributes-level",
+    default=0,
+    type=int,
+    dest="attributes_level",
+    help="Set the attributes level for showing the configuration parameters.",
+)
 
 
 def list_available_phil():
@@ -62,6 +79,10 @@ def get_beamline_phil(args):
 def create_new_phil(args):
     cl = scopes.command_line_argument_interpreter()
     working_phil = scopes.fetch(cl.process_and_fetch(args.phil_args))
+
+    if args.show_config:
+        working_phil.show(attributes_level=args.attributes_level)
+        sys.exit()
 
     # Write to file
     if args.filename:
@@ -104,7 +125,6 @@ parser_create = subparser.add_parser(
 parser_create.add_argument(
     "-f", "--filename", type=str, help="Filename for new .phil template."
 )
-# parser_create.add_argument("phil_args", nargs="*")
 parser_create.set_defaults(func=create_new_phil)
 
 

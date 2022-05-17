@@ -141,8 +141,6 @@ meta_phil = freephil.parse(
     include scope nexgen.command_line.nxs_phil.module_scope
 
     include scope nexgen.command_line.nxs_phil.timestamp_scope
-
-    # include scope nexgen.command_line.nexus_generator.master_phil
     """,
     process_includes=True,
 )
@@ -161,12 +159,24 @@ parser.add_argument(
     dest="show_config",
     help="Show the configuration parameters.",
 )
+parser.add_argument(
+    "-a",
+    "--attributes-level",
+    default=0,
+    type=int,
+    dest="attributes_level",
+    help="Set the attributes level for showing the configuration parameters.",
+)
 
 # CLIs
 def write_NXmx_cli(args):
     cl = master_phil.command_line_argument_interpreter()
     working_phil = master_phil.fetch(cl.process_and_fetch(args.phil_args))
     params = working_phil.extract()
+
+    if args.show_config:
+        working_phil.show(attributes_level=args.attributes_level)
+        sys.exit()
 
     # Path to data file
     datafiles = [Path(d).expanduser().resolve() for d in params.input.datafile]
@@ -394,6 +404,10 @@ def write_demo_cli(args):
     cl = demo_phil.command_line_argument_interpreter()
     working_phil = demo_phil.fetch(cl.process_and_fetch(args.phil_args))
     params = working_phil.extract()
+
+    if args.show_config:
+        working_phil.show(attributes_level=args.attributes_level)
+        sys.exit()
 
     # Path to file
     master_file = Path(params.output.master_filename).expanduser().resolve()
@@ -645,6 +659,10 @@ def write_with_meta_cli(args):
     cl = meta_phil.command_line_argument_interpreter()
     working_phil = meta_phil.fetch(cl.process_and_fetch(args.phil_args))
     params = working_phil.extract()
+
+    if args.show_config:
+        working_phil.show(attributes_level=args.attributes_level)
+        sys.exit()
 
     # Path to meta file
     if params.input.metafile:
