@@ -138,7 +138,6 @@ def extruder(
             )
 
             # Write pump-probe information if requested
-            # TODO have pump exposure and delay also as units of time (?)
             if SSX.pump_status == "true":
                 logger.info("Pump status is True, write pump information to file.")
                 pump_info = {}
@@ -201,18 +200,9 @@ def fixed_target(
     # Goniometer
     # Set start and end values from input
     # omega sam_z sam_y sam_x
-    goniometer["starts"] = [
-        0,
-        0,
-    ]
-    goniometer["ends"] = [
-        0,
-        0,
-    ]
-    goniometer["increments"] = [
-        0,
-        0,
-    ]
+    goniometer["starts"] = []
+    goniometer["ends"] = []
+    goniometer["increments"] = []
 
     # Identify rotation and grid scan axes, calculate ranges
     OSC, TRANSL = ScanReader(goniometer, n_images=SSX.num_imgs)
@@ -251,7 +241,6 @@ def fixed_target(
             )
 
             # Write pump-probe information if requested
-            # TODO have pump exposure and delay also as units of time (?)
             if SSX.pump_status == "true":
                 logger.info("Pump status is True, write pump information to file.")
                 pump_info = {}

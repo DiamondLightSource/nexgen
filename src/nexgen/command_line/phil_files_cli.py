@@ -90,7 +90,6 @@ def create_new_phil(args):
         with open(filename, "w") as fout:
             fout.write(working_phil.as_str())
     else:
-        # working_phil.show()
         print(working_phil.as_str())
 
 
@@ -125,6 +124,7 @@ parser_create = subparser.add_parser(
 parser_create.add_argument(
     "-f", "--filename", type=str, help="Filename for new .phil template."
 )
+# TODO Find a way to avoid writing Tristan spec if detector is Eiger!
 parser_create.set_defaults(func=create_new_phil)
 
 

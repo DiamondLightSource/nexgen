@@ -24,7 +24,7 @@ module_scope = freephil.parse(
       slow_axis = 0 -1 0
         .type = floats(size = 3)
         .help = "Slow axis at datum position"
-      offsets = -0.1662 0.1721 0 0 0 0
+      offsets = 0 0 0 0 0 0
         .multiple = True
         .type = floats
         .help = "Axis offsets - one after the other - fast then slow"

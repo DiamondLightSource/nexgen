@@ -850,10 +850,8 @@ def write_with_meta_cli(args):
     if args.no_ow:
         logger.warning(f"The following datasets will not be overwritten: {args.no_ow}")
         ignore = args.no_ow
-        # metainfo = (metafile, args.no_ow)
     else:
         ignore = None
-        # metainfo = (metafile, None)
 
     logger.info("Looking through _meta.h5 file for metadata.")
     # overwrite detector, overwrite beam, get list of links for nxdetector and nxcollection
