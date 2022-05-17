@@ -4,15 +4,12 @@ General tools useful to create NeXus format files.
 
 __author__ = "Diamond Light Source - Scientific Software"
 __email__ = "scientificsoftware@diamond.ac.uk"
-__version__ = "0.6.5"
+__version__ = "0.6.6"
 __version_tuple__ = tuple(int(x) for x in __version__.split("."))
 
 import re
-import sys
 import h5py
 import pint
-
-# import freephil
 
 import numpy as np
 
@@ -32,7 +29,12 @@ Q_ = ureg.Quantity
 P = re.compile(r"(.*)_(?:meta|\d+)")
 
 # Format strings for timestamps
-format_list = ["%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%a %b %d %Y %H:%M:%S"]
+format_list = [
+    "%Y-%m-%dT%H:%M:%S",
+    "%Y-%m-%d %H:%M:%S",
+    "%a %b %d %Y %H:%M:%S",
+    "%A, %d. %B %Y %I:%M%p",
+]
 
 
 def imgcif2mcstas(vector):
@@ -70,9 +72,12 @@ def get_filename_template(input_filename: Path) -> str:
         filename = input_filename.stem.replace("meta", f"%0{6}d")
         filename_template = input_filename.parent / f"{filename}.h5"
     else:
-        sys.exit(
+        raise NameError(
             "Input file did not have the expected format for a master or meta file."
         )
+        # sys.exit(
+        #     "Input file did not have the expected format for a master or meta file."
+        # )
     # so that filename_template.as_posix() % 1 will become filename_000001.h5
     return filename_template.as_posix()
 
@@ -139,7 +144,7 @@ def get_iso_timestamp(ts: Union[str, float]) -> str:
 
     Args:
         ts:     Input string, can also be a timestamp (eg. time.time()) string.
-                Allowed formats: "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%a %b %d %Y %H:%M:%S".
+                Allowed formats: "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%a %b %d %Y %H:%M:%S", "%A, %d. %B %Y %I:%M%p".
     Returns:
         ts_iso: Output formatted string.
     """

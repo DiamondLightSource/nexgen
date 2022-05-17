@@ -3,6 +3,7 @@ Command line tool to get an existing .phil file with goniometer/detector metadat
 These files can be used as input for the NeXus generator CLI.
 """
 
+import sys
 import shutil
 import argparse
 import freephil
@@ -39,6 +40,14 @@ parser.add_argument(
     dest="show_config",
     help="Show the configuration parameters.",
 )
+parser.add_argument(
+    "-a",
+    "--attributes-level",
+    default=0,
+    type=int,
+    dest="attributes_level",
+    help="Set the attributes level for showing the configuration parameters.",
+)
 
 
 def list_available_phil():
@@ -72,7 +81,8 @@ def create_new_phil(args):
     working_phil = scopes.fetch(cl.process_and_fetch(args.phil_args))
 
     if args.show_config:
-        print(args.phil_args)
+        working_phil.show(attributes_level=args.attributes_level)
+        sys.exit()
 
     # Write to file
     if args.filename:
@@ -80,7 +90,6 @@ def create_new_phil(args):
         with open(filename, "w") as fout:
             fout.write(working_phil.as_str())
     else:
-        # working_phil.show()
         print(working_phil.as_str())
 
 
@@ -115,7 +124,7 @@ parser_create = subparser.add_parser(
 parser_create.add_argument(
     "-f", "--filename", type=str, help="Filename for new .phil template."
 )
-# parser_create.add_argument("phil_args", nargs="*")
+# TODO Find a way to avoid writing Tristan spec if detector is Eiger!
 parser_create.set_defaults(func=create_new_phil)
 
 

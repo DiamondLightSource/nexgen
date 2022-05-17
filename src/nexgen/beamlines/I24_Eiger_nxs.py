@@ -26,11 +26,7 @@ from .. import (
     get_nexus_filename,
 )
 
-from ..nxs_write import (
-    calculate_rotation_scan_range,
-    find_osc_axis,
-)
-from ..nxs_write.NexusWriter import call_writers
+from ..nxs_write.NexusWriter import call_writers, ScanReader
 from ..nxs_write.NXclassWriters import write_NXentry, write_NXnote, write_NXdatetime
 
 from ..tools.VDS_tools import image_vds_writer
@@ -107,24 +103,9 @@ def extruder(
     )
     logger.info(f"Timestamps recorded: {timestamps}")
 
-    # Define SCANS dictionary
-    SCANS = {}
-
     # Get scan range array and rotation axis
-    osc_axis = find_osc_axis(
-        goniometer["axes"],
-        goniometer["starts"],
-        goniometer["ends"],
-        goniometer["types"],
-    )
-    osc_idx = goniometer["axes"].index(osc_axis)
-    osc_range = calculate_rotation_scan_range(
-        goniometer["starts"][osc_idx],
-        goniometer["ends"][osc_idx],
-        n_images=SSX.num_imgs,
-    )
-
-    SCANS["rotation"] = {osc_axis: osc_range}
+    OSC, TRANSL = ScanReader(goniometer, n_images=SSX.num_imgs)
+    del TRANSL
 
     logger.info("Goniometer information")
     for j in range(len(goniometer["axes"])):
@@ -143,7 +124,6 @@ def extruder(
                 nxsfile,
                 filename,
                 coordinate_frame,
-                SCANS,
                 (detector["mode"], SSX.num_imgs),
                 goniometer,
                 detector,
@@ -151,12 +131,13 @@ def extruder(
                 source,
                 beam,
                 attenuator,
+                OSC,
+                transl_scan=None,
                 metafile=metafile,
                 link_list=dset_links,
             )
 
             # Write pump-probe information if requested
-            # TODO have pump exposure and delay also as units of time
             if SSX.pump_status == "true":
                 logger.info("Pump status is True, write pump information to file.")
                 pump_info = {}
@@ -199,13 +180,13 @@ def fixed_target(
     metafile: Path = None,
 ):
     """
-    _summary_
+    Write the NeXus file for fixed target collections, pump probe and not.
 
     Args:
-        master_file (Path):         _description_
-        filename (List[Path]):      _description_
-        SSX (namedtuple):           _description_
-        metafile (Path, optional):  _description_. Defaults to None.
+        master_file (Path):         Path to the NeXus file to be written.
+        filename (List[Path]):      List of paths to file.
+        SSX (namedtuple):           Parameters passed from the beamline.
+        metafile (Path, optional):  Path to the _meta.h5 file. Defaults to None.
     """
     logger.info(f"Write NeXus file for {SSX.exp_type}")
 
@@ -217,6 +198,82 @@ def fixed_target(
     logger.info(f"Timestamps recorded: {timestamps}")
 
     # Goniometer
+    # Set start and end values from input
+    # omega sam_z sam_y sam_x
+    goniometer["starts"] = []
+    goniometer["ends"] = []
+    goniometer["increments"] = []
+
+    # Identify rotation and grid scan axes, calculate ranges
+    OSC, TRANSL = ScanReader(goniometer, n_images=SSX.num_imgs)
+
+    # Log data
+    logger.info("Goniometer information")
+    for j in range(len(goniometer["axes"])):
+        logger.info(
+            f"Goniometer axis: {goniometer['axes'][j]} => {goniometer['starts'][j]}, {goniometer['types'][j]} on {goniometer['depends'][j]}"
+        )
+    logger.info(f"Oscillation axis: {OSC.keys()[0]}.")
+    logger.info(f"Fixed target axes: {list(TRANSL.keys())}.")
+
+    try:
+        with h5py.File(master_file, "x") as nxsfile:
+            write_NXentry(nxsfile)
+
+            if timestamps[0]:
+                write_NXdatetime(nxsfile, (timestamps[0], None))
+
+            call_writers(
+                nxsfile,
+                filename,
+                coordinate_frame,
+                (detector["mode"], SSX.num_imgs),
+                goniometer,
+                detector,
+                module,
+                source,
+                beam,
+                attenuator,
+                OSC,
+                transl_scan=TRANSL,
+                metafile=metafile,
+                link_list=dset_links,
+            )
+
+            # Write pump-probe information if requested
+            if SSX.pump_status == "true":
+                logger.info("Pump status is True, write pump information to file.")
+                pump_info = {}
+                if SSX.pump_exp:
+                    pump_info["pump_exposure_time"] = SSX.pump_exp
+                    logger.info(f"Recorded pump exposure time: {SSX.pump_exp}")
+                else:
+                    pump_info["pump_exposure_time"] = None
+                    logger.warning(
+                        "Pump exposure time has not been recorded and won't be written to file."
+                    )
+                if SSX.pump_delay:
+                    pump_info["pump_delay"] = SSX.pump_delay
+                    logger.info(f"Recorded pump delay time: {SSX.pump_delay}")
+                else:
+                    pump_info["pump_delay"] = None
+                    logger.warning(
+                        "Pump delay has not been recorded and won't be written to file."
+                    )
+                loc = "/entry/source/notes"
+                write_NXnote(nxsfile, loc, pump_info)
+
+            # Write VDS
+            image_vds_writer(nxsfile, (SSX.num_imgs, *detector["image_size"]))
+
+            if timestamps[1]:
+                write_NXdatetime(nxsfile, (None, timestamps[1]))
+            logger.info(f"{master_file} correctly written.")
+    except Exception as err:
+        logger.exception(err)
+        logger.info(
+            f"An error occurred and {master_file} couldn't be written correctly."
+        )
 
 
 def grid_scan_3D():
@@ -278,7 +335,6 @@ def write_nxs(**ssx_params):
 
     module["fast_axis"] = detector.pop("fast_axis")
     module["slow_axis"] = detector.pop("slow_axis")
-    # goniometer, detector, module = read_params_from_json()
     # Set value for module_offset calculation.
     module["module_offset"] = "1"
 
