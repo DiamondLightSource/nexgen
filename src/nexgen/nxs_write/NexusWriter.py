@@ -37,6 +37,7 @@ from ..tools.VDS_tools import image_vds_writer, vds_file_writer
 writer_logger = logging.getLogger("NeXusGenerator.writer")
 
 # General writing
+# TODO REMOVE. Hopefully obsolete
 def write_nexus(
     nxsfile: h5py.File,
     datafiles: List[Path],
@@ -83,9 +84,6 @@ def write_nexus(
         link_list = None
     writer_logger.info("Writing NXmx NeXus file ...")
 
-    # Define a SCANS dictionary to save both rotation and eventually translation scan ranges
-    SCANS = {}
-
     # Identify rotation scan axis
     osc_axis = find_osc_axis(
         goniometer.axes, goniometer.starts, goniometer.ends, goniometer.types
@@ -117,7 +115,7 @@ def write_nexus(
                 goniometer.starts[idx], goniometer.ends[idx], n_images=num_images
             )
 
-    SCANS["rotation"] = {osc_axis: osc_range}
+    OSC = {osc_axis: osc_range}
 
     writer_logger.info(f"Rotatin scan axis: {osc_axis}")
     writer_logger.info(f"Scan from {osc_range[0]} tp {osc_range[-1]}.")
@@ -145,13 +143,19 @@ def write_nexus(
             transl_ends,
             transl_increments,
         )  # NB. leaving snaked = False for demo. TODO change at some point.
-        SCANS["translation"] = transl_range
+        TRANSL = transl_range
 
         # Just a check
         ax1 = transl_axes[0]
-        assert num_images == len(
-            transl_range[ax1]
-        ), "The total number of images doesn't match the number of scan points, please double check the input."
+        if num_images != len(transl_range[ax1]):
+            raise ValueError(
+                "The total number of images doesn't match the number of scan points, please double check the input."
+            )
+        # assert num_images == len(
+        #     transl_range[ax1]
+        # ), "The total number of images doesn't match the number of scan points, please double check the input."
+    else:
+        TRANSL = None
 
     write_NXentry(nxsfile)
 
@@ -160,7 +164,6 @@ def write_nexus(
         nxsfile,
         datafiles,
         coordinate_frame,
-        SCANS,
         data_type,
         goniometer.__dict__,
         detector.__dict__,
@@ -168,6 +171,8 @@ def write_nexus(
         source.__dict__,
         beam.__dict__,
         attenuator.__dict__,
+        OSC,
+        TRANSL,
         meta[0],
         link_list,
     )
@@ -193,6 +198,7 @@ def write_nexus(
         # nxentry.create_dataset("end_time", data=np.string_(timestamps[1]))
 
 
+# TODO REMOVE. Hopefully obsolete
 def write_nexus_demo(
     nxsfile: h5py.File,
     datafile_template: str,
@@ -228,8 +234,6 @@ def write_nexus_demo(
     """
     writer_logger.info("Writing NXmx demo ...")
     writer_logger.info(f"The data file will contain {data_type[1]} {data_type[0]}")
-    # Define a SCANS dictionary to save both rotation and eventually translation scan ranges
-    SCANS = {}
 
     # Identify rotation scan axis
     osc_axis = find_osc_axis(
@@ -258,7 +262,9 @@ def write_nexus_demo(
             transl_ends,
             transl_increments,
         )  # NB. leaving snaked = False for demo. TODO change at some point.
-        SCANS["translation"] = transl_range
+        TRANSL = transl_range
+    else:
+        TRANSL = {}
 
     # TODO FIXME the number of images should come from CLI if it's a xy scan.
     # Compute scan_range for rotation axis
@@ -280,16 +286,20 @@ def write_nexus_demo(
             data_type = ("images", num_imgs)
         else:
             ax1 = transl_axes[0]
-            assert data_type[1] == len(
-                transl_range[ax1]
-            ), "The total number of images doesn't match the number of scan points, please double check the input."
+            if data_type[1] != len(transl_range[ax1]):
+                raise ValueError(
+                    "The total number of images doesn't match the number of scan points, please double check the input."
+                )
+            # assert data_type[1] == len(
+            #     transl_range[ax1]
+            # ), "The total number of images doesn't match the number of scan points, please double check the input."
             osc_range = calculate_rotation_scan_range(
                 goniometer.starts[idx], goniometer.ends[idx], n_images=data_type[1]
             )
     elif data_type[0] == "events":
         osc_range = (goniometer.starts[idx], goniometer.ends[idx])
 
-    SCANS["rotation"] = {osc_axis: osc_range}
+    OSC = {osc_axis: osc_range}
 
     writer_logger.info(f"Rotation scan axis: {osc_axis}.")
     writer_logger.info(f"Scan from {osc_range[0]} to {osc_range[-1]}.")
@@ -333,7 +343,6 @@ def write_nexus_demo(
         nxsfile,
         datafiles,
         coordinate_frame,
-        SCANS,
         data_type,
         goniometer.__dict__,
         detector.__dict__,
@@ -341,6 +350,8 @@ def write_nexus_demo(
         source.__dict__,
         beam.__dict__,
         attenuator.__dict__,
+        OSC,
+        TRANSL,
     )
 
     # Write VDS
@@ -358,12 +369,110 @@ def write_nexus_demo(
         writer_logger.info("VDS won't be written.")
 
 
+def ScanReader(
+    goniometer: Dict,
+    data_type: str = "images",
+    n_images: int = None,
+    snaked: bool = False,
+) -> Tuple[Dict, Dict]:
+    """
+    Read the information passed from the goniometer and return a definition of the scan.
+
+    Args:
+        goniometer (Dict): Goniometer geometry definition.
+        data_type (str, optional): Type of data being written, can be images of events. Defaults to "images".
+        n_images (int, optional): Total number of images to write. If passed, \
+                                    the number of images will override the axis_increment value of the rotation scan. Defaults to None.
+        snaked (bool, optional): 2D scan parameter. If True, defines a snaked grid scan. Defaults to False.
+
+    Raises:
+        ValueError: If the total number of images passed doesn't match the number of scan points when dealing with a 2D/3D scan.
+
+    Returns:
+        Tuple[Dict,Dict]: Two separate dictionaries. The first defines the rotation scan, the second the linear/grid scan. \
+                            When dealing with a set of stills or a simple rotation scan, the second value will return None.
+    """
+    # First find which axes deifne a rotation/translation scan
+    osc_axis = find_osc_axis(
+        goniometer["axes"],
+        goniometer["starts"],
+        goniometer["ends"],
+        goniometer["types"],
+    )
+    osc_idx = goniometer["axes"].index(osc_axis)
+    transl_axes = find_grid_scan_axes(
+        goniometer["axes"],
+        goniometer["starts"],
+        goniometer["ends"],
+        goniometer["types"],
+    )
+
+    # If there's a linear/grid scan, get dictionary
+    if len(transl_axes) > 0:
+        transl_idx = [goniometer["axes"].index(j) for j in transl_axes]
+        transl_start = [goniometer["starts"][i] for i in transl_idx]
+        transl_end = [goniometer["ends"][i] for i in transl_idx]
+        transl_increment = [goniometer["increments"][i] for i in transl_idx]
+        TRANSL = calculate_grid_scan_range(
+            transl_axes, transl_start, transl_end, transl_increment, snaked=snaked
+        )
+    else:
+        TRANSL = None
+
+    # Once that's defined, go through the various cases
+    # Return either 2 dictionaries or (Dict, None)
+    if data_type == "events" and len(transl_axes) == 0:
+        osc_range = (goniometer["starts"][osc_idx], goniometer["ends"][osc_idx])
+    elif data_type == "events" and len(transl_axes) > 0:
+        osc_range = (goniometer["starts"][osc_idx], goniometer["ends"][osc_idx])
+        # Overwrite TRANSL
+        for k, s, e in zip(transl_axes, transl_start, transl_end):
+            TRANSL[k] = (s, e)
+    else:
+        if n_images is None and len(transl_axes) == 0:
+            osc_range = calculate_rotation_scan_range(
+                goniometer["starts"][osc_idx],
+                goniometer["ends"][osc_idx],
+                axis_increment=goniometer["increments"][osc_idx],
+            )
+        elif n_images is None and len(transl_axes) > 0:
+            ax = transl_axes[0]
+            n_images = len(TRANSL[ax])
+            osc_range = calculate_rotation_scan_range(
+                goniometer["starts"][osc_idx],
+                goniometer["ends"][osc_idx],
+                n_images=n_images,
+            )
+        elif n_images is not None and len(transl_axes) > 0:
+            ax = transl_axes[0]
+            if n_images != len(TRANSL[ax]):
+                raise ValueError(
+                    "The value passed as the total number of images doesn't match the number of scan points, please check the input."
+                )
+            # FIXME alternatively I could write a warning message and force it to
+            # obey one or the other directive. TBD
+            osc_range = calculate_rotation_scan_range(
+                goniometer["starts"][osc_idx],
+                goniometer["ends"][osc_idx],
+                n_images=n_images,
+            )
+        else:
+            osc_range = calculate_rotation_scan_range(
+                goniometer["starts"][osc_idx],
+                goniometer["ends"][osc_idx],
+                axis_increment=goniometer["increments"][osc_idx],
+                n_images=n_images,
+            )
+
+    OSC = {osc_axis: osc_range}
+    return OSC, TRANSL
+
+
 # def call_writers(*args,**kwargs):
 def call_writers(
     nxsfile: h5py.File,
     datafiles: List[Union[Path, str]],
     coordinate_frame: str,
-    SCANS: Dict,
     data_type: Tuple[str, int],
     goniometer: Dict,
     detector: Dict,
@@ -371,19 +480,32 @@ def call_writers(
     source: Dict,
     beam: Dict,
     attenuator: Dict,
+    osc_scan: Dict,
+    transl_scan: Dict = None,
     metafile: Union[Path, str] = None,
     link_list: List = None,
 ):
-    """ Call the writers for the NeXus base classes."""
-    logger = logging.getLogger("NeXusGenerator.writer.call")
-    logger.info("Calling the writers ...")
+    """
+    Call the writers for the NeXus base classes.
 
-    # Get scan details first
-    osc_scan = SCANS["rotation"]
-    if "translation" in SCANS.keys():
-        transl_scan = SCANS["translation"]
-    else:
-        transl_scan = None
+    Args:
+        nxsfile (h5py.File): NeXus file to be written.
+        datafiles (List[Union[Path, str]]): List of at least 1 Path object to a HDF5 data file.
+        coordinate_frame (str): Coordinate system being used. Accepted frames are imgcif and mcstas.
+        data_type (Tuple[str, int]): Images or event-mode data, and eventually how many are being written.
+        goniometer (Dict): Goniometer geometry description.
+        detector (Dict): Detector specific parameters and its axes.
+        module (Dict): Geometry and description of detector module.
+        source (Dict): Facility information.
+        beam (Dict): Beam properties.
+        attenuator (Dict): Attenuator properties.
+        osc_scan (Dict): Axis defining the rotation scan. It should be passed even when still.
+        transl_scan (Dict, optional): Axes defining a linear or 2D scan. Defaults to None.
+        metafile (Union[Path, str], optional): File containing the metadata. Defaults to None.
+        link_list (List, optional): List of datasets that can be copied from the metafile. Defaults to None.
+    """
+    logger = logging.getLogger("NeXusGenerator.writer")
+    logger.info("Calling the writers ...")
 
     # Check that filenames are paths
     if all(isinstance(f, Path) for f in datafiles) is False:

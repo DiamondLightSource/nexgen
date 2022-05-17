@@ -33,7 +33,7 @@ def overwrite_beam(meta_file: h5py.File, name: str, beam: Any):
             overwrite_logger.info("No wavelength information found in meta file.")
             return
     else:
-        raise ValueError("Please pass a valid detector description.")
+        raise ValueError("Unknown detector: please pass a valid detector description.")
     # If value exists, overwrite. Otherwise, create.
     overwrite_logger.warning("Wavelength will be overwritten.")
     overwrite_logger.info(f"Value for wavelngth found in meta file: {wl}")
@@ -136,7 +136,7 @@ def overwrite_detector(
             )
     else:
         overwrite_logger.warning("Unknown detector, exit.")
-        raise ValueError("Please pass a valid detector description.")
+        raise ValueError("Unknown detector: please pass a valid detector description.")
 
     if ignore:
         overwrite_logger.warning(
@@ -155,6 +155,3 @@ def overwrite_detector(
             except KeyError:
                 detector.__inject__(k, v)
     return link_list
-
-
-# TODO add provision in case something actually is None

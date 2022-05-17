@@ -84,6 +84,14 @@ parser.add_argument(
     dest="show_config",
     help="Show the configuration parameters.",
 )
+parser.add_argument(
+    "-a",
+    "--attributes-level",
+    default=0,
+    type=int,
+    dest="attributes_level",
+    help="Set the attributes level for showing the configuration parameters.",
+)
 
 # CLIs
 def copy_nexus(args):
@@ -91,6 +99,10 @@ def copy_nexus(args):
     working_phil = general_scope.fetch(clai.process_and_fetch(args.phil_args))
     params = working_phil.extract()
     working_phil.show()
+
+    if args.show_config:
+        working_phil.show(attributes_level=args.attributes_level)
+        sys.exit()
 
     logger.info("Copy metadata from one NeXus file to another.")
 
@@ -131,6 +143,10 @@ def copy_tristan_nexus(args):
     working_phil = tristan_scope.fetch(clai.process_and_fetch(args.phil_args))
     params = working_phil.extract()
     working_phil.show()
+
+    if args.show_config:
+        working_phil.show(attributes_level=args.attributes_level)
+        sys.exit()
 
     logger.info("Copy metadata from Tristan NeXus file.")
 

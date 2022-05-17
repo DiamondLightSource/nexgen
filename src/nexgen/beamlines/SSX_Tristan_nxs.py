@@ -116,14 +116,11 @@ def write_nxs(**ssx_params):
         0.0,
     ]
 
-    # Define SCANS dictionary
-    SCANS = {}
-
     # Get rotation scan range array and axis
     osc_axis = "phi"
     osc_range = (0.0, 0.0)
 
-    SCANS["rotation"] = {osc_axis: osc_range}
+    OSC = {osc_axis: osc_range}
 
     logger.info("Goniometer information")
     for j in range(len(goniometer["axes"])):
@@ -176,7 +173,6 @@ def write_nxs(**ssx_params):
                 nxsfile,
                 [metafile],
                 coordinate_frame,
-                SCANS,
                 (
                     detector["mode"],
                     None,
@@ -187,6 +183,8 @@ def write_nxs(**ssx_params):
                 source,
                 beam,
                 attenuator,
+                OSC,
+                transl_scan=None,
                 metafile=metafile,  # Since there are no links, this could also be None
                 link_list=None,
             )
