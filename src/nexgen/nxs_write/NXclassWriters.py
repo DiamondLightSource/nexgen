@@ -8,6 +8,7 @@ import bitshuffle.h5
 
 import numpy as np
 
+from hdf5plugin import Bitshuffle
 from pathlib import Path
 from datetime import datetime
 from typing import List, Dict, Tuple, Union, Optional
@@ -425,7 +426,7 @@ def write_NXdetector(
             nxdetector.create_dataset(
                 "pixel_mask_applied", data=detector["pixel_mask_applied"]
             )
-            NXclass_logger.warning(
+            NXclass_logger.info(
                 f"Looking for file {detector['pixel_mask']} in {wd.as_posix()}."
             )
             maskfile = [
@@ -434,18 +435,25 @@ def write_NXdetector(
                 else None
                 for f in wd.iterdir()
             ][0]
-            # FIXME it seems to find the flatfield fine but not the mask file. Not a spelling mistake, something else going wrong.
+            # FIXME it seems to find the flatfield fine but not always the mask file. Not a spelling mistake, something else going wrong.
             if maskfile is not None:
                 NXclass_logger.info("Pixel mask file found in working directory.")
+                block_size = 0
                 with h5py.File(maskfile, "r") as mh:
-                    mask = mh["image"]
-                    bitshuffle.h5.create_bitshuffle_compressed_dataset(
-                        nxdetector,
-                        b"pixel_mask",
-                        shape=mask.shape,
-                        dtype=mask.dtype,
-                        chunks=(100, mask.shape[1]),
+                    mask = mh["image"][()]
+                    nxdetector.create_dataset(
+                        "pixel_mask",
+                        data=mask,
+                        compression=bitshuffle.h5.H5FILTER,
+                        compression_opts=(block_size, bitshuffle.h5.H5_COMPRESS_LZ4),
                     )
+                    # bitshuffle.h5.create_bitshuffle_compressed_dataset(
+                    #     nxdetector,
+                    #     b"pixel_mask",
+                    #     shape=mask.shape,
+                    #     dtype=mask.dtype,
+                    #     chunks=(100, mask.shape[1]),
+                    # )
                     # nxdetector["pixel_mask"][:] = mask[()]  # FIXME Illegal instruction (core dumped) ERROR here
                 NXclass_logger.info(
                     "A compressed copy of the pixel mask has been written into the NeXus file."
@@ -474,20 +482,25 @@ def write_NXdetector(
             ][0]
             if flatfieldfile is not None:
                 NXclass_logger.info("Flatfield file found in working directory.")
-                # block_size = 0
+                block_size = 0
                 with h5py.File(flatfieldfile, "r") as mh:
-                    flatfield = mh["image"]
-                    # nxdetector.create_dataset("flatfield", shape=flatfield.shape, dtype=flatfield.dtype, chunks=(100, flatfield.shape[1]), compression=bitshuffle.h5.H5FILTER, compression_opts=(block_size, bitshuffle.h5.H5_COMPRESS_LZ4))
-                    bitshuffle.h5.create_bitshuffle_compressed_dataset(
-                        nxdetector,
-                        b"flatfield",
-                        shape=flatfield.shape,
-                        dtype=flatfield.dtype,
-                        chunks=(100, flatfield.shape[1]),
+                    flatfield = mh["image"][()]
+                    # FIXME it doesn't seem to work with hdf5plugin either. And it's not just the flatfield.
+                    nxdetector.create_dataset(
+                        "flatfield",
+                        data=flatfield,
+                        **Bitshuffle(nelems=block_size, lz4=True),
                     )
-                    nxdetector["flatfield"][:] = flatfield[
-                        ()
-                    ]  # FIXME Illegal instruction (core dumped) ERROR here
+                    # nxdetector.create_dataset("flatfield", data=flatfield, compression=bitshuffle.h5.H5FILTER, compression_opts=(block_size, bitshuffle.h5.H5_COMPRESS_LZ4))
+                    # nxdetector.create_dataset("flatfield", shape=flatfield.shape, dtype=flatfield.dtype, chunks=(100, flatfield.shape[1]), compression=bitshuffle.h5.H5FILTER, compression_opts=(block_size, bitshuffle.h5.H5_COMPRESS_LZ4))
+                    # bitshuffle.h5.create_bitshuffle_compressed_dataset(
+                    #     nxdetector,
+                    #     b"flatfield",
+                    #     shape=flatfield.shape,
+                    #     dtype=flatfield.dtype,
+                    #     chunks=(100, flatfield.shape[1]),
+                    # )
+                    # nxdetector["flatfield"][:] = flatfield[()]  # FIXME Illegal instruction (core dumped) ERROR here
                 NXclass_logger.info(
                     "A compressed copy of the flatfield has been written into the NeXus file."
                 )
