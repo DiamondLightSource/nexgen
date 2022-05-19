@@ -7,6 +7,7 @@ import logging
 
 import numpy as np
 
+from hdf5plugin import Bitshuffle
 from pathlib import Path
 from datetime import datetime
 from typing import List, Dict, Tuple, Union, Optional
@@ -26,6 +27,7 @@ from .. import (
 )
 
 NXclass_logger = logging.getLogger("NeXusGenerator.writer.NXclass")
+NXclass_logger.setLevel(logging.DEBUG)
 
 # NXentry writer
 def write_NXentry(nxsfile: h5py.File, definition: str = "NXmx") -> h5py.Group:
@@ -418,29 +420,96 @@ def write_NXdetector(
 
     # If there is a meta file, a lot of information will be linked instead of copied
     if meta and detector["mode"] == "images":
+        NXclass_logger.info(f"Found metadata to {meta.name} datasets.")
         for ll in link_list[0]:
             nxdetector[ll] = h5py.ExternalLink(meta.name, detector[ll])
+    elif detector["mode"] == "events":
+        wd = Path(nxsfile.filename).parent
+        # Bad pixel mask
+        if detector["pixel_mask"]:
+            nxdetector.create_dataset(
+                "pixel_mask_applied", data=detector["pixel_mask_applied"]
+            )
+            NXclass_logger.info(
+                f"Looking for file {detector['pixel_mask']} in {wd.as_posix()}."
+            )
+            maskfile = [
+                wd / detector["pixel_mask"]
+                for f in wd.iterdir()
+                if detector["pixel_mask"] == f.name
+            ]
+            if maskfile:
+                NXclass_logger.info("Pixel mask file found in working directory.")
+                block_size = 0
+                with h5py.File(maskfile[0], "r") as mh:
+                    mask = mh["image"][()]
+                    nxdetector.create_dataset(
+                        "pixel_mask",
+                        data=mask,
+                        **Bitshuffle(nelems=block_size, lz4=True),
+                    )
+                NXclass_logger.info(
+                    "A compressed copy of the pixel mask has been written into the NeXus file."
+                )
+            else:
+                NXclass_logger.warning("No pixel mask file found in working directory.")
+                NXclass_logger.warning("Writing an ExternalLink.")
+                mask = Path(detector["pixel_mask"])
+                image_key = (
+                    "image" if "tristan" in detector["description"].lower() else "/"
+                )
+                nxdetector["pixel_mask"] = h5py.ExternalLink(mask.name, image_key)
+        # Flatfield
+        if detector["flatfield"]:
+            nxdetector.create_dataset(
+                "flatfield_applied", data=detector["flatfield_applied"]
+            )
+            NXclass_logger.info(
+                f"Looking for file {detector['flatfield']} in {wd.as_posix()}."
+            )
+            flatfieldfile = [
+                wd / detector["flatfield"]
+                for f in wd.iterdir()
+                if detector["flatfield"] == f.name
+            ]
+            if flatfieldfile:
+                NXclass_logger.info("Flatfield file found in working directory.")
+                block_size = 0
+                with h5py.File(flatfieldfile[0], "r") as mh:
+                    flatfield = mh["image"][()]
+                    nxdetector.create_dataset(
+                        "flatfield",
+                        data=flatfield,
+                        **Bitshuffle(nelems=block_size, lz4=True),
+                    )
+                NXclass_logger.info(
+                    "A compressed copy of the flatfield has been written into the NeXus file."
+                )
+            else:
+                NXclass_logger.warning(
+                    "No flatfield file found in th working directory."
+                )
+                NXclass_logger.warning("Writing an ExternalLink.")
+                flatfield = Path(detector["flatfield"])
+                image_key = (
+                    "image" if "tristan" in detector["description"].lower() else "/"
+                )
+                nxdetector["flatfield"] = h5py.ExternalLink(flatfield.name, image_key)
     else:
-        # Check for mask and flatfield files
-        # This is mostly for Tristan where there are external files
         # Flatfield
         if detector["flatfield"]:
             nxdetector.create_dataset(
                 "flatfield_applied", data=detector["flatfield_applied"]
             )
             flatfield = Path(detector["flatfield"])
-            image_key = "image" if "tristan" in detector["description"].lower() else "/"
-            nxdetector["flatfield"] = h5py.ExternalLink(flatfield.name, image_key)
-            # nxdetector.create_dataset("flatfield", data=detector["flatfield"])
+            nxdetector["flatfield"] = h5py.ExternalLink(flatfield.name, "/")
         # Bad pixel mask
         if detector["pixel_mask"]:
             nxdetector.create_dataset(
                 "pixel_mask_applied", data=detector["pixel_mask_applied"]
             )
             mask = Path(detector["pixel_mask"])
-            image_key = "image" if "tristan" in detector["description"].lower() else "/"
-            nxdetector["pixel_mask"] = h5py.ExternalLink(mask.name, image_key)
-            # nxdetector.create_dataset("pixel_mask", data=detector["pixel_mask"])
+            nxdetector["pixel_mask"] = h5py.ExternalLink(mask.name, "/")
 
     # Beam center
     # Check that the information hasn't already been written by the meta file.
