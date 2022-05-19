@@ -5,8 +5,6 @@ Writer functions for different groups of a NeXus file.
 import h5py
 import logging
 
-# import bitshuffle.h5
-
 import numpy as np
 
 from hdf5plugin import Bitshuffle
@@ -445,20 +443,6 @@ def write_NXdetector(
                         data=mask,
                         **Bitshuffle(nelems=block_size, lz4=True),
                     )
-                    # nxdetector.create_dataset(
-                    #     "pixel_mask",
-                    #     data=mask,
-                    #     compression=bitshuffle.h5.H5FILTER,
-                    #     compression_opts=(block_size, bitshuffle.h5.H5_COMPRESS_LZ4),
-                    # )
-                    # bitshuffle.h5.create_bitshuffle_compressed_dataset(
-                    #     nxdetector,
-                    #     b"pixel_mask",
-                    #     shape=mask.shape,
-                    #     dtype=mask.dtype,
-                    #     chunks=(100, mask.shape[1]),
-                    # )
-                    # nxdetector["pixel_mask"][:] = mask[()]  # FIXME Illegal instruction (core dumped) ERROR here
                 NXclass_logger.info(
                     "A compressed copy of the pixel mask has been written into the NeXus file."
                 )
@@ -493,15 +477,6 @@ def write_NXdetector(
                         data=flatfield,
                         **Bitshuffle(nelems=block_size, lz4=True),
                     )
-                    # nxdetector.create_dataset("flatfield", shape=flatfield.shape, dtype=flatfield.dtype, chunks=(100, flatfield.shape[1]), compression=bitshuffle.h5.H5FILTER, compression_opts=(block_size, bitshuffle.h5.H5_COMPRESS_LZ4))
-                    # bitshuffle.h5.create_bitshuffle_compressed_dataset(
-                    #     nxdetector,
-                    #     b"flatfield",
-                    #     shape=flatfield.shape,
-                    #     dtype=flatfield.dtype,
-                    #     chunks=(100, flatfield.shape[1]),
-                    # )
-                    # nxdetector["flatfield"][:] = flatfield[()]  # FIXME Illegal instruction (core dumped) ERROR here
                 NXclass_logger.info(
                     "A compressed copy of the flatfield has been written into the NeXus file."
                 )
