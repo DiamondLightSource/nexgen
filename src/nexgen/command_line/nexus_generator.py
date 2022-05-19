@@ -198,7 +198,7 @@ def write_NXmx_cli(args):
         master_file = get_nexus_filename(datafiles[0])
 
     # Start logger
-    logfile = datafiles[0].parent / "generate_nexus.log"
+    logfile = master_file.parent / "generate_nexus.log"
     # Define a file handler for logging
     FH = logging.FileHandler(logfile, mode="a")
     FH.setLevel(logging.DEBUG)
@@ -703,7 +703,7 @@ def write_with_meta_cli(args):
         ]
 
     # Start logger
-    logfile = metafile.parent / "generate_nexus_from_meta.log"
+    logfile = master_file.parent / "generate_nexus_from_meta.log"
     # Define a file handler for logging
     FH = logging.FileHandler(logfile, mode="a")
     FH.setLevel(logging.DEBUG)

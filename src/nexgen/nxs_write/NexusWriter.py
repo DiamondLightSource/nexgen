@@ -505,6 +505,7 @@ def call_writers(
         link_list (List, optional): List of datasets that can be copied from the metafile. Defaults to None.
     """
     logger = logging.getLogger("NeXusGenerator.writer")
+    logger.setLevel(logging.DEBUG)
     logger.info("Calling the writers ...")
 
     # Check that filenames are paths
