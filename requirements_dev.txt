@@ -3,6 +3,6 @@ h5py
 hdf5plugin
 numpy
 pint
-bitshuffle
+scanspec
 pytest
 pytest-cov
