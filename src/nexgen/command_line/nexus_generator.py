@@ -51,6 +51,11 @@ formatter = logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s")
 # Phil scopes
 master_phil = freephil.parse(
     """
+    output {
+      master_filename = None
+        .type = path
+        .help = "Filename for master file"
+    }
     input {
       datafile = None
         .multiple = True
@@ -113,6 +118,11 @@ demo_phil = freephil.parse(
 
 meta_phil = freephil.parse(
     """
+    output {
+      master_filename = None
+        .type = path
+        .help = "Filename for master file"
+    }
     input {
       metafile = None
         .type = path
@@ -182,7 +192,10 @@ def write_NXmx_cli(args):
     datafiles = [Path(d).expanduser().resolve() for d in params.input.datafile]
 
     # Get NeXus file name
-    master_file = get_nexus_filename(datafiles[0])
+    if params.output.master_filename:
+        master_file = Path(params.output.master_filename).expanduser().resolve()
+    else:
+        master_file = get_nexus_filename(datafiles[0])
 
     # Start logger
     logfile = datafiles[0].parent / "generate_nexus.log"
@@ -673,7 +686,10 @@ def write_with_meta_cli(args):
         )
 
     # Get NeXus filename
-    master_file = get_nexus_filename(metafile)
+    if params.output.master_filename:
+        master_file = Path(params.output.master_filename).expanduser().resolve()
+    else:
+        master_file = get_nexus_filename(metafile)
 
     # If no datafile has been passed, look for them in the directory
     if params.input.datafile:
