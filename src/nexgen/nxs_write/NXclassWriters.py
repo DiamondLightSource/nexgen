@@ -4,7 +4,8 @@ Writer functions for different groups of a NeXus file.
 
 import h5py
 import logging
-import bitshuffle.h5
+
+# import bitshuffle.h5
 
 import numpy as np
 
@@ -431,22 +432,25 @@ def write_NXdetector(
             )
             maskfile = [
                 wd / detector["pixel_mask"]
-                if detector["pixel_mask"] in f.as_posix()
-                else None
                 for f in wd.iterdir()
-            ][0]
-            # FIXME it seems to find the flatfield fine but not always the mask file. Not a spelling mistake, something else going wrong.
-            if maskfile is not None:
+                if detector["pixel_mask"] == f.name
+            ]
+            if maskfile:
                 NXclass_logger.info("Pixel mask file found in working directory.")
                 block_size = 0
-                with h5py.File(maskfile, "r") as mh:
+                with h5py.File(maskfile[0], "r") as mh:
                     mask = mh["image"][()]
                     nxdetector.create_dataset(
                         "pixel_mask",
                         data=mask,
-                        compression=bitshuffle.h5.H5FILTER,
-                        compression_opts=(block_size, bitshuffle.h5.H5_COMPRESS_LZ4),
+                        **Bitshuffle(nelems=block_size, lz4=True),
                     )
+                    # nxdetector.create_dataset(
+                    #     "pixel_mask",
+                    #     data=mask,
+                    #     compression=bitshuffle.h5.H5FILTER,
+                    #     compression_opts=(block_size, bitshuffle.h5.H5_COMPRESS_LZ4),
+                    # )
                     # bitshuffle.h5.create_bitshuffle_compressed_dataset(
                     #     nxdetector,
                     #     b"pixel_mask",
@@ -476,22 +480,19 @@ def write_NXdetector(
             )
             flatfieldfile = [
                 wd / detector["flatfield"]
-                if detector["flatfield"] in f.as_posix()
-                else None
                 for f in wd.iterdir()
-            ][0]
-            if flatfieldfile is not None:
+                if detector["flatfield"] == f.name
+            ]
+            if flatfieldfile:
                 NXclass_logger.info("Flatfield file found in working directory.")
                 block_size = 0
-                with h5py.File(flatfieldfile, "r") as mh:
+                with h5py.File(flatfieldfile[0], "r") as mh:
                     flatfield = mh["image"][()]
-                    # FIXME it doesn't seem to work with hdf5plugin either. And it's not just the flatfield.
                     nxdetector.create_dataset(
                         "flatfield",
                         data=flatfield,
                         **Bitshuffle(nelems=block_size, lz4=True),
                     )
-                    # nxdetector.create_dataset("flatfield", data=flatfield, compression=bitshuffle.h5.H5FILTER, compression_opts=(block_size, bitshuffle.h5.H5_COMPRESS_LZ4))
                     # nxdetector.create_dataset("flatfield", shape=flatfield.shape, dtype=flatfield.dtype, chunks=(100, flatfield.shape[1]), compression=bitshuffle.h5.H5FILTER, compression_opts=(block_size, bitshuffle.h5.H5_COMPRESS_LZ4))
                     # bitshuffle.h5.create_bitshuffle_compressed_dataset(
                     #     nxdetector,
