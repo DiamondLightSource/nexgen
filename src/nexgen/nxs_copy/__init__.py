@@ -4,10 +4,10 @@ Utilities for copying metadata to new NeXus files.
 
 from __future__ import annotations
 
+from typing import Any
+
 import h5py
 import numpy as np
-
-from typing import Any
 
 from .. import walk_nxs
 from ..nxs_write import create_attributes

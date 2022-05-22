@@ -2,15 +2,15 @@
 Tools for copying the metadata from Tristan NeXus files.
 """
 
-import h5py
 import logging
+from pathlib import Path
+from typing import Optional, Union
+
+import h5py
 import numpy as np
 
-from pathlib import Path
-from typing import Union, Optional
-
-from . import get_nexus_tree, identify_tristan_scan_axis, convert_scan_axis
 from ..nxs_write import create_attributes
+from . import convert_scan_axis, get_nexus_tree, identify_tristan_scan_axis
 
 tristan_logger = logging.getLogger("CopyNeXus.tristan")
 

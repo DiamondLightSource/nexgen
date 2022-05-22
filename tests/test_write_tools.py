@@ -1,11 +1,11 @@
 import numpy as np
 
 from nexgen.nxs_write import (
-    calculate_origin,
-    find_osc_axis,
-    find_grid_scan_axes,
-    calculate_rotation_scan_range,
     calculate_grid_scan_range,
+    calculate_origin,
+    calculate_rotation_scan_range,
+    find_grid_scan_axes,
+    find_osc_axis,
     set_dependency,
 )
 
@@ -64,26 +64,20 @@ def test_find_scan_axes():
     )
 
     # Just one scan axis (linear scan)
-    assert (
-        find_grid_scan_axes(
-            test_goniometer["axes"][:3],
-            test_goniometer["starts"][:3],
-            test_goniometer["ends"][:3],
-            test_goniometer["types"][:3],
-        )
-        == ["sam_y"]
-    )
+    assert find_grid_scan_axes(
+        test_goniometer["axes"][:3],
+        test_goniometer["starts"][:3],
+        test_goniometer["ends"][:3],
+        test_goniometer["types"][:3],
+    ) == ["sam_y"]
 
     # Grid scan
-    assert (
-        find_grid_scan_axes(
-            test_goniometer["axes"],
-            test_goniometer["starts"],
-            test_goniometer["ends"],
-            test_goniometer["types"],
-        )
-        == ["sam_y", "sam_x"]
-    )
+    assert find_grid_scan_axes(
+        test_goniometer["axes"],
+        test_goniometer["starts"],
+        test_goniometer["ends"],
+        test_goniometer["types"],
+    ) == ["sam_y", "sam_x"]
 
 
 def test_calc_rotation_range():

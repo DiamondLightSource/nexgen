@@ -2,32 +2,28 @@
 Writer functions for different groups of a NeXus file.
 """
 
-import h5py
 import logging
-
-import numpy as np
-
-from hdf5plugin import Bitshuffle
-from pathlib import Path
 from datetime import datetime
-from typing import List, Dict, Tuple, Union, Optional
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple, Union
 
-from . import (
-    calculate_origin,
-    create_attributes,
-    set_dependency,
-)
+import h5py
+import numpy as np
+from hdf5plugin import Bitshuffle
+
 from .. import (
+    get_iso_timestamp,
     imgcif2mcstas,
     split_arrays,
-    get_iso_timestamp,
     units_of_length,
     units_of_time,
     ureg,
 )
+from . import calculate_origin, create_attributes, set_dependency
 
 NXclass_logger = logging.getLogger("NeXusGenerator.writer.NXclass")
 NXclass_logger.setLevel(logging.DEBUG)
+
 
 # NXentry writer
 def write_NXentry(nxsfile: h5py.File, definition: str = "NXmx") -> h5py.Group:

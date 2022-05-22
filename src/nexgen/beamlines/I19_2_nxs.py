@@ -3,42 +3,31 @@ Create a NeXus file for time-resolved collections on I19-2.
 Available detectors: Tristan 10M, Eiger 2X 4M.
 """
 
-import sys
-
-import h5py
 import glob
 import logging
-
-from pathlib import Path
-
+import sys
 from collections import namedtuple
 from datetime import datetime
-from typing import Union, Tuple
+from pathlib import Path
+from typing import Tuple, Union
 
-from .I19_2_params import (
-    source,
-    goniometer_axes,
-    tristan10M_params,
-    eiger4M_params,
-    dset_links,
-)
+import h5py
 
-from .. import (
-    get_iso_timestamp,
-    get_nexus_filename,
-)
-
-from ..nxs_write import (
-    calculate_rotation_scan_range,
-)
-
+from .. import get_iso_timestamp, get_nexus_filename
+from ..nxs_write import calculate_rotation_scan_range
 from ..nxs_write.NexusWriter import call_writers
 from ..nxs_write.NXclassWriters import write_NXdatetime, write_NXentry
-
 from ..tools.ExtendedRequest import ExtendedRequestIO
 from ..tools.GDAjson2params import (
-    read_geometry_from_json,
     read_detector_params_from_json,
+    read_geometry_from_json,
+)
+from .I19_2_params import (
+    dset_links,
+    eiger4M_params,
+    goniometer_axes,
+    source,
+    tristan10M_params,
 )
 
 # Define a logger object and a formatter
@@ -399,9 +388,10 @@ def write_nxs(**tr_params):
 
 
 def main():
-    " Call from the beamline"
+    "Call from the beamline"
     # Not the best but it should do the job
     import argparse
+
     from ..command_line import version_parser
 
     parser = argparse.ArgumentParser(description=__doc__, parents=[version_parser])
