@@ -51,32 +51,33 @@ def single_image_nexus(
         nxdata["data"] = h5py.ExternalLink(data_file.name, "data")
         # Compute and write axis information
         ax, ax_attr = identify_tristan_scan_axis(nxs_in)
-        create_attributes(
-            nxdata,
-            ("NX_class", "axes", "signal", ax + "_indices"),
-            (
-                "NXdata",
-                ax,
-                "data",
-                [
-                    0,
-                ],
-            ),
-        )
-        try:
-            ax_range = nxs_in["entry/data"][ax][0]
-        except ValueError:
-            # Some early Tristan data from before March 2021, where the goniometer
-            # was not moved during the data collection, record the rotation axis
-            # position as a scalar.
-            ax_range = nxs_in["entry/data"][ax][()]
-        nxdata.create_dataset(ax, data=ax_range)
-        # Write the attributes
-        for key, value in ax_attr:
-            nxdata[ax].attrs.create(key, value)
-        # Now fix all other instances of scan_axis in the tree
-        nxsample = nxentry["sample"]
-        convert_scan_axis(nxsample, nxdata, ax)
+        if ax:
+            create_attributes(
+                nxdata,
+                ("NX_class", "axes", "signal", ax + "_indices"),
+                (
+                    "NXdata",
+                    ax,
+                    "data",
+                    [
+                        0,
+                    ],
+                ),
+            )
+            try:
+                ax_range = nxs_in["entry/data"][ax][0]
+            except ValueError:
+                # Some early Tristan data from before March 2021, where the goniometer
+                # was not moved during the data collection, record the rotation axis
+                # position as a scalar.
+                ax_range = nxs_in["entry/data"][ax][()]
+            nxdata.create_dataset(ax, data=ax_range)
+            # Write the attributes
+            for key, value in ax_attr.items():
+                nxdata[ax].attrs.create(key, value)
+            # Now fix all other instances of scan_axis in the tree
+            nxsample = nxentry["sample"]
+            convert_scan_axis(nxsample, nxdata, ax)
 
     return nxs_filename.as_posix()
 
@@ -122,45 +123,48 @@ def multiple_images_nexus(
         nxdata["data"] = h5py.ExternalLink(data_file.name, "data")
         # Compute and write axis information
         ax, ax_attr = identify_tristan_scan_axis(nxs_in)
-        create_attributes(
-            nxdata,
-            ("NX_class", "axes", "signal", ax + "_indices"),
-            (
-                "NXdata",
-                ax,
-                "data",
-                [
-                    0,
-                ],
-            ),
-        )
-        try:
-            (start, stop) = nxs_in["entry/data"][ax][()]
-        except (TypeError, ValueError):
-            # Some early Tristan data from before March 2021, where the goniometer
-            # was not moved during the data collection, record the rotation axis
-            # position as a scalar.
-            start = stop = nxs_in["entry/data"][ax][()]
-
-        if osc and nbins:
-            raise ValueError(
-                "osc and nbins are mutually exclusive, " "please pass only one of them."
+        if ax:
+            create_attributes(
+                nxdata,
+                ("NX_class", "axes", "signal", ax + "_indices"),
+                (
+                    "NXdata",
+                    ax,
+                    "data",
+                    [
+                        0,
+                    ],
+                ),
             )
-        elif osc:
-            ax_range = np.arange(start, stop, osc)
-        elif nbins:
-            ax_range = np.linspace(start, stop, nbins + 1)[:-1]
-        else:
-            raise ValueError(
-                "Impossible to calculate scan_axis, " "please pass either osc or nbins."
-            )
+            try:
+                (start, stop) = nxs_in["entry/data"][ax][()]
+            except (TypeError, ValueError):
+                # Some early Tristan data from before March 2021, where the goniometer
+                # was not moved during the data collection, record the rotation axis
+                # position as a scalar.
+                start = stop = nxs_in["entry/data"][ax][()]
 
-        nxdata.create_dataset(ax, data=ax_range)
-        # Write the attributes
-        for key, value in ax_attr:
-            nxdata[ax].attrs.create(key, value)
-        # Now fix all other instances of scan_axis in the tree
-        nxsample = nxentry["sample"]
-        convert_scan_axis(nxsample, nxdata, ax)
+            if osc and nbins:
+                raise ValueError(
+                    "osc and nbins are mutually exclusive, "
+                    "please pass only one of them."
+                )
+            elif osc:
+                ax_range = np.arange(start, stop, osc)
+            elif nbins:
+                ax_range = np.linspace(start, stop, nbins + 1)[:-1]
+            else:
+                raise ValueError(
+                    "Impossible to calculate scan_axis, "
+                    "please pass either osc or nbins."
+                )
+
+            nxdata.create_dataset(ax, data=ax_range)
+            # Write the attributes
+            for key, value in ax_attr.items():
+                nxdata[ax].attrs.create(key, value)
+            # Now fix all other instances of scan_axis in the tree
+            nxsample = nxentry["sample"]
+            convert_scan_axis(nxsample, nxdata, ax)
 
     return nxs_filename.as_posix()
