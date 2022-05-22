@@ -96,8 +96,8 @@ def identify_tristan_scan_axis(nxs_in: h5py.File) -> tuple[str | None, dict[str,
     """
     nxdata = nxs_in["entry/data"]
     for ax, h5_object in nxdata.items():
-        if h5str(ax.attrs.get("transformation_type")) == "rotation":
-            return ax, dict(ax.attrs)
+        if h5str(h5_object.attrs.get("transformation_type")) == "rotation":
+            return ax, dict(h5_object.attrs)
     return None, {}
 
 
