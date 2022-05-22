@@ -3,9 +3,10 @@ Command line tool to get an existing .phil file with goniometer/detector metadat
 These files can be used as input for the NeXus generator CLI.
 """
 
-import sys
-import shutil
 import argparse
+import shutil
+import sys
+
 import freephil
 
 try:
@@ -16,9 +17,8 @@ except ImportError:
 
 from pathlib import Path
 
-from . import version_parser, nexus_parser
-
 from .. import beamlines
+from . import nexus_parser, version_parser
 
 scopes = freephil.parse(
     """

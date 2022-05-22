@@ -3,9 +3,9 @@ Define a Metafile object to describe the _meta.h5 file and get the necessary inf
 """
 
 import re
-import h5py
+from typing import List, Tuple, Union
 
-from typing import Union, List, Tuple
+import h5py
 
 try:
     # Only for Python version >= 3.8

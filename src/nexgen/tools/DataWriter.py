@@ -2,15 +2,14 @@
 General tools for blank data writing.
 """
 
-import h5py
-import time
 import logging
-
-import numpy as np
-
+import time
 from pathlib import Path
-from hdf5plugin import Bitshuffle
 from typing import List, Tuple, Union
+
+import h5py
+import numpy as np
+from hdf5plugin import Bitshuffle
 
 data_logger = logging.getLogger("NeXusGenerator.writer.data")
 

@@ -2,39 +2,37 @@
 Writer for NeXus format files.
 """
 
-import h5py
 import logging
-
-import numpy as np
-
 from pathlib import Path
 from typing import Dict, List, Tuple, Union
 
+import h5py
+import numpy as np
+
+from .. import units_of_time
+from ..tools.DataWriter import generate_event_files, generate_image_files
+from ..tools.MetaReader import overwrite_beam, overwrite_detector
+from ..tools.VDS_tools import image_vds_writer, vds_file_writer
 from . import (
-    find_osc_axis,
+    calculate_grid_scan_range,
     calculate_rotation_scan_range,
     find_grid_scan_axes,
-    calculate_grid_scan_range,
     find_number_of_images,
+    find_osc_axis,
 )
-from .. import units_of_time
-
 from .NXclassWriters import (
-    write_NXentry,
     write_NXdata,
+    write_NXdatetime,
+    write_NXdetector,
+    write_NXdetector_module,
+    write_NXentry,
     write_NXinstrument,
     write_NXsample,
     write_NXsource,
-    write_NXdetector,
-    write_NXdetector_module,
-    write_NXdatetime,
 )
 
-from ..tools.MetaReader import overwrite_beam, overwrite_detector
-from ..tools.DataWriter import generate_event_files, generate_image_files
-from ..tools.VDS_tools import image_vds_writer, vds_file_writer
-
 writer_logger = logging.getLogger("NeXusGenerator.writer")
+
 
 # General writing
 # TODO REMOVE. Hopefully obsolete

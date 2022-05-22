@@ -2,16 +2,31 @@
 Utilities for copying metadata to new NeXus files.
 """
 
+from __future__ import annotations
+
+from typing import Any
+
 import h5py
 import numpy as np
-
-from typing import List
 
 from .. import walk_nxs
 from ..nxs_write import create_attributes
 
 
-def get_skip_list(nxentry: h5py.Group, skip_obj: List[str]) -> List[str]:
+def h5str(h5_value: str | np.string_ | bytes) -> str:
+    """
+    Convert a value returned an h5py attribute to str.
+
+    h5py can return either a bytes-like (numpy.string_) or str object
+    for attribute values depending on whether the value was written as
+    fixed or variable length. This function collapses the two to str.
+    """
+    if isinstance(h5_value, (np.string_, bytes)):
+        return h5_value.decode("utf-8")
+    return h5_value
+
+
+def get_skip_list(nxentry: h5py.Group, skip_obj: list[str]) -> list[str]:
     """
     Get a list of all the objects that hould not be copied in the nex NeXus file.
     """
@@ -30,7 +45,7 @@ def get_nexus_tree(
     nxs_in: h5py.File,
     nxs_out: h5py.File,
     skip: bool = True,
-    skip_obj: List[str] = ["NXdata"],
+    skip_obj: list[str] = None,
 ):
     """
     Copy the tree from the original NeXus file. Everything except NXdata is copied to a new NeXus file.
@@ -46,6 +61,8 @@ def get_nexus_tree(
         nxentry:    NeXus field.
         Nothing if the full file is copied.
     """
+    skip_obj = ["NXdata"] if skip_obj is None else skip_obj
+
     if skip is True:
         nxentry = nxs_out.create_group("entry")
         create_attributes(nxentry, ("NX_class", "default"), ("NXentry", "data"))
@@ -64,26 +81,24 @@ def get_nexus_tree(
         return
 
 
-def identify_tristan_scan_axis(nxs_in: h5py.File):
+def identify_tristan_scan_axis(nxs_in: h5py.File) -> tuple[str | None, dict[str, Any]]:
     """
     Identify the scan_axis in the NeXus tree of a Tristan collection.
+
+    Return the first data set in the group '/entry/data' that has the attribute
+    'transformation_type' equal to 'rotation'.
 
     Args:
         nxs_in:     Tristan NeXus file
     Returns:
         ax:         Name of the scan_axis
-        ax_attrs:   Attributes of the scan_axis dataset, type h5py._hl.base.ItemsViewHDF5
+        ax_attrs:   Attributes of the scan_axis dataset
     """
     nxdata = nxs_in["entry/data"]
-    for k in nxdata.keys():
-        try:
-            if type(nxdata[k]) is h5py.Dataset:
-                # in Tristan NeXus files everything else is a group
-                ax = k
-                ax_attr = nxdata[k].attrs.items()
-        except KeyError:
-            continue
-    return ax, ax_attr
+    for ax, h5_object in nxdata.items():
+        if h5str(ax.attrs.get("transformation_type")) == "rotation":
+            return ax, dict(ax.attrs)
+    return None, {}
 
 
 def convert_scan_axis(nxsample: h5py.Group, nxdata: h5py.Group, ax: str):
