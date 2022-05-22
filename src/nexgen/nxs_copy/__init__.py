@@ -30,7 +30,7 @@ def get_nexus_tree(
     nxs_in: h5py.File,
     nxs_out: h5py.File,
     skip: bool = True,
-    skip_obj: List[str] = ["NXdata"],
+    skip_obj: list[str] = None,
 ):
     """
     Copy the tree from the original NeXus file. Everything except NXdata is copied to a new NeXus file.
@@ -46,6 +46,8 @@ def get_nexus_tree(
         nxentry:    NeXus field.
         Nothing if the full file is copied.
     """
+    skip_obj = ["NXdata"] if skip_obj is None else skip_obj
+
     if skip is True:
         nxentry = nxs_out.create_group("entry")
         create_attributes(nxentry, ("NX_class", "default"), ("NXentry", "data"))
