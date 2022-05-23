@@ -10,12 +10,17 @@ __version_tuple__ = tuple(int(x) for x in __version__.split("."))
 import re
 import h5py
 import pint
+import logging
 
 import numpy as np
 
 from pathlib import Path
 from datetime import datetime
 from typing import Any, Optional, List, Union
+
+# Set up a root logger
+root_logger = logging.getLogger()
+root_logger.setLevel(logging.DEBUG)
 
 # Initialize registry and a Quantity constructor
 ureg = pint.UnitRegistry()
