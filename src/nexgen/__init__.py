@@ -4,7 +4,7 @@ General tools useful to create NeXus format files.
 
 __author__ = "Diamond Light Source - Scientific Software"
 __email__ = "scientificsoftware@diamond.ac.uk"
-__version__ = "0.6.6"
+__version__ = "0.6.8"
 __version_tuple__ = tuple(int(x) for x in __version__.split("."))
 
 import re
@@ -12,11 +12,11 @@ import h5py
 import pint
 import logging
 
-import numpy as np
-
-from pathlib import Path
 from datetime import datetime
-from typing import Any, Optional, List, Union
+from pathlib import Path
+from typing import Any, List, Optional, Union
+
+import numpy as np
 
 # Set up a root logger
 root_logger = logging.getLogger()

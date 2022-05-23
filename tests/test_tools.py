@@ -1,9 +1,9 @@
-import nexgen
+import time
+from pathlib import Path
 
 import pint
-import time
 
-from pathlib import Path
+import nexgen
 
 ureg = pint.UnitRegistry()
 

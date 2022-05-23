@@ -1,35 +1,23 @@
 """
 Create a NeXus file for serial crystallography datasets collected on I24 Eiger 2X 9M detector.
 """
-import sys
-
 import glob
-import h5py
 import logging
+import sys
+from collections import namedtuple
+from pathlib import Path
+from typing import List
+
+import h5py
+
+from .. import get_iso_timestamp, get_nexus_filename
+from ..nxs_write.NexusWriter import ScanReader, call_writers
+from ..nxs_write.NXclassWriters import write_NXdatetime, write_NXentry, write_NXnote
+from ..tools.VDS_tools import image_vds_writer
+from .I24_Eiger_params import dset_links, eiger9M_params, goniometer_axes, source
 
 # import numpy as np
 
-from typing import List
-from pathlib import Path
-
-from collections import namedtuple
-
-from .I24_Eiger_params import (
-    goniometer_axes,
-    eiger9M_params,
-    source,
-    dset_links,
-)
-
-from .. import (
-    get_iso_timestamp,
-    get_nexus_filename,
-)
-
-from ..nxs_write.NexusWriter import call_writers, ScanReader
-from ..nxs_write.NXclassWriters import write_NXentry, write_NXnote, write_NXdatetime
-
-from ..tools.VDS_tools import image_vds_writer
 
 # Define a logger object and a formatter
 logger = logging.getLogger("NeXusGenerator.I24")

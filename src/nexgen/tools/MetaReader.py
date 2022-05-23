@@ -2,13 +2,12 @@
 Tools to get the information stored inside the _meta.h5 file and overwrite the phil scope.
 """
 
-import h5py
 import logging
+from typing import Any, List
 
-from typing import List, Any
+import h5py
 
 from .. import units_of_length
-
 from .Metafile import DectrisMetafile, TristanMetafile
 
 # TODO actually define the type for scope extract and replace Any with Union
@@ -115,8 +114,8 @@ def overwrite_detector(
             new_values["beam_center"] = meta.get_beam_center()
             overwrite_logger.warning("Beam_center will be overwritten.")
             overwrite_logger.info(
-                f"Values for x and y beam center position found in meta file: %s"
-                % new_values["beam_center"]
+                f"Values for x and y beam center position found in meta file: "
+                f"{new_values['beam_center']}"
             )
             sensor_info = meta.get_sensor_information()
             new_values["sensor_material"] = sensor_info[0]
@@ -132,7 +131,7 @@ def overwrite_detector(
             new_values["overload"] = meta.get_saturation_value()
             overwrite_logger.warning("Saturation value (overload) will be overwritten.")
             overwrite_logger.info(
-                f"Value for overload found in meta file: %s" % new_values["overload"]
+                f"Value for overload found in meta file: {new_values['overload']}"
             )
     else:
         overwrite_logger.warning("Unknown detector, exit.")

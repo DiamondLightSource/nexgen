@@ -2,9 +2,8 @@
 Tools to extract goniometer and detector parameters from GDA JSON files.
 """
 import json
-
-from typing import Dict, Tuple, Union
 from pathlib import Path
+from typing import Dict, Tuple, Union
 
 
 def read_geometry_from_json(
