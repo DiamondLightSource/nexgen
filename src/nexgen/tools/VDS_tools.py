@@ -2,13 +2,12 @@
 Tools to write Virtual DataSets
 """
 
-import h5py
 import logging
-
-import numpy as np
-
 from pathlib import Path
 from typing import Any, List, Tuple, Union
+
+import h5py
+import numpy as np
 
 vds_logger = logging.getLogger("NeXusGenerator.writer.vds")
 

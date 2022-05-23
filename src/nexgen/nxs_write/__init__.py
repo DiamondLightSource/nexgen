@@ -3,13 +3,12 @@ Utilities for writing new NeXus format files.
 """
 
 import math
+from pathlib import Path
+from typing import Dict, List, Tuple, Union
+
 import h5py
 import numpy as np
-
-from pathlib import Path
 from h5py import AttributeManager
-from typing import List, Dict, Tuple, Union
-
 from scanspec.core import Path as ScanPath
 from scanspec.specs import Line
 
