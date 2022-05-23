@@ -2,45 +2,39 @@
 Command line tool to generate NeXus files.
 """
 
-import sys
-import glob
-import h5py
-import time
-import logging
 import argparse
-import freephil
+import glob
+import logging
+import sys
+import time
+from datetime import datetime
+from pathlib import Path
 
+import freephil
+import h5py
 import numpy as np
 
-from pathlib import Path
-from datetime import datetime
-
-from . import (
-    version_parser,
-    detectormode_parser,
-    nexus_parser,
-    demo_parser,
-    add_tristan_spec,
-)
 from .. import (
-    get_nexus_filename,
     get_filename_template,
     get_iso_timestamp,
+    get_nexus_filename,
     units_of_time,
 )
-
-from ..nxs_write.NexusWriter import (
-    call_writers,
+from ..nxs_write.NexusWriter import (  # write_nexus_demo, write_nexus
     ScanReader,
-)  # write_nexus_demo, write_nexus
-from ..nxs_write.NXclassWriters import (
-    write_NXnote,
-    write_NXdatetime,
-    write_NXentry,
+    call_writers,
 )
-from ..tools.DataWriter import generate_image_files, generate_event_files
-from ..tools.VDS_tools import image_vds_writer, vds_file_writer
+from ..nxs_write.NXclassWriters import write_NXdatetime, write_NXentry, write_NXnote
+from ..tools.DataWriter import generate_event_files, generate_image_files
 from ..tools.MetaReader import overwrite_beam, overwrite_detector
+from ..tools.VDS_tools import image_vds_writer, vds_file_writer
+from . import (
+    add_tristan_spec,
+    demo_parser,
+    detectormode_parser,
+    nexus_parser,
+    version_parser,
+)
 
 # Define a logger object and a formatter
 logger = logging.getLogger("NeXusGenerator")
@@ -177,6 +171,7 @@ parser.add_argument(
     dest="attributes_level",
     help="Set the attributes level for showing the configuration parameters.",
 )
+
 
 # CLIs
 def write_NXmx_cli(args):
@@ -351,7 +346,7 @@ def write_NXmx_cli(args):
     logger.info(f"Fast axis at datum position: {module.fast_axis}")
     logger.info(f"Slow_axis at datum position: {module.slow_axis}")
     if module.module_offset == "0":
-        logger.warning(f"module_offset field will not be written.")
+        logger.warning("module_offset field will not be written.")
     logger.info("")
 
     logger.info("Start writing NeXus file ...")
@@ -860,7 +855,7 @@ def write_with_meta_cli(args):
     logger.info(f"Fast axis at datum position: {module.fast_axis}")
     logger.info(f"Slow_axis at datum position: {module.slow_axis}")
     if module.module_offset == "0":
-        logger.warning(f"module_offset field will not be written.")
+        logger.warning("module_offset field will not be written.")
     logger.info("")
 
     if args.no_ow:

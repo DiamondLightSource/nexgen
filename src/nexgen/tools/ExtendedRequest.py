@@ -3,7 +3,6 @@ IO tool to gather beamline and collection information from xml file.
 """
 
 import xml.etree.ElementTree as ET
-
 from pathlib import Path
 from typing import Dict, Tuple, Union
 

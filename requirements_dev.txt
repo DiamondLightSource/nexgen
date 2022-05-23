@@ -3,5 +3,6 @@ h5py
 hdf5plugin
 numpy
 pint
+scanspec
 pytest
 pytest-cov

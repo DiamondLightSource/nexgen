@@ -2,22 +2,17 @@
 Create a NeXus file for serial crystallography datasets collected on I19-2 Tristan10M detector.
 """
 
-import sys
-import h5py
 import logging
-
-from pathlib import Path
+import sys
 from collections import namedtuple
+from pathlib import Path
 
-from .I19_2_params import goniometer_axes, tristan10M_params, source
+import h5py
 
-from .. import (
-    get_iso_timestamp,
-    get_nexus_filename,
-)
-
+from .. import get_iso_timestamp, get_nexus_filename
 from ..nxs_write.NexusWriter import call_writers
-from ..nxs_write.NXclassWriters import write_NXentry, write_NXnote, write_NXdatetime
+from ..nxs_write.NXclassWriters import write_NXdatetime, write_NXentry, write_NXnote
+from .I19_2_params import goniometer_axes, source, tristan10M_params
 
 # Define a logger object and a formatter
 logger = logging.getLogger("NeXusGenerator.I19-2_ssx")

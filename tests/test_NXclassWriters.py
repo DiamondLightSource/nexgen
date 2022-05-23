@@ -1,12 +1,10 @@
 import tempfile
+from datetime import datetime
+
 import h5py
 import pytest
 
-from datetime import datetime
-from nexgen.nxs_write.NXclassWriters import (
-    write_NXdetector_module,
-    write_NXdatetime,
-)
+from nexgen.nxs_write.NXclassWriters import write_NXdatetime, write_NXdetector_module
 
 test_module = {"fast_axis": [1, 0, 0], "slow_axis": [0, 1, 0]}
 

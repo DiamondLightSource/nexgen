@@ -1,7 +1,6 @@
 """General utilities for comamnd line tools"""
 
 import argparse
-
 from pathlib import Path
 
 from .. import __version__

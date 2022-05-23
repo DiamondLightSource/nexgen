@@ -2,20 +2,15 @@
 Command line tool to copy experiment metadata from one NeXus file to the other.
 """
 
-import sys
-import logging
 import argparse
-import freephil
-
+import logging
+import sys
 from pathlib import Path
 
-from . import (
-    version_parser,
-    full_copy_parser,
-    tristan_copy_parser,
-)
+import freephil
 
 from ..nxs_copy import CopyNexus, CopyTristanNexus
+from . import full_copy_parser, tristan_copy_parser, version_parser
 
 # Define a logger object and a formatter
 logger = logging.getLogger("CopyNeXus")
@@ -92,6 +87,7 @@ parser.add_argument(
     dest="attributes_level",
     help="Set the attributes level for showing the configuration parameters.",
 )
+
 
 # CLIs
 def copy_nexus(args):
@@ -182,7 +178,7 @@ def copy_tristan_nexus(args):
                 logger.info(f"Scan_ axis will be a list of {args.num_bins} values.")
             else:
                 logger.error(
-                    f"For a rotation dataset please pass either the oscillation angle or the number of bins."
+                    "For a rotation dataset please pass either the oscillation angle or the number of bins."
                 )
                 sys.exit(
                     "Missing input argument for rotation dataset. Please specify either oscillation angle or number of bins."
