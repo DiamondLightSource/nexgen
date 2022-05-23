@@ -38,8 +38,6 @@ from . import (
 
 # Define a logger object and a formatter
 logger = logging.getLogger("NeXusGenerator")
-logger.setLevel(logging.DEBUG)
-# formatter = logging.Formatter("%(levelname)s %(message)s")
 formatter = logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s")
 
 # Phil scopes
@@ -974,12 +972,6 @@ parser_NXmx_meta.set_defaults(func=write_with_meta_cli)
 
 
 def main():
-    # Define a stream handler
-    CH = logging.StreamHandler(sys.stdout)
-    CH.setLevel(logging.DEBUG)
-    CH.setFormatter(formatter)
-    logger.addHandler(CH)
-
     args = parser.parse_args()
     args.func(args)
 
