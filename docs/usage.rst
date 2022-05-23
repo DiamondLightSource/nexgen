@@ -2,7 +2,7 @@
 Usage
 =====
 
-**Nexgen** is a Python package that provides a set of tools to write NeXus files for experiments at at Synchrotron, following 
+**Nexgen** is a Python package that provides a set of tools to write NeXus files for experiments at Diamond Light Source, following 
 the NXmx application definition for macromolecular crystallography. This is meant to include all relevant experiment metadata
 required to process the datasets, including detector and goniometer description.
 
