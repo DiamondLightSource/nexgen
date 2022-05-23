@@ -5,7 +5,8 @@ Available detectors: Tristan 10M, Eiger 2X 4M.
 
 import glob
 import logging
-import sys
+
+# import sys
 from collections import namedtuple
 from datetime import datetime
 from pathlib import Path
