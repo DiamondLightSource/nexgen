@@ -31,14 +31,16 @@ from .I19_2_params import (
 )
 
 # Define a logger object and a formatter
-logger = logging.getLogger("NeXusGenerator.I19-2")
-logger.setLevel(logging.DEBUG)
-formatter = logging.Formatter("%(name)s %(levelname)s %(message)s")  # %(asctime)s
+logger = logging.getLogger("I19-2_NeXus")
+# logger.setLevel(logging.DEBUG)
+formatter = logging.Formatter(
+    " %(asctime)s %(name)s %(levelname)s %(message)s"
+)  # %(asctime)s
 # Define a stream handler
-CH = logging.StreamHandler(sys.stdout)
-CH.setLevel(logging.DEBUG)
-CH.setFormatter(formatter)
-logger.addHandler(CH)
+# CH = logging.StreamHandler(sys.stdout)
+# CH.setLevel(logging.DEBUG)
+# CH.setFormatter(formatter)
+# logger.addHandler(CH)
 
 # Tristan mask and flatfield files
 maskfile = "Tristan10M_mask_with_spec.h5"
