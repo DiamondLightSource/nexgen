@@ -17,6 +17,7 @@ NXmx writers
     :members:
 
 All the writers above can be called using the ``call_writers`` function, with the exception of ``write_NXentry``, ``write_NXdatetime`` and ``write_NXnote``.  
+NOTE: Versions >= 0.6.8 (current one) hopefully won't have these writers, and since there are no docs yet, the line above probably doesn't matter.
 
 .. autofunction:: nexgen.nxs_write.NexusWriter.call_writers
 
@@ -58,6 +59,11 @@ Copying tools
 Utilities
 =========
 
+Checking for scan axes
+----------------------
+
+.. autofunction:: nexgen.nxs_write.NexusWriter.ScanReader
+
 Generally useful tools
 ----------------------
 
@@ -78,6 +84,28 @@ Generally useful tools
 HDF5 metafile reader
 --------------------
 
+Metafile definition:
+
+.. automodule:: nexgen.tools.Metafile
+    :members:
+    :show-inheritance:
+
+Reading the information stored in the metafile and copying it across to the new NeXus file:
+
+.. autofunction:: nexgen.tools.MetaReader.overwrite_beam
+
+.. autofunction:: nexgen.tools.MetaReader.overwrite_detector
+
 GDA integration tools
 ---------------------
-(or whatever)
+
+**Read geometry and detector parameters from GDA-generated JSON files**
+
+.. autofunction:: nexgen.tools.GDAjson2params.read_geometry_from_json
+
+.. autofunction:: nexgen.tools.GDAjson2params.read_detector_params_from_json
+
+**Gather beamline and collection information from GDA-generated xml file**
+
+.. autoclass:: nexgen.tools.ExtendedRequest.ExtendedRequestIO
+    :members:
