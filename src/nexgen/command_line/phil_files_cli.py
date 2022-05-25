@@ -88,9 +88,19 @@ def create_new_phil(args):
         working_phil.show(attributes_level=args.attributes_level)
         sys.exit()
 
+    if args.skip is True:
+        logger.warning(
+            "The scope containing Tristan specs will be removed before writing."
+        )
+        tristanSpec = [
+            obj for obj in working_phil.objects if "tristanSpec" in obj.as_str()
+        ][0]
+        working_phil.objects.remove(tristanSpec)
+
     # Write to file
     if args.filename:
         filename = Path(args.filename).expanduser().resolve()
+        logger.info(f"Writing new .phil file to {filename.name} in {filename.parent}.")
         with open(filename, "w") as fout:
             fout.write(working_phil.as_str())
     else:
@@ -128,7 +138,12 @@ parser_create = subparser.add_parser(
 parser_create.add_argument(
     "-f", "--filename", type=str, help="Filename for new .phil template."
 )
-# TODO Find a way to avoid writing Tristan spec if detector is Eiger!
+parser_create.add_argument(
+    "-s",
+    "--skip",
+    help="Pass to avoid writing tristanSpec scope for non-Tristan detectors.",
+    action="store_true",
+)
 parser_create.set_defaults(func=create_new_phil)
 
 
