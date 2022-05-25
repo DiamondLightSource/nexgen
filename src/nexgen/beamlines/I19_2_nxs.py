@@ -5,8 +5,6 @@ Available detectors: Tristan 10M, Eiger 2X 4M.
 
 import glob
 import logging
-
-# import sys
 from collections import namedtuple
 from datetime import datetime
 from pathlib import Path
@@ -162,7 +160,7 @@ def tristan_writer(
             if timestamps[1]:
                 write_NXdatetime(nxsfile, (None, timestamps[1]))
             #    nxentry.create_dataset("end_time", data=np.string_(timestamps[1]))
-            logger.info(f"{master_file} correctly written.")
+            logger.info(f"The file {master_file} was written correctly.")
     except Exception as err:
         logger.exception(err)
         logger.info(
@@ -237,7 +235,7 @@ def eiger_writer(
 
             if timestamps[1]:
                 write_NXdatetime(nxsfile, (None, timestamps[1]))
-            logger.info(f"{master_file} correctly written.")
+            logger.info(f"The file {master_file} was written correctly.")
     except Exception as err:
         logger.exception(err)
         logger.info(
@@ -278,7 +276,8 @@ def write_nxs(**tr_params):
     # Configure logging
     log.config(logfile.as_posix())
 
-    logger.info(f"{TR.detector_name} NeXus file writer.")
+    logger.info("NeXus file writer for beamline I19-2 at DLS.")
+    logger.info(f"Detector in use for this experiment: {TR.detector_name}.")
     logger.info(f"Current collection directory: {TR.meta_file.parent}")
     # Add some information to logger
     logger.info("Creating a NeXus file for %s ..." % TR.meta_file.name)
