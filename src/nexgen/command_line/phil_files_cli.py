@@ -4,6 +4,7 @@ These files can be used as input for the NeXus generator CLI.
 """
 
 import argparse
+import logging
 import shutil
 import sys
 
@@ -17,8 +18,11 @@ except ImportError:
 
 from pathlib import Path
 
-from .. import beamlines
+from .. import beamlines, log
 from . import nexus_parser, version_parser
+
+# Define a logger object
+logger = logging.getLogger("nexgen.NeXusGenerator")
 
 scopes = freephil.parse(
     """
@@ -62,7 +66,7 @@ def get_beamline_phil(args):
         odir = Path(args.output).expanduser().resolve()
     else:
         odir = Path(".").expanduser().resolve()
-        print(
+        logger.warning(
             "No output directory was specified by user. A copy of the file will be saved in the current directory."
         )
 
@@ -70,9 +74,9 @@ def get_beamline_phil(args):
     filedir = files(beamlines)
     found = [f for f in sorted(filedir.glob("*.phil")) if args.phil_file == f.name]
     if len(found) == 0:
-        print(f"No {args.phil_file} found.")
+        logger.info(f"No {args.phil_file} found.")
     elif len(found) == 1:
-        print(f"{args.phil_file} found. Copying in {odir}.")
+        logger.info(f"{args.phil_file} found. Copying in {odir}.")
         shutil.copy(found[0], odir)
 
 
@@ -90,7 +94,7 @@ def create_new_phil(args):
         with open(filename, "w") as fout:
             fout.write(working_phil.as_str())
     else:
-        print(working_phil.as_str())
+        logger.info(working_phil.as_str())
 
 
 # Define subparsers
@@ -129,6 +133,9 @@ parser_create.set_defaults(func=create_new_phil)
 
 
 def main():
+    # Configure logging
+    log.config()
+
     args = parser.parse_args()
     if args.command == "list":
         args.func()

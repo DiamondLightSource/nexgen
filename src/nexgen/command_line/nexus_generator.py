@@ -37,7 +37,7 @@ from . import (
     version_parser,
 )
 
-# Define a logger object and a formatter
+# Define a logger object
 logger = logging.getLogger("nexgen.NeXusGenerator")
 
 # Phil scopes
@@ -194,6 +194,8 @@ def write_NXmx_cli(args):
     logfile = master_file.parent / "generate_nexus.log"
     # Configure logging
     log.config(logfile.as_posix())
+
+    logger.info("NeXus file writer for existing dataset.")
 
     # Add some information to logger
     logger.info("Create a NeXus file for %s" % datafiles[0])
@@ -421,6 +423,8 @@ def write_demo_cli(args):
     logfile = master_file.parent / "generate_demo.log"
     # Configure logging
     log.config(logfile.as_posix())
+
+    logger.info("Demo NeXus file writer with blank data HDF5 files.")
 
     # Get data file name template
     data_file_template = get_filename_template(master_file)
@@ -691,6 +695,8 @@ def write_with_meta_cli(args):
     logfile = master_file.parent / "generate_nexus_from_meta.log"
     # Configure logging
     log.config(logfile.as_posix())
+
+    logger.info("NeXus file writer for existing dataset with meta file available.")
 
     # Add some information to logger
     logger.info("Create a NeXus file for %s" % datafiles[0])
