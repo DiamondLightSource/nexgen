@@ -37,7 +37,7 @@ from . import (
 )
 
 # Define a logger object and a formatter
-logger = logging.getLogger("NeXusGenerator")
+logger = logging.getLogger("nexgen.NeXusGenerator")
 formatter = logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s")
 
 # Phil scopes

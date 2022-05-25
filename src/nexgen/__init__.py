@@ -9,7 +9,6 @@ __version_tuple__ = tuple(int(x) for x in __version__.split("."))
 
 import logging
 import re
-import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any, List, Optional, Union
@@ -18,15 +17,8 @@ import h5py
 import numpy as np
 import pint
 
-# Set up a root logger
-root_logger = logging.getLogger()
-root_logger.setLevel(logging.DEBUG)
-root_formatter = logging.Formatter("%(name)s %(levelname)s %(message)s")
-# Define a stream handler
-CH = logging.StreamHandler(sys.stdout)
-CH.setLevel(logging.DEBUG)
-CH.setFormatter(root_formatter)
-root_logger.addHandler(CH)
+# Logging set up
+logging.getLogger("nexgen").addHandler(logging.NullHandler())
 
 # Initialize registry and a Quantity constructor
 ureg = pint.UnitRegistry()
