@@ -5,7 +5,6 @@ Logging configuration.
 import logging
 import logging.config
 
-# logging.config.fileConfig("logConfig.ini", defaults={'logfilename': 'filename.log'}, disable_existing_loggers=False)
 logging_config = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -36,6 +35,12 @@ logging.config.dictConfig(logging_config)
 
 
 def config(logfile: str = None):
+    """
+    Configure the logging.
+
+    Args:
+        logfile (str, optional): If passed, create a file handler for the logger to write to file the log output. Defaults to None.
+    """
     nexgen_logger = logging.getLogger("nexgen")
     if logfile:
         fileFormatter = logging.Formatter(

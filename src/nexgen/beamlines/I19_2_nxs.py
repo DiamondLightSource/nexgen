@@ -33,15 +33,6 @@ from .I19_2_params import (
 
 # Define a logger object and a formatter
 logger = logging.getLogger("nexgen.I19-2_NeXus")
-# logger.setLevel(logging.DEBUG)
-# formatter = logging.Formatter(
-#    " %(asctime)s %(name)s %(levelname)s %(message)s"
-# )  # %(asctime)s
-# Define a stream handler
-# CH = logging.StreamHandler(sys.stdout)
-# CH.setLevel(logging.DEBUG)
-# CH.setFormatter(formatter)
-# logger.addHandler(CH)
 
 # Tristan mask and flatfield files
 maskfile = "Tristan10M_mask_with_spec.h5"
@@ -286,10 +277,6 @@ def write_nxs(**tr_params):
     logfile = TR.meta_file.parent / "nexus_writer.log"
     # Configure logging
     log.config(logfile.as_posix())
-    # FH = logging.FileHandler(logfile, mode="a")
-    # FH.setLevel(logging.DEBUG)
-    # FH.setFormatter(formatter)
-    # logger.addHandler(FH)
 
     logger.info(f"{TR.detector_name} NeXus file writer.")
     logger.info(f"Current collection directory: {TR.meta_file.parent}")
