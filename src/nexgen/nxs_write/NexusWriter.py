@@ -390,6 +390,8 @@ def ScanReader(
         Tuple[Dict,Dict]: Two separate dictionaries. The first defines the rotation scan, the second the linear/grid scan. \
                             When dealing with a set of stills or a simple rotation scan, the second value will return None.
     """
+    logger = logging.getLogger("nexgen.ScanReader")
+    logger.setLevel(logging.DEBUG)
     # First find which axes deifne a rotation/translation scan
     osc_axis = find_osc_axis(
         goniometer["axes"],
@@ -414,6 +416,7 @@ def ScanReader(
         TRANSL = calculate_grid_scan_range(
             transl_axes, transl_start, transl_end, transl_increment, snaked=snaked
         )
+        logger.info(f"{len(transl_axes)} scan axis/axes found (translation).")
     else:
         TRANSL = None
 
@@ -463,6 +466,7 @@ def ScanReader(
             )
 
     OSC = {osc_axis: osc_range}
+    # logger.info(f"{osc_axis} set as rotation axis.")
     return OSC, TRANSL
 
 
@@ -502,7 +506,7 @@ def call_writers(
         metafile (Union[Path, str], optional): File containing the metadata. Defaults to None.
         link_list (List, optional): List of datasets that can be copied from the metafile. Defaults to None.
     """
-    logger = logging.getLogger("nexgen.call")
+    logger = logging.getLogger("nexgen.Call")
     logger.setLevel(logging.DEBUG)
     logger.info("Calling the writers ...")
 

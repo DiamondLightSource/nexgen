@@ -9,12 +9,12 @@ from pathlib import Path
 
 import freephil
 
+from .. import log
 from ..nxs_copy import CopyNexus, CopyTristanNexus
 from . import full_copy_parser, tristan_copy_parser, version_parser
 
 # Define a logger object and a formatter
-logger = logging.getLogger("CopyNeXus")
-# formatter = logging.Formatter("%(levelname)s %(message)s")
+logger = logging.getLogger("nexgen.CopyNeXus")
 
 # Phil scopes
 general_scope = freephil.parse(
@@ -99,6 +99,9 @@ def copy_nexus(args):
         working_phil.show(attributes_level=args.attributes_level)
         sys.exit()
 
+    # Configure logging
+    log.config()
+
     logger.info("Copy metadata from one NeXus file to another.")
 
     # Path to data file and original nexus file
@@ -142,6 +145,9 @@ def copy_tristan_nexus(args):
     if args.show_config:
         working_phil.show(attributes_level=args.attributes_level)
         sys.exit()
+
+    # Configure logging
+    log.config()
 
     logger.info("Copy metadata from Tristan NeXus file.")
 
