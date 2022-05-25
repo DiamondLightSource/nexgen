@@ -21,7 +21,7 @@ from .. import (
 )
 from . import calculate_origin, create_attributes, set_dependency
 
-NXclass_logger = logging.getLogger("NeXusGenerator.writer.NXclass")
+NXclass_logger = logging.getLogger("nexgen.NXclass_writers")
 NXclass_logger.setLevel(logging.DEBUG)
 
 

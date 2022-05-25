@@ -12,7 +12,7 @@ import numpy as np
 from ..nxs_write import create_attributes
 from . import convert_scan_axis, get_nexus_tree, identify_tristan_scan_axis
 
-tristan_logger = logging.getLogger("CopyNeXus.tristan")
+tristan_logger = logging.getLogger("nexgen.CopyTristanNeXus")
 
 
 def single_image_nexus(

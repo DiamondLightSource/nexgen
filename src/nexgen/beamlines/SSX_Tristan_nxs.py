@@ -3,26 +3,18 @@ Create a NeXus file for serial crystallography datasets collected on I19-2 Trist
 """
 
 import logging
-import sys
 from collections import namedtuple
 from pathlib import Path
 
 import h5py
 
-from .. import get_iso_timestamp, get_nexus_filename
+from .. import get_iso_timestamp, get_nexus_filename, log
 from ..nxs_write.NexusWriter import call_writers
 from ..nxs_write.NXclassWriters import write_NXdatetime, write_NXentry, write_NXnote
 from .I19_2_params import goniometer_axes, source, tristan10M_params
 
 # Define a logger object and a formatter
-logger = logging.getLogger("NeXusGenerator.I19-2_ssx")
-logger.setLevel(logging.DEBUG)
-formatter = logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s")
-# Define a stream handler
-CH = logging.StreamHandler(sys.stdout)
-CH.setLevel(logging.DEBUG)
-CH.setFormatter(formatter)
-logger.addHandler(CH)
+logger = logging.getLogger("nexgen.I19-2_ssx")
 
 ssx_tr_collect = namedtuple(
     "ssx_collect",
@@ -77,8 +69,13 @@ def write_nxs(**ssx_params):
         pump_exp=ssx_params["pump_exp"],
         pump_delay=ssx_params["pump_delay"],
     )
+
+    logfile = SSX_TR.visitpath / "nexus_writer.log"
+    # Configure logging
+    log.config(logfile.as_posix())
+
     logger.info(
-        f"Start NeXus File Writer for time-resolved SSX on {source['beamline_name']}."
+        f"Start NeXus File Writer for time-resolved SSX on beamline {source['beamline_name']} at DLS."
     )
 
     # Add to dictionaries
@@ -212,7 +209,7 @@ def write_nxs(**ssx_params):
 
             if timestamps[1]:
                 write_NXdatetime(nxsfile, (None, timestamps[1]))
-            logger.info(f"{master_file} correctly written.")
+            logger.info(f"The file {master_file} was written correctly.")
     except Exception as err:
         logger.exception(err)
         logger.info(
