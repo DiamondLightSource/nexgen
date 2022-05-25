@@ -3,31 +3,20 @@ Create a NeXus file for serial crystallography datasets collected on I24 Eiger 2
 """
 import glob
 import logging
-import sys
 from collections import namedtuple
 from pathlib import Path
 from typing import List
 
 import h5py
 
-from .. import get_iso_timestamp, get_nexus_filename
+from .. import get_iso_timestamp, get_nexus_filename, log
 from ..nxs_write.NexusWriter import ScanReader, call_writers
 from ..nxs_write.NXclassWriters import write_NXdatetime, write_NXentry, write_NXnote
 from ..tools.VDS_tools import image_vds_writer
 from .I24_Eiger_params import dset_links, eiger9M_params, goniometer_axes, source
 
-# import numpy as np
-
-
 # Define a logger object and a formatter
-logger = logging.getLogger("NeXusGenerator.I24")
-logger.setLevel(logging.DEBUG)
-formatter = logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s")
-# Define a stream handler
-CH = logging.StreamHandler(sys.stdout)
-CH.setLevel(logging.DEBUG)
-CH.setFormatter(formatter)
-logger.addHandler(CH)
+logger = logging.getLogger("nexgen.I24")
 
 ssx_collect = namedtuple(
     "ssx_collect",
@@ -153,7 +142,7 @@ def extruder(
 
             if timestamps[1]:
                 write_NXdatetime(nxsfile, (None, timestamps[1]))
-            logger.info(f"{master_file} correctly written.")
+            logger.info(f"The file {master_file} was written correctly.")
     except Exception as err:
         logger.exception(err)
         logger.info(
@@ -256,7 +245,7 @@ def fixed_target(
 
             if timestamps[1]:
                 write_NXdatetime(nxsfile, (None, timestamps[1]))
-            logger.info(f"{master_file} correctly written.")
+            logger.info(f"The file {master_file} was written correctly.")
     except Exception as err:
         logger.exception(err)
         logger.info(
@@ -294,6 +283,10 @@ def write_nxs(**ssx_params):
         pump_exp=ssx_params["pump_exp"],
         pump_delay=ssx_params["pump_delay"],
     )
+
+    logfile = SSX.visitpath / "nexus_writer.log"
+    # Configure logging
+    log.config(logfile.as_posix())
 
     # Add to dictionaries
     detector["starts"] = [SSX.detector_distance]

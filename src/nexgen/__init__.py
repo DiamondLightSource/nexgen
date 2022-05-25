@@ -7,6 +7,7 @@ __email__ = "scientificsoftware@diamond.ac.uk"
 __version__ = "0.6.8"
 __version_tuple__ = tuple(int(x) for x in __version__.split("."))
 
+import logging
 import re
 from datetime import datetime
 from pathlib import Path
@@ -15,6 +16,9 @@ from typing import Any, List, Optional, Union
 import h5py
 import numpy as np
 import pint
+
+# Logging set up
+logging.getLogger("nexgen").addHandler(logging.NullHandler())
 
 # Initialize registry and a Quantity constructor
 ureg = pint.UnitRegistry()

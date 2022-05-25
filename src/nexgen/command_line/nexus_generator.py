@@ -18,6 +18,7 @@ from .. import (
     get_filename_template,
     get_iso_timestamp,
     get_nexus_filename,
+    log,
     units_of_time,
 )
 from ..nxs_write.NexusWriter import (  # write_nexus_demo, write_nexus
@@ -36,11 +37,8 @@ from . import (
     version_parser,
 )
 
-# Define a logger object and a formatter
-logger = logging.getLogger("NeXusGenerator")
-logger.setLevel(logging.DEBUG)
-# formatter = logging.Formatter("%(levelname)s %(message)s")
-formatter = logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s")
+# Define a logger object
+logger = logging.getLogger("nexgen.NeXusGenerator")
 
 # Phil scopes
 master_phil = freephil.parse(
@@ -194,12 +192,10 @@ def write_NXmx_cli(args):
 
     # Start logger
     logfile = master_file.parent / "generate_nexus.log"
-    # Define a file handler for logging
-    FH = logging.FileHandler(logfile, mode="a")
-    FH.setLevel(logging.DEBUG)
-    FH.setFormatter(formatter)
-    # Add handlers to logger
-    logger.addHandler(FH)
+    # Configure logging
+    log.config(logfile.as_posix())
+
+    logger.info("NeXus file writer for existing dataset.")
 
     # Add some information to logger
     logger.info("Create a NeXus file for %s" % datafiles[0])
@@ -302,7 +298,7 @@ def write_NXmx_cli(args):
     logger.info("\n")
 
     logger.info(
-        f"Detector information:\n {detector.description}, {detector.detector_type}"
+        f"Detector information: {detector.description}, {detector.detector_type}"
     )
     logger.info(
         f"Sensor made of {detector.sensor_material} x {detector.sensor_thickness}"
@@ -397,7 +393,7 @@ def write_NXmx_cli(args):
             # Write /entry/start_time and /entry/end_time
             write_NXdatetime(nxsfile, timestamps)
 
-        logger.info(f"{master_file} correctly written.")
+        logger.info(f"The file {master_file} was written correctly.")
     except Exception as err:
         logger.info(
             f"An error occurred and {master_file} couldn't be written correctly."
@@ -405,7 +401,7 @@ def write_NXmx_cli(args):
         logger.exception(err)
         # logger.error(err)
 
-    logger.info("EOF")
+    logger.info("EOF\n")
 
 
 def write_demo_cli(args):
@@ -425,12 +421,10 @@ def write_demo_cli(args):
 
     # Start logger
     logfile = master_file.parent / "generate_demo.log"
-    # Define a file handler for logging
-    FH = logging.FileHandler(logfile, mode="w")
-    FH.setLevel(logging.DEBUG)
-    FH.setFormatter(formatter)
-    # Add handlers to logger
-    logger.addHandler(FH)
+    # Configure logging
+    log.config(logfile.as_posix())
+
+    logger.info("Demo NeXus file writer with blank data HDF5 files.")
 
     # Get data file name template
     data_file_template = get_filename_template(master_file)
@@ -517,7 +511,7 @@ def write_demo_cli(args):
         logger.warning(f"Total number of images updated to: {data_type[1]}")
         logger.warning("\n")
 
-    logger.info("Detector information:\n%s" % detector.description)
+    logger.info("Detector information: %s" % detector.description)
     logger.info(
         f"Sensor made of {detector.sensor_material} x {detector.sensor_thickness}"
     )
@@ -653,14 +647,14 @@ def write_demo_cli(args):
             logger.info(f"Start time: {timestamps[0]}")
             logger.info(f"End time: {timestamps[1]}")
             write_NXdatetime(nxsfile, timestamps)
-        logger.info(f"{master_file} correctly written.")
+        logger.info(f"The file {master_file} was written correctly.")
     except Exception as err:
         logger.info(
             f"An error occurred and {master_file} couldn't be written correctly."
         )
         logger.exception(err)
 
-    logger.info("EOF")
+    logger.info("EOF\n")
 
 
 def write_with_meta_cli(args):
@@ -699,12 +693,10 @@ def write_with_meta_cli(args):
 
     # Start logger
     logfile = master_file.parent / "generate_nexus_from_meta.log"
-    # Define a file handler for logging
-    FH = logging.FileHandler(logfile, mode="a")
-    FH.setLevel(logging.DEBUG)
-    FH.setFormatter(formatter)
-    # Add handlers to logger
-    logger.addHandler(FH)
+    # Configure logging
+    log.config(logfile.as_posix())
+
+    logger.info("NeXus file writer for existing dataset with meta file available.")
 
     # Add some information to logger
     logger.info("Create a NeXus file for %s" % datafiles[0])
@@ -811,7 +803,7 @@ def write_with_meta_cli(args):
         sys.exit("Please provide a detector description for identification.")
 
     logger.info(
-        f"Detector information:\n {detector.description}, {detector.detector_type}"
+        f"Detector information: {detector.description}, {detector.detector_type}"
     )
     logger.info(
         f"Sensor made of {detector.sensor_material} x {detector.sensor_thickness}"
@@ -921,14 +913,14 @@ def write_with_meta_cli(args):
             # Write /entry/start_time and /entry/end_time
             write_NXdatetime(nxsfile, timestamps)
 
-            logger.info(f"{master_file} correctly written.")
+            logger.info(f"The file {master_file} was written correctly.")
     except Exception as err:
         logger.info(
             f"An error occurred and {master_file} couldn't be written correctly."
         )
         logger.exception(err)
 
-    logger.info("EOF")
+    logger.info("EOF\n")
 
 
 # Define subparsers
@@ -974,12 +966,6 @@ parser_NXmx_meta.set_defaults(func=write_with_meta_cli)
 
 
 def main():
-    # Define a stream handler
-    CH = logging.StreamHandler(sys.stdout)
-    CH.setLevel(logging.DEBUG)
-    CH.setFormatter(formatter)
-    logger.addHandler(CH)
-
     args = parser.parse_args()
     args.func(args)
 

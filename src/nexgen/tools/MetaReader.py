@@ -11,7 +11,7 @@ from .. import units_of_length
 from .Metafile import DectrisMetafile, TristanMetafile
 
 # TODO actually define the type for scope extract and replace Any with Union
-overwrite_logger = logging.getLogger("NeXusGenerator.writer.from_meta")
+overwrite_logger = logging.getLogger("nexgen.MetaReader")
 overwrite_logger.setLevel(logging.DEBUG)
 
 
@@ -35,7 +35,7 @@ def overwrite_beam(meta_file: h5py.File, name: str, beam: Any):
         raise ValueError("Unknown detector: please pass a valid detector description.")
     # If value exists, overwrite. Otherwise, create.
     overwrite_logger.warning("Wavelength will be overwritten.")
-    overwrite_logger.info(f"Value for wavelngth found in meta file: {wl}")
+    overwrite_logger.info(f"Value for wavelength found in meta file: {wl}")
     if type(beam) is dict:
         beam["wavelength"] = wl
     else:

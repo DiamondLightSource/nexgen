@@ -11,7 +11,7 @@ import h5py
 import numpy as np
 from hdf5plugin import Bitshuffle
 
-data_logger = logging.getLogger("NeXusGenerator.writer.data")
+data_logger = logging.getLogger("nexgen.DataWriter")
 
 # Random number generator
 rng = np.random.default_rng()

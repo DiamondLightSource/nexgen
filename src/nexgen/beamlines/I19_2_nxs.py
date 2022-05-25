@@ -5,7 +5,6 @@ Available detectors: Tristan 10M, Eiger 2X 4M.
 
 import glob
 import logging
-import sys
 from collections import namedtuple
 from datetime import datetime
 from pathlib import Path
@@ -13,7 +12,7 @@ from typing import Tuple, Union
 
 import h5py
 
-from .. import get_iso_timestamp, get_nexus_filename
+from .. import get_iso_timestamp, get_nexus_filename, log
 from ..nxs_write import calculate_rotation_scan_range
 from ..nxs_write.NexusWriter import call_writers
 from ..nxs_write.NXclassWriters import write_NXdatetime, write_NXentry
@@ -31,14 +30,7 @@ from .I19_2_params import (
 )
 
 # Define a logger object and a formatter
-logger = logging.getLogger("NeXusGenerator.I19-2")
-logger.setLevel(logging.DEBUG)
-formatter = logging.Formatter("%(name)s %(levelname)s %(message)s")  # %(asctime)s
-# Define a stream handler
-CH = logging.StreamHandler(sys.stdout)
-CH.setLevel(logging.DEBUG)
-CH.setFormatter(formatter)
-logger.addHandler(CH)
+logger = logging.getLogger("nexgen.I19-2_NeXus")
 
 # Tristan mask and flatfield files
 maskfile = "Tristan10M_mask_with_spec.h5"
@@ -168,7 +160,7 @@ def tristan_writer(
             if timestamps[1]:
                 write_NXdatetime(nxsfile, (None, timestamps[1]))
             #    nxentry.create_dataset("end_time", data=np.string_(timestamps[1]))
-            logger.info(f"{master_file} correctly written.")
+            logger.info(f"The file {master_file} was written correctly.")
     except Exception as err:
         logger.exception(err)
         logger.info(
@@ -243,7 +235,7 @@ def eiger_writer(
 
             if timestamps[1]:
                 write_NXdatetime(nxsfile, (None, timestamps[1]))
-            logger.info(f"{master_file} correctly written.")
+            logger.info(f"The file {master_file} was written correctly.")
     except Exception as err:
         logger.exception(err)
         logger.info(
@@ -281,12 +273,11 @@ def write_nxs(**tr_params):
 
     # Define a file handler
     logfile = TR.meta_file.parent / "nexus_writer.log"
-    FH = logging.FileHandler(logfile, mode="a")
-    FH.setLevel(logging.DEBUG)
-    FH.setFormatter(formatter)
-    logger.addHandler(FH)
+    # Configure logging
+    log.config(logfile.as_posix())
 
-    logger.info(f"{TR.detector_name} NeXus file writer.")
+    logger.info("NeXus file writer for beamline I19-2 at DLS.")
+    logger.info(f"Detector in use for this experiment: {TR.detector_name}.")
     logger.info(f"Current collection directory: {TR.meta_file.parent}")
     # Add some information to logger
     logger.info("Creating a NeXus file for %s ..." % TR.meta_file.name)
