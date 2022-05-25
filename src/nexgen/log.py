@@ -51,3 +51,24 @@ def config(logfile: str = None):
         FH.setLevel(logging.DEBUG)
         FH.setFormatter(fileFormatter)
         nexgen_logger.addHandler(FH)
+
+
+class LoggingContext:
+    """
+    Define a basic context manager for selective logging.
+    See https://docs.python.org/3/howto/logging-cookbook.html#using-a-context-manager-for-selective-logging.
+    """
+
+    def __init__(self, logger, level=None):
+        self.logger = logging.getLogger(logger) if isinstance(logger, str) else logger
+        self.level = level
+
+    def __enter__(self):
+        if self.level is not None:
+            self.old_level = self.logger.level
+            self.logger.setLevel(self.level)
+
+    def __exit__(self, et, ev, tb):
+        if self.level is not None:
+            self.logger.setLevel(self.old_level)
+        # implicit return of None => don't swallow exceptions
