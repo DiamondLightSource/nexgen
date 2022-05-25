@@ -12,7 +12,7 @@ from .. import get_nexus_filename
 from ..nxs_write import create_attributes
 from . import get_nexus_tree
 
-copy_logger = logging.getLogger("CopyNeXus.copy")
+copy_logger = logging.getLogger("nexgen.CopyNeXus")
 
 
 def images_nexus(

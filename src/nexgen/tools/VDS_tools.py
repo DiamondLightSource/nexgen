@@ -9,7 +9,7 @@ from typing import Any, List, Tuple, Union
 import h5py
 import numpy as np
 
-vds_logger = logging.getLogger("NeXusGenerator.writer.vds")
+vds_logger = logging.getLogger("nexgen.VDSWriter")
 
 
 def image_vds_writer(
