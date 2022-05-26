@@ -109,3 +109,9 @@ GDA integration tools
 
 .. autoclass:: nexgen.tools.ExtendedRequest.ExtendedRequestIO
     :members:
+
+Logging configuration
+---------------------
+
+.. automodule:: nexgen.log
+    :members:
