@@ -29,13 +29,13 @@ def single_image_nexus(
     The scan_axis in the new file will therefore be one single number, equal to the "start".
 
     Args:
-        data_file:      String or Path pointing to the HDF5 file containing the newly binned images.
-        tristan_nexus:  String or Path pointing to the input NeXus file with experiment metadata to be copied.
-        write_mode:     String indicating writing mode for the output NeXus file.  Accepts any valid
-                        h5py file opening mode.
+        data_file (Optional[Union[Path, str]]): String or Path pointing to the HDF5 file containing the newly binned images.
+        tristan_nexus (Optional[Union[Path, str]]): String or Path pointing to the input NeXus file with experiment metadata to be copied.
+        write_mode (str, optional): String indicating writing mode for the output NeXus file.  Accepts any valid
+                        h5py file opening mode. Defaults to "x".
 
     Returns:
-        nxs_filename:   The name of the output NeXus file.
+        nxs_filename (str): The name of the output NeXus file.
     """
     data_file = Path(data_file).expanduser().resolve()
     tristan_nexus = Path(tristan_nexus).expanduser().resolve()
@@ -99,15 +99,19 @@ def multiple_images_nexus(
     Osc and num_bins are mutually exclusive arguments to work out the scan_axis list.
 
     Args:
-        data_file:      String or Path pointing to the HDF5 file containing the newly binned images.
-        tristan_nexus:  String or Path pointing to the input NeXus file with experiment metadata to be copied.
-        write_mode:     String indicating writing mode for the output NeXus file.  Accepts any valid
-                        h5py file opening mode.
-        osc:            Oscillation angle (degrees).
-        nbins:          Number of binned images.
+        data_file (Optional[Union[Path, str]]): String or Path pointing to the HDF5 file containing the newly binned images.
+        tristan_nexus (Optional[Union[Path, str]]): String or Path pointing to the input NeXus file with experiment metadata to be copied.
+        write_mode (str, optional): String indicating writing mode for the output NeXus file.  Accepts any valid
+                        h5py file opening mode. Defaults to "x".
+        osc (float, optional): Oscillation angle (degrees). Defaults to None.
+        nbins (int, optional): Number of binned images. Defaults to None.
+
+    Raises:
+        ValueError: When both osc and nbins have been passed. The two values are mutually exclusive.
+        ValueError: When neither osc nor nbins has been passed. It won't be possible to calculate the scan range without at least one of them.
 
     Returns:
-        nxs_filename:   The name of the output NeXus file.
+        nxs_filename (str): The name of the output NeXus file.
     """
     data_file = Path(data_file).expanduser().resolve()
     tristan_nexus = Path(tristan_nexus).expanduser().resolve()

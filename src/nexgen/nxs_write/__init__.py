@@ -37,8 +37,8 @@ def set_dependency(dep_info: str, path: str = None):
     If the attribute points to the head of the dependency chain, simply pass "." for dep_info.
 
     Args:
-        dep_info:   The name of the transformation upon which the current one depends on.
-        path:       Where the transformation is. Set to None, if passed it points to location in the NeXus tree.
+        dep_info (str): The name of the transformation upon which the current one depends on.
+        path (str): Where the transformation is. Set to None, if passed it points to location in the NeXus tree.
     Returns:
         The value to be passed to the attribute "depends_on"
     """
@@ -68,13 +68,13 @@ def find_osc_axis(
     In the case scan axis cannot be identified, a default value is arbitrarily assigned.
 
     Args:
-        axes_names (list):      List of names associated to goniometer axes.
-        axes_starts (list):     List of start values.
-        axes_ends (list):       List of end values.
-        axes_types (list):      List of axes types, useful to identify only the rotation axes.
-        default (str):          String to deafult to in case scan axis is not found.
+        axes_names (list): List of names associated to goniometer axes.
+        axes_starts (list): List of start values.
+        axes_ends (list): List of end values.
+        axes_types (list): List of axes types, useful to identify only the rotation axes.
+        default (str): String to deafult to in case scan axis is not found.
     Returns:
-        scan_axis (str):        String identifying the rotation scan axis.
+        scan_axis (str): String identifying the rotation scan axis.
     """
     # This assumes that at least one rotation axis is always passed.
     # Assuming all list are of the same length ...
@@ -148,7 +148,7 @@ def find_grid_scan_axes(
         axes_types (List): List of axes types, useful to identify only the translation axes.
 
     Returns:
-        List[str]: List of strings identifying the linear/grid scan axes. If no axes are identified, it will return an empty list.
+        scan_axis (List[str]): List of strings identifying the linear/grid scan axes. If no axes are identified, it will return an empty list.
     """
     if len(axes_names) == 0:
         raise ValueError(
