@@ -181,8 +181,9 @@ def fixed_target(
     goniometer["ends"] = []
     goniometer["increments"] = []
 
+    # TODO add calculation and check against SSX.num_img here.
     # Identify rotation and grid scan axes, calculate ranges
-    OSC, TRANSL = ScanReader(goniometer, n_images=SSX.num_imgs)
+    OSC, TRANSL = ScanReader(goniometer)  # , n_images=SSX.num_imgs)
 
     # Log data
     logger.info("Goniometer information")

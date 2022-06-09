@@ -371,7 +371,7 @@ def ScanReader(
     goniometer: Dict,
     data_type: str = "images",
     n_images: int = None,
-    snaked: bool = False,
+    snaked: bool = True,
 ) -> Tuple[Dict, Dict]:
     """
     Read the information passed from the goniometer and return a definition of the scan.
@@ -413,9 +413,19 @@ def ScanReader(
         transl_start = [goniometer["starts"][i] for i in transl_idx]
         transl_end = [goniometer["ends"][i] for i in transl_idx]
         transl_increment = [goniometer["increments"][i] for i in transl_idx]
-        TRANSL = calculate_grid_scan_range(
-            transl_axes, transl_start, transl_end, transl_increment, snaked=snaked
-        )
+        if n_images:
+            TRANSL = calculate_grid_scan_range(
+                transl_axes,
+                transl_start,
+                transl_end,
+                transl_increment,
+                (n_images,),
+                snaked=snaked,
+            )
+        else:
+            TRANSL = calculate_grid_scan_range(
+                transl_axes, transl_start, transl_end, transl_increment, snaked=snaked
+            )
         logger.info(f"{len(transl_axes)} scan axis/axes found (translation).")
     else:
         TRANSL = None
@@ -451,7 +461,8 @@ def ScanReader(
                     "The value passed as the total number of images doesn't match the number of scan points, please check the input."
                 )
             # FIXME alternatively I could write a warning message and force it to
-            # obey one or the other directive. TBD
+            # obey one or the other directive. For example, I could recalculate TRANSL with n_images.
+            # But who's to say which one is right a priori? TBD
             osc_range = calculate_rotation_scan_range(
                 goniometer["starts"][osc_idx],
                 goniometer["ends"][osc_idx],
