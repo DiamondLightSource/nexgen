@@ -56,6 +56,10 @@ Copying tools
     :members:
 
 
+.. automodule:: nexgen.nxs_copy
+    :members:
+
+
 Utilities
 =========
 
