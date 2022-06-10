@@ -34,12 +34,13 @@ logging_config = {
 logging.config.dictConfig(logging_config)
 
 
-def config(logfile: str = None):
+def config(logfile: str = None, write_mode: str = "a"):
     """
     Configure the logging.
 
     Args:
         logfile (str, optional): If passed, create a file handler for the logger to write to file the log output. Defaults to None.
+        write_mode (str, optional): String indicating writing mode for the output .log file. Defaults to "a".
     """
     nexgen_logger = logging.getLogger("nexgen")
     if logfile:
@@ -47,7 +48,7 @@ def config(logfile: str = None):
             "%(asctime)s - %(name)s - %(levelname)s || %(message)s",
             datefmt="%d-%m-%Y %I:%M:%S",
         )
-        FH = logging.FileHandler(logfile, mode="a", encoding="utf-8")
+        FH = logging.FileHandler(logfile, mode=write_mode, encoding="utf-8")
         FH.setLevel(logging.DEBUG)
         FH.setFormatter(fileFormatter)
         nexgen_logger.addHandler(FH)
