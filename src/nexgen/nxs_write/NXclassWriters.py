@@ -848,4 +848,4 @@ def write_NXnote(nxsfile: h5py.File, loc: str, info: Dict):
             if type(v) is str:
                 v = np.string_(v)
             nxnote.create_dataset(k, data=v)
-            NXclass_logger.info(f"{k} dataset writte in {loc}.")
+            NXclass_logger.info(f"{k} dataset written in {loc}.")

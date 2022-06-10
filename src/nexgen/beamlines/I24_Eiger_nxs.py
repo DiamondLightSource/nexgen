@@ -36,6 +36,7 @@ ssx_collect = namedtuple(
         "pump_status",
         "pump_exp",
         "pump_delay",
+        "chip_info",
     ],
 )
 
@@ -167,6 +168,14 @@ def fixed_target(
     """
     logger.info(f"Write NeXus file for {SSX.exp_type}")
 
+    # Check that the chip dict has been passed, raise error is not
+    if SSX.chip_info is None:
+        logger.error("No chip_dict found.")
+        raise ValueError(
+            "No information about the FT chip has been passed. \
+            Impossible to determine scan parameters. NeXus file won't be written."
+        )
+
     # Get timestamps in the correct format
     timestamps = (
         get_iso_timestamp(SSX.start_time),
@@ -174,16 +183,44 @@ def fixed_target(
     )
     logger.info(f"Timestamps recorded: {timestamps}")
 
-    # Goniometer
-    # Set start and end values from input
-    # omega sam_z sam_y sam_x
-    goniometer["starts"] = []
-    goniometer["ends"] = []
-    goniometer["increments"] = []
+    ###
+    # What I think it will look like based on my current understanding of chip_dict
+    if SSX.num_imgs != SSX.chip_info["X_NUM_STEPS"] * SSX.chip_info["Y_NUM_STEPS"]:
+        print("Something wrong here, raise error")
+    y_end = (
+        SSX.chip_info["Y_START"]
+        + SSX.chip_info["Y_STEP_SIZE"] * SSX.chip_info["Y_NUM_STEPS"]
+    )
+    x_end = (
+        SSX.chip_info["X_START"]
+        + SSX.chip_info["X_STEP_SIZE"] * SSX.chip_info["X_NUM_STEPS"]
+    )
 
-    # TODO add calculation and check against SSX.num_img here.
+    goniometer["starts"] = [0, 0, SSX.chip_info["Y_START"], SSX.chip_info["X_START"]]
+    goniometer["ends"] = [0, 0, y_end, x_end]
+    goniometer["increments"] = [
+        0,
+        0,
+        SSX.chip_info["Y_STEP_SIZE"],
+        SSX.chip_info["X_STEP_SIZE"],
+    ]
+
+    # Would something like this work?
+    # But what about blocks? Will there be a different nxs each block?
+    # Different h5 but same nxs?
+    ###
+
+    # Goniometer
+    # TODO fill this in
+    # omega sam_z sam_y sam_x
+    # goniometer["starts"] = []
+    # goniometer["ends"] = []
+    # goniometer["increments"] = []
+
     # Identify rotation and grid scan axes, calculate ranges
-    OSC, TRANSL = ScanReader(goniometer)  # , n_images=SSX.num_imgs)
+    OSC, TRANSL = ScanReader(goniometer, n_images=SSX.num_imgs)
+    # logger.debug(f"Rotation dictionary: \n {OSC}")
+    # logger.debug(f"Translation scan dictionary: \n {TRANSL}")
 
     # Log data
     logger.info("Goniometer information")
@@ -191,7 +228,7 @@ def fixed_target(
         logger.info(
             f"Goniometer axis: {goniometer['axes'][j]} => {goniometer['starts'][j]}, {goniometer['types'][j]} on {goniometer['depends'][j]}"
         )
-    logger.info(f"Oscillation axis: {OSC.keys()[0]}.")
+    logger.info(f"Oscillation axis: {list(OSC.keys())[0]}.")
     logger.info(f"Fixed target axes: {list(TRANSL.keys())}.")
 
     try:
@@ -283,6 +320,7 @@ def write_nxs(**ssx_params):
         pump_status=ssx_params["pump_status"],
         pump_exp=ssx_params["pump_exp"],
         pump_delay=ssx_params["pump_delay"],
+        chip_info=ssx_params["chip_info"] if ssx_params["chip_info"] else None,
     )
 
     logfile = SSX.visitpath / "nexus_writer.log"
@@ -342,9 +380,12 @@ def write_nxs(**ssx_params):
     elif SSX.exp_type == "3Dgridscan":
         grid_scan_3D()
 
+    logger.info("*EOF*\n")
+
 
 # # Example usage
 # if __name__ == "__main__":
+#     import sys
 #     from datetime import datetime
 
 #     write_nxs(
@@ -365,4 +406,5 @@ def write_nxs(**ssx_params):
 #         pump_status="true",  # this is a string on the beamline
 #         pump_exp=None,
 #         pump_delay=None,
+#         chip_info=None,
 #     )
