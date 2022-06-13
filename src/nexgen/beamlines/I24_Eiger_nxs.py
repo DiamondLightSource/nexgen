@@ -320,7 +320,11 @@ def write_nxs(**ssx_params):
         pump_status=ssx_params["pump_status"],
         pump_exp=ssx_params["pump_exp"],
         pump_delay=ssx_params["pump_delay"],
-        chip_info=ssx_params["chip_info"] if ssx_params["chip_info"] else None,
+        chip_info=None
+        if ssx_params["exp_type"] == "extruder"
+        else ssx_params[
+            "chip_info"
+        ],  # ssx_params["chip_info"] if ssx_params["chip_info"] else None,
     )
 
     logfile = SSX.visitpath / "nexus_writer.log"
