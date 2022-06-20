@@ -37,6 +37,7 @@ ssx_collect = namedtuple(
         "pump_exp",
         "pump_delay",
         "chip_info",
+        "chipmap",
     ],
 )
 
@@ -183,29 +184,64 @@ def fixed_target(
     )
     logger.info(f"Timestamps recorded: {timestamps}")
 
+    # If full chip what's in the notebook should already be enough but I can't really know here if full or not... It need to work the same way either way.
+    # Is it a time resolved SSX experiment?
+    if int(SSX.chip_dict["N_EXPOSURES"][1]) == 1:
+        print("not tr")
+        # read chip map
+        # calculate chip start positions
+        # iterate over blocks to calculate scan points
+        # compare lenght of scans with total number of images
+        # write nexus & vds
+        print("all the calculations/nxs writing goes here")
+    else:
+        print("tr")
+        # same as before but with the repeat added headache
+        print("all the calculations/nxs writing goes here")
+
+    ### UPDATE ###
+    # My understanding of chip_dict seems to be correct, however a few challenges have been added.
+    # The biggest is the fact that the scan starts from the upeer left in one column of blocks and from the lower left in the next
+    # This is not difficult to calculate, just needs some attention when passing the values to calc_grid_scan
+    # The problem is that I am not sure how to tell which column is which for scans that choose random blocks
+
+    # As for the rest of it, vds is annoying but less problematic than expected. Could be done all in one nexus file.
+    # Although when dealing with time resolved experiments, everything gets more complicated.
+    ##############
+
     ###
     # What I think it will look like based on my current understanding of chip_dict
-    if SSX.num_imgs != SSX.chip_info["X_NUM_STEPS"] * SSX.chip_info["Y_NUM_STEPS"]:
+    if (
+        SSX.num_imgs
+        != SSX.chip_info["X_NUM_STEPS"][1] * SSX.chip_info["Y_NUM_STEPS"][1]
+    ):
         print("Something wrong here, raise error")
     y_end = (
-        SSX.chip_info["Y_START"]
-        + SSX.chip_info["Y_STEP_SIZE"] * SSX.chip_info["Y_NUM_STEPS"]
+        SSX.chip_info["Y_START"][1]
+        + SSX.chip_info["Y_STEP_SIZE"][1] * SSX.chip_info["Y_NUM_STEPS"][1]
     )
     x_end = (
-        SSX.chip_info["X_START"]
-        + SSX.chip_info["X_STEP_SIZE"] * SSX.chip_info["X_NUM_STEPS"]
+        SSX.chip_info["X_START"][1]
+        + SSX.chip_info["X_STEP_SIZE"][1] * SSX.chip_info["X_NUM_STEPS"][1]
     )
 
-    goniometer["starts"] = [0, 0, SSX.chip_info["Y_START"], SSX.chip_info["X_START"]]
+    goniometer["starts"] = [
+        0,
+        0,
+        SSX.chip_info["Y_START"][1],
+        SSX.chip_info["X_START"][1],
+    ]
     goniometer["ends"] = [0, 0, y_end, x_end]
     goniometer["increments"] = [
         0,
         0,
-        SSX.chip_info["Y_STEP_SIZE"],
-        SSX.chip_info["X_STEP_SIZE"],
+        SSX.chip_info["Y_STEP_SIZE"][1],
+        SSX.chip_info["X_STEP_SIZE"][1],
     ]
 
-    # Would something like this work?
+    # Update: something like this works but this calculation is just for one block. It needs to be repeated each block. Sometimes upside down.
+    # Which means that unless there's 1 file per block (which I doubt) and I write one nxs file each, I need an additionale scan reader function
+    # specific for fixed target.
     # But what about blocks? Will there be a different nxs each block?
     # Different h5 but same nxs?
     ###
@@ -325,6 +361,9 @@ def write_nxs(**ssx_params):
         else ssx_params[
             "chip_info"
         ],  # ssx_params["chip_info"] if ssx_params["chip_info"] else None,
+        chipmap=None
+        if ssx_params["exp_type"] == "extruder"
+        else Path(ssx_params["chipmap"]).expanduser().resolve(),
     )
 
     logfile = SSX.visitpath / "nexus_writer.log"
@@ -411,4 +450,5 @@ def write_nxs(**ssx_params):
 #         pump_exp=None,
 #         pump_delay=None,
 #         chip_info=None,
+#         chipmap=None,
 #     )
