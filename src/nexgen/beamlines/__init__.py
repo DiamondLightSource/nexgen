@@ -7,6 +7,22 @@ from typing import Dict, Tuple, Union
 
 
 def read_chip_map(mapfile: Path, x_blocks: int, y_blocks: int) -> Union[Dict, str]:
+    """
+    Read the .map file for the current collection on a chip.
+
+    Args:
+        mapfile (Path): Path to .map file. If None, assumes fullchip.
+        x_blocks (int): Total number of blocks in x direction in the chip.
+        y_blocks (int): Total number of blocks in x direction in the chip.
+
+    Returns:
+        Union[Dict, str]: A dictionary indicating the coordinates on the chip of the scanned blocks,
+                        or a string indicating that the whole chip is being scanned.
+    """
+    if mapfile is None:
+        # Assume it's a full chip
+        return "fullchip"
+
     with open(mapfile, "r") as f:
         chipmap = f.read()
 
@@ -36,7 +52,20 @@ def read_chip_map(mapfile: Path, x_blocks: int, y_blocks: int) -> Union[Dict, st
 def compute_goniometer(
     chip_dict: Dict, blocks: Dict = None, full: bool = False
 ) -> Tuple[Dict]:
-    # FIXME For some combinations of windows, the order of the scans is still wrong.
+    """
+    Compute the sam_y, sam_x goniometer start and end positions for a fastchip scan.
+    For this calculation, at least the number and size of blocks, as well as size ans step of each window \
+    should be contained in the chip_dict.
+    If full is passed, assume every block in the chip is being scanned.
+
+    Args:
+        chip_dict (Dict): General information about the chip.
+        blocks (Dict, optional): Coordinates of scanned blocks. Defaults to None.
+        full (bool, optional): If True, calculate start and end points for all blocks. Defaults to False.
+
+    Returns:
+        Tuple[Dict]: _description_
+    """
     x0 = chip_dict["X_START"][1]
     y0 = chip_dict["Y_START"][1]
     starts = {}
