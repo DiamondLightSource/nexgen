@@ -187,22 +187,22 @@ def fixed_target(
     logger.info(f"Timestamps recorded: {timestamps}")
 
     # Is it a time resolved SSX experiment?
-    if int(SSX.chip_dict["N_EXPOSURES"][1]) == 1:
+    if int(SSX.chip_info["N_EXPOSURES"][1]) == 1:
         goniometer["increments"] = [0.0, 0.0, 0.0, 0.0]
         # Read chip map
         blocks = read_chip_map(
             SSX.chipmap,
-            SSX.chip_dict["X_NUM_BLOCKS"][1],
-            SSX.chip_dict["Y_NUM_BLOCKS"][1],
+            SSX.chip_info["X_NUM_BLOCKS"][1],
+            SSX.chip_info["Y_NUM_BLOCKS"][1],
         )
 
         # Calculate scan start/end positions on chip
         if type(blocks) is dict:
             logger.info(f"Scanning blocks: {list(blocks.keys())}.")
-            start_pos, end_pos = compute_goniometer(SSX.chip_dict, blocks=blocks)
+            start_pos, end_pos = compute_goniometer(SSX.chip_info, blocks=blocks)
         else:
             logger.info("Full chip: all the blocks will be scanned.")
-            start_pos, end_pos = compute_goniometer(SSX.chip_dict, full=True)
+            start_pos, end_pos = compute_goniometer(SSX.chip_info, full=True)
 
         # Iterate over blocks to calculate scan points
         OSC = {"omega": np.array([])}
@@ -213,8 +213,8 @@ def fixed_target(
             osc, transl = ScanReader(
                 goniometer,
                 n_images=(
-                    SSX.chip_dict["Y_NUM_STEPS"][1],
-                    SSX.chip_dict["X_NUM_STEPS"][1],
+                    SSX.chip_info["Y_NUM_STEPS"][1],
+                    SSX.chip_info["X_NUM_STEPS"][1],
                 ),
             )
             OSC["omega"] = np.append(OSC["omega"], osc["omega"])
