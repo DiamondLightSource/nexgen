@@ -414,7 +414,7 @@ def ScanReader(
         transl_start = [goniometer["starts"][i] for i in transl_idx]
         transl_end = [goniometer["ends"][i] for i in transl_idx]
         transl_increment = [goniometer["increments"][i] for i in transl_idx]
-        if type(n_images) is int:
+        if n_images and type(n_images) is int:
             TRANSL = calculate_grid_scan_range(
                 transl_axes,
                 transl_start,
@@ -423,7 +423,7 @@ def ScanReader(
                 (n_images,),
                 snaked=snaked,
             )
-        elif type(n_images) is tuple:
+        elif n_images and type(n_images) is tuple:
             TRANSL = calculate_grid_scan_range(
                 transl_axes, transl_start, transl_end, n_images=n_images, snaked=snaked
             )

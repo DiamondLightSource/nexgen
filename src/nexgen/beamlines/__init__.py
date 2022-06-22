@@ -119,7 +119,7 @@ def compute_goniometer(
                 y_start = (
                     y_end + chip_dict["Y_NUM_STEPS"][1] * chip_dict["Y_STEP_SIZE"][1]
                 )
-            starts[k] = [0, 0, round(y_start, 3), round(x_start, 3)]
-            ends[k] = [0, 0, round(y_end, 3), round(x_end, 3)]
+            starts[k] = [0.0, 0.0, round(y_start, 3), round(x_start, 3)]
+            ends[k] = [0.0, 0.0, round(y_end, 3), round(x_end, 3)]
 
     return starts, ends
