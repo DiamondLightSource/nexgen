@@ -370,7 +370,7 @@ def write_nexus_demo(
 def ScanReader(
     goniometer: Dict,
     data_type: str = "images",
-    n_images: int = None,
+    n_images: Union[int, Tuple] = None,
     snaked: bool = True,
 ) -> Tuple[Dict, Dict]:
     """
@@ -379,15 +379,16 @@ def ScanReader(
     Args:
         goniometer (Dict): Goniometer geometry definition.
         data_type (str, optional): Type of data being written, can be images of events. Defaults to "images".
-        n_images (int, optional): Total number of images to write. If passed, \
-                                    the number of images will override the axis_increment value of the rotation scan. Defaults to None.
-        snaked (bool, optional): 2D scan parameter. If True, defines a snaked grid scan. Defaults to False.
+        n_images (Union[int, Tuple], optional): Total number of images to write. If passed, \
+                                    the number of images will override the axis_increment value of the rotation scan. \
+                                    Defaults to None.
+        snaked (bool, optional): 2D scan parameter. If True, defines a snaked grid scan. Defaults to True.
 
     Raises:
         ValueError: If the total number of images passed doesn't match the number of scan points when dealing with a 2D/3D scan.
 
     Returns:
-        Tuple[Dict,Dict]: Two separate dictionaries. The first defines the rotation scan, the second the linear/grid scan. \
+        Tuple[Dict, Dict]: Two separate dictionaries. The first defines the rotation scan, the second the linear/grid scan. \
                             When dealing with a set of stills or a simple rotation scan, the second value will return None.
     """
     logger = logging.getLogger("nexgen.ScanReader")
@@ -413,7 +414,7 @@ def ScanReader(
         transl_start = [goniometer["starts"][i] for i in transl_idx]
         transl_end = [goniometer["ends"][i] for i in transl_idx]
         transl_increment = [goniometer["increments"][i] for i in transl_idx]
-        if n_images:
+        if type(n_images) is int:
             TRANSL = calculate_grid_scan_range(
                 transl_axes,
                 transl_start,
@@ -421,6 +422,10 @@ def ScanReader(
                 transl_increment,
                 (n_images,),
                 snaked=snaked,
+            )
+        elif type(n_images) is tuple:
+            TRANSL = calculate_grid_scan_range(
+                transl_axes, transl_start, transl_end, n_images=n_images, snaked=snaked
             )
         else:
             TRANSL = calculate_grid_scan_range(
@@ -456,6 +461,7 @@ def ScanReader(
             )
         elif n_images is not None and len(transl_axes) > 0:
             ax = transl_axes[0]
+            n_images = np.prod(n_images) if type(n_images) is tuple else n_images
             if n_images != len(TRANSL[ax]):
                 raise ValueError(
                     "The value passed as the total number of images doesn't match the number of scan points, please check the input."
@@ -469,6 +475,7 @@ def ScanReader(
                 n_images=n_images,
             )
         else:
+            n_images = np.prod(n_images) if type(n_images) is tuple else n_images
             osc_range = calculate_rotation_scan_range(
                 goniometer["starts"][osc_idx],
                 goniometer["ends"][osc_idx],
