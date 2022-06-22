@@ -207,7 +207,7 @@ def fixed_target(
         # Iterate over blocks to calculate scan points
         OSC = {"omega": np.array([])}
         TRANSL = {"sam_y": np.array([]), "sam_x": np.array([])}
-        for s, e in zip(start_pos, end_pos):
+        for s, e in zip(start_pos.values(), end_pos.values()):
             goniometer["starts"] = s
             goniometer["ends"] = e
             osc, transl = ScanReader(
@@ -238,7 +238,9 @@ def fixed_target(
             logger.warning(
                 "Reset SSX.num_imgs to number of scan points for vds creation"
             )
-            SSX.num_imgs = len(OSC["omega"])
+            tot_imgs = len(OSC["omega"])
+        else:
+            tot_imgs = SSX.num_imgs
 
         # Wrinte NeXus and VDS
         try:
@@ -252,7 +254,7 @@ def fixed_target(
                     nxsfile,
                     filename,
                     coordinate_frame,
-                    (detector["mode"], SSX.num_imgs),
+                    (detector["mode"], tot_imgs),
                     goniometer,
                     detector,
                     module,
@@ -289,7 +291,7 @@ def fixed_target(
                     write_NXnote(nxsfile, loc, pump_info)
 
                 # Write VDS
-                image_vds_writer(nxsfile, (SSX.num_imgs, *detector["image_size"]))
+                image_vds_writer(nxsfile, (tot_imgs, *detector["image_size"]))
 
                 if timestamps[1]:
                     write_NXdatetime(nxsfile, (None, timestamps[1]))
