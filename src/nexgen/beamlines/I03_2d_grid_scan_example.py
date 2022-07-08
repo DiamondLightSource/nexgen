@@ -3,14 +3,11 @@ Define beamline parameters for I03, Eiger detector and give an example of writin
 """
 from contextlib import contextmanager
 import h5py
-from scanspec.specs import Line
 import numpy as np
 import shutil
 
 from pathlib import Path
 import os
-
-# from nexgen.nxs_write import calculate_scan_from_scanspec
 
 from nexgen.nxs_write.NexusWriter import call_writers, ScanReader
 from nexgen.nxs_write.NXclassWriters import write_NXentry
@@ -196,5 +193,6 @@ def example_nexus_file():
             nxentry.create_dataset("end_time", data=np.string_(timestamps[1]))
 
 
-with get_test_data(True):
-    example_nexus_file()
+if __name__ == "__main__":
+    with get_test_data(True):
+        example_nexus_file()
