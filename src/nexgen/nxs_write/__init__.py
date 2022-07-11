@@ -177,8 +177,9 @@ def calculate_grid_scan_range(
     snaked: bool = True,
 ) -> Dict[str, np.ndarray]:
     """
-    Calculate the scan range for a linear/grid scan from the number of images to be written.
-    If the number of images is not provided, it can be calculated from the increment value of the axis.
+    Calculate the scan range for a linear/grid scan or a rotation scan from the number of images to be written.
+    If the number of images is not provided, it can be calculated from the increment value of the axis (these values are mutually exclusive).
+    When dealing with a rotation axis, if there are multiple images but no rotation scan, return axis_start repeated n_images times.
 
     Args:
         axes_names (List): List of names for the axes involved in the scan.
