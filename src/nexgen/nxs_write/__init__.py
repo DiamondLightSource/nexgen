@@ -2,9 +2,11 @@
 Utilities for writing new NeXus format files.
 """
 
+from __future__ import annotations
+
 import math
 from pathlib import Path
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Tuple
 
 import h5py
 import numpy as np
@@ -13,9 +15,7 @@ from scanspec.core import Path as ScanPath
 from scanspec.specs import Line
 
 
-def create_attributes(
-    nxs_obj: Union[h5py.Group, h5py.Dataset], names: Tuple, values: Tuple
-):
+def create_attributes(nxs_obj: h5py.Group | h5py.Dataset, names: Tuple, values: Tuple):
     """
     Create or overwrite attributes with additional metadata information.
 
@@ -173,7 +173,7 @@ def calculate_grid_scan_range(
     axes_starts: List,
     axes_ends: List,
     axes_increments: List = None,
-    n_images: Tuple = None,
+    n_images: Tuple | int = None,
     snaked: bool = True,
 ) -> Dict[str, np.ndarray]:
     """
@@ -186,11 +186,12 @@ def calculate_grid_scan_range(
         axes_starts (List): List of axis positions at the beginning of the scan.
         axes_ends (List): List of axis positions at the end of the scan.
         axes_increments (List, optional): List of ranges through which the axes move each frame.
-        n_images (Tuple, optional): Number of images to be written. If writing a 2D scan, it should be a (nx, ny) tuple, \
+        n_images (Tuple | int, optional): Number of images to be written. If writing a 2D scan, it should be a (nx, ny) tuple, \
                                         where tot_n_img=nx*ny, any int value is at this time ignored. Defaults to None.
         snaked (bool): If True, scanspec will "draw" a snaked grid. Defaults to True.
 
     Raises:
+        TypeError: If the input axes are not lists.
         ValueError: When an empty axes names list has been passed.
         ValueError: If both n_images and axes_increments are None.
         ValueError: For a grid scan, if axes_increments is None, n_images must be a tuple of len=2 to be sure to accurately calculate the scan points.
@@ -199,6 +200,9 @@ def calculate_grid_scan_range(
     Returns:
         Dict[str, np.ndarray]: A dictionary of ("axis_name": axis_range) key-value pairs.
     """
+    if type(axes_names) != list:
+        raise TypeError("Input values for axes must be passed as lists.")
+
     if len(axes_names) == 0:
         raise ValueError("No axes have been passed, impossible to determine scan.")
     if not n_images and not axes_increments:
@@ -209,6 +213,9 @@ def calculate_grid_scan_range(
     if len(axes_names) == 1:
         if not n_images:
             n_images = int(abs(axes_starts[0] - axes_ends[0]) / axes_increments[0])
+        elif type(n_images) is tuple and len(n_images) == 1:
+            # This is mostly a double check for the rotation calculations
+            n_images = n_images[0]
         spec = Line(axes_names[0], axes_starts[0], axes_ends[0], n_images)
         scan_path = ScanPath(spec.calculate())
     else:
@@ -244,8 +251,8 @@ def calculate_grid_scan_range(
 
 
 def calculate_origin(
-    beam_center_fs: Union[List, Tuple],
-    fs_pixel_size: Union[List, Tuple],
+    beam_center_fs: List | Tuple,
+    fs_pixel_size: List | Tuple,
     fast_axis_vector: Tuple,
     slow_axis_vector: Tuple,
     mode: str = "1",
