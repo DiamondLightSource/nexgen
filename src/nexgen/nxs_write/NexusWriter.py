@@ -14,8 +14,8 @@ from ..tools.DataWriter import generate_event_files, generate_image_files
 from ..tools.MetaReader import overwrite_beam, overwrite_detector
 from ..tools.VDS_tools import image_vds_writer, vds_file_writer
 from . import (
-    calculate_grid_scan_range,
     calculate_rotation_scan_range,
+    calculate_scan_range,
     find_grid_scan_axes,
     find_number_of_images,
     find_osc_axis,
@@ -135,7 +135,7 @@ def write_nexus(
             )
         # TODO decide what to do for n_images=(nx,ny) in this case...
         # Tbh, it should work without it anyway
-        transl_range = calculate_grid_scan_range(
+        transl_range = calculate_scan_range(
             transl_axes,
             transl_starts,
             transl_ends,
@@ -254,7 +254,7 @@ def write_nexus_demo(
             writer_logger.info(
                 f"{transl_axes[tr]} scan from {transl_starts[tr]} to {transl_ends[tr]}, with a step of {transl_increments[tr]}"
             )
-        transl_range = calculate_grid_scan_range(
+        transl_range = calculate_scan_range(
             transl_axes,
             transl_starts,
             transl_ends,
@@ -415,7 +415,7 @@ def ScanReader(
         transl_end = [goniometer["ends"][i] for i in transl_idx]
         transl_increment = [goniometer["increments"][i] for i in transl_idx]
         if n_images and type(n_images) is int:
-            TRANSL = calculate_grid_scan_range(
+            TRANSL = calculate_scan_range(
                 transl_axes,
                 transl_start,
                 transl_end,
@@ -424,11 +424,11 @@ def ScanReader(
                 snaked=snaked,
             )
         elif n_images and type(n_images) is tuple:
-            TRANSL = calculate_grid_scan_range(
+            TRANSL = calculate_scan_range(
                 transl_axes, transl_start, transl_end, n_images=n_images, snaked=snaked
             )
         else:
-            TRANSL = calculate_grid_scan_range(
+            TRANSL = calculate_scan_range(
                 transl_axes, transl_start, transl_end, transl_increment, snaked=snaked
             )
         logger.info(f"{len(transl_axes)} scan axis/axes found (translation).")

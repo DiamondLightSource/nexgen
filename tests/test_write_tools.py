@@ -1,9 +1,8 @@
 import numpy as np
 
 from nexgen.nxs_write import (
-    calculate_grid_scan_range,
     calculate_origin,
-    calculate_rotation_scan_range,
+    calculate_scan_range,
     find_grid_scan_axes,
     find_osc_axis,
     set_dependency,
@@ -82,33 +81,39 @@ def test_find_scan_axes():
 
 def test_calc_rotation_range():
     # Check that it writes an array of repeated values when starts == ends
-    arr = calculate_rotation_scan_range(
-        test_goniometer["starts"][0],
-        test_goniometer["ends"][0],
-        test_goniometer["increments"][0],
-        10,
+    ax = test_goniometer["axes"][0]
+    arr = calculate_scan_range(
+        [ax],
+        [test_goniometer["starts"][0]],
+        [test_goniometer["ends"][0]],
+        axes_increments=[test_goniometer["increments"][0]],
+        n_images=10,
     )
-    assert np.all(arr == 0.0)
+    assert np.all(arr[ax] == 0.0)
     del arr
 
-    arr = calculate_rotation_scan_range(180.0, 180.0, 0.1, 10)
-    assert np.all(arr == 180.0)
-    assert len(arr) == 10
+    arr = calculate_scan_range(
+        [ax], [180.0], [180.0], axes_increments=[0.1], n_images=10
+    )
+    assert np.all(arr[ax] == 180.0)
+    assert len(arr[ax]) == 10
 
     # Check that it calculates the corrct range
     # Given increments
     assert np.all(
-        calculate_rotation_scan_range(0.0, 2.0, 0.5) == np.array([0.0, 0.5, 1.0, 1.5])
+        calculate_scan_range([ax], [0.0], [2.0], [0.5])[ax]
+        == np.array([0.0, 0.5, 1.0, 1.5])
     )
     # Given number of images
     assert np.all(
-        calculate_rotation_scan_range(0.0, 1.0, 0.1, n_images=2) == np.array([0.0, 1.0])
+        calculate_scan_range([ax], [0.0], [1.0], [0.1], n_images=2)[ax]
+        == np.array([0.0, 1.0])
     )
 
 
 def test_calc_scan_range():
     # Check linear scan
-    lin = calculate_grid_scan_range(
+    lin = calculate_scan_range(
         test_goniometer["axes"][-1:],
         test_goniometer["starts"][-1:],
         test_goniometer["ends"][-1:],
@@ -117,9 +122,10 @@ def test_calc_scan_range():
     assert len(lin) == 1
     assert "sam_x" in lin.keys()
     assert len(lin["sam_x"]) == 10
+    assert lin["sam_x"][1] - lin["sam_x"][0] == 0.2
 
     # Check grid scan
-    grid = calculate_grid_scan_range(
+    grid = calculate_scan_range(
         test_goniometer["axes"][2:],
         test_goniometer["starts"][2:],
         test_goniometer["ends"][2:],
@@ -130,6 +136,8 @@ def test_calc_scan_range():
     assert "sam_x" in grid.keys() and "sam_y" in grid.keys()
     assert len(grid["sam_x"]) == len(grid["sam_y"])
     assert len(grid["sam_x"]) == 100
+    assert grid["sam_x"][1] - grid["sam_x"][0] == 0.2
+    assert grid["sam_y"][10] - grid["sam_y"][0] == 0.2
 
 
 def test_set_dependency():

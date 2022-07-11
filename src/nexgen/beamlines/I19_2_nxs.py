@@ -13,7 +13,7 @@ from typing import Tuple, Union
 import h5py
 
 from .. import get_iso_timestamp, get_nexus_filename, log
-from ..nxs_write import calculate_rotation_scan_range
+from ..nxs_write import calculate_scan_range
 from ..nxs_write.NexusWriter import call_writers
 from ..nxs_write.NXclassWriters import write_NXdatetime, write_NXentry
 from ..tools.ExtendedRequest import ExtendedRequestIO
@@ -198,15 +198,22 @@ def eiger_writer(
     # Get scan range array
     logger.info("Calculating scan range...")
     scan_idx = goniometer["axes"].index(scan_axis)
-    scan_range = calculate_rotation_scan_range(
-        goniometer["starts"][scan_idx],
-        goniometer["ends"][scan_idx],
-        goniometer["increments"][scan_idx],
-        n_images=n_frames,
-    )
+    # scan_range = calculate_rotation_scan_range(
+    #    goniometer["starts"][scan_idx],
+    #    goniometer["ends"][scan_idx],
+    #    goniometer["increments"][scan_idx],
+    #    n_images=n_frames,
+    # )
 
     # Define OSC scans dictionary
-    OSC = {scan_axis: scan_range}
+    OSC = calculate_scan_range(
+        [goniometer["axes"][scan_idx]],
+        [goniometer["starts"][scan_idx]],
+        [goniometer["ends"][scan_idx]],
+        axes_increments=[goniometer["increments"][scan_idx]],
+        n_images=n_frames,
+    )
+    # OSC = {scan_axis: scan_range}
 
     # Get on with the writing now...
     try:

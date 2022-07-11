@@ -168,7 +168,7 @@ def find_grid_scan_axes(
     return scan_axis
 
 
-def calculate_grid_scan_range(
+def calculate_scan_range(
     axes_names: List,
     axes_starts: List,
     axes_ends: List,
