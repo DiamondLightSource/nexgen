@@ -242,7 +242,7 @@ def fixed_target(
         else:
             tot_imgs = SSX.num_imgs
 
-        # Wrinte NeXus and VDS
+        # Write NeXus and VDS
         try:
             with h5py.File(master_file, "x") as nxsfile:
                 write_NXentry(nxsfile)
@@ -307,7 +307,20 @@ def fixed_target(
         # same as before but with the repeat added headache
 
 
-def grid_scan_3D():
+def grid_scan_3D(
+    master_file: Path,
+    filename: List[Path],
+    SSX: namedtuple,
+    metafile: Path = None,
+):
+    logger.info(f"Write NeXus file for {SSX.exp_type}")
+
+    # Get timestamps in the correct format
+    timestamps = (
+        get_iso_timestamp(SSX.start_time),
+        get_iso_timestamp(SSX.stop_time),
+    )
+    logger.info(f"Timestamps recorded: {timestamps}")
     pass
 
 
@@ -320,7 +333,7 @@ def write_nxs(**ssx_params):
         visitpath=Path(ssx_params["visitpath"]).expanduser().resolve(),
         filename=ssx_params["filename"],  # Template: test_##
         exp_type=ssx_params["exp_type"],
-        num_imgs=ssx_params["num_imgs"],
+        num_imgs=float(ssx_params["num_imgs"]),
         beam_center=ssx_params["beam_center"],
         detector_distance=ssx_params["det_dist"],
         start_time=ssx_params["start_time"].strftime("%Y-%m-%dT%H:%M:%S")
@@ -402,7 +415,7 @@ def write_nxs(**ssx_params):
     elif SSX.exp_type == "fixed_target":
         fixed_target(master_file, filename, SSX, metafile)
     elif SSX.exp_type == "3Dgridscan":
-        grid_scan_3D()
+        grid_scan_3D(master_file, filename, SSX, metafile)
 
     logger.info("*EOF*\n")
 

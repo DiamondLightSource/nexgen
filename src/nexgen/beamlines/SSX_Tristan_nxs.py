@@ -53,7 +53,7 @@ def write_nxs(**ssx_params):
     SSX_TR = ssx_tr_collect(
         visitpath=Path(ssx_params["visitpath"]).expanduser().resolve(),
         filename=ssx_params["filename"],
-        tot_num_X=ssx_params["tot_num_X"],
+        tot_num_X=float(ssx_params["tot_num_X"]),
         beam_center=ssx_params["beam_center"],
         detector_distance=ssx_params["det_dist"],
         start_time=ssx_params["start_time"].strftime("%Y-%m-%dT%H:%M:%S")
