@@ -439,24 +439,28 @@ def ScanReader(
     # Return either 2 dictionaries or (Dict, None)
     if data_type == "events" and len(transl_axes) == 0:
         osc_range = (goniometer["starts"][osc_idx], goniometer["ends"][osc_idx])
+        OSC = {osc_axis: osc_range}
     elif data_type == "events" and len(transl_axes) > 0:
         osc_range = (goniometer["starts"][osc_idx], goniometer["ends"][osc_idx])
+        OSC = {osc_axis: osc_range}
         # Overwrite TRANSL
         for k, s, e in zip(transl_axes, transl_start, transl_end):
             TRANSL[k] = (s, e)
     else:
         if n_images is None and len(transl_axes) == 0:
-            osc_range = calculate_rotation_scan_range(
-                goniometer["starts"][osc_idx],
-                goniometer["ends"][osc_idx],
-                axis_increment=goniometer["increments"][osc_idx],
+            OSC = calculate_scan_range(
+                [osc_axis],
+                [goniometer["starts"][osc_idx]],
+                [goniometer["ends"][osc_idx]],
+                axes_increments=[goniometer["increments"][osc_idx]],
             )
         elif n_images is None and len(transl_axes) > 0:
             ax = transl_axes[0]
             n_images = len(TRANSL[ax])
-            osc_range = calculate_rotation_scan_range(
-                goniometer["starts"][osc_idx],
-                goniometer["ends"][osc_idx],
+            OSC = calculate_scan_range(
+                [osc_axis],
+                [goniometer["starts"][osc_idx]],
+                [goniometer["ends"][osc_idx]],
                 n_images=n_images,
             )
         elif n_images is not None and len(transl_axes) > 0:
@@ -466,24 +470,24 @@ def ScanReader(
                 raise ValueError(
                     "The value passed as the total number of images doesn't match the number of scan points, please check the input."
                 )
-            # FIXME alternatively I could write a warning message and force it to
-            # obey one or the other directive. For example, I could recalculate TRANSL with n_images.
-            # But who's to say which one is right a priori? TBD
-            osc_range = calculate_rotation_scan_range(
-                goniometer["starts"][osc_idx],
-                goniometer["ends"][osc_idx],
+            #
+            OSC = calculate_scan_range(
+                [osc_axis],
+                [goniometer["starts"][osc_idx]],
+                [goniometer["ends"][osc_idx]],
                 n_images=n_images,
             )
         else:
             n_images = np.prod(n_images) if type(n_images) is tuple else n_images
-            osc_range = calculate_rotation_scan_range(
-                goniometer["starts"][osc_idx],
-                goniometer["ends"][osc_idx],
-                axis_increment=goniometer["increments"][osc_idx],
+            OSC = calculate_scan_range(
+                [osc_axis],
+                [goniometer["starts"][osc_idx]],
+                [goniometer["ends"][osc_idx]],
+                axes_increments=[goniometer["increments"][osc_idx]],
                 n_images=n_images,
             )
 
-    OSC = {osc_axis: osc_range}
+    # OSC = {osc_axis: osc_range}
     # logger.info(f"{osc_axis} set as rotation axis.")
     return OSC, TRANSL
 
