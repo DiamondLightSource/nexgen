@@ -8,11 +8,13 @@ from pathlib import Path
 from typing import List
 
 import h5py
+import numpy as np
 
 from .. import get_iso_timestamp, get_nexus_filename, log
 from ..nxs_write.NexusWriter import ScanReader, call_writers
 from ..nxs_write.NXclassWriters import write_NXdatetime, write_NXentry, write_NXnote
 from ..tools.VDS_tools import image_vds_writer
+from . import compute_goniometer, read_chip_map
 from .I24_Eiger_params import dset_links, eiger9M_params, goniometer_axes, source
 
 # Define a logger object and a formatter
@@ -36,6 +38,8 @@ ssx_collect = namedtuple(
         "pump_status",
         "pump_exp",
         "pump_delay",
+        "chip_info",
+        "chipmap",
     ],
 )
 
@@ -48,7 +52,7 @@ module = {}
 beam = {}
 attenuator = {}
 
-
+#
 def extruder(
     master_file: Path,
     filename: List[Path],
@@ -167,6 +171,14 @@ def fixed_target(
     """
     logger.info(f"Write NeXus file for {SSX.exp_type}")
 
+    # Check that the chip dict has been passed, raise error is not
+    if SSX.chip_info is None:
+        logger.error("No chip_dict found.")
+        raise ValueError(
+            "No information about the FT chip has been passed. \
+            Impossible to determine scan parameters. NeXus file won't be written."
+        )
+
     # Get timestamps in the correct format
     timestamps = (
         get_iso_timestamp(SSX.start_time),
@@ -174,87 +186,141 @@ def fixed_target(
     )
     logger.info(f"Timestamps recorded: {timestamps}")
 
-    # Goniometer
-    # Set start and end values from input
-    # omega sam_z sam_y sam_x
-    goniometer["starts"] = []
-    goniometer["ends"] = []
-    goniometer["increments"] = []
-
-    # Identify rotation and grid scan axes, calculate ranges
-    OSC, TRANSL = ScanReader(goniometer, n_images=SSX.num_imgs)
-
-    # Log data
-    logger.info("Goniometer information")
-    for j in range(len(goniometer["axes"])):
-        logger.info(
-            f"Goniometer axis: {goniometer['axes'][j]} => {goniometer['starts'][j]}, {goniometer['types'][j]} on {goniometer['depends'][j]}"
+    # Is it a time resolved SSX experiment?
+    if int(SSX.chip_info["N_EXPOSURES"][1]) == 1:
+        goniometer["increments"] = [0.0, 0.0, 0.0, 0.0]
+        # Read chip map
+        blocks = read_chip_map(
+            SSX.chipmap,
+            SSX.chip_info["X_NUM_BLOCKS"][1],
+            SSX.chip_info["Y_NUM_BLOCKS"][1],
         )
-    logger.info(f"Oscillation axis: {OSC.keys()[0]}.")
-    logger.info(f"Fixed target axes: {list(TRANSL.keys())}.")
 
-    try:
-        with h5py.File(master_file, "x") as nxsfile:
-            write_NXentry(nxsfile)
+        # Calculate scan start/end positions on chip
+        if type(blocks) is dict:
+            logger.info(f"Scanning blocks: {list(blocks.keys())}.")
+            start_pos, end_pos = compute_goniometer(SSX.chip_info, blocks=blocks)
+        else:
+            logger.info("Full chip: all the blocks will be scanned.")
+            start_pos, end_pos = compute_goniometer(SSX.chip_info, full=True)
 
-            if timestamps[0]:
-                write_NXdatetime(nxsfile, (timestamps[0], None))
-
-            call_writers(
-                nxsfile,
-                filename,
-                coordinate_frame,
-                (detector["mode"], SSX.num_imgs),
+        # Iterate over blocks to calculate scan points
+        OSC = {"omega": np.array([])}
+        TRANSL = {"sam_y": np.array([]), "sam_x": np.array([])}
+        for s, e in zip(start_pos.values(), end_pos.values()):
+            goniometer["starts"] = s
+            goniometer["ends"] = e
+            osc, transl = ScanReader(
                 goniometer,
-                detector,
-                module,
-                source,
-                beam,
-                attenuator,
-                OSC,
-                transl_scan=TRANSL,
-                metafile=metafile,
-                link_list=dset_links,
+                n_images=(
+                    SSX.chip_info["Y_NUM_STEPS"][1],
+                    SSX.chip_info["X_NUM_STEPS"][1],
+                ),
+            )
+            OSC["omega"] = np.append(OSC["omega"], osc["omega"])
+            TRANSL["sam_y"] = np.append(TRANSL["sam_y"], transl["sam_y"])
+            TRANSL["sam_x"] = np.append(TRANSL["sam_x"], transl["sam_x"])
+
+        # Log data
+        logger.info("Goniometer information")
+        for j in range(len(goniometer["axes"])):
+            logger.info(
+                f"Goniometer axis: {goniometer['axes'][j]} => {goniometer['types'][j]} on {goniometer['depends'][j]}"
+            )
+        logger.info(f"Oscillation axis: {list(OSC.keys())[0]}.")
+        logger.info(f"Grid scan axes: {list(TRANSL.keys())}.")
+
+        # Check that things make sense
+        if SSX.num_imgs != len(OSC["omega"]):
+            logger.warning(
+                f"The total number of scan points is {len(OSC['omega'])}, which does not match the total nu mber of images passed as input {SSX.num_imgs}."
+            )
+            logger.warning(
+                "Reset SSX.num_imgs to number of scan points for vds creation"
+            )
+            tot_imgs = len(OSC["omega"])
+        else:
+            tot_imgs = SSX.num_imgs
+
+        # Write NeXus and VDS
+        try:
+            with h5py.File(master_file, "x") as nxsfile:
+                write_NXentry(nxsfile)
+
+                if timestamps[0]:
+                    write_NXdatetime(nxsfile, (timestamps[0], None))
+
+                call_writers(
+                    nxsfile,
+                    filename,
+                    coordinate_frame,
+                    (detector["mode"], tot_imgs),
+                    goniometer,
+                    detector,
+                    module,
+                    source,
+                    beam,
+                    attenuator,
+                    OSC,
+                    transl_scan=TRANSL,
+                    metafile=metafile,
+                    link_list=dset_links,
+                )
+
+                # Write pump-probe information if requested
+                if SSX.pump_status == "true":
+                    logger.info("Pump status is True, write pump information to file.")
+                    pump_info = {}
+                    if SSX.pump_exp:
+                        pump_info["pump_exposure_time"] = SSX.pump_exp
+                        logger.info(f"Recorded pump exposure time: {SSX.pump_exp}")
+                    else:
+                        pump_info["pump_exposure_time"] = None
+                        logger.warning(
+                            "Pump exposure time has not been recorded and won't be written to file."
+                        )
+                    if SSX.pump_delay:
+                        pump_info["pump_delay"] = SSX.pump_delay
+                        logger.info(f"Recorded pump delay time: {SSX.pump_delay}")
+                    else:
+                        pump_info["pump_delay"] = None
+                        logger.warning(
+                            "Pump delay has not been recorded and won't be written to file."
+                        )
+                    loc = "/entry/source/notes"
+                    write_NXnote(nxsfile, loc, pump_info)
+
+                # Write VDS
+                image_vds_writer(nxsfile, (tot_imgs, *detector["image_size"]))
+
+                if timestamps[1]:
+                    write_NXdatetime(nxsfile, (None, timestamps[1]))
+                logger.info(f"The file {master_file} was written correctly.")
+        except Exception as err:
+            logger.exception(err)
+            logger.info(
+                f"An error occurred and {master_file} couldn't be written correctly."
             )
 
-            # Write pump-probe information if requested
-            if SSX.pump_status == "true":
-                logger.info("Pump status is True, write pump information to file.")
-                pump_info = {}
-                if SSX.pump_exp:
-                    pump_info["pump_exposure_time"] = SSX.pump_exp
-                    logger.info(f"Recorded pump exposure time: {SSX.pump_exp}")
-                else:
-                    pump_info["pump_exposure_time"] = None
-                    logger.warning(
-                        "Pump exposure time has not been recorded and won't be written to file."
-                    )
-                if SSX.pump_delay:
-                    pump_info["pump_delay"] = SSX.pump_delay
-                    logger.info(f"Recorded pump delay time: {SSX.pump_delay}")
-                else:
-                    pump_info["pump_delay"] = None
-                    logger.warning(
-                        "Pump delay has not been recorded and won't be written to file."
-                    )
-                loc = "/entry/source/notes"
-                write_NXnote(nxsfile, loc, pump_info)
-
-            # Write VDS
-            image_vds_writer(nxsfile, (SSX.num_imgs, *detector["image_size"]))
-
-            if timestamps[1]:
-                write_NXdatetime(nxsfile, (None, timestamps[1]))
-            logger.info(f"The file {master_file} was written correctly.")
-    except Exception as err:
-        logger.exception(err)
-        logger.info(
-            f"An error occurred and {master_file} couldn't be written correctly."
-        )
+    else:
+        print("TimeResolved goes here")
+        # same as before but with the repeat added headache
 
 
-def grid_scan_3D():
-    pass
+def grid_scan_3D(
+    master_file: Path,
+    filename: List[Path],
+    SSX: namedtuple,
+    metafile: Path = None,
+):
+    logger.info(f"Write NeXus file for {SSX.exp_type}")
+
+    # Get timestamps in the correct format
+    timestamps = (
+        get_iso_timestamp(SSX.start_time),
+        get_iso_timestamp(SSX.stop_time),
+    )
+    logger.info(f"Timestamps recorded: {timestamps}")
 
 
 def write_nxs(**ssx_params):
@@ -266,7 +332,7 @@ def write_nxs(**ssx_params):
         visitpath=Path(ssx_params["visitpath"]).expanduser().resolve(),
         filename=ssx_params["filename"],  # Template: test_##
         exp_type=ssx_params["exp_type"],
-        num_imgs=ssx_params["num_imgs"],
+        num_imgs=float(ssx_params["num_imgs"]),
         beam_center=ssx_params["beam_center"],
         detector_distance=ssx_params["det_dist"],
         start_time=ssx_params["start_time"].strftime("%Y-%m-%dT%H:%M:%S")
@@ -282,6 +348,14 @@ def write_nxs(**ssx_params):
         pump_status=ssx_params["pump_status"],
         pump_exp=ssx_params["pump_exp"],
         pump_delay=ssx_params["pump_delay"],
+        chip_info=None
+        if ssx_params["exp_type"] == "extruder"
+        else ssx_params[
+            "chip_info"
+        ],  # ssx_params["chip_info"] if ssx_params["chip_info"] else None,
+        chipmap=None
+        if ssx_params["exp_type"] == "extruder"
+        else Path(ssx_params["chipmap"]).expanduser().resolve(),
     )
 
     logfile = SSX.visitpath / "nexus_writer.log"
@@ -323,6 +397,7 @@ def write_nxs(**ssx_params):
     filename_template = (
         metafile.parent / metafile.name.replace("meta", f"{6*'[0-9]'}")
     ).as_posix()
+    # if meta else (SSX.visitpath / SSX.filename).as_posix() + f"_{6*'[0-9]'}.h5"
     filename = [
         Path(f).expanduser().resolve() for f in sorted(glob.glob(filename_template))
     ]
@@ -339,11 +414,14 @@ def write_nxs(**ssx_params):
     elif SSX.exp_type == "fixed_target":
         fixed_target(master_file, filename, SSX, metafile)
     elif SSX.exp_type == "3Dgridscan":
-        grid_scan_3D()
+        grid_scan_3D(master_file, filename, SSX, metafile)
+
+    logger.info("*EOF*\n")
 
 
 # # Example usage
 # if __name__ == "__main__":
+#     import sys
 #     from datetime import datetime
 
 #     write_nxs(
@@ -364,4 +442,6 @@ def write_nxs(**ssx_params):
 #         pump_status="true",  # this is a string on the beamline
 #         pump_exp=None,
 #         pump_delay=None,
+#         chip_info=None,
+#         chipmap=None,
 #     )

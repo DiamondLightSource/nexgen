@@ -37,8 +37,8 @@ def set_dependency(dep_info: str, path: str = None):
     If the attribute points to the head of the dependency chain, simply pass "." for dep_info.
 
     Args:
-        dep_info:   The name of the transformation upon which the current one depends on.
-        path:       Where the transformation is. Set to None, if passed it points to location in the NeXus tree.
+        dep_info (str): The name of the transformation upon which the current one depends on.
+        path (str): Where the transformation is. Set to None, if passed it points to location in the NeXus tree.
     Returns:
         The value to be passed to the attribute "depends_on"
     """
@@ -68,13 +68,13 @@ def find_osc_axis(
     In the case scan axis cannot be identified, a default value is arbitrarily assigned.
 
     Args:
-        axes_names (list):      List of names associated to goniometer axes.
-        axes_starts (list):     List of start values.
-        axes_ends (list):       List of end values.
-        axes_types (list):      List of axes types, useful to identify only the rotation axes.
-        default (str):          String to deafult to in case scan axis is not found.
+        axes_names (list): List of names associated to goniometer axes.
+        axes_starts (list): List of start values.
+        axes_ends (list): List of end values.
+        axes_types (list): List of axes types, useful to identify only the rotation axes.
+        default (str): String to deafult to in case scan axis is not found.
     Returns:
-        scan_axis (str):        String identifying the rotation scan axis.
+        scan_axis (str): String identifying the rotation scan axis.
     """
     # This assumes that at least one rotation axis is always passed.
     # Assuming all list are of the same length ...
@@ -148,7 +148,7 @@ def find_grid_scan_axes(
         axes_types (List): List of axes types, useful to identify only the translation axes.
 
     Returns:
-        List[str]: List of strings identifying the linear/grid scan axes. If no axes are identified, it will return an empty list.
+        scan_axis (List[str]): List of strings identifying the linear/grid scan axes. If no axes are identified, it will return an empty list.
     """
     if len(axes_names) == 0:
         raise ValueError(
@@ -172,9 +172,9 @@ def calculate_grid_scan_range(
     axes_names: List,
     axes_starts: List,
     axes_ends: List,
-    axes_increments: List,
-    n_images: Union[Tuple, int] = None,
-    snaked: bool = False,
+    axes_increments: List = None,
+    n_images: Tuple = None,
+    snaked: bool = True,
 ) -> Dict[str, np.ndarray]:
     """
     Calculate the scan range for a linear/grid scan from the number of images to be written.
@@ -185,33 +185,50 @@ def calculate_grid_scan_range(
         axes_starts (List): List of axis positions at the beginning of the scan.
         axes_ends (List): List of axis positions at the end of the scan.
         axes_increments (List, optional): List of ranges through which the axes move each frame.
-        n_images (Tuple|int, optional): Number of images to be written. If writing a 2D scan, it should be a (nx, ny) tuple, \
+        n_images (Tuple, optional): Number of images to be written. If writing a 2D scan, it should be a (nx, ny) tuple, \
                                         where tot_n_img=nx*ny, any int value is at this time ignored. Defaults to None.
-        snaked (bool): If True, scanspec will "draw" a snaked grid. Defaults to False.
+        snaked (bool): If True, scanspec will "draw" a snaked grid. Defaults to True.
+
+    Raises:
+        ValueError: When an empty axes names list has been passed.
+        ValueError: If both n_images and axes_increments are None.
+        ValueError: For a grid scan, if axes_increments is None, n_images must be a tuple of len=2 to be sure to accurately calculate the scan points.
+        ValueError: When the total number of images (if len=1) passed doeasn't match the number of scan points calculated from axes_increments.
 
     Returns:
         Dict[str, np.ndarray]: A dictionary of ("axis_name": axis_range) key-value pairs.
     """
+    if len(axes_names) == 0:
+        raise ValueError("No axes have been passed, impossible to determine scan.")
+    if not n_images and not axes_increments:
+        raise ValueError(
+            "Impossible to calculate scan points, please pass either the axes increment values or the number of scan points (n_images) per axis."
+        )
+
     if len(axes_names) == 1:
         if not n_images:
             n_images = int(abs(axes_starts[0] - axes_ends[0]) / axes_increments[0])
         spec = Line(axes_names[0], axes_starts[0], axes_ends[0], n_images)
         scan_path = ScanPath(spec.calculate())
     else:
-        n_images0 = int(abs(axes_starts[0] - axes_ends[0]) / axes_increments[0])
-        n_images1 = int(abs(axes_starts[1] - axes_ends[1]) / axes_increments[1])
-        if n_images and type(n_images) is tuple:
-            # Overwrite
+        if not n_images:
+            n_images0 = int(abs(axes_starts[0] - axes_ends[0]) / axes_increments[0])
+            n_images1 = int(abs(axes_starts[1] - axes_ends[1]) / axes_increments[1])
+        elif len(n_images) == 1:
+            if not axes_increments:
+                raise ValueError(
+                    "Impossible to correctly calculate scan points. Please pass axes increments."
+                )
+            n_images0 = int(abs(axes_starts[0] - axes_ends[0]) / axes_increments[0])
+            n_images1 = int(abs(axes_starts[1] - axes_ends[1]) / axes_increments[1])
+            if n_images[0] != n_images0 * n_images1:
+                raise ValueError(
+                    "The value passed as the total number of images doesn't match the number of scan points, please check the input values."
+                )
+        else:
             n_images0 = n_images[0]
             n_images1 = n_images[1]
-        # if not n_images:
-        #     n_images0 = int(abs(axes_starts[0] - axes_ends[0]) / axes_increments[0])
-        #     n_images1 = int(abs(axes_starts[1] - axes_ends[1]) / axes_increments[1])
-        # else:
-        #     # FIXME Need to be careful with n_images, it's not the total that should be passed here.
-        #     # Tot number of images (those passed in CLI or from beamline I guess) = n0*n1
-        #     n_images0 = n_images[0]
-        #     n_images1 = n_images[1]
+
         if snaked is True:
             spec = Line(axes_names[0], axes_starts[0], axes_ends[0], n_images0) * ~Line(
                 axes_names[1], axes_starts[1], axes_ends[1], n_images1
