@@ -321,7 +321,6 @@ def grid_scan_3D(
         get_iso_timestamp(SSX.stop_time),
     )
     logger.info(f"Timestamps recorded: {timestamps}")
-    pass
 
 
 def write_nxs(**ssx_params):
