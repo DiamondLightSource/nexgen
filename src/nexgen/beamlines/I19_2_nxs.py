@@ -198,12 +198,6 @@ def eiger_writer(
     # Get scan range array
     logger.info("Calculating scan range...")
     scan_idx = goniometer["axes"].index(scan_axis)
-    # scan_range = calculate_rotation_scan_range(
-    #    goniometer["starts"][scan_idx],
-    #    goniometer["ends"][scan_idx],
-    #    goniometer["increments"][scan_idx],
-    #    n_images=n_frames,
-    # )
 
     # Define OSC scans dictionary
     OSC = calculate_scan_range(
@@ -213,7 +207,6 @@ def eiger_writer(
         axes_increments=[goniometer["increments"][scan_idx]],
         n_images=n_frames,
     )
-    # OSC = {scan_axis: scan_range}
 
     # Get on with the writing now...
     try:
