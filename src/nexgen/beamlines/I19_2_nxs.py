@@ -63,6 +63,18 @@ attenuator = {}
 
 
 def read_from_xml(xmlfile: Union[Path, str], detector_name: str):
+    """
+    Extract information about the collection and the beamline contained in the xml file.
+
+    Args:
+        xmlfile (Union[Path, str]): Path to xml file.
+        detector_name (str): Detector in use for the current collection
+
+    Returns:
+        scan_axis (str): Name of the rotation scan axis
+        pos (Dict): Dictionary containing the (start,end,increment) values for each goniometer axis.
+        num (int): Number of images written.
+    """
     ecr = ExtendedRequestIO(xmlfile)
 
     # Attenuator
