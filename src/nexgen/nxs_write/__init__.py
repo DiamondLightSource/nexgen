@@ -219,11 +219,12 @@ def calculate_scan_range(
             # This is mostly a double paranoid check
             n_images = n_images[0]
 
-        if rotation is True and axes_increments:
-            axes_ends[0] = axes_ends[0] - axes_increments[0]
-        elif rotation is True and not axes_increments:
-            inc = (axes_ends[0] - axes_starts[0]) / n_images
-            axes_ends[0] = axes_ends[0] - inc
+        if rotation is True:
+            if axes_starts[0] != axes_ends[0] and axes_increments:
+                axes_ends[0] = axes_ends[0] - axes_increments[0]
+            elif axes_starts[0] != axes_ends[0] and not axes_increments:
+                inc = (axes_ends[0] - axes_starts[0]) / n_images
+                axes_ends[0] = axes_ends[0] - inc
 
         spec = Line(axes_names[0], axes_starts[0], axes_ends[0], n_images)
         scan_path = ScanPath(spec.calculate())
