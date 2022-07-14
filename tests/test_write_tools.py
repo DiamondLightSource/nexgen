@@ -88,27 +88,32 @@ def test_calc_rotation_range():
         [test_goniometer["ends"][0]],
         axes_increments=[test_goniometer["increments"][0]],
         n_images=10,
+        rotation=True,
     )
     assert np.all(arr[ax] == 0.0)
     del arr
 
     arr = calculate_scan_range(
-        [ax], [180.0], [180.0], axes_increments=[0.1], n_images=10
+        [ax], [180.0], [180.0], axes_increments=[0.1], n_images=10, rotation=True
     )
     assert np.all(arr[ax] == 180.0)
     assert len(arr[ax]) == 10
 
     # Check that it calculates the correct range
     # Given increments
-    # assert np.all(
-    #    calculate_scan_range([ax], [0.0], [2.0], axes_increments=[0.5])[ax]
-    #    == np.array([0.0, 0.5, 1.0, 1.5])
-    # )
+    assert np.all(
+        calculate_scan_range([ax], [0.0], [2.0], axes_increments=[0.5], rotation=True)[
+            ax
+        ]
+        == np.array([0.0, 0.5, 1.0, 1.5])
+    )
     # Given number of images
-    # assert np.all(
-    #    calculate_scan_range([ax], [0.0], [1.0], axes_increments=[0.1], n_images=2)[ax]
-    #    == np.array([0.0, 1.0])
-    # )
+    assert np.all(
+        calculate_scan_range(
+            [ax], [0.0], [1.0], axes_increments=[0.1], n_images=2, rotation=True
+        )[ax]
+        == np.array([0.0, 0.9])
+    )
 
 
 def test_calc_scan_range():

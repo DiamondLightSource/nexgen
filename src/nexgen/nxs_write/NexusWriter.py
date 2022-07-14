@@ -107,6 +107,7 @@ def write_nexus(
                 [goniometer.starts[idx]],
                 [goniometer.ends[idx]],
                 axes_increments=[goniometer.increments[idx]],
+                rotation=True,
             )
         else:
             OSC = calculate_scan_range(
@@ -114,6 +115,7 @@ def write_nexus(
                 [goniometer.starts[idx]],
                 [goniometer.ends[idx]],
                 n_images=num_images,
+                rotation=True,
             )
 
     writer_logger.info(f"Rotatin scan axis: {osc_axis}")
@@ -275,6 +277,7 @@ def write_nexus_demo(
                 [goniometer.starts[idx]],
                 [goniometer.ends[idx]],
                 axes_increments=[goniometer.increments[idx]],
+                rotation=True,
             )
             data_type = ("images", len(OSC[osc_axis]))
         elif data_type[1] is None and len(transl_axes) > 0:
@@ -285,6 +288,7 @@ def write_nexus_demo(
                 [goniometer.starts[idx]],
                 [goniometer.ends[idx]],
                 n_images=num_imgs,
+                rotation=True,
             )
             data_type = ("images", num_imgs)
         else:
@@ -301,6 +305,7 @@ def write_nexus_demo(
                 [goniometer.starts[idx]],
                 [goniometer.ends[idx]],
                 n_images=data_type[1],
+                rotation=True,
             )
     elif data_type[0] == "events":
         OSC = {osc_axis: (goniometer.starts[idx], goniometer.ends[idx])}
@@ -457,6 +462,7 @@ def ScanReader(
                 [goniometer["starts"][osc_idx]],
                 [goniometer["ends"][osc_idx]],
                 axes_increments=[goniometer["increments"][osc_idx]],
+                rotation=True,
             )
         elif n_images is None and len(transl_axes) > 0:
             ax = transl_axes[0]
@@ -466,6 +472,7 @@ def ScanReader(
                 [goniometer["starts"][osc_idx]],
                 [goniometer["ends"][osc_idx]],
                 n_images=n_images,
+                rotation=True,
             )
         elif n_images is not None and len(transl_axes) > 0:
             ax = transl_axes[0]
@@ -480,6 +487,7 @@ def ScanReader(
                 [goniometer["starts"][osc_idx]],
                 [goniometer["ends"][osc_idx]],
                 n_images=n_images,
+                rotation=True,
             )
         else:
             n_images = np.prod(n_images) if type(n_images) is tuple else n_images
@@ -489,6 +497,7 @@ def ScanReader(
                 [goniometer["ends"][osc_idx]],
                 axes_increments=[goniometer["increments"][osc_idx]],
                 n_images=n_images,
+                rotation=True,
             )
 
     # logger.info(f"{osc_axis} set as rotation axis.")

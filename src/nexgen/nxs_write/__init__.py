@@ -175,6 +175,7 @@ def calculate_scan_range(
     axes_increments: List = None,
     n_images: Tuple | int = None,
     snaked: bool = True,
+    rotation: bool = False,
 ) -> Dict[str, np.ndarray]:
     """
     Calculate the scan range for a linear/grid scan or a rotation scan from the number of images to be written.
@@ -189,6 +190,7 @@ def calculate_scan_range(
         n_images (Tuple | int, optional): Number of images to be written. If writing a 2D scan, it should be a (nx, ny) tuple, \
                                         where tot_n_img=nx*ny, any int value is at this time ignored. Defaults to None.
         snaked (bool): If True, scanspec will "draw" a snaked grid. Defaults to True.
+        rotation (bool): Tell the function to calculate a rotation scan. Defaults to False.
 
     Raises:
         TypeError: If the input axes are not lists.
@@ -214,8 +216,15 @@ def calculate_scan_range(
         if not n_images:
             n_images = int(abs(axes_starts[0] - axes_ends[0]) / axes_increments[0])
         elif type(n_images) is tuple and len(n_images) == 1:
-            # This is mostly a double check for the rotation calculations
+            # This is mostly a double paranoid check
             n_images = n_images[0]
+
+        if rotation is True and axes_increments:
+            axes_ends[0] = axes_ends[0] - axes_increments[0]
+        elif rotation is True and not axes_increments:
+            inc = (axes_ends[0] - axes_starts[0]) / n_images
+            axes_ends[0] = axes_ends[0] - inc
+
         spec = Line(axes_names[0], axes_starts[0], axes_ends[0], n_images)
         scan_path = ScanPath(spec.calculate())
     else:
