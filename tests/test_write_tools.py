@@ -109,10 +109,8 @@ def test_calc_rotation_range():
     )
     # Given number of images
     assert np.all(
-        calculate_scan_range(
-            [ax], [0.0], [1.0], axes_increments=[0.1], n_images=2, rotation=True
-        )[ax]
-        == np.array([0.0, 0.9])
+        calculate_scan_range([ax], [0.0], [1.0], n_images=2, rotation=True)[ax]
+        == np.array([0.0, 0.5])
     )
 
 
