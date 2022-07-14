@@ -1,13 +1,13 @@
 """
 Tools to write Virtual DataSets
 """
+import operator
 
 from dataclasses import dataclass
 import logging
 from pathlib import Path
 from typing import Any, List, Tuple, Union
-import itertools
-
+from functools import reduce
 import h5py
 import numpy as np
 
@@ -20,9 +20,32 @@ MAX_FRAMES_PER_DATASET = 1000
 @dataclass
 class Dataset:
     name: str
-    source_shape: Tuple[int]  # The full shape of the source, regardless of start index
-    dest_shape: Tuple[int]  # The shape of the destination, including the start_index
-    start_index: int = 0  # The start index that we should start copying from
+
+    # The full shape of the source, regardless of start index
+    source_shape: Tuple[int]
+
+    # The start index that we should start copying from
+    start_index: int = 0
+
+    # The shape of the destination, including the start_index
+    dest_shape: Tuple[int] = None
+
+    def __post_init__(self):
+        self.dest_shape = (
+            self.source_shape[0] - self.start_index,
+            *self.source_shape[1:],
+        )
+
+    def __add__(self, x):
+        """Returns a dataset that has the same start index and shape as if the two were appended to each other."""
+        return Dataset(
+            "",
+            source_shape=(
+                self.source_shape[0] + x.source_shape[0],
+                *self.source_shape[1:],
+            ),
+            start_index=self.start_index + x.start_index,
+        )
 
 
 def find_datasets_in_file(nxdata):
@@ -35,21 +58,9 @@ def find_datasets_in_file(nxdata):
     return dsets
 
 
-def split_into_datasets(data: int) -> List[int]:
-    """Returns a list of dataset sizes given a number of frames.
-    Assuming that the max frames per data set is 1000.
-    e.g.
-    >>> split_into_datasets(1150)
-    >>> [1000, 150]
-    """
-    return (data // MAX_FRAMES_PER_DATASET) * [MAX_FRAMES_PER_DATASET] + [
-        data % MAX_FRAMES_PER_DATASET
-    ]
-
-
-def get_start_idx_and_shape_per_dataset(
-    data_shape: Tuple[int, int, int], start_idx: int = 0
-) -> List[Tuple[int, Tuple[int, int, int]]]:
+def split_datasets(
+    dsets, data_shape: Tuple[int, int, int], start_idx: int = 0
+) -> List[Dataset]:
     """Splits the full data shape and start index up into values per dataset,
     given that each dataset has a maximum size.
     """
@@ -60,38 +71,44 @@ def get_start_idx_and_shape_per_dataset(
     if start_idx < 0:
         raise ValueError("Start index must be positive")
 
-    start_idx_per_dset = split_into_datasets(start_idx)
+    full_frames = data_shape[0]
+    result = []
+    for dset_name in dsets:
+        dset = Dataset(
+            name=dset_name,
+            source_shape=(min(MAX_FRAMES_PER_DATASET, full_frames), *data_shape[1:]),
+            start_index=min(MAX_FRAMES_PER_DATASET, max(start_idx, 0)),
+        )
+        result.append(dset)
+        start_idx -= MAX_FRAMES_PER_DATASET
+        full_frames -= MAX_FRAMES_PER_DATASET
 
-    frames_per_dset = split_into_datasets(data_shape[0])
-    shape_per_dset = [(f, *data_shape[1:]) for f in frames_per_dset]
-
-    start_and_shape_per_dataset = itertools.zip_longest(
-        start_idx_per_dset, shape_per_dset, fillvalue=0
-    )
-
-    return list(start_and_shape_per_dataset)
+    return result
 
 
-def create_virtual_layout(
-    full_data_shape, dsets, start_and_shape_per_dataset, data_type, start_index
-):
+def create_virtual_layout(datasets: List[Dataset], data_type):
     """Create a virtual layout and populate it based on the provided data
 
     Args:
-        full_data_shape (Union[Tuple, List]): The shape of the full dataset that we are copying from
-        dsets (List[str]): The name of the datasets we're copying from
-        start_and_shape_per_dataset (List[Tuple[int, Tuple[int, int, int]]]): The start index and shape of each dataset we're copying from
+        datasets (List[Dataset]): The datasets that we're merging
         data_type (Any): The datatype of the data to copy
     """
-    layout = h5py.VirtualLayout(
-        shape=(full_data_shape[0] - start_index, *full_data_shape[1:]), dtype=data_type
-    )
+    full_dataset: Dataset = reduce(operator.add, datasets)
+    layout = h5py.VirtualLayout(shape=full_dataset.dest_shape, dtype=data_type)
+
     dest_start = 0
-    for n, dset in enumerate(dsets):
-        source_start, shape = start_and_shape_per_dataset[n]
-        end = dest_start + shape[0] - source_start
-        vsource = h5py.VirtualSource(".", "/entry/data/" + dset, shape=shape)
-        layout[dest_start:end, :, :] = vsource[source_start : shape[0], :, :]
+    for dataset in datasets:
+        end = dest_start + dataset.source_shape[0] - dataset.start_index
+        vsource = h5py.VirtualSource(
+            ".", "/entry/data/" + dataset.name, shape=dataset.source_shape
+        )
+        # dest = layout[dest_start:end, :, :]
+        source = vsource[dataset.start_index : dataset.source_shape[0], :, :]
+        # raise Exception(source.shape)
+
+        layout[dest_start:end, :, :] = vsource[
+            dataset.start_index : dataset.source_shape[0], :, :
+        ]
         dest_start = end
 
     return layout
@@ -116,15 +133,11 @@ def image_vds_writer(
     # Where the vds will go
     nxdata = nxsfile["/entry/data"]
     entry_key = "data"
-    dsets = find_datasets_in_file(nxdata)
+    dset_names = find_datasets_in_file(nxdata)
 
-    start_and_shape_per_dataset = get_start_idx_and_shape_per_dataset(
-        full_data_shape, start_index
-    )
+    datasets = split_datasets(dset_names, full_data_shape, start_index)
 
-    layout = create_virtual_layout(
-        full_data_shape, dsets, start_and_shape_per_dataset, data_type
-    )
+    layout = create_virtual_layout(datasets, data_type)
 
     # Writea Virtual Dataset in NeXus file
     nxdata.create_virtual_dataset(entry_key, layout, fillvalue=-1)
