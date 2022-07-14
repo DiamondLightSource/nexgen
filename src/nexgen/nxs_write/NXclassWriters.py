@@ -255,7 +255,9 @@ def write_NXsample(
             # Write {axisname}_increment_set and {axis_name}_end datasets
             if data_type[0] == "images":
                 increment_set = np.repeat(goniometer["increments"][idx], len(osc_range))
-                nxsample_ax.create_dataset(ax + "_increment_set", data=increment_set)
+                nxsample_ax.create_dataset(
+                    ax + "_increment_set", data=goniometer["increments"][idx]
+                )  # increment_set)
                 nxsample_ax.create_dataset(ax + "_end", data=osc_range + increment_set)
         elif ax in scan_axes:
             # For translations
