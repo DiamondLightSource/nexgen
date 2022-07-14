@@ -102,9 +102,6 @@ def create_virtual_layout(datasets: List[Dataset], data_type):
         vsource = h5py.VirtualSource(
             ".", "/entry/data/" + dataset.name, shape=dataset.source_shape
         )
-        # dest = layout[dest_start:end, :, :]
-        source = vsource[dataset.start_index : dataset.source_shape[0], :, :]
-        # raise Exception(source.shape)
 
         layout[dest_start:end, :, :] = vsource[
             dataset.start_index : dataset.source_shape[0], :, :
