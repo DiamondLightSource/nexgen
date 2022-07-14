@@ -2,6 +2,7 @@
 Tools to write Virtual DataSets
 """
 
+from dataclasses import dataclass
 import logging
 from pathlib import Path
 from typing import Any, List, Tuple, Union
@@ -14,6 +15,24 @@ vds_logger = logging.getLogger("nexgen.VDSWriter")
 
 
 MAX_FRAMES_PER_DATASET = 1000
+
+
+@dataclass
+class Dataset:
+    name: str
+    source_shape: Tuple[int]  # The full shape of the source, regardless of start index
+    dest_shape: Tuple[int]  # The shape of the destination, including the start_index
+    start_index: int = 0  # The start index that we should start copying from
+
+
+def find_datasets_in_file(nxdata):
+    # Look for the source datasets in the NeXus file.
+    # FIXME for now this assumes that the source datasets are always links
+    dsets = []
+    for k in nxdata.keys():
+        if isinstance(nxdata.get(k, getlink=True), h5py.ExternalLink):
+            dsets.append(k)
+    return dsets
 
 
 def split_into_datasets(data: int) -> List[int]:
@@ -53,6 +72,31 @@ def get_start_idx_and_shape_per_dataset(
     return list(start_and_shape_per_dataset)
 
 
+def create_virtual_layout(
+    full_data_shape, dsets, start_and_shape_per_dataset, data_type, start_index
+):
+    """Create a virtual layout and populate it based on the provided data
+
+    Args:
+        full_data_shape (Union[Tuple, List]): The shape of the full dataset that we are copying from
+        dsets (List[str]): The name of the datasets we're copying from
+        start_and_shape_per_dataset (List[Tuple[int, Tuple[int, int, int]]]): The start index and shape of each dataset we're copying from
+        data_type (Any): The datatype of the data to copy
+    """
+    layout = h5py.VirtualLayout(
+        shape=(full_data_shape[0] - start_index, *full_data_shape[1:]), dtype=data_type
+    )
+    dest_start = 0
+    for n, dset in enumerate(dsets):
+        source_start, shape = start_and_shape_per_dataset[n]
+        end = dest_start + shape[0] - source_start
+        vsource = h5py.VirtualSource(".", "/entry/data/" + dset, shape=shape)
+        layout[dest_start:end, :, :] = vsource[source_start : shape[0], :, :]
+        dest_start = end
+
+    return layout
+
+
 def image_vds_writer(
     nxsfile: h5py.File,
     full_data_shape: Union[Tuple, List],
@@ -72,29 +116,15 @@ def image_vds_writer(
     # Where the vds will go
     nxdata = nxsfile["/entry/data"]
     entry_key = "data"
-    # Look for the source datasets in the NeXus file.
-    # FIXME for now this assumes that the source datasets are always links
-    dsets = []
-    for k in nxdata.keys():
-        if isinstance(nxdata.get(k, getlink=True), h5py.ExternalLink):
-            dsets.append(k)
+    dsets = find_datasets_in_file(nxdata)
 
     start_and_shape_per_dataset = get_start_idx_and_shape_per_dataset(
         full_data_shape, start_index
     )
 
-    final_data_shape = full_data_shape
-    final_data_shape[0] = full_data_shape[0] - start_index
-
-    # Create virtual layout
-    layout = h5py.VirtualLayout(shape=full_data_shape, dtype=data_type)
-    dest_start = 0
-    for n, dset in enumerate(dsets):
-        source_start, shape = start_and_shape_per_dataset[n]
-        end = dest_start + shape[1][0] - source_start
-        vsource = h5py.VirtualSource(".", "/entry/data/" + dset, shape=shape[1])
-        layout[dest_start:end:1, :, :] = vsource[source_start[1] : shape[1], :, :]
-        dest_start = end
+    layout = create_virtual_layout(
+        full_data_shape, dsets, start_and_shape_per_dataset, data_type
+    )
 
     # Writea Virtual Dataset in NeXus file
     nxdata.create_virtual_dataset(entry_key, layout, fillvalue=-1)
