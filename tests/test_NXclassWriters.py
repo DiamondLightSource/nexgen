@@ -145,7 +145,7 @@ def test_given_scan_axis_when_write_NXsample_then_scan_axis_data_copied_from_dat
     assert dummy_nexus_file[axis_entry].attrs["transformation_type"] == b"rotation"
     assert dummy_nexus_file[axis_entry].attrs["units"] == b"deg"
     assert_array_equal(dummy_nexus_file[axis_entry].attrs["vector"][:], [-1, 0, 0])
-    assert_array_equal(dummy_nexus_file[axis_entry + "_increment_set"][:], 1)
+    assert_array_equal(dummy_nexus_file[axis_entry + "_increment_set"][()], 1)
     # assert_array_equal(dummy_nexus_file[axis_entry + "_increment_set"][:], [1] * 3)
     assert dummy_nexus_file[axis_entry + "_end"][1] == 2
 
