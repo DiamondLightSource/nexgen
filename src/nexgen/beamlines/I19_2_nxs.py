@@ -21,6 +21,7 @@ from ..tools.GDAjson2params import (
     read_detector_params_from_json,
     read_geometry_from_json,
 )
+from ..tools.VDS_tools import image_vds_writer
 from .I19_2_params import (
     dset_links,
     eiger4M_params,
@@ -248,6 +249,9 @@ def eiger_writer(
 
             if timestamps[1]:
                 write_NXdatetime(nxsfile, (None, timestamps[1]))
+
+            # Write VDS
+            image_vds_writer(nxsfile, (int(n_frames), *detector["image_size"]))
             logger.info(f"The file {master_file} was written correctly.")
     except Exception as err:
         logger.exception(err)
