@@ -27,7 +27,9 @@ def read_chip_map(mapfile: Path, x_blocks: int, y_blocks: int) -> Union[Dict, st
         chipmap = f.read()
 
     block_list = []
-    for line in chipmap.rsplit("\n"):
+    for n, line in enumerate(chipmap.rsplit("\n")):
+        if n == 64:
+            break
         k = line[:2]
         v = line[-1:]
         if v == "1":
