@@ -221,8 +221,9 @@ def calculate_scan_range(
 
     if len(axes_names) == 1:
         if not n_images:
-            n_images = math.ceil(
-                abs(axes_starts[0] - axes_ends[0]) / axes_increments[0]
+            # FIXME This calculation still gives the wrong increment between scan points.
+            n_images = (
+                round(abs(axes_starts[0] - axes_ends[0]) / axes_increments[0]) + 1
             )
         elif type(n_images) is tuple and len(n_images) == 1:
             # This is mostly a double paranoid check
@@ -239,11 +240,12 @@ def calculate_scan_range(
         scan_path = ScanPath(spec.calculate())
     else:
         if not n_images:
-            n_images0 = math.ceil(
-                abs(axes_starts[0] - axes_ends[0]) / axes_increments[0]
+            # FIXME This calculation still gives the wrong increment between scan points.
+            n_images0 = (
+                round(abs(axes_starts[0] - axes_ends[0]) / axes_increments[0]) + 1
             )
-            n_images1 = math.ceil(
-                abs(axes_starts[1] - axes_ends[1]) / axes_increments[1]
+            n_images1 = (
+                round(abs(axes_starts[1] - axes_ends[1]) / axes_increments[1]) + 1
             )
         elif len(n_images) == 1:
             raise ValueError(
