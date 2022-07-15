@@ -123,7 +123,7 @@ def test_calc_scan_range():
     assert len(lin) == 1
     assert "sam_x" in lin.keys()
     assert len(lin["sam_x"]) == 11
-    assert round(lin["sam_x"][1] - lin["sam_x"][0]) == 0.2
+    assert round(lin["sam_x"][1] - lin["sam_x"][0], 1) == 0.2
 
     del lin
 

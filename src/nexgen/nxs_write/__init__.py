@@ -219,7 +219,17 @@ def calculate_scan_range(
             "For a 2D scan it is recommended that n_images is passed."
         )
 
-    if len(axes_names) == 1:
+    if len(axes_names) == 1 and rotation is True:
+        if axes_starts[0] != axes_ends[0] and axes_increments:
+            axes_ends[0] = axes_ends[0] - axes_increments[0]
+        elif axes_starts[0] != axes_ends[0] and not axes_increments:
+            inc = (axes_ends[0] - axes_starts[0]) / n_images
+            axes_ends[0] = axes_ends[0] - inc
+
+        spec = Line(axes_names[0], axes_starts[0], axes_ends[0], n_images)
+        scan_path = ScanPath(spec.calculate())
+
+    elif len(axes_names) == 1 and rotation is False:
         if not n_images:
             # FIXME This calculation still gives the wrong increment between scan points.
             n_images = (
@@ -229,15 +239,9 @@ def calculate_scan_range(
             # This is mostly a double paranoid check
             n_images = n_images[0]
 
-        if rotation is True:
-            if axes_starts[0] != axes_ends[0] and axes_increments:
-                axes_ends[0] = axes_ends[0] - axes_increments[0]
-            elif axes_starts[0] != axes_ends[0] and not axes_increments:
-                inc = (axes_ends[0] - axes_starts[0]) / n_images
-                axes_ends[0] = axes_ends[0] - inc
-
         spec = Line(axes_names[0], axes_starts[0], axes_ends[0], n_images)
         scan_path = ScanPath(spec.calculate())
+
     else:
         if not n_images:
             # FIXME This calculation still gives the wrong increment between scan points.
