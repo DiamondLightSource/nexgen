@@ -87,6 +87,7 @@ def test_calc_rotation_range():
         [test_goniometer["starts"][0]],
         [test_goniometer["ends"][0]],
         axes_increments=[test_goniometer["increments"][0]],
+        n_images=10,
         rotation=True,
     )
     assert np.all(arr[ax] == 0.0)
