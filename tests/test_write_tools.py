@@ -86,7 +86,6 @@ def test_calc_rotation_range():
         [ax],
         [test_goniometer["starts"][0]],
         [test_goniometer["ends"][0]],
-        axes_increments=[test_goniometer["increments"][0]],
         n_images=10,
         rotation=True,
     )
@@ -146,7 +145,7 @@ def test_calc_scan_range():
         test_goniometer["axes"][2:],
         test_goniometer["starts"][2:],
         test_goniometer["ends"][2:],
-        (10, 10),
+        n_images=(10, 10),
     )
     assert len(grid) == 2
     assert "sam_x" in grid.keys() and "sam_y" in grid.keys()
