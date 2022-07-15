@@ -495,7 +495,6 @@ def ScanReader(
                 [osc_axis],
                 [goniometer["starts"][osc_idx]],
                 [goniometer["ends"][osc_idx]],
-                axes_increments=[goniometer["increments"][osc_idx]],
                 n_images=n_images,
                 rotation=True,
             )

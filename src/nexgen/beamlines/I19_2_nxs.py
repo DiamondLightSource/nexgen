@@ -217,7 +217,7 @@ def eiger_writer(
         [goniometer["starts"][scan_idx]],
         [goniometer["ends"][scan_idx]],
         axes_increments=[goniometer["increments"][scan_idx]],
-        n_images=n_frames,
+        # n_images=n_frames,
         rotation=True,
     )
 
