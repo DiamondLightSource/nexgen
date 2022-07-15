@@ -202,7 +202,7 @@ def calculate_scan_range(
     Returns:
         Dict[str, np.ndarray]: A dictionary of ("axis_name": axis_range) key-value pairs.
     """
-    if type(axes_names) != list:
+    if type(axes_names) != list or type(axes_starts) != list or type(axes_ends) != list:
         raise TypeError("Input values for axes must be passed as lists.")
 
     if len(axes_names) == 0:
@@ -221,7 +221,9 @@ def calculate_scan_range(
 
     if len(axes_names) == 1:
         if not n_images:
-            n_images = round(abs(axes_starts[0] - axes_ends[0]) / axes_increments[0])
+            n_images = math.ceil(
+                abs(axes_starts[0] - axes_ends[0]) / axes_increments[0]
+            )
         elif type(n_images) is tuple and len(n_images) == 1:
             # This is mostly a double paranoid check
             n_images = n_images[0]
@@ -245,7 +247,8 @@ def calculate_scan_range(
             )
         elif len(n_images) == 1:
             raise ValueError(
-                "Impossible to correctly calculate scan points from just the total number of images. Please either pass a tuple with the number of scan point per axis or the axes increments."
+                "Impossible to correctly calculate scan points from just the total number of images."
+                "Please either pass a tuple with the number of scan point per axis or the axes increments."
             )
         else:
             n_images0 = n_images[0]

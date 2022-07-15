@@ -431,7 +431,7 @@ def ScanReader(
                 transl_start,
                 transl_end,
                 transl_increment,
-                (n_images,),
+                # (n_images,),
                 snaked=snaked,
             )
         elif n_images and type(n_images) is tuple:
