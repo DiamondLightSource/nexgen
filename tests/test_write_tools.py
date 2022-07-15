@@ -87,15 +87,12 @@ def test_calc_rotation_range():
         [test_goniometer["starts"][0]],
         [test_goniometer["ends"][0]],
         axes_increments=[test_goniometer["increments"][0]],
-        n_images=10,
         rotation=True,
     )
     assert np.all(arr[ax] == 0.0)
     del arr
 
-    arr = calculate_scan_range(
-        [ax], [180.0], [180.0], axes_increments=[0.1], n_images=10, rotation=True
-    )
+    arr = calculate_scan_range([ax], [180.0], [180.0], n_images=10, rotation=True)
     assert np.all(arr[ax] == 180.0)
     assert len(arr[ax]) == 10
 
@@ -116,6 +113,7 @@ def test_calc_rotation_range():
 
 def test_calc_scan_range():
     # Check linear scan
+    # From increments
     lin = calculate_scan_range(
         test_goniometer["axes"][-1:],
         test_goniometer["starts"][-1:],
@@ -124,8 +122,22 @@ def test_calc_scan_range():
     )
     assert len(lin) == 1
     assert "sam_x" in lin.keys()
+    assert len(lin["sam_x"]) == 11
+    assert round(lin["sam_x"][1] - lin["sam_x"][0]) == 0.2
+
+    del lin
+
+    # From number of images
+    lin = calculate_scan_range(
+        test_goniometer["axes"][-1:],
+        test_goniometer["starts"][-1:],
+        test_goniometer["ends"][-1:],
+        n_images=10,
+    )
+    assert len(lin) == 1
+    assert "sam_x" in lin.keys()
     assert len(lin["sam_x"]) == 10
-    # assert lin["sam_x"][1] - lin["sam_x"][0] == 0.2
+    # assert round(lin["sam_x"][1] - lin["sam_x"][0]) == 0.2
 
     # Check grid scan
     # From number of images
