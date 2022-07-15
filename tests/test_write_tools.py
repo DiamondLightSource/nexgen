@@ -99,7 +99,7 @@ def test_calc_rotation_range():
     assert np.all(arr[ax] == 180.0)
     assert len(arr[ax]) == 10
 
-    # Check that it calculates the correct range
+    # Check that it calculates the correct range for axis_start
     # Given increments
     assert np.all(
         calculate_scan_range([ax], [0.0], [2.0], axes_increments=[0.5], rotation=True)[
@@ -128,19 +128,19 @@ def test_calc_scan_range():
     # assert lin["sam_x"][1] - lin["sam_x"][0] == 0.2
 
     # Check grid scan
+    # From number of images
     grid = calculate_scan_range(
         test_goniometer["axes"][2:],
         test_goniometer["starts"][2:],
         test_goniometer["ends"][2:],
-        test_goniometer["increments"][2:],
         (10, 10),
     )
     assert len(grid) == 2
     assert "sam_x" in grid.keys() and "sam_y" in grid.keys()
     assert len(grid["sam_x"]) == len(grid["sam_y"])
     assert len(grid["sam_x"]) == 100
-    # assert grid["sam_x"][1] - grid["sam_x"][0] == 0.2
-    # assert grid["sam_y"][1] - grid["sam_y"][0] == 0.2
+    assert round(grid["sam_x"][1] - grid["sam_x"][0], 1) == 0.2
+    assert round(grid["sam_y"][10] - grid["sam_y"][0], 1) == 0.2
 
 
 def test_set_dependency():
