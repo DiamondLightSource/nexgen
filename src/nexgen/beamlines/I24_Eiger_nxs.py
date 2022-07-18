@@ -142,7 +142,7 @@ def extruder(
                 write_NXnote(nxsfile, loc, pump_info)
 
             # Write VDS
-            image_vds_writer(nxsfile, (SSX.num_imgs, *detector["image_size"]))
+            image_vds_writer(nxsfile, (int(SSX.num_imgs), *detector["image_size"]))
 
             if timestamps[1]:
                 write_NXdatetime(nxsfile, (None, timestamps[1]))
@@ -291,7 +291,7 @@ def fixed_target(
                     write_NXnote(nxsfile, loc, pump_info)
 
                 # Write VDS
-                image_vds_writer(nxsfile, (tot_imgs, *detector["image_size"]))
+                image_vds_writer(nxsfile, (int(tot_imgs), *detector["image_size"]))
 
                 if timestamps[1]:
                     write_NXdatetime(nxsfile, (None, timestamps[1]))

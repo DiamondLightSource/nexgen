@@ -13,7 +13,7 @@ from typing import Tuple, Union
 import h5py
 
 from .. import get_iso_timestamp, get_nexus_filename, log
-from ..nxs_write import calculate_rotation_scan_range
+from ..nxs_write import calculate_scan_range
 from ..nxs_write.NexusWriter import call_writers
 from ..nxs_write.NXclassWriters import write_NXdatetime, write_NXentry
 from ..tools.ExtendedRequest import ExtendedRequestIO
@@ -21,6 +21,7 @@ from ..tools.GDAjson2params import (
     read_detector_params_from_json,
     read_geometry_from_json,
 )
+from ..tools.VDS_tools import image_vds_writer
 from .I19_2_params import (
     dset_links,
     eiger4M_params,
@@ -63,6 +64,18 @@ attenuator = {}
 
 
 def read_from_xml(xmlfile: Union[Path, str], detector_name: str):
+    """
+    Extract information about the collection and the beamline contained in the xml file.
+
+    Args:
+        xmlfile (Union[Path, str]): Path to xml file.
+        detector_name (str): Detector in use for the current collection
+
+    Returns:
+        scan_axis (str): Name of the rotation scan axis
+        pos (Dict): Dictionary containing the (start,end,increment) values for each goniometer axis.
+        num (int): Number of images written.
+    """
     ecr = ExtendedRequestIO(xmlfile)
 
     # Attenuator
@@ -198,15 +211,16 @@ def eiger_writer(
     # Get scan range array
     logger.info("Calculating scan range...")
     scan_idx = goniometer["axes"].index(scan_axis)
-    scan_range = calculate_rotation_scan_range(
-        goniometer["starts"][scan_idx],
-        goniometer["ends"][scan_idx],
-        goniometer["increments"][scan_idx],
-        n_images=n_frames,
-    )
 
     # Define OSC scans dictionary
-    OSC = {scan_axis: scan_range}
+    OSC = calculate_scan_range(
+        [goniometer["axes"][scan_idx]],
+        [goniometer["starts"][scan_idx]],
+        [goniometer["ends"][scan_idx]],
+        axes_increments=[goniometer["increments"][scan_idx]],
+        # n_images=n_frames,
+        rotation=True,
+    )
 
     # Get on with the writing now...
     try:
@@ -235,6 +249,9 @@ def eiger_writer(
 
             if timestamps[1]:
                 write_NXdatetime(nxsfile, (None, timestamps[1]))
+
+            # Write VDS
+            image_vds_writer(nxsfile, (int(n_frames), *detector["image_size"]))
             logger.info(f"The file {master_file} was written correctly.")
     except Exception as err:
         logger.exception(err)

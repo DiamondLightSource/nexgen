@@ -14,8 +14,7 @@ from ..tools.DataWriter import generate_event_files, generate_image_files
 from ..tools.MetaReader import overwrite_beam, overwrite_detector
 from ..tools.VDS_tools import image_vds_writer, vds_file_writer
 from . import (
-    calculate_grid_scan_range,
-    calculate_rotation_scan_range,
+    calculate_scan_range,
     find_grid_scan_axes,
     find_number_of_images,
     find_osc_axis,
@@ -90,7 +89,7 @@ def write_nexus(
 
     if detector.mode == "events":
         data_type = ("events", len(datafiles))
-        osc_range = (goniometer.starts[idx], goniometer.ends[idx])
+        OSC = {osc_axis: (goniometer.starts[idx], goniometer.ends[idx])}
     else:
         # Find total number of images that have been written across the files.
         if len(datafiles) == 1:
@@ -103,20 +102,24 @@ def write_nexus(
 
         # Compute rotation scan_range
         if goniometer.increments[idx] != 0.0:
-            osc_range = calculate_rotation_scan_range(
-                goniometer.starts[idx],
-                goniometer.ends[idx],
-                axis_increment=goniometer.increments[idx],
+            OSC = calculate_scan_range(
+                [osc_axis],
+                [goniometer.starts[idx]],
+                [goniometer.ends[idx]],
+                axes_increments=[goniometer.increments[idx]],
+                rotation=True,
             )
         else:
-            osc_range = calculate_rotation_scan_range(
-                goniometer.starts[idx], goniometer.ends[idx], n_images=num_images
+            OSC = calculate_scan_range(
+                [osc_axis],
+                [goniometer.starts[idx]],
+                [goniometer.ends[idx]],
+                n_images=num_images,
+                rotation=True,
             )
 
-    OSC = {osc_axis: osc_range}
-
     writer_logger.info(f"Rotatin scan axis: {osc_axis}")
-    writer_logger.info(f"Scan from {osc_range[0]} tp {osc_range[-1]}.")
+    writer_logger.info(f"Scan from {OSC[osc_axis][0]} tp {OSC[osc_axis][-1]}.")
 
     # Look for a translation scan (usually on xy)
     transl_axes = find_grid_scan_axes(
@@ -135,7 +138,7 @@ def write_nexus(
             )
         # TODO decide what to do for n_images=(nx,ny) in this case...
         # Tbh, it should work without it anyway
-        transl_range = calculate_grid_scan_range(
+        transl_range = calculate_scan_range(
             transl_axes,
             transl_starts,
             transl_ends,
@@ -254,7 +257,7 @@ def write_nexus_demo(
             writer_logger.info(
                 f"{transl_axes[tr]} scan from {transl_starts[tr]} to {transl_ends[tr]}, with a step of {transl_increments[tr]}"
             )
-        transl_range = calculate_grid_scan_range(
+        transl_range = calculate_scan_range(
             transl_axes,
             transl_starts,
             transl_ends,
@@ -269,17 +272,23 @@ def write_nexus_demo(
     idx = goniometer.axes.index(osc_axis)
     if data_type[0] == "images":
         if data_type[1] is None and len(transl_axes) == 0:
-            osc_range = calculate_rotation_scan_range(
-                goniometer.starts[idx],
-                goniometer.ends[idx],
-                axis_increment=goniometer.increments[idx],
+            OSC = calculate_scan_range(
+                [osc_axis],
+                [goniometer.starts[idx]],
+                [goniometer.ends[idx]],
+                axes_increments=[goniometer.increments[idx]],
+                rotation=True,
             )
-            data_type = ("images", len(osc_range))
+            data_type = ("images", len(OSC[osc_axis]))
         elif data_type[1] is None and len(transl_axes) > 0:
             ax1 = transl_axes[0]
             num_imgs = len(transl_range[ax1])
-            osc_range = calculate_rotation_scan_range(
-                goniometer.starts[idx], goniometer.ends[idx], n_images=num_imgs
+            OSC = calculate_scan_range(
+                [osc_axis],
+                [goniometer.starts[idx]],
+                [goniometer.ends[idx]],
+                n_images=num_imgs,
+                rotation=True,
             )
             data_type = ("images", num_imgs)
         else:
@@ -291,16 +300,18 @@ def write_nexus_demo(
             # assert data_type[1] == len(
             #     transl_range[ax1]
             # ), "The total number of images doesn't match the number of scan points, please double check the input."
-            osc_range = calculate_rotation_scan_range(
-                goniometer.starts[idx], goniometer.ends[idx], n_images=data_type[1]
+            OSC = calculate_scan_range(
+                [osc_axis],
+                [goniometer.starts[idx]],
+                [goniometer.ends[idx]],
+                n_images=data_type[1],
+                rotation=True,
             )
     elif data_type[0] == "events":
-        osc_range = (goniometer.starts[idx], goniometer.ends[idx])
-
-    OSC = {osc_axis: osc_range}
+        OSC = {osc_axis: (goniometer.starts[idx], goniometer.ends[idx])}
 
     writer_logger.info(f"Rotation scan axis: {osc_axis}.")
-    writer_logger.info(f"Scan from {osc_range[0]} to {osc_range[-1]}.")
+    writer_logger.info(f"Scan from {OSC[osc_axis][0]} to {OSC[osc_axis][-1]}.")
 
     # Figure out how many files will need to be written
     writer_logger.info("Calculating number of files to write ...")
@@ -415,20 +426,20 @@ def ScanReader(
         transl_end = [goniometer["ends"][i] for i in transl_idx]
         transl_increment = [goniometer["increments"][i] for i in transl_idx]
         if n_images and type(n_images) is int:
-            TRANSL = calculate_grid_scan_range(
+            TRANSL = calculate_scan_range(
                 transl_axes,
                 transl_start,
                 transl_end,
                 transl_increment,
-                (n_images,),
+                # (n_images,),
                 snaked=snaked,
             )
         elif n_images and type(n_images) is tuple:
-            TRANSL = calculate_grid_scan_range(
+            TRANSL = calculate_scan_range(
                 transl_axes, transl_start, transl_end, n_images=n_images, snaked=snaked
             )
         else:
-            TRANSL = calculate_grid_scan_range(
+            TRANSL = calculate_scan_range(
                 transl_axes, transl_start, transl_end, transl_increment, snaked=snaked
             )
         logger.info(f"{len(transl_axes)} scan axis/axes found (translation).")
@@ -438,26 +449,30 @@ def ScanReader(
     # Once that's defined, go through the various cases
     # Return either 2 dictionaries or (Dict, None)
     if data_type == "events" and len(transl_axes) == 0:
-        osc_range = (goniometer["starts"][osc_idx], goniometer["ends"][osc_idx])
+        OSC = {osc_axis: (goniometer["starts"][osc_idx], goniometer["ends"][osc_idx])}
     elif data_type == "events" and len(transl_axes) > 0:
-        osc_range = (goniometer["starts"][osc_idx], goniometer["ends"][osc_idx])
+        OSC = {osc_axis: (goniometer["starts"][osc_idx], goniometer["ends"][osc_idx])}
         # Overwrite TRANSL
         for k, s, e in zip(transl_axes, transl_start, transl_end):
             TRANSL[k] = (s, e)
     else:
         if n_images is None and len(transl_axes) == 0:
-            osc_range = calculate_rotation_scan_range(
-                goniometer["starts"][osc_idx],
-                goniometer["ends"][osc_idx],
-                axis_increment=goniometer["increments"][osc_idx],
+            OSC = calculate_scan_range(
+                [osc_axis],
+                [goniometer["starts"][osc_idx]],
+                [goniometer["ends"][osc_idx]],
+                axes_increments=[goniometer["increments"][osc_idx]],
+                rotation=True,
             )
         elif n_images is None and len(transl_axes) > 0:
             ax = transl_axes[0]
             n_images = len(TRANSL[ax])
-            osc_range = calculate_rotation_scan_range(
-                goniometer["starts"][osc_idx],
-                goniometer["ends"][osc_idx],
+            OSC = calculate_scan_range(
+                [osc_axis],
+                [goniometer["starts"][osc_idx]],
+                [goniometer["ends"][osc_idx]],
                 n_images=n_images,
+                rotation=True,
             )
         elif n_images is not None and len(transl_axes) > 0:
             ax = transl_axes[0]
@@ -466,24 +481,24 @@ def ScanReader(
                 raise ValueError(
                     "The value passed as the total number of images doesn't match the number of scan points, please check the input."
                 )
-            # FIXME alternatively I could write a warning message and force it to
-            # obey one or the other directive. For example, I could recalculate TRANSL with n_images.
-            # But who's to say which one is right a priori? TBD
-            osc_range = calculate_rotation_scan_range(
-                goniometer["starts"][osc_idx],
-                goniometer["ends"][osc_idx],
+            #
+            OSC = calculate_scan_range(
+                [osc_axis],
+                [goniometer["starts"][osc_idx]],
+                [goniometer["ends"][osc_idx]],
                 n_images=n_images,
+                rotation=True,
             )
         else:
             n_images = np.prod(n_images) if type(n_images) is tuple else n_images
-            osc_range = calculate_rotation_scan_range(
-                goniometer["starts"][osc_idx],
-                goniometer["ends"][osc_idx],
-                axis_increment=goniometer["increments"][osc_idx],
+            OSC = calculate_scan_range(
+                [osc_axis],
+                [goniometer["starts"][osc_idx]],
+                [goniometer["ends"][osc_idx]],
                 n_images=n_images,
+                rotation=True,
             )
 
-    OSC = {osc_axis: osc_range}
     # logger.info(f"{osc_axis} set as rotation axis.")
     return OSC, TRANSL
 

@@ -2,9 +2,11 @@
 Utilities for writing new NeXus format files.
 """
 
+from __future__ import annotations
+
 import math
 from pathlib import Path
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Tuple
 
 import h5py
 import numpy as np
@@ -13,9 +15,7 @@ from scanspec.core import Path as ScanPath
 from scanspec.specs import Line
 
 
-def create_attributes(
-    nxs_obj: Union[h5py.Group, h5py.Dataset], names: Tuple, values: Tuple
-):
+def create_attributes(nxs_obj: h5py.Group | h5py.Dataset, names: Tuple, values: Tuple):
     """
     Create or overwrite attributes with additional metadata information.
 
@@ -103,35 +103,6 @@ def find_osc_axis(
     return scan_axis
 
 
-def calculate_rotation_scan_range(
-    axis_start: float,
-    axis_end: float,
-    axis_increment: float = None,
-    n_images: int = None,
-) -> np.ndarray:
-    """
-    Calculate the scan range for a rotation collection and return as a numpy array.
-    For this calculation axes_increments and n_images are mutually exclusive.
-    If there are multiple images but no rotation scan, return a numpy array of axis_start repeated n_images times.
-
-    Args:
-        axis_start (float):         Rotation axis position at the beginning of the scan, float.
-        axis_end (float):           Rotation axis position at the end of the scan, float.
-        axis_increment (float):     Range through which the axis moves each frame, float.
-        n_images (int):             Alternatively, number of images, int.
-    Returns:
-        scan_range (np.ndarray):    Numpy array of values for the rotation axis.
-    """
-    if n_images:
-        if axis_start == axis_end:
-            scan_range = np.repeat(axis_start, n_images)
-        else:
-            scan_range = np.linspace(axis_start, axis_end, n_images)
-    else:
-        scan_range = np.arange(axis_start, axis_end, axis_increment)
-    return scan_range
-
-
 def find_grid_scan_axes(
     axes_names: List,
     axes_starts: List,
@@ -168,63 +139,97 @@ def find_grid_scan_axes(
     return scan_axis
 
 
-def calculate_grid_scan_range(
+def calculate_scan_range(
     axes_names: List,
     axes_starts: List,
     axes_ends: List,
     axes_increments: List = None,
-    n_images: Tuple = None,
+    n_images: Tuple | int = None,
     snaked: bool = True,
+    rotation: bool = False,
 ) -> Dict[str, np.ndarray]:
     """
-    Calculate the scan range for a linear/grid scan from the number of images to be written.
-    If the number of images is not provided, it can be calculated from the increment value of the axis.
+    Calculate the scan range for a linear/grid scan or a rotation scan from the number of images to be written.
+    If the number of images is not provided, it can be calculated from the increment value of the axis (these values are mutually exclusive).
+    When dealing with a rotation axis, if there are multiple images but no rotation scan, return axis_start repeated n_images times.
 
     Args:
         axes_names (List): List of names for the axes involved in the scan.
         axes_starts (List): List of axis positions at the beginning of the scan.
         axes_ends (List): List of axis positions at the end of the scan.
-        axes_increments (List, optional): List of ranges through which the axes move each frame.
-        n_images (Tuple, optional): Number of images to be written. If writing a 2D scan, it should be a (nx, ny) tuple, \
+        axes_increments (List, optional): List of ranges through which the axes move each frame. Mostly used for rotation scans. Defaults to None.
+        n_images (Tuple | int, optional): Number of images to be written. If writing a 2D scan, it should be a (nx, ny) tuple, \
                                         where tot_n_img=nx*ny, any int value is at this time ignored. Defaults to None.
         snaked (bool): If True, scanspec will "draw" a snaked grid. Defaults to True.
+        rotation (bool): Tell the function to calculate a rotation scan. Defaults to False.
 
     Raises:
+        TypeError: If the input axes are not lists.
         ValueError: When an empty axes names list has been passed.
-        ValueError: If both n_images and axes_increments are None.
+        ValueError: When both axes_increments and n_images have been passed. The two values are mutually exclusive.
+        ValueError: When neither axes_increments not n_images have been passed.
         ValueError: For a grid scan, if axes_increments is None, n_images must be a tuple of len=2 to be sure to accurately calculate the scan points.
-        ValueError: When the total number of images (if len=1) passed doeasn't match the number of scan points calculated from axes_increments.
 
     Returns:
         Dict[str, np.ndarray]: A dictionary of ("axis_name": axis_range) key-value pairs.
     """
+    if type(axes_names) != list or type(axes_starts) != list or type(axes_ends) != list:
+        raise TypeError("Input values for axes must be passed as lists.")
+
     if len(axes_names) == 0:
         raise ValueError("No axes have been passed, impossible to determine scan.")
-    if not n_images and not axes_increments:
+
+    if n_images and axes_increments:
+        raise ValueError(
+            "The axes_increments and n_images arguments are mutually exclusive. Please pass just one of those."
+            "For a 2D scan it is recommended that n_images is passed."
+        )
+    elif not n_images and not axes_increments:
         raise ValueError(
             "Impossible to calculate scan points, please pass either the axes increment values or the number of scan points (n_images) per axis."
+            "For a 2D scan it is recommended that n_images is passed."
         )
 
-    if len(axes_names) == 1:
+    if len(axes_names) == 1 and rotation is True:
         if not n_images:
-            n_images = int(abs(axes_starts[0] - axes_ends[0]) / axes_increments[0])
+            n_images = round(abs(axes_starts[0] - axes_ends[0]) / axes_increments[0])
+
+        if axes_starts[0] != axes_ends[0] and axes_increments:
+            axes_ends[0] = axes_ends[0] - axes_increments[0]
+        elif axes_starts[0] != axes_ends[0] and not axes_increments:
+            inc = (axes_ends[0] - axes_starts[0]) / n_images
+            axes_ends[0] = axes_ends[0] - inc
+
         spec = Line(axes_names[0], axes_starts[0], axes_ends[0], n_images)
         scan_path = ScanPath(spec.calculate())
+
+    elif len(axes_names) == 1 and rotation is False:
+        if not n_images:
+            # FIXME This calculation still gives the wrong increment between scan points.
+            n_images = (
+                round(abs(axes_starts[0] - axes_ends[0]) / axes_increments[0]) + 1
+            )
+        elif type(n_images) is tuple and len(n_images) == 1:
+            # This is mostly a double paranoid check
+            n_images = n_images[0]
+
+        spec = Line(axes_names[0], axes_starts[0], axes_ends[0], n_images)
+        scan_path = ScanPath(spec.calculate())
+
     else:
         if not n_images:
-            n_images0 = int(abs(axes_starts[0] - axes_ends[0]) / axes_increments[0])
-            n_images1 = int(abs(axes_starts[1] - axes_ends[1]) / axes_increments[1])
+            # FIXME This calculation still gives the wrong increment between scan points.
+            n_images0 = (
+                round(abs(axes_starts[0] - axes_ends[0]) / axes_increments[0]) + 1
+            )
+            n_images1 = (
+                round(abs(axes_starts[1] - axes_ends[1]) / axes_increments[1]) + 1
+            )
         elif len(n_images) == 1:
-            if not axes_increments:
-                raise ValueError(
-                    "Impossible to correctly calculate scan points. Please pass axes increments."
-                )
-            n_images0 = int(abs(axes_starts[0] - axes_ends[0]) / axes_increments[0])
-            n_images1 = int(abs(axes_starts[1] - axes_ends[1]) / axes_increments[1])
-            if n_images[0] != n_images0 * n_images1:
-                raise ValueError(
-                    "The value passed as the total number of images doesn't match the number of scan points, please check the input values."
-                )
+            raise ValueError(
+                "Impossible to correctly calculate scan points from just the total number of images."
+                "Please either pass a tuple with the number of scan point per axis or the axes increments."
+            )
         else:
             n_images0 = n_images[0]
             n_images1 = n_images[1]
@@ -243,8 +248,8 @@ def calculate_grid_scan_range(
 
 
 def calculate_origin(
-    beam_center_fs: Union[List, Tuple],
-    fs_pixel_size: Union[List, Tuple],
+    beam_center_fs: List | Tuple,
+    fs_pixel_size: List | Tuple,
     fast_axis_vector: Tuple,
     slow_axis_vector: Tuple,
     mode: str = "1",
@@ -283,17 +288,18 @@ def calculate_origin(
     return det_origin, offset_val
 
 
-def find_number_of_images(datafile_list: List[Path]):
+def find_number_of_images(datafile_list: List[Path]) -> int:
     """
     Calculate total number of images when there's more than one input HDF5 file.
 
     Args:
-        datafiles:  List of paths to the input image files.
+        datafile_list (List[Path]): List of paths to the input image files.
+
     Returns:
-        num_images: Total number of images.
+        num_images (int): Total number of images._summary_
     """
     num_images = 0
     for filename in datafile_list:
         with h5py.File(filename, "r") as f:
             num_images += f["data"].shape[0]
-    return num_images
+    return int(num_images)
