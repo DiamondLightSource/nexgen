@@ -20,6 +20,12 @@ def h5str(h5_value: str | np.string_ | bytes) -> str:
     h5py can return either a bytes-like (numpy.string_) or str object
     for attribute values depending on whether the value was written as
     fixed or variable length. This function collapses the two to str.
+
+    Args:
+        h5_value (str | np.string_ | bytes): Original attribute value.
+
+    Returns:
+        str: Attribute value collapsed to str.
     """
     if isinstance(h5_value, (np.string_, bytes)):
         return h5_value.decode("utf-8")
@@ -28,7 +34,14 @@ def h5str(h5_value: str | np.string_ | bytes) -> str:
 
 def get_skip_list(nxentry: h5py.Group, skip_obj: list[str]) -> list[str]:
     """
-    Get a list of all the objects that hould not be copied in the nex NeXus file.
+    Get a list of all the objects that should not be copied in the new NeXus file.
+
+    Args:
+        nxentry (h5py.Group): "/entry/" group of a NeXus file.
+        skip_obj (list[str]): List of objects that should not be copied.
+
+    Returns:
+        list[str]: List of "NXclass" objects to skip during copy.
     """
     obj_list = walk_nxs(nxentry)
     skip_list = []
