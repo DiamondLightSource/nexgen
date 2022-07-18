@@ -76,6 +76,12 @@ def split_datasets(
     if start_idx < 0:
         raise ValueError("Start index must be positive")
 
+    if type(data_shape[0]) is not int:
+        vds_logger.warning(f"Datashape not passed as int, will attempt to cast")
+
+    if type(start_idx) is not int:
+        vds_logger.warning(f"VDS start index not passed as int, will attempt to cast")
+
     full_frames = int(data_shape[0])
     result = []
     for dset_name in dsets:
