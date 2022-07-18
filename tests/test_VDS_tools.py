@@ -2,9 +2,13 @@ from nexgen.tools.VDS_tools import (
     Dataset,
     split_datasets,
     create_virtual_layout,
+    image_vds_writer,
 )
 import pytest
 import numpy as np
+import tempfile
+import h5py
+from unittest.mock import MagicMock
 
 
 def test_when_get_frames_and_shape_less_than_1000_then_correct():
@@ -73,3 +77,33 @@ def test_when_start_idx_higher_than_full_then_exception_raised():
 def test_when_start_idx_negative_then_exception_raised():
     with pytest.raises(ValueError):
         split_datasets(["test1"], (1100, 10, 10), -100)
+
+
+@pytest.fixture
+def nexus_file_with_single_dataset():
+    test_hdf_file = tempfile.TemporaryFile()
+    test_nexus_file = h5py.File(test_hdf_file, "w")
+    test_nexus_file["/entry/data/data_0001"] = h5py.ExternalLink("filename", "path")
+    yield test_nexus_file
+
+
+def test_when_float_shape_passed_to_vds_writer_then_no_exception(
+    nexus_file_with_single_dataset,
+):
+    image_vds_writer(nexus_file_with_single_dataset, (500.0, 10.0, 10.0), start_index=0)
+
+
+def test_when_float_start_index_passed_to_vds_writer_then_no_exception(
+    nexus_file_with_single_dataset,
+):
+    image_vds_writer(
+        nexus_file_with_single_dataset, (500.0, 10.0, 10.0), start_index=0.0
+    )
+
+
+def test_given_file_with_no_dataset_external_links_then_exception_is_sensible():
+    test_hdf_file = tempfile.TemporaryFile()
+    test_nexus_file = h5py.File(test_hdf_file, "w")
+    test_nexus_file["/entry/data/data_0001"] = MagicMock()
+    with pytest.raises(KeyError):
+        image_vds_writer(test_nexus_file, (1000, 10, 10))

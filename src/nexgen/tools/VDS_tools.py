@@ -50,11 +50,16 @@ class Dataset:
 
 def find_datasets_in_file(nxdata):
     # Look for the source datasets in the NeXus file.
+    # Raises a KeyError if no links are found
     # FIXME for now this assumes that the source datasets are always links
     dsets = []
     for k in nxdata.keys():
         if isinstance(nxdata.get(k, getlink=True), h5py.ExternalLink):
             dsets.append(k)
+    if not dsets:
+        raise KeyError(
+            f"No External Link datasets found in NeXus file under {nxdata.name}"
+        )
     return dsets
 
 
@@ -71,13 +76,19 @@ def split_datasets(
     if start_idx < 0:
         raise ValueError("Start index must be positive")
 
-    full_frames = data_shape[0]
+    if type(data_shape[0]) is not int:
+        vds_logger.warning(f"Datashape not passed as int, will attempt to cast")
+
+    if type(start_idx) is not int:
+        vds_logger.warning(f"VDS start index not passed as int, will attempt to cast")
+
+    full_frames = int(data_shape[0])
     result = []
     for dset_name in dsets:
         dset = Dataset(
             name=dset_name,
             source_shape=(min(MAX_FRAMES_PER_DATASET, full_frames), *data_shape[1:]),
-            start_index=min(MAX_FRAMES_PER_DATASET, max(start_idx, 0)),
+            start_index=min(MAX_FRAMES_PER_DATASET, max(int(start_idx), 0)),
         )
         result.append(dset)
         start_idx -= MAX_FRAMES_PER_DATASET
