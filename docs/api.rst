@@ -17,10 +17,11 @@ NXmx writers
     :members:
 
 All the writers above can be called using the ``call_writers`` function, with the exception of ``write_NXentry``, ``write_NXdatetime`` and ``write_NXnote``.  
-NOTE: Versions >= 0.6.8 (current one) hopefully won't have these writers, and since there are no docs yet, the line above probably doesn't matter.
 
 .. autofunction:: nexgen.nxs_write.NexusWriter.call_writers
 
+# TODO turn those two first writers with the scopes (now obsolete) into just one write_from_scope function 
+NOTE: Versions >= 0.6.8 (current one) hopefully won't have these writers, and since there are no docs yet, the line above probably doesn't matter.
 
 Writing blank datasets
 ----------------------
@@ -63,8 +64,8 @@ Copying tools
 Utilities
 =========
 
-Checking for scan axes
-----------------------
+Finding the scan axes
+---------------------
 
 .. autofunction:: nexgen.nxs_write.NexusWriter.ScanReader
 
@@ -100,6 +101,26 @@ Reading the information stored in the metafile and copying it across to the new 
 
 .. autofunction:: nexgen.tools.MetaReader.overwrite_detector
 
+TODO. Finish reader for congi/ dataset from meta file.
+
+Logging configuration
+---------------------
+
+.. automodule:: nexgen.log
+    :members:
+
+=============
+DLS beamlines
+=============
+
+I19-2
+-----
+
+
+I24
+---
+
+
 GDA integration tools
 ---------------------
 
@@ -112,10 +133,4 @@ GDA integration tools
 **Gather beamline and collection information from GDA-generated xml file**
 
 .. autoclass:: nexgen.tools.ExtendedRequest.ExtendedRequestIO
-    :members:
-
-Logging configuration
----------------------
-
-.. automodule:: nexgen.log
     :members:

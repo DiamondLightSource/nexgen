@@ -31,7 +31,7 @@ module_scope = freephil.parse(
       module_size = 0 0
         .multiple = True
         .type = ints
-        .help = "In case of multiple modules, pass the size of aeach single module"
+        .help = "In case of multiple modules, pass the size of each single module"
     }
     """
 )
@@ -175,7 +175,7 @@ beamline_scope = freephil.parse(
       type = Synchrotron X-ray Source
         .type = str
         .help = "Facility type"
-      beamline_name = I19-2
+      beamline_name = None
         .type = str
         .help = "Beamline name"
     }

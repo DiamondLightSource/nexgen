@@ -149,7 +149,7 @@ meta_phil = freephil.parse(
 
 # Parse command line arguments
 parser = argparse.ArgumentParser(
-    description="Generate a NeXus file for data collection.",
+    description="Generate a new NeXus file for data collection.",
     parents=[version_parser],
 )
 parser.add_argument("--debug", action="store_const", const=True)
