@@ -20,9 +20,9 @@ def create_attributes(nxs_obj: h5py.Group | h5py.Dataset, names: Tuple, values: 
     Create or overwrite attributes with additional metadata information.
 
     Args:
-        nxs_obj:    NeXus object (Group or Dataset) to which the attributes should be attached
-        names:      Tuple containing the names of the new attributes
-        values:     Tuple containing the values relative to the names
+        nxs_obj (h5py.Group | h5py.Dataset): NeXus object to which the attributes should be attached.
+        names (Tuple): The names of the new attributes.
+        values (Tuple): The attribute values asociated to the names.
     """
     for n, v in zip(names, values):
         if type(v) is str:
@@ -68,11 +68,16 @@ def find_osc_axis(
     In the case scan axis cannot be identified, a default value is arbitrarily assigned.
 
     Args:
-        axes_names (list): List of names associated to goniometer axes.
-        axes_starts (list): List of start values.
-        axes_ends (list): List of end values.
-        axes_types (list): List of axes types, useful to identify only the rotation axes.
-        default (str): String to deafult to in case scan axis is not found.
+        axes_names (List): List of names associated to goniometer axes.
+        axes_starts (List): List of start values.
+        axes_ends (List): List of end values.
+        axes_types (List): List of axes types, useful to identify only the rotation axes.
+        default (str, optional): String to deafult to in case scan axis is not found. Defaults to "omega".
+
+    Raises:
+        ValueError: If no axes have been passed.
+        ValueError: If more than one rotation axis seems to move.
+
     Returns:
         scan_axis (str): String identifying the rotation scan axis.
     """
@@ -117,6 +122,9 @@ def find_grid_scan_axes(
         axes_starts (List): List of start values.
         axes_ends (List): List of end values.
         axes_types (List): List of axes types, useful to identify only the translation axes.
+
+    Raises:
+        ValueError: If no axes have been passed.
 
     Returns:
         scan_axis (List[str]): List of strings identifying the linear/grid scan axes. If no axes are identified, it will return an empty list.
@@ -253,7 +261,7 @@ def calculate_origin(
     fast_axis_vector: Tuple,
     slow_axis_vector: Tuple,
     mode: str = "1",
-):
+) -> Tuple[List, float]:
     """
     Calculate the offset of the detector.
 
@@ -262,16 +270,18 @@ def calculate_origin(
     Assumes that fast and slow axis vectors have already been converted to mcstas if needed.
 
     Args:
-        beam_center_fs:     List or tuple of beam center position in fast and slow direction.
-        fs_pixel_size:      List or tuple of pixel size in fast and slow direction, in m.
-        fast_axis_vector:   Fast axis vector (usually passed as a tuple).
-        slow__axis_vector:  Slow axis vector ( usually passed as a tuple).
-        mode:               Decides how to calculate det_origin.
+        beam_center_fs (List | Tuple): Beam center position in fast and slow direction.
+        fs_pixel_size (List | Tuple): Pixel size in fast and slow direction, in m.
+        fast_axis_vector (Tuple): Fast axis vector.
+        slow_axis_vector (Tuple): Slow axis vector.
+        mode (str, optional): Decide how origin should be calculated.
                             If set to "1" the displacement vector is un-normalized and the offset value set to 1.0.
                             If set to "2" the displacement is normalized and the offset value is set to the magnitude of the displacement.
+                            Defaults to "1".
+
     Returns:
-        det_origin:         Displacement of beam center, vector attribute of module_offset.
-        offset_value:       Value to assign to module_offset, depending whether det_origin is normalized or not.
+        det_origin (List): Displacement of beam center, vector attribute of module_offset.
+        offset_val (float): Value to assign to module_offset, depending whether det_origin is normalized or not.
     """
     # what was calculate module_offset
     x_scaled = beam_center_fs[0] * fs_pixel_size[0]
