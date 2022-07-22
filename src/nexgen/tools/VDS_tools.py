@@ -1,13 +1,13 @@
 """
 Tools to write Virtual DataSets
 """
-import operator
-
-from dataclasses import dataclass
 import logging
+import operator
+from dataclasses import dataclass
+from functools import reduce
 from pathlib import Path
 from typing import Any, List, Tuple, Union
-from functools import reduce
+
 import h5py
 import numpy as np
 
@@ -48,9 +48,19 @@ class Dataset:
         )
 
 
-def find_datasets_in_file(nxdata):
-    # Look for the source datasets in the NeXus file.
-    # Raises a KeyError if no links are found
+def find_datasets_in_file(nxdata: h5py.Group) -> List:
+    """
+    Look for the source datasets in the NeXus file. Assumes that the source datasets are always h5py.ExternalLink.
+
+    Args:
+        nxdata (h5py.Group): Group where the data should be linked.
+
+    Raises:
+        KeyError: If no ExternalLinks to data are found in the group.
+
+    Returns:
+        dsets (List): The source datasets.
+    """
     # FIXME for now this assumes that the source datasets are always links
     dsets = []
     for k in nxdata.keys():
@@ -66,8 +76,21 @@ def find_datasets_in_file(nxdata):
 def split_datasets(
     dsets, data_shape: Tuple[int, int, int], start_idx: int = 0
 ) -> List[Dataset]:
-    """Splits the full data shape and start index up into values per dataset,
+    """
+    Splits the full data shape and start index up into values per dataset,
     given that each dataset has a maximum size.
+
+    Args:
+        dsets (Dataset): The input datasets.
+        data_shape (Tuple[int, int, int]): Shape of the data, usually defined as (num_frames, *image_size).
+        start_idx (int, optional): The start point for the source data. Defaults to 0.
+
+    Raises:
+        ValueError: If the passed start index value is higher than the dataset lenght.
+        ValueError: It the passed start index value is negative.
+
+    Returns:
+        List[Dataset]: A list of datasets.
     """
     if start_idx > data_shape[0]:
         raise ValueError(
@@ -97,12 +120,16 @@ def split_datasets(
     return result
 
 
-def create_virtual_layout(datasets: List[Dataset], data_type):
-    """Create a virtual layout and populate it based on the provided data
+def create_virtual_layout(datasets: List[Dataset], data_type: Any):
+    """
+    Create a virtual layout and populate it based on the provided data.
 
     Args:
-        datasets (List[Dataset]): The datasets that we're merging
-        data_type (Any): The datatype of the data to copy
+        datasets (List[Dataset]): A list of datasets that are to be merged.
+        data_type (Any): The type of the input data.
+
+    Returns:
+        layout (h5py.VirtualLayout): Virtual layout.
     """
     full_dataset: Dataset = reduce(operator.add, datasets)
     layout = h5py.VirtualLayout(shape=full_dataset.dest_shape, dtype=data_type)
@@ -134,8 +161,8 @@ def image_vds_writer(
     Args:
         nxsfile (h5py.File): NeXus file being written.
         full_data_shape (Union[Tuple, List]): Shape of the full dataset, usually defined as (num_frames, *image_size).
-        start_index(int): The start point for the source data
-        data_type (Any, optional): Dtype. Defaults to np.uint16.
+        start_index(int): The start point for the source data. Defaults to 0.
+        data_type (Any, optional): The type of the input data. Defaults to np.uint16.
     """
     vds_logger.info("Start creating VDS ...")
     # Where the vds will go
