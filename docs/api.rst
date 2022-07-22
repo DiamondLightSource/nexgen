@@ -20,9 +20,6 @@ All the writers above can be called using the ``call_writers`` function, with th
 
 .. autofunction:: nexgen.nxs_write.NexusWriter.call_writers
 
-# TODO turn those two first writers with the scopes (now obsolete) into just one write_from_scope function 
-NOTE: Versions >= 0.6.8 (current one) hopefully won't have these writers, and since there are no docs yet, the line above probably doesn't matter.
-
 Writing blank datasets
 ----------------------
 **Generating blank images**
@@ -42,9 +39,8 @@ Using an *Eiger* or *Tristan* detector mask ...
 VDS writer
 ----------
 
-.. autofunction:: nexgen.tools.VDS_tools.image_vds_writer
-
-.. autofunction:: nexgen.tools.VDS_tools.vds_file_writer
+.. automodule:: nexgen.tools.VDS_tools
+    :members:
 
 
 Copying tools
@@ -101,7 +97,7 @@ Reading the information stored in the metafile and copying it across to the new 
 
 .. autofunction:: nexgen.tools.MetaReader.overwrite_detector
 
-TODO. Finish reader for congi/ dataset from meta file.
+TODO. Finish reader for config/ dataset from meta file.
 
 Logging configuration
 ---------------------

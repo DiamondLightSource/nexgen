@@ -26,7 +26,7 @@ Command line tools
 Generating new NeXus files
 --------------------------
 
-bla bla ... command line accessible tools ...
+This package started out as an easy way to quickly generate NeXus files from scratch along with blank HDF5 datasets using command line tools.
 
 
 **Parsing**
@@ -44,17 +44,21 @@ For example,
 .. code-block:: console
     generate_nexus -h
 
+.. code-block:: console
+    copy_nexus --help
+
 will show ...
 Each subcommand also has an help message detailing its specific options.
 
-.. code-block:: console
-    copy_nexus --help
+
 
 
 Show PHIL parameters
 --------------------
 In addition to the help message, it is possible to take a look at the list of phil parameters that can/need to be passed to the command line generator.
 
+NB. TODO FIXME -c/-a options are broken with subcommands... especially they seem to be for generate_nexus 2
+generate_nexus -c -a 2 3 does exactly what it's supposed to!
 
 Creating a new .phil file
 -------------------------
