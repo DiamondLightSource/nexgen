@@ -42,12 +42,12 @@ def build_an_eiger(
     Generate an Eiger-like blank image.
 
     Args:
-        image_size (Union[List, Tuple]): Defines image dimensions as (slow_axis , fast_axis).
+        image_size (Union[List, Tuple]): Detector size, fefines image dimensions as (slow_axis , fast_axis).
         det_description (str): Identifies the type of Eiger detector.
         n_modules (Tuple[int, int], optional): Number of modules in the detector. Defaults to None.
 
     Returns:
-        IM (np.ndarray): Array of zeros with an Eiger-like mask.
+        IM (np.ndarray): Blank image - an array of zeros with an Eiger-like mask.
     """
     for k, v in eiger_modules.items():
         if k in det_description.upper():
@@ -90,11 +90,11 @@ def build_a_tristan(
     Generate a Tristan-like blank image.
 
     Args:
-        image_size (Union[List, Tuple]): Defines image dimensions as (slow_axis , fast_axis).
-        det_description (str): Identifies the type of Eiger detector.
+        image_size (Union[List, Tuple]): Detector size, fefines image dimensions as (slow_axis , fast_axis).
+        det_description (str): Identifies the Tristan detector.
 
     Returns:
-        np.ndarray: Array of zeros with a Tristan-like mask.
+        IM (np.ndarray): Blank image - an array of zeros with an Eiger-like mask.
     """
     for k, v in tristan_modules.items():
         if k in det_description.upper():
@@ -138,6 +138,9 @@ def generate_image_files(
         image_size (Union[List, Tuple]): Image dimensions as (slow_axis, fast_axis).
         det_description (str): Type of detector. The string should include the number of modules.
         tot_num_images (int): Total number of images to be written across the files.
+
+    Raises:
+        ValueError: If the number of files requested and the total number of images to write don't match.
     """
     # Write some blank data in the shape of a detector
     if "eiger" in det_description.lower():

@@ -11,7 +11,7 @@ try:
     # Only for Python version >= 3.8
     from functools import cached_property
 except ImportError:
-    # Compatibility fr earlier Python versions
+    # Compatibility for earlier Python versions
     import functools
 
     def cached_property(func):
