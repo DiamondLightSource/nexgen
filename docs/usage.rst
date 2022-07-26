@@ -84,11 +84,18 @@ To access the help message for ``nexgen_phil``:
 Copying NeXus files
 -------------------
 
-How to goes here ...
-...
-A NeXus file can be copied in full or just parts of it, 
+ - Copy a nexus file in full, or just parts of it
 
-Copy a Nxmx file or a tristan-flavoured file....
+ .. code-block:: console
+    copy_nexus gen input.original_nexus=File.nxs input.simple_copy=True
+
+ .. code-block:: console
+    copy_nexus gen input.original_nexus=File.nxs input.data_filename=File_0001.h5 input.skip=NXdata input.skip=NXsample 
+
+ - Copy metadata from a Tristan NeXus file to NXmx format
+
+ .. code-block:: console
+    copy_nexus tristan input.tristan_nexus=Tristan_img.nxs input.data_filename=Tristan_img_0001.h5 experiment_type=rotation
 
 
 DLS beamline specific utilities
