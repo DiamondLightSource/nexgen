@@ -20,11 +20,14 @@ All the writers above can be called using the ``call_writers`` function, with th
 
 .. autofunction:: nexgen.nxs_write.NexusWriter.call_writers
 
+Finding the scan axes
+---------------------
+
+.. autofunction:: nexgen.nxs_write.NexusWriter.ScanReader
+
 Writing blank datasets
 ----------------------
 **Generating blank images**
-
-.. autofunction:: nexgen.tools.DataWriter.generate_image_files
 
 Using an *Eiger* or *Tristan* detector mask ...
 
@@ -32,9 +35,18 @@ Using an *Eiger* or *Tristan* detector mask ...
 
 .. autofunction:: nexgen.tools.DataWriter.build_a_tristan
 
+
+
+.. autofunction:: nexgen.tools.DataWriter.generate_image_files
+
 **Generating pseudo-events** 
 
+.. autofunction:: nexgen.tools.DataWriter.pseudo_event_list
+
+
+
 .. autofunction:: nexgen.tools.DataWriter.generate_event_files
+
 
 VDS writer
 ----------
@@ -60,14 +72,6 @@ Copying tools
 Utilities
 =========
 
-Finding the scan axes
----------------------
-
-.. autofunction:: nexgen.nxs_write.NexusWriter.ScanReader
-
-Generally useful tools
-----------------------
-
 .. automodule:: nexgen
     :members:
 
@@ -91,13 +95,13 @@ Metafile definition:
     :members:
     :show-inheritance:
 
-Reading the information stored in the metafile and copying it across to the new NeXus file:
+
+A couple of functions are available for reading the information stored in the metafile and copying it across to the new NeXus file:
 
 .. autofunction:: nexgen.tools.MetaReader.overwrite_beam
 
 .. autofunction:: nexgen.tools.MetaReader.overwrite_detector
 
-TODO. Finish reader for config/ dataset from meta file.
 
 Logging configuration
 ---------------------
