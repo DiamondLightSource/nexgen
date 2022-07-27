@@ -31,6 +31,7 @@ from ..tools.MetaReader import overwrite_beam, overwrite_detector
 from ..tools.VDS_tools import image_vds_writer, vds_file_writer
 from . import (
     add_tristan_spec,
+    config_parser,
     demo_parser,
     detectormode_parser,
     nexus_parser,
@@ -153,22 +154,22 @@ parser = argparse.ArgumentParser(
     parents=[version_parser],
 )
 parser.add_argument("--debug", action="store_const", const=True)
-parser.add_argument(
-    "-c",
-    "--show-config",
-    action="store_true",
-    default=False,
-    dest="show_config",
-    help="Show the configuration parameters.",
-)
-parser.add_argument(
-    "-a",
-    "--attributes-level",
-    default=0,
-    type=int,
-    dest="attributes_level",
-    help="Set the attributes level for showing the configuration parameters.",
-)
+# parser.add_argument(
+#     "-c",
+#     "--show-config",
+#     action="store_true",
+#     default=False,
+#     dest="show_config",
+#     help="Show the configuration parameters.",
+# )
+# parser.add_argument(
+#     "-a",
+#     "--attributes-level",
+#     default=0,
+#     type=int,
+#     dest="attributes_level",
+#     help="Set the attributes level for showing the configuration parameters.",
+# )
 
 
 # CLIs
@@ -935,15 +936,18 @@ parser_NXmx = subparsers.add_parser(
     "1",
     aliases=["nexus"],
     description=("Trigger NeXus file writing pointing to existing data."),
-    parents=[nexus_parser],
+    parents=[nexus_parser, config_parser],
 )
 parser_NXmx.set_defaults(func=write_NXmx_cli)
 
 parser_NXmx_demo = subparsers.add_parser(
     "2",
     aliases=["demo"],
-    description=("Trigger NeXus and blank data file writing."),
-    parents=[demo_parser, detectormode_parser],
+    description=(
+        "Trigger NeXus and blank data file writing. "
+        "This option always requires either the -i or -e flags, which are mutually exclusive arguments."
+    ),
+    parents=[demo_parser, detectormode_parser, config_parser],
 )
 parser_NXmx_demo.set_defaults(func=write_demo_cli)
 
@@ -953,7 +957,7 @@ parser_NXmx_meta = subparsers.add_parser(
     description=(
         "Trigger NeXus file writing pointing to an existing collection with a meta file."
     ),
-    parents=[nexus_parser],
+    parents=[nexus_parser, config_parser],
 )
 parser_NXmx_meta.add_argument(
     "-no",
