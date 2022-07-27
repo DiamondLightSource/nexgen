@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import List, Optional
+from typing import List
 
 import h5py
 
@@ -18,7 +18,7 @@ copy_logger = logging.getLogger("nexgen.CopyNeXus")
 
 def images_nexus(
     data_file: List[Path | str],
-    original_nexus: Optional[Path | str],
+    original_nexus: Path | str,
     simple_copy: bool = True,
     skip_group: List[str] = ["NXdata"],
 ) -> str:
@@ -27,7 +27,7 @@ def images_nexus(
 
     Args:
         data_file (List[Path  |  str]): HDF5 file with images.
-        original_nexus (Optional[Path  |  str]): Original NeXus file with experiment metadata.
+        original_nexus (Path  |  str): Original NeXus file with experiment metadata.
         simple_copy (bool, optional): Copy everything from the original NeXus file. Defaults to True.
         skip_group (List[str], optional): If simple_copy is False, list of NX_class objects to skip when copying.
                                         Defaults to ["NXdata"].
@@ -76,14 +76,14 @@ def images_nexus(
 
 def pseudo_events_nexus(
     data_file: List[Path | str],
-    original_nexus: Optional[Path | str],
+    original_nexus: Path | str,
 ) -> str:
     """
     Copy NeXus metadata for pseudo event mode data.
 
     Args:
         data_file (List[Path  |  str]): HDF5 with pseud event data.
-        original_nexus (Optional[Path  |  str]): Original NeXus file with experiment metadata.
+        original_nexus (Path  |  str): Original NeXus file with experiment metadata.
 
     Returns:
         nxs_filename (str): Filename of new NeXus file.
