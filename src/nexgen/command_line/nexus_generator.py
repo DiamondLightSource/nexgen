@@ -154,22 +154,6 @@ parser = argparse.ArgumentParser(
     parents=[version_parser],
 )
 parser.add_argument("--debug", action="store_const", const=True)
-# parser.add_argument(
-#     "-c",
-#     "--show-config",
-#     action="store_true",
-#     default=False,
-#     dest="show_config",
-#     help="Show the configuration parameters.",
-# )
-# parser.add_argument(
-#     "-a",
-#     "--attributes-level",
-#     default=0,
-#     type=int,
-#     dest="attributes_level",
-#     help="Set the attributes level for showing the configuration parameters.",
-# )
 
 
 # CLIs
