@@ -1,10 +1,10 @@
 """
 Tools for copying the metadata from Tristan NeXus files.
 """
+from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Optional, Union
 
 import h5py
 import numpy as np
@@ -16,8 +16,8 @@ tristan_logger = logging.getLogger("nexgen.CopyTristanNeXus")
 
 
 def single_image_nexus(
-    data_file: Optional[Union[Path, str]],
-    tristan_nexus: Optional[Union[Path, str]],
+    data_file: Path | str,
+    tristan_nexus: Path | str,
     write_mode: str = "x",
 ) -> str:
     """
@@ -83,8 +83,8 @@ def single_image_nexus(
 
 
 def multiple_images_nexus(
-    data_file: Optional[Union[Path, str]],
-    tristan_nexus: Optional[Union[Path, str]],
+    data_file: Path | str,
+    tristan_nexus: Path | str,
     write_mode: str = "x",
     osc: float = None,
     nbins: int = None,

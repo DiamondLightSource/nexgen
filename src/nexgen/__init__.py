@@ -87,22 +87,27 @@ def get_filename_template(input_filename: Path) -> str:
     return filename_template.as_posix()
 
 
-def get_nexus_filename(input_filename: Path) -> Path:
+def get_nexus_filename(input_filename: Path, copy: bool = False) -> Path:
     """
     Get the filename for the NeXus file from the stem of the input file name.
 
     Args:
         input_filename (Path): File name and path of either a .h5 data file or a _meta.h5 file.
+        copy (bool, optional): Avoid trying to write a new file with the same name as the old one when making a copy. Defaults to False.
 
     Returns:
-        nxs_filename (Path): NeXus file name (.nxs) path.
+        Path: NeXus file name (.nxs) path.
     """
     filename_stem = P.fullmatch(input_filename.stem)
     if filename_stem:
         filename = filename_stem[1]
     else:
         filename = input_filename.stem
-    nxs_filename = input_filename.parent / f"{filename}.nxs"
+
+    if copy is True:
+        nxs_filename = input_filename.parent / f"{filename}_copy.nxs"
+    else:
+        nxs_filename = input_filename.parent / f"{filename}.nxs"
     return nxs_filename
 
 
