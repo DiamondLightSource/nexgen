@@ -2,8 +2,10 @@
 Tools to get the information stored inside the _meta.h5 file and overwrite the phil scope.
 """
 
+from __future__ import annotations
+
 import logging
-from typing import Any, List
+from typing import Any, Dict, List
 
 import h5py
 
@@ -15,15 +17,18 @@ overwrite_logger = logging.getLogger("nexgen.MetaReader")
 overwrite_logger.setLevel(logging.DEBUG)
 
 
-def overwrite_beam(meta_file: h5py.File, name: str, beam: Any):
+def overwrite_beam(meta_file: h5py.File, name: str, beam: Dict | Any):
     """
     Looks for the wavelength value in the _meta.h5 file.
     If found, it overwrites the value that was parsed from the command line.
 
     Args:
-        meta_file:  _meta.h5 file.
-        name:       Detector description.
-        beam:       Scope extract or dictionary defining the beam.
+        meta_file (h5py.File): Handle for _meta.h5 file.
+        name (str): Detector description.
+        beam (Dict | Any): Scope extract or dictionary defining the beam.
+
+    Raises:
+        ValueError: If an invalid detector description is passed. Allowed detectors for this function: Eiger.
     """
     if "eiger" in name.lower():
         meta = DectrisMetafile(meta_file)
@@ -46,17 +51,21 @@ def overwrite_beam(meta_file: h5py.File, name: str, beam: Any):
 
 
 def overwrite_detector(
-    meta_file: h5py.File, detector: Any, ignore: List = None
+    meta_file: h5py.File, detector: Dict | Any, ignore: List = None
 ) -> List:
     """
     Looks through the _meta.h5 file for informtion relating to NXdetector.
 
     Args:
-        meta_file:  _meta.h5 file.
-        detector:   Scope extract or dictionary defining the detector.
-        ignore:     List of datasets that should not be overwritten by the meta file.
+        meta_file (h5py.File): Handle for _meta.h5 file.
+        detector (Dict | Any): Scope extract or dictionary defining the detector.
+        ignore (List, optional): List of datasets that should not be overwritten by the meta file. Defaults to None.
+
+    Raises:
+        ValueError: If an invalid detector description is passed. Allowed detectors for this function: Eiger, Tristan.
+
     Returns:
-        link_list:  A list of elements to be linked instead of copied in the NeXus file.
+        link_list (List): A list of elements to be linked instead of copied in the NeXus file.
     """
     new_values = {}
     link_list = [[], []]

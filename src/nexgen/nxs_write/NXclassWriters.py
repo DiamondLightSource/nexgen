@@ -32,11 +32,11 @@ def write_NXentry(nxsfile: h5py.File, definition: str = "NXmx") -> h5py.Group:
     Also, write the application definition NXmx.
 
     Args:
-        nxsfile (h5py.File):    NeXus file handle.
-        definition (str):       Application definition for NeXus file. Defaults to NXmx.
+        nxsfile (h5py.File): NeXus file handle.
+        definition (str, optional): Application definition for NeXus file. Defaults to "NXmx".
 
     Returns:
-        NXentry group.
+        nxentry (h5py.Group): NXentry group.
     """
     # Set default attribute
     nxsfile.attrs["default"] = "entry"
@@ -61,16 +61,20 @@ def write_NXdata(
     transl_scan: Dict[str, np.ndarray] = None,
 ):
     """
-    Write NXdata group at entry/data
+    Write NXdata group at /entry/data.
 
     Args:
-        nxsfile (h5py.File):        NeXus file to be written.
-        datafiles (List):           List of Path objects.
-        goniometer (Dict):          Dictionary containing all the axes information.
-        data_type (Tuple):          Images or events.
-        coord_frame (str):          Coordinate system the axes are currently in.
-        osc_scan (Dict):            Rotation scan. If writing events, this is just a (start, end) tuple.
-        transl_scan (Dict):         Scan along the xy (one or both) axes.
+        nxsfile (h5py.File): NeXus file handle.
+        datafiles (List[Path]): List of Path objects pointing to HDF5 data files.
+        goniometer (Dict): Dictionary containing all the axes information.
+        data_type (Tuple[str, int]): Images or events.
+        coord_frame (str): Coordinate system the axes are currently in. If it's imgcif instead of mcstas, axes vectors will be converted.
+        osc_scan (Dict[str, np.ndarray]): Rotation scan. If writing events, this is just a (start, end) tuple.
+        transl_scan (Dict[str, np.ndarray], optional): Scan along the xy axes at sample. Defaults to None.
+
+    Raises:
+        OSError: If no data is passed.
+        ValueError: If the data typs is neither "images" nor "events".
     """
     NXclass_logger.info("Start writing NXdata.")
     # Check that a valid datafile_list has been passed.
@@ -176,15 +180,15 @@ def write_NXsample(
     transl_scan: Dict[str, np.ndarray] = None,
 ):
     """
-    Write NXsample group at entry/sample
+    Write NXsample group at /entry/sample.
 
     Args:
-        nxsfile (h5py.File):        NeXus file to be written
-        goniometer (Dict):          Dictionary containing all the axes information
-        coord_frame (str):          Coordinate system the axes are currently expressed in
-        data_type (Tuple):            Images or events
-        osc_scan (Dict):            Rotation scan. If writing events, this is just a (start, end) tuple.
-        transl_scan (Dict):         Scan along the xy (one or both) axes.
+        nxsfile (h5py.File): NeXus file handle.
+        goniometer (Dict):Dictionary containing all the axes information.
+        coord_frame (str): Coordinate system the axes are currently in. If it's imgcif instead of mcstas, axes vectors will be converted.
+        data_type (Tuple[str, int]): Images or events.
+        osc_scan (Dict[str, np.ndarray]): Rotation scan. If writing events, this is just a (start, end) tuple.
+        transl_scan (Dict[str, np.ndarray], optional): Scan along the xy axes at sample. Defaults to None.
     """
     NXclass_logger.info("Start writing NXsample and NXtransformations.")
     # Create NXsample group, unless it already exists, in which case just open it.
@@ -318,13 +322,13 @@ def write_NXinstrument(
     nxsfile: h5py.File, beam: Dict, attenuator: Dict, beamline_n: str
 ):
     """
-    Write NXinstrument group at entry/instrument.
+    Write NXinstrument group at /entry/instrument.
 
     Args:
-        nxsfile (h5py.File):    NeXus file to be written
-        beam (Dict):            Dictionary with beam wavelength and flux
-        attenuator (Dict):      Dictionary containing transmission
-        beamline_n (str):       String identisying the beamline number
+        nxsfile (h5py.File): NeXus file handle.
+        beam (Dict):Dictionary with beam information, mainly wavelength and flux.
+        attenuator (Dict): Dictionary containing transmission.
+        beamline_n (str): Identifies which beamline the data was collected on.
     """
     NXclass_logger.info("Start writing NXinstrument.")
     # Create NXinstrument group, unless it already exists, in which case just open it.
@@ -365,11 +369,11 @@ def write_NXinstrument(
 # NXsource
 def write_NXsource(nxsfile: h5py.File, source: Dict):
     """
-    Write NXsource group in entry/source.
+    Write NXsource group /in entry/source.
 
     Args:
-        nxsfile (h5py.File):    NeXus file where to write the group
-        source (Dict):          Dictionary containing the facility information
+        nxsfile (h5py.File): NeXus file handle.
+        source (Dict): Dictionary containing the facility information.
     """
     NXclass_logger.info("Start writing NXsource.")
     nxsource = nxsfile.require_group("/entry/source")
@@ -394,15 +398,15 @@ def write_NXdetector(
     link_list: List = None,
 ):
     """
-    Write_NXdetector group at entry/instrument/detector.
+    Write_NXdetector group at /entry/instrument/detector.
 
     Args:
-        nxsfile (h5py.File):    Nexus file to be written.
-        detector (Dict):        Dictionary containing all detector information.
-        coord_frame (str):      Coordinate system the axes are currently expressed in.
-        data_type (Tuple):      Tuple (str, int) identifying whether the files to be written contain images or events.
-        meta (Path):            Path to _meta.h5 file, if exists.
-        link_list (List):       List of values from the meta file to be linked instead of copied.
+        nxsfile (h5py.File): NeXus file handle.
+        detector (Dict): Dictionary containing all detector information.
+        coord_frame (str): Coordinate system the axes are currently in. If it's imgcif instead of mcstas, axes vectors will be converted.
+        data_type (Tuple[str, int]): Images or events.
+        meta (Path, optional): Path to _meta.h5 file. Defaults to None.
+        link_list (List, optional): List of values from the meta file to be linked instead of copied. Defaults to None.
     """
     NXclass_logger.info("Start writing NXdetector.")
     # Create NXdetector group, unless it already exists, in which case just open it.
@@ -625,15 +629,15 @@ def write_NXdetector_module(
     beam_center: Optional[Union[List, Tuple]] = None,
 ):
     """
-    Write NXdetector_module group at entry/instrument/detector/module.
+    Write NXdetector_module group at /entry/instrument/detector/module.
 
     Args:
-        nxsfile (h5py.File):        Nexus file to be written
-        module (Dict):              Dictionary containing the detector module information
-        coord_frame (str):          Coordinate system the axes are currently expressed in.
-        image_size (List|Tuple):    Size of the detector
-        pixel_size (List|Tuple):    Size of the single pixels in fast and slow direction, in mm
-        beam_center (List|Tuple):   Only if origin needs to be calculated.
+        nxsfile (h5py.File): NeXus file handle.
+        module (Dict): Dictionary containing the detector module information: fast and slow axes, how many modules.
+        coord_frame (str): Coordinate system the axes are currently in. If it's imgcif instead of mcstas, axes vectors will be converted.
+        image_size (List | Tuple): Size of the detector.
+        pixel_size (List | Tuple): Size of the single pixels in fast and slow direction, in mm.
+        beam_center (Optional[List | Tuple], optional): Beam center position, needed only if origin needs to be calculated. Defaults to None.
     """
     NXclass_logger.info("Start writing NXdetector_module.")
     # Create NXdetector_module group, unless it already exists, in which case just open it.
@@ -762,11 +766,11 @@ def write_NXcollection(
     Write a NXcollection group inside NXdetector as detectorSpecific.
 
     Args:
-        nxdetector (h5py.Group):    HDF5 NXdetector group.
-        detector (Dict):            Dictionary containing all detector information
-        data_type (Tuple[str,int]): Tuple identifying whether the files to be written contain images or events.
-        meta (Path):                Path to _meta.h5 file, if exists.
-        link_list (List):           List of values from the meta file to be linked instead of copied.
+        nxdetector (h5py.Group): HDF5 NXdetector group handle.
+        detector (Dict): Dictionary containing all detector information.
+        data_type (Tuple[str, int]): Images or events.
+        meta (Path, optional): Path to _meta.h5 file. Defaults to None.
+        link_list (List, optional): List of values from the meta file to be linked instead of copied. Defaults to None.
     """
     NXclass_logger.info("Start writing detectorSpecific group as NXcollection.")
     # Create detectorSpecific group
@@ -832,9 +836,9 @@ def write_NXnote(nxsfile: h5py.File, loc: str, info: Dict):
     Write any additional information as a NXnote class in a specified location in the NeXus file.
 
     Args:
-        nxsfile (h5py.File):    Nexus file to be written.
-        loc (str):              Location inside the NeXus file to write NXnote group.
-        info (Dict):            Dictionary of datasets to be written to NXnote.
+        nxsfile (h5py.File): NeXus file handle.
+        loc (str): Location inside the NeXus file to write NXnote group.
+        info (Dict): Dictionary of datasets to be written to NXnote.
     """
     NXclass_logger.info("Start writing NXnote.")
     # Create the NXnote group in the specified location

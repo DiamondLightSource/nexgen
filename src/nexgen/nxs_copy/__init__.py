@@ -4,7 +4,7 @@ Utilities for copying metadata to new NeXus files.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Dict, List, Tuple
 
 import h5py
 import numpy as np
@@ -32,16 +32,16 @@ def h5str(h5_value: str | np.string_ | bytes) -> str:
     return h5_value
 
 
-def get_skip_list(nxentry: h5py.Group, skip_obj: list[str]) -> list[str]:
+def get_skip_list(nxentry: h5py.Group, skip_obj: List[str]) -> List[str]:
     """
     Get a list of all the objects that should not be copied in the new NeXus file.
 
     Args:
         nxentry (h5py.Group): "/entry/" group of a NeXus file.
-        skip_obj (list[str]): List of objects that should not be copied.
+        skip_obj (List[str]): List of objects that should not be copied.
 
     Returns:
-        list[str]: List of "NXclass" objects to skip during copy.
+        skip_list (List[str]): List of "NXclass" objects to skip during copy.
     """
     obj_list = walk_nxs(nxentry)
     skip_list = []
@@ -58,21 +58,21 @@ def get_nexus_tree(
     nxs_in: h5py.File,
     nxs_out: h5py.File,
     skip: bool = True,
-    skip_obj: list[str] = None,
-):
+    skip_obj: List[str] = None,
+) -> h5py.Group | None:
     """
     Copy the tree from the original NeXus file. Everything except NXdata is copied to a new NeXus file.
     If skip is False, then the full tree is copied.
 
     Args:
-        nxs_in:     Original NeXus file.
-        nxs_out:    New NeXus file.
-        skip:       Defaults to True, copy everything but objects in skip_obj, which always include NXdata.
-                    Pass False to copy the whole NXentry tree.
-        skip_obj:   List of NX_class objects not to be copied, eg. 'NXdata' or 'NXdetector'.
+        nxs_in (h5py.File): Original NeXus file.
+        nxs_out (h5py.File): New NeXus file.
+        skip (bool, optional): Copy everything but objects in skip_obj, which always include NXdata.
+                            Pass False to copy the whole NXentry tree. Defaults to True.
+        skip_obj (List[str], optional): List of NX_class objects not to be copied, eg. 'NXdata' or 'NXdetector'.. Defaults to None.
+
     Returns:
-        nxentry:    NeXus field.
-        Nothing if the full file is copied.
+        h5py.Group | None: The group NXentry or nothing if the full file is copied.
     """
     skip_obj = ["NXdata"] if skip_obj is None else skip_obj
 
@@ -94,7 +94,7 @@ def get_nexus_tree(
         return
 
 
-def identify_tristan_scan_axis(nxs_in: h5py.File) -> tuple[str | None, dict[str, Any]]:
+def identify_tristan_scan_axis(nxs_in: h5py.File) -> Tuple[str | None, Dict[str, Any]]:
     """
     Identify the scan_axis in the NeXus tree of a Tristan collection.
 
@@ -102,10 +102,11 @@ def identify_tristan_scan_axis(nxs_in: h5py.File) -> tuple[str | None, dict[str,
     'transformation_type' equal to 'rotation'.
 
     Args:
-        nxs_in:     Tristan NeXus file
+        nxs_in (h5py.File): Tristan NeXus file
+
     Returns:
-        ax:         Name of the scan_axis
-        ax_attrs:   Attributes of the scan_axis dataset
+        ax (str | None): Name of the scan_axis.
+        ax_attrs (Dict[str, Any]): Attributes of the scan_axis dataset.
     """
     nxdata = nxs_in["entry/data"]
     for ax, h5_object in nxdata.items():
@@ -119,9 +120,9 @@ def convert_scan_axis(nxsample: h5py.Group, nxdata: h5py.Group, ax: str):
     Modify all instances of scan_axis present in NeXus file NXsample group.
 
     Args:
-        nxsample:   NXsample group of NeXus file to be modified
-        nxdata:     NXdata group of NeXus file to be modified
-        ax:         Name of scan_axis
+        nxsample (h5py.Group): NXsample group of NeXus file to be modified.
+        nxdata (h5py.Group): NXdata group of NeXus file to be modified.
+        ax (str): Name of scan_axis.
     """
     del nxsample["transformations/" + ax]
     nxsample["transformations/" + ax] = nxdata[ax]

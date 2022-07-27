@@ -1,6 +1,7 @@
 """
 General tools useful to create NeXus format files.
 """
+from __future__ import annotations
 
 __author__ = "Diamond Light Source - Scientific Software"
 __email__ = "scientificsoftware@diamond.ac.uk"
@@ -11,7 +12,7 @@ import logging
 import re
 from datetime import datetime
 from pathlib import Path
-from typing import Any, List, Optional, Union
+from typing import Any, Dict, List, Tuple
 
 import h5py
 import numpy as np
@@ -40,15 +41,16 @@ format_list = [
 ]
 
 
-def imgcif2mcstas(vector):
+def imgcif2mcstas(vector: List | Tuple | np.array) -> Tuple:
     """
     Convert from the standard coordinate frame used by imgCIF/CBF to the
     NeXus McStas coordinate system.
 
     Args:
-        vector: Array of coordinates
+        vector (List | Tuple | np.array): Coordinates to be converted.
+
     Returns:
-        Tuple with the converted coordinate values
+        Tuple: Converted coordinate values.
     """
     c2n = np.array([[-1, 0, 0], [0, 1, 0], [0, 0, -1]])
     return tuple(np.dot(c2n, vector))
@@ -59,11 +61,14 @@ def get_filename_template(input_filename: Path) -> str:
     Get the data file name template from either the master or the meta file.
 
     Args:
-        master_filename:    Path object containing the name of master or meta file.
-                            The format should be either file_master.h5, file.nxs for a master file,
-                            file_meta.h5 for a meta file.
+        input_filename (Path): Path object containing the name of master or meta file.
+                            The format should be either file_master.h5, file.nxs for a master file, file_meta.h5 for a meta file.
+
+    Raises:
+        NameError: If the input file does not have the expected format.
+
     Returns:
-        filename_template:  String template for the name of blank data file.
+        filename_template (str): String template for the name of blank data file.
     """
     if input_filename.suffix == ".nxs":
         filename_root = input_filename.stem
@@ -78,21 +83,19 @@ def get_filename_template(input_filename: Path) -> str:
         raise NameError(
             "Input file did not have the expected format for a master or meta file."
         )
-        # sys.exit(
-        #     "Input file did not have the expected format for a master or meta file."
-        # )
     # so that filename_template.as_posix() % 1 will become filename_000001.h5
     return filename_template.as_posix()
 
 
 def get_nexus_filename(input_filename: Path) -> Path:
     """
-    Get the filename for the NeXus file from the stem of the input file name, by .
+    Get the filename for the NeXus file from the stem of the input file name.
 
     Args:
-        input_filename:  File name and path of either a .h5 data file or a _meta.h5 file.
+        input_filename (Path): File name and path of either a .h5 data file or a _meta.h5 file.
+
     Returns:
-        NeXus file name (.nxs) path.
+        nxs_filename (Path): NeXus file name (.nxs) path.
     """
     filename_stem = P.fullmatch(input_filename.stem)
     if filename_stem:
@@ -103,32 +106,35 @@ def get_nexus_filename(input_filename: Path) -> Path:
     return nxs_filename
 
 
-def walk_nxs(nxs_obj: Union[h5py.File, h5py.Group]) -> List[str]:
+def walk_nxs(nxs_obj: h5py.File | h5py.Group) -> List[str]:
     """
     Walk all the groups, subgroups and datasets of an object.
 
     Args:
-        nxs_obj:    Object to walk through, could be a file or a group.
+        nxs_obj (h5py.File | h5py.Group): Object to walk through, could be a file or a group.
+
     Returns:
-        obj_list:   List of strings.
+        obj_list (List[str]): List of objects found, as strings.
     """
     obj_list = []
     nxs_obj.visit(obj_list.append)
     return obj_list
 
 
-def split_arrays(coord_frame: str, axes_names: List, array: List) -> dict:
+def split_arrays(coord_frame: str, axes_names: List, array: List) -> Dict[str, Tuple]:
     """
     Split a list of values into arrays.
 
-    This function splits up the list of values passed as phil parameters for vector, offset of all existing axes. If the coordinate frame is set to imgCIF, the arrays will have to be converted into mcstas.
+    This function splits up the list of values passed as phil parameters for vector, offset of all existing axes.
+    If the coordinate frame is set to imgCIF, the arrays will have to be converted into mcstas.
 
     Args:
-        coord_frame:    The coordinate system in which we are working: mcstas or imgCIF
-        axes_names:     List of axes that have been passed as phil parameters
-        array:          List of values to be split up
+        coord_frame (str): The coordinate system in which we are working: mcstas or imgCIF.
+        axes_names (List): List of goniometer axes.
+        array (List): List of vector values to be split up.
+
     Returns:
-        array_dict:     Dictionary of arrays corresponding to each axis. Keys are axes names.
+        array_dict (Dict[str, Tuple]): Dictionary of arrays corresponding to each axis. Keys are axes names.
     """
     array_dict = {}
     for j in range(len(axes_names)):
@@ -140,16 +146,16 @@ def split_arrays(coord_frame: str, axes_names: List, array: List) -> dict:
     return array_dict
 
 
-def get_iso_timestamp(ts: Union[str, float]) -> str:
+def get_iso_timestamp(ts: str | float) -> str:
     """
-    Format a timestamp string to be stores in a NeXus file according to ISO8601:
-    'YY-MM-DDThh:mm:ssZ'
+    Format a timestamp string to be stores in a NeXus file according to ISO8601: 'YY-MM-DDThh:mm:ssZ'
 
     Args:
-        ts:     Input string, can also be a timestamp (eg. time.time()) string.
-                Allowed formats: "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%a %b %d %Y %H:%M:%S", "%A, %d. %B %Y %I:%M%p".
+        ts (str | float): Input string, can also be a timestamp (eg. time.time()) string.
+                        Allowed formats: "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%a %b %d %Y %H:%M:%S", "%A, %d. %B %Y %I:%M%p".
+
     Returns:
-        ts_iso: Output formatted string.
+        ts_iso (str): Formatted timestamp.
     """
     if ts is None:
         return None
@@ -167,15 +173,20 @@ def get_iso_timestamp(ts: Union[str, float]) -> str:
     return ts_iso
 
 
-def units_of_length(q: Any, to_base: Optional[bool] = False) -> Q_:  # -> pint.Quantity:
+def units_of_length(q: Any, to_base: bool = False) -> Q_:  # -> pint.Quantity:
     """
     Check that a quantity of length is compatible with NX_LENGTH, defaulting to m if dimensionless.
 
     Args:
-        q:          An object that can be interpreted as a pint Quantity, it can be dimensionless.
-        to_base:    If True, convert to base units of length (m).
+        q (Any): An object that can be interpreted as a pint Quantity, it can be dimensionless.
+        to_base (bool, optional): If True, convert to base units of length (m). Defaults to False.
+
+    Raises:
+        ValueError: If the input value is a negative number.
+        pint.errors.DimensionalityError: If the input value is not a quantity of lenght.
+
     Returns:
-        quantity:   A pint quantity with units applied if it was dimensionless.
+        quantity (pint.Quantity): A pint quantity with units applied if it was dimensionless.
     """
     quantity = Q_(q)
     if quantity <= 0:
@@ -198,9 +209,14 @@ def units_of_time(q: str) -> Q_:  # -> pint.Quantity:
     Convert to seconds if time is passed as a fraction of it.
 
     Args:
-        q:          A string that can be interpreted as a pint Quantity, it can be dimensionless.
+        q (str): A string that can be interpreted as a pint Quantity, it can be dimensionless.
+
+    Raises:
+        ValueError: If the input value is a negative number.
+        pint.errors.DimensionalityError: If the input value is not a quantity of lenght.
+
     Returns:
-        quantity:   A pint quantity in s, with units applied if it was dimensionless.
+        quantity (pint.Quantity): A pint quantity in s, with units applied if it was dimensionless.
     """
     quantity = Q_(q)
     if quantity <= 0:

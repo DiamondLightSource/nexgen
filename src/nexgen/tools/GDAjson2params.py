@@ -1,19 +1,21 @@
 """
 Tools to extract goniometer and detector parameters from GDA JSON files.
 """
+from __future__ import annotations
+
 import json
 from pathlib import Path
-from typing import Dict, Tuple, Union
+from typing import Dict, Tuple
 
 
 def read_geometry_from_json(
-    axes_geometry: Union[Path, str],
+    axes_geometry: Path | str,
 ) -> Tuple[Dict, Dict]:
     """
     A function to read the axes information from the GDA-supplied json file.
 
     Args:
-        axes_geometry (Union[Path, str]): Description of the axes and their location.
+        axes_geometry (Union[Path, str]): JSON file containing the description of the axes and their location.
 
     Returns:
         Tuple[Dict, Dict]: Returns the updated dictionaries describing goniometer and detector.
@@ -69,13 +71,13 @@ def read_geometry_from_json(
 
 
 def read_detector_params_from_json(
-    detector_params: Union[Path, str],
+    detector_params: Path | str,
 ) -> Dict:
     """
     A function to read the detector parameters from the GDA-supplied json file.
 
     Args:
-        detector_params (Union[Path, str]): Definition of detector parameters.
+        detector_params (Union[Path, str]):  JSON file containing the definition of detector parameters.
 
     Returns:
         Dict: Updated detector dictionary
