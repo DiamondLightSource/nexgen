@@ -303,7 +303,9 @@ def fixed_target(
             )
 
     else:
+        pump_repeat = int(SSX.chip_info["PUMP_REPEAT"][1])
         print("TimeResolved goes here")
+        print(f"Repeat: {pump_repeat}")
         # same as before but with the repeat added headache
 
 

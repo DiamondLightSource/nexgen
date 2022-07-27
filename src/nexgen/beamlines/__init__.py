@@ -51,6 +51,10 @@ def read_chip_map(mapfile: Path, x_blocks: int, y_blocks: int) -> Union[Dict, st
     return blocks
 
 
+def apply_pump_repeat():
+    pass
+
+
 def compute_goniometer(
     chip_dict: Dict, blocks: Dict = None, full: bool = False
 ) -> Tuple[Dict]:
