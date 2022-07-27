@@ -120,6 +120,16 @@ I19-2
 I24
 ---
 
+TODO. Namedtuple thing
+
+.. autofunction:: nexgen.beamlines.I24_Eiger_nxs.extruder
+
+.. autofunction:: nexgen.beamlines.I24_Eiger_nxs.fixed_target
+
+SSX using Tristan Detector
+--------------------------
+
+.. autofunction:: nexgen.beamlines.SSX_Tristan_nxs.write_nxs
 
 GDA integration tools
 ---------------------
