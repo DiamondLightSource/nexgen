@@ -40,9 +40,11 @@ Every command line tool in the nexgen package has a help message that explains h
 This help message will be printed by using the option `-h`, or `--help`, and each subcommand also has an help message detailing its specific options.
 
 .. code-block:: console
+
     copy_nexus --help
 
 .. code-block:: console
+
     generate_nexus demo -h
 
 
@@ -50,6 +52,17 @@ This help message will be printed by using the option `-h`, or `--help`, and eac
 Show PHIL parameters
 --------------------
 In addition to the help message, it is possible to take a look at the list of phil parameters that can/need to be passed to the command line generator.
+
+.. code-block:: console
+
+    generate_nexus 3 -c
+
+It is also possible to view more details about the Phil parameters and definition attributes by setting the `attributes_level` parameter with the `-a` argument.
+Th default value is set to 0, which will only show names and default values of the parameters.  
+
+.. code-block:: console
+
+    generate_nexus 1 -c -a 2
 
 
 Creating a new .phil file
@@ -63,21 +76,26 @@ Nexgen already includes Phil files for some MX beamlines at Diamond Light Source
 For example, the command
 
 .. code-block:: console
+
     nexgen_phil list
+
 will return a list of the .phil files currently available, and che chosen file can be downloaded by running:
 
 .. code-block:: console
-    nexgen_phil get filename.phil -o  /path/to/directory
+
+    nexgen_phil get paramfile.phil -o  /path/to/directory
 
 In case a .phil file for a specific beamline is not in the list, it is possible to create on using the ``new`` option. While this is a bit more cumbersome, 
 it has the advantage of only needing to write most of the parameters once. Once the file is created it can be parsed by ``generate_nexus``, eg.
 
 .. code-block:: console
+
     generate_nexus 2 -i paramfile.phil output.master_filename=File.nxs 
 
 To access the help message for ``nexgen_phil``:
 
 .. code-block:: console
+
     nexgen_phil -h
 
 
@@ -87,15 +105,19 @@ Copying NeXus files
  - Copy a nexus file in full, or just parts of it
 
  .. code-block:: console
+
     copy_nexus gen input.original_nexus=File.nxs input.simple_copy=True
 
  .. code-block:: console
-    copy_nexus gen input.original_nexus=File.nxs input.data_filename=File_0001.h5 input.skip=NXdata input.skip=NXsample 
 
- - Copy metadata from a Tristan NeXus file to NXmx format
+    copy_nexus gen original_nexus=File.nxs data_filename=File_0001.h5 skip=NXdata skip=NXsample 
+
+ - Copy metadata from a Tristan NeXus file to NXmx format. The default `experiment_type` for copying Tristan metadata is set to rotation; 
+when dealing with a single image, this value can be set to stationary like in the example below.
 
  .. code-block:: console
-    copy_nexus tristan input.tristan_nexus=Tristan_img.nxs input.data_filename=Tristan_img_0001.h5 experiment_type=rotation
+
+    copy_nexus tristan tristan_nexus=Tristan_img.nxs data_filename=Tristan_img_0001.h5 experiment_type=stationary
 
 
 DLS beamline specific utilities
