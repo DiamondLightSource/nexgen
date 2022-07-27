@@ -1,10 +1,11 @@
 """
 General tools to copy metadata from NeXus files.
 """
+from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import List, Optional
 
 import h5py
 
@@ -16,26 +17,28 @@ copy_logger = logging.getLogger("nexgen.CopyNeXus")
 
 
 def images_nexus(
-    data_file: List[Union[Path, str]],
-    original_nexus: Optional[Union[Path, str]],
+    data_file: List[Path | str],
+    original_nexus: Optional[Path | str],
     simple_copy: bool = True,
     skip_group: List[str] = ["NXdata"],
-):
+) -> str:
     """
     Copy NeXus metadata for images.
 
     Args:
-        data_file:      String or Path pointing to the HDF5 file with images.
-        original_nexus: String or Path pointing to the NeXus file with experiment metadata.
-        simple_copy:    Defaults to True, copy everything from the original NeXus file.
-                        If False, a list of NX_class objects to be skipped should be passed.
-        skip_group:     If simple_copy is False, this is a list of the objects not to be copied.
-                        For the moment, works only for NX_class objects.
+        data_file (List[Path  |  str]): HDF5 file with images.
+        original_nexus (Optional[Path  |  str]): Original NeXus file with experiment metadata.
+        simple_copy (bool, optional): Copy everything from the original NeXus file. Defaults to True.
+        skip_group (List[str], optional): If simple_copy is False, list of NX_class objects to skip when copying.
+                                        Defaults to ["NXdata"].
+
+    Returns:
+        nxs_filename (str): Filename of new NeXus file.
     """
     copy_logger.info("Copying NeXus file for image dataset ...")
     data_file = [Path(d).expanduser().resolve() for d in data_file]
     original_nexus = Path(original_nexus).expanduser().resolve()
-    nxs_filename = get_nexus_filename(data_file[0])
+    nxs_filename = get_nexus_filename(data_file[0], copy=True)
     copy_logger.info(f"New NeXus file name: {nxs_filename}")
     with h5py.File(original_nexus, "r") as nxs_in, h5py.File(
         nxs_filename, "x"
@@ -72,20 +75,23 @@ def images_nexus(
 
 
 def pseudo_events_nexus(
-    data_file: List[Union[Path, str]],
-    original_nexus: Optional[Union[Path, str]],
-):
+    data_file: List[Path | str],
+    original_nexus: Optional[Path | str],
+) -> str:
     """
     Copy NeXus metadata for pseudo event mode data.
 
     Args:
-        data_file:       String or Path pointing to the HDF5 file with pseudo event data.
-        original_nexus:  String or Path pointing to the NeXus file with experiment metadata.
+        data_file (List[Path  |  str]): HDF5 with pseud event data.
+        original_nexus (Optional[Path  |  str]): Original NeXus file with experiment metadata.
+
+    Returns:
+        nxs_filename (str): Filename of new NeXus file.
     """
     copy_logger.info("Copying NeXus file for events dataset ...")
     data_file = [Path(d).expanduser().resolve() for d in data_file]
     original_nexus = Path(original_nexus).expanduser().resolve()
-    nxs_filename = get_nexus_filename(data_file[0])
+    nxs_filename = get_nexus_filename(data_file[0], copy=True)
     copy_logger.info(f"New NeXus file name: {nxs_filename}")
     with h5py.File(original_nexus, "r") as nxs_in, h5py.File(
         nxs_filename, "x"
