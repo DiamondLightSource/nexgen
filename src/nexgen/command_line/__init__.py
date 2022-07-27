@@ -13,6 +13,24 @@ version_parser.add_argument(
     version=f"%(prog)s: NeXus generation tools {__version__}",
 )
 
+config_parser = argparse.ArgumentParser(add_help=False)
+config_parser.add_argument(
+    "-c",
+    "--show-config",
+    action="store_true",
+    default=False,
+    dest="show_config",
+    help="Show the configuration parameters.",
+)
+config_parser.add_argument(
+    "-a",
+    "--attributes-level",
+    default=0,
+    type=int,
+    dest="attributes_level",
+    help="Set the attributes level for showing the configuration parameters.",
+)
+
 detectormode_parser = argparse.ArgumentParser(add_help=False)
 group = detectormode_parser.add_mutually_exclusive_group(required=True)
 group.add_argument(
