@@ -11,7 +11,7 @@ import freephil
 
 from .. import log
 from ..nxs_copy import CopyNexus, CopyTristanNexus
-from . import full_copy_parser, tristan_copy_parser, version_parser
+from . import config_parser, full_copy_parser, tristan_copy_parser, version_parser
 
 # Define a logger object and a formatter
 logger = logging.getLogger("nexgen.CopyNeXus")
@@ -70,22 +70,6 @@ parser = argparse.ArgumentParser(
 )
 
 parser.add_argument("--debug", action="store_const", const=True)
-parser.add_argument(
-    "-c",
-    "--show-config",
-    action="store_true",
-    default=False,
-    dest="show_config",
-    help="Show the configuration parameters.",
-)
-parser.add_argument(
-    "-a",
-    "--attributes-level",
-    default=0,
-    type=int,
-    dest="attributes_level",
-    help="Set the attributes level for showing the configuration parameters.",
-)
 
 
 # CLIs
@@ -93,7 +77,6 @@ def copy_nexus(args):
     clai = general_scope.command_line_argument_interpreter()
     working_phil = general_scope.fetch(clai.process_and_fetch(args.phil_args))
     params = working_phil.extract()
-    working_phil.show()
 
     if args.show_config:
         working_phil.show(attributes_level=args.attributes_level)
@@ -140,7 +123,6 @@ def copy_tristan_nexus(args):
     clai = tristan_scope.command_line_argument_interpreter()
     working_phil = tristan_scope.fetch(clai.process_and_fetch(args.phil_args))
     params = working_phil.extract()
-    working_phil.show()
 
     if args.show_config:
         working_phil.show(attributes_level=args.attributes_level)
@@ -216,7 +198,7 @@ parser_general = subparsers.add_parser(
     "gen",
     aliases=["copy-file"],
     description=("Copy experiment metadata to a new NeXus file."),
-    parents=[full_copy_parser],
+    parents=[full_copy_parser, config_parser],
 )
 parser_general.set_defaults(func=copy_nexus)
 
@@ -226,7 +208,7 @@ parser_tristan = subparsers.add_parser(
     description=(
         "Create a new NeXus file for binned images by copying the metadata from the original experiment NeXus file."
     ),
-    parents=[tristan_copy_parser],
+    parents=[tristan_copy_parser, config_parser],
 )
 parser_tristan.set_defaults(func=copy_tristan_nexus)
 

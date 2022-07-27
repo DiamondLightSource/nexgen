@@ -19,7 +19,7 @@ except ImportError:
 from pathlib import Path
 
 from .. import beamlines, log
-from . import nexus_parser, version_parser
+from . import config_parser, nexus_parser, version_parser
 
 # Define a logger object
 logger = logging.getLogger("nexgen.NeXusGenerator")
@@ -36,22 +36,6 @@ scopes = freephil.parse(
 
 parser = argparse.ArgumentParser(description=__doc__, parents=[version_parser])
 parser.add_argument("--debug", action="store_const", const=True)
-parser.add_argument(
-    "-c",
-    "--show-config",
-    action="store_true",
-    default=False,
-    dest="show_config",
-    help="Show the configuration parameters.",
-)
-parser.add_argument(
-    "-a",
-    "--attributes-level",
-    default=0,
-    type=int,
-    dest="attributes_level",
-    help="Set the attributes level for showing the configuration parameters.",
-)
 
 
 def list_available_phil():
@@ -133,7 +117,7 @@ parser_get.set_defaults(func=get_beamline_phil)
 parser_create = subparser.add_parser(
     "new",
     description=("Write a new .phil file."),
-    parents=[nexus_parser],
+    parents=[nexus_parser, config_parser],
 )
 parser_create.add_argument(
     "-f", "--filename", type=str, help="Filename for new .phil template."
