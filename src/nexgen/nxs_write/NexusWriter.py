@@ -9,7 +9,7 @@ from typing import Dict, List, Tuple, Union
 import h5py
 import numpy as np
 
-from .. import units_of_time
+from .. import get_filename_template, units_of_time
 from ..tools.DataWriter import generate_event_files, generate_image_files
 from ..tools.MetaReader import overwrite_beam, overwrite_detector
 from ..tools.VDS_tools import image_vds_writer, vds_file_writer
@@ -602,3 +602,261 @@ def call_writers(
         osc_scan,
         transl_scan,
     )
+
+
+# NeXus writer directly from scope_extract
+def write_nexus_from_scope(
+    nxs_file: h5py.File,
+    goniometer,
+    detector,
+    module,
+    beam,
+    attenuator,
+    source,
+    coordinate_frame: str = "mcstas",
+    datafiles: List[Path] = None,
+    data_type: Tuple[str, int] = None,
+    **params,
+):
+    """_summary_
+
+    Args:
+        nxs_file (h5py.File): _description_
+        goniometer (freephil.common.scope_extract): _description_
+        detector (freephil.common.scope_extract): _description_
+        module (freephil.common.scope_extract): _description_
+        beam (freephil.common.scope_extract): _description_
+        attenuator (freephil.common.scope_extract): _description_
+        source (freephil.common.scope_extract): _description_
+        coordinate_frame (str, optional): _description_. Defaults to "mcstas".
+        datafiles (List[Path], optional): _description_. Defaults to None.
+        data_type (Tuple[str, int], optional): _description_. Defaults to None.
+
+    Keyword arguments (**params):
+        meta (Tuple[Path | str, List]): _description_
+        vds (str): _description_
+        tristanSpec (freephil.common.scope_extract): _description_
+        timestamps (Tuple): _description_
+        notes (Tuple[str, Dict]): _description_
+
+    Raises:
+        ValueError: _description_
+    """
+    writer_logger = logging.getLogger("nexgen.WritefromScope")
+    writer_logger.setLevel(logging.DEBUG)
+
+    writer_logger.info("Write NXmx NeXus file from scope extract input.")
+
+    # Check if it's a NeXus file for an existing collection or a new blank dataset.
+    # And define data_type
+    if datafiles:
+        writer_logger.info("Writing a NeXus file for an existing collection")
+        if detector.mode == "events":
+            data_type = ("events", None)
+            writer_logger.info("Data type: events.")
+        else:
+            # Find total number of images that have been written across the files.
+            if len(datafiles) == 1:
+                with h5py.File(datafiles[0], "r") as f:
+                    num_images = f["data"].shape[0]
+            else:
+                num_images = find_number_of_images(datafiles)
+            data_type = ("images", num_images)
+            writer_logger.info(
+                "Data type: images. \n" f"Total number of images: {num_images}"
+            )
+    else:
+        writer_logger.warning("No data files have been passed.")
+        writer_logger.info("Writing a demo NeXus file with blank data.")
+        if data_type is None:
+            writer_logger.error(
+                "When writing a demo with blank data, a data_type tuple should be passed."
+                "data_type is a Tuple[str, int | None],"
+                "It should cointain a string indicating whether images or events are being written and eventually the number of images."
+            )
+            raise ValueError(
+                "Missing data type information."
+                "Please pass the type of data being written ('images'/'events') and eventually the number of images."
+            )
+
+    # Log goniometer information
+    writer_logger.info("Goniometer information")
+    for j in reversed(range(len(goniometer.axes))):
+        vector = goniometer.vectors[3 * j : 3 * j + 3]
+        writer_logger.info(
+            f"Goniometer axis: {goniometer.axes[j]} => {vector} ({goniometer.types[j]}) on {goniometer.depends[j]}. {goniometer.starts[j]} {goniometer.ends[j]} {goniometer.increments[j]}"
+        )
+    writer_logger.info("\n")
+
+    # Define rotation and translation axes
+    OSC, TRANSL = ScanReader(
+        goniometer.__dict__,
+        data_type[0],
+        n_images=data_type[1],
+        snaked=params["snaked"] if "snaked" in params.keys() else True,
+    )
+
+    # Log scan information
+    writer_logger.info("Coordinate system: %s" % coordinate_frame)
+    writer_logger.info(f"Rotation scan axis: {list(OSC.keys())[0]}.")
+    writer_logger.info(
+        f"Scan from {list(OSC.values())[0][0]} to {list(OSC.values())[0][-1]}.\n"
+    )
+    if TRANSL:
+        writer_logger.info(f"Scan along the {list(TRANSL.keys())} axes.")
+        for k, v in TRANSL.items():
+            writer_logger.info(f"{k} scan from {v[0]} to {v[-1]}.")
+    writer_logger.info("\n")
+
+    # Fix the number of images if not already there
+    if data_type[0] == "images" and data_type[1] is None:
+        data_type = ("images", len(list(OSC.values())[0]))
+        writer_logger.warning(f"Total number of images updated to: {data_type[1]} \n")
+
+    # If writing blank data, figure out how many files will need to be written
+    if not datafiles:
+        writer_logger.info("Calculating number of files to write ...")
+        if data_type[0] == "events":
+            # Determine the number of files. Write one file per module.
+            n_files = 10 if "10M" in detector.description.upper() else 2
+        else:
+            # The maximum number of images being written each dataset is 1000
+            if data_type[1] <= 1000:
+                n_files = 1
+            else:
+                n_files = int(np.ceil(data_type[1] / 1000))
+
+        writer_logger.info(
+            f"{n_files} file(s) containing blank {data_type[0]} data to be written."
+        )
+
+        # Get datafile list
+        datafile_template = get_filename_template(
+            Path(nxs_file.filename).expanduser().resolve()
+        )
+        datafiles = [
+            Path(datafile_template % (n + 1)).expanduser().resolve()
+            for n in range(n_files)
+        ]
+
+        writer_logger.info("Calling data writer ...")
+        # Write data files
+        if data_type[0] == "images":
+            generate_image_files(
+                datafiles, detector.image_size, detector.description, data_type[1]
+            )
+        else:
+            exp_time = units_of_time(detector.exposure_time)
+            generate_event_files(
+                datafiles, data_type[1], detector.description, exp_time.magnitude
+            )
+
+    # If _meta.h5 file is passed, look through it for relevant information
+    if "meta" in params.keys():
+        writer_logger.info("Looking through _meta.h5 file for metadata.")
+        metafile = (
+            Path(params["meta"]).expanduser().resolve()
+            if isinstance(params["meta"], str) is False
+            else params["meta"]
+        )
+        do_not_link = params["ignore_meta"]
+        # overwrite detector, overwrite beam, get list of links for nxdetector and nxcollection
+        with h5py.File(metafile, "r") as mf:
+            overwrite_beam(mf, detector.description, beam)
+            link_list = overwrite_detector(mf, detector, do_not_link)
+    else:
+        writer_logger.info("No _meta file has been passed.")
+        metafile = None
+        link_list = None
+
+    # Log detector information
+    if "TRISTAN" in detector.description.upper() and "tristanSpec" in params.keys():
+        from ..command_line import add_tristan_spec
+
+        add_tristan_spec(detector, params["tristanSpec"])
+
+    writer_logger.info("Detector information")
+    writer_logger.info(f"{detector.description}")
+    writer_logger.info(
+        f"Sensor made of {detector.sensor_material} x {detector.sensor_thickness}"
+    )
+    if data_type[0] == "images":
+        writer_logger.info(
+            f"Trusted pixels > {detector.underload} and < {detector.overload}"
+        )
+    writer_logger.info(
+        f"Image is a {detector.image_size} array of {detector.pixel_size} pixels"
+    )
+
+    writer_logger.info("Detector axes:")
+    for j in range(len(detector.axes)):
+        vector = detector.vectors[3 * j : 3 * j + 3]
+        writer_logger.info(
+            f"Detector axis: {detector.axes[j]} => {vector} ({detector.types[j]}) on {detector.depends[j]}. {detector.starts[j]}"
+        )
+
+    if detector.flatfield is None:
+        writer_logger.info("No flatfield applied")
+    else:
+        writer_logger.info(f"Flatfield correction data lives here {detector.flatfield}")
+
+    if detector.pixel_mask is None:
+        writer_logger.info("No bad pixel mask for this detector")
+    else:
+        writer_logger.info(f"Bad pixel mask lives here {detector.pixel_mask}")
+
+    writer_logger.info("Module information")
+    writer_logger.warning(f"module_offset field setting: {module.module_offset}")
+    writer_logger.info(f"Number of modules: {module.num_modules}")
+    writer_logger.info(f"Fast axis at datum position: {module.fast_axis}")
+    writer_logger.info(f"Slow_axis at datum position: {module.slow_axis} \n")
+
+    # Log source information
+    writer_logger.info("Source information")
+    writer_logger.info(f"Facility: {source.name} - {source.type}.")
+    writer_logger.info(f"Beamline: {source.beamline_name} \n")
+
+    # Start writing NeXus file
+    write_NXentry(nxs_file)
+
+    # Call the writers
+    call_writers(
+        nxs_file,
+        datafiles,
+        coordinate_frame,
+        data_type,
+        goniometer.__dict__,
+        detector.__dict__,
+        module.__dict__,
+        source.__dict__,
+        beam.__dict__,
+        attenuator.__dict__,
+        OSC,
+        TRANSL,
+        metafile,
+        link_list,
+    )
+
+    # Write VDS if prompted
+    if "vds" in params.keys():
+        if data_type[0] == "images" and params["vds"] == "dataset":
+            writer_logger.info(
+                "Calling VDS writer to write a Virtual Dataset under /entry/data/data"
+            )
+            image_vds_writer(nxs_file, (data_type[1], *detector.image_size))
+        elif data_type[0] == "images" and params["vds"] == "file":
+            writer_logger.info(
+                "Calling VDS writer to write a Virtual Dataset file and relative link."
+            )
+            vds_file_writer(nxs_file, datafiles, (data_type[1], *detector.image_size))
+        else:
+            writer_logger.info("VDS won't be written.")
+
+    # Write timestamps if prompted
+    if "timestamps" in params.keys():
+        timestamps = tuple(params["timestamps"])
+        # NX_DATE_TIME: /entry/start_time and /entry/end_time
+        if timestamps[0] is not None:
+            write_NXdatetime(nxs_file, (timestamps[0], None))
+        if timestamps[1] is not None:
+            write_NXdatetime(nxs_file, (None, timestamps[1]))
