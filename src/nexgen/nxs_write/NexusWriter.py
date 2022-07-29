@@ -26,6 +26,7 @@ from .NXclassWriters import (
     write_NXdetector_module,
     write_NXentry,
     write_NXinstrument,
+    write_NXnote,
     write_NXsample,
     write_NXsource,
 )
@@ -378,6 +379,7 @@ def write_nexus_demo(
         writer_logger.info("VDS won't be written.")
 
 
+# Define the scan.
 def ScanReader(
     goniometer: Dict,
     data_type: str = "images",
@@ -503,7 +505,7 @@ def ScanReader(
     return OSC, TRANSL
 
 
-# def call_writers(*args,**kwargs):
+# Write NeXus base classes
 def call_writers(
     nxsfile: h5py.File,
     datafiles: List[Union[Path, str]],
@@ -604,7 +606,7 @@ def call_writers(
     )
 
 
-# NeXus writer directly from scope_extract
+# Write NeXus directly from scope_extract
 def write_nexus_from_scope(
     nxs_file: h5py.File,
     goniometer,
@@ -636,7 +638,7 @@ def write_nexus_from_scope(
         meta (Tuple[Path | str, List]): _description_
         vds (str): _description_
         tristanSpec (freephil.common.scope_extract): _description_
-        timestamps (Tuple): _description_
+        timestamps (Tuple[datetime.datetime | None]): _description_
         notes (Tuple[str, Dict]): _description_
 
     Raises:
@@ -854,9 +856,17 @@ def write_nexus_from_scope(
 
     # Write timestamps if prompted
     if "timestamps" in params.keys():
-        timestamps = tuple(params["timestamps"])
+        timestamps = params["timestamps"]
+        writer_logger.info("Writing recorded timestamps.")
         # NX_DATE_TIME: /entry/start_time and /entry/end_time
         if timestamps[0] is not None:
             write_NXdatetime(nxs_file, (timestamps[0], None))
         if timestamps[1] is not None:
             write_NXdatetime(nxs_file, (None, timestamps[1]))
+
+    # Write any notes that might have been passed as NXnote
+    if "notes" in params.keys():
+        writer_logger.info(
+            f"Writing NXnote in requested location {params['notes'][0]}."
+        )
+        write_NXnote(nxs_file, params["notes"][0], params["notes"][1])
