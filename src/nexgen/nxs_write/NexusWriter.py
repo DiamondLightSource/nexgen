@@ -1,10 +1,11 @@
 """
 Writer for NeXus format files.
 """
+from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Tuple
 
 import h5py
 import numpy as np
@@ -36,7 +37,7 @@ from .NXclassWriters import (
 def ScanReader(
     goniometer: Dict,
     data_type: str = "images",
-    n_images: Union[int, Tuple] = None,
+    n_images: int | Tuple = None,
     snaked: bool = True,
 ) -> Tuple[Dict, Dict]:
     """
@@ -45,7 +46,7 @@ def ScanReader(
     Args:
         goniometer (Dict): Goniometer geometry definition.
         data_type (str, optional): Type of data being written, can be images of events. Defaults to "images".
-        n_images (Union[int, Tuple], optional): Total number of images to write. If passed, \
+        n_images (int | Tuple, optional): Total number of images to write. If passed, \
                                     the number of images will override the axis_increment value of the rotation scan. \
                                     Defaults to None.
         snaked (bool, optional): 2D scan parameter. If True, defines a snaked grid scan. Defaults to True.
@@ -161,7 +162,7 @@ def ScanReader(
 # Write NeXus base classes
 def call_writers(
     nxsfile: h5py.File,
-    datafiles: List[Union[Path, str]],
+    datafiles: List[Path | str],
     coordinate_frame: str,
     data_type: Tuple[str, int],
     goniometer: Dict,
@@ -172,7 +173,7 @@ def call_writers(
     attenuator: Dict,
     osc_scan: Dict,
     transl_scan: Dict = None,
-    metafile: Union[Path, str] = None,
+    metafile: Path | str = None,
     link_list: List = None,
 ):
     """
@@ -180,7 +181,7 @@ def call_writers(
 
     Args:
         nxsfile (h5py.File): NeXus file to be written.
-        datafiles (List[Union[Path, str]]): List of at least 1 Path object to a HDF5 data file.
+        datafiles (List[Path |str]): List of at least 1 Path object to a HDF5 data file.
         coordinate_frame (str): Coordinate system being used. Accepted frames are imgcif and mcstas.
         data_type (Tuple[str, int]): Images or event-mode data, and eventually how many are being written.
         goniometer (Dict): Goniometer geometry description.
@@ -191,7 +192,7 @@ def call_writers(
         attenuator (Dict): Attenuator properties.
         osc_scan (Dict): Axis defining the rotation scan. It should be passed even when still.
         transl_scan (Dict, optional): Axes defining a linear or 2D scan. Defaults to None.
-        metafile (Union[Path, str], optional): File containing the metadata. Defaults to None.
+        metafile (Path | str, optional): File containing the metadata. Defaults to None.
         link_list (List, optional): List of datasets that can be copied from the metafile. Defaults to None.
     """
     logger = logging.getLogger("nexgen.Call")
