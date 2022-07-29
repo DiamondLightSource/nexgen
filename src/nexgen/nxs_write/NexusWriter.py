@@ -274,29 +274,32 @@ def write_nexus_from_scope(
     data_type: Tuple[str, int] = None,
     **params,
 ):
-    """_summary_
+    """
+    Write a new NXmx NeXus file taking scope extracts as input.
+
+    This function writes either a NeXus file for an existing dataset or a demo NeXus file with a blank dataset using the information passed from phil parameters.
 
     Args:
-        nxs_file (h5py.File): _description_
-        goniometer (freephil.common.scope_extract): _description_
-        detector (freephil.common.scope_extract): _description_
-        module (freephil.common.scope_extract): _description_
-        beam (freephil.common.scope_extract): _description_
-        attenuator (freephil.common.scope_extract): _description_
-        source (freephil.common.scope_extract): _description_
-        coordinate_frame (str, optional): _description_. Defaults to "mcstas".
-        datafiles (List[Path], optional): _description_. Defaults to None.
-        data_type (Tuple[str, int], optional): _description_. Defaults to None.
+        nxs_file (h5py.File): NeXus file handle
+        goniometer (freephil.common.scope_extract): Scope extract defining the goniometer geometry.
+        detector (freephil.common.scope_extract): Scope extract defining the detector and its axes.
+        module (freephil.common.scope_extract): Scope extract defining defining geometry and description of module.
+        beam (freephil.common.scope_extract): Scope extract defining properties of beam.
+        attenuator (freephil.common.scope_extract): Scope extract defining transmission.
+        source (freephil.common.scope_extract): Scope extract describing the facility.
+        coordinate_frame (str, optional): Coordinate system used to define the vectors. Defaults to "mcstas".
+        datafiles (List[Path], optional): HDF5 data files from an existing collection. Defaults to None.
+        data_type (Tuple[str, int], optional): Description of the data and eventually how many images make up the dataset. Defaults to None.
 
     Keyword arguments (**params):
-        meta (Tuple[Path | str, List]): _description_
-        vds (str): _description_
-        tristanSpec (freephil.common.scope_extract): _description_
-        timestamps (Tuple[datetime.datetime | None]): _description_
-        notes (Tuple[str, Dict]): _description_
+        meta (Tuple[Path | str, List | None]): Metafile information, path to _meta.h5 file and eventual list of values not to look for in it.
+        vds (str): If passed, a Virtual DataSet will be written. Accepted values: "dataset", "file".
+        tristanSpec (freephil.common.scope_extract): Scope extract defining properties of a Tristan detector.
+        timestamps (Tuple[datetime.datetime | None]): Start and end time of the collection, if known. Passed as datetime.datetime.
+        notes (Tuple[str, Dict]): Any eventual notes that would be worth recording in the NeXus file.
 
     Raises:
-        ValueError: _description_
+        ValueError: If data_type has not been passed when writing blank data.
     """
     writer_logger = logging.getLogger("nexgen.WritefromScope")
     writer_logger.setLevel(logging.DEBUG)
