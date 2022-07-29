@@ -104,18 +104,21 @@ A couple of functions are available for reading the information stored in the me
 
 
 Logging configuration
----------------------
+=====================
 
 .. automodule:: nexgen.log
     :members:
 
-=============
+
 DLS beamlines
 =============
 
 I19-2
 -----
 
+.. autofunction:: nexgen.beamlines.I19_2_nxs.tristan_writer
+
+.. autofunction:: nexgen.beamlines.I19_2_nxs.eiger_writer
 
 I24
 ---

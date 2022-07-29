@@ -23,9 +23,6 @@ Nexgen can be installed using pip.
 Command line tools
 ==================
 
-Generating new NeXus files
---------------------------
-
 This package started out as an easy way to quickly generate NeXus files from scratch along with blank HDF5 datasets using command line tools.
 
 
@@ -90,13 +87,34 @@ it has the advantage of only needing to write most of the parameters once. Once 
 
 .. code-block:: console
 
-    generate_nexus 2 -i paramfile.phil output.master_filename=File.nxs 
+    generate_nexus 2 -i paramfile.phil output.master_filename=File.nxs input.vds_writer=dataset
 
 To access the help message for ``nexgen_phil``:
 
 .. code-block:: console
 
     nexgen_phil -h
+
+Generating new NeXus files
+--------------------------
+
+ - For an existing dataset 
+ 
+ .. code-block:: console
+
+    generate_nexus 1
+
+ - From scratch, along with blank data (demo)
+
+  .. code-block:: console
+
+    generate_nexus 2
+ 
+ - For an existing dataset which also has a meta.h5 file
+
+  .. code-block:: console
+
+    generate_nexus 3
 
 
 Copying NeXus files
@@ -124,6 +142,16 @@ DLS beamline specific utilities
 ===============================
 
 Nexgen is currently being used for some specific applications at beamlines I19-2 and I24 at DLS.
+
+Time resolved collection with Tristan detector on I19-2
+-------------------------------------------------------
+
+For completeness' sake there is also an option to write a NeXus file for an Eiger detector.
+(nexgen was actually born out of a need to write the nxs file for tristan expt)
+
+
+Serial crystallography on I24
+-----------------------------
 
 I19-2: Tristan and Eiger nexus file writing, SSX with tristan detector.
 I24: serial crystallography -> still shots (extruder application), fixed target (TR or not), 3d scan (tbc)
