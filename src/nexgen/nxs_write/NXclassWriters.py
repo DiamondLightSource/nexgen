@@ -490,7 +490,7 @@ def write_NXdetector(
                 )
             else:
                 NXclass_logger.warning(
-                    "No flatfield file found in th working directory."
+                    "No flatfield file found in the working directory."
                 )
                 NXclass_logger.warning("Writing an ExternalLink.")
                 flatfield = Path(detector["flatfield"])
