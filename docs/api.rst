@@ -20,14 +20,13 @@ All the writers above can be called using the ``call_writers`` function, with th
 
 .. autofunction:: nexgen.nxs_write.NexusWriter.call_writers
 
-Finding the scan axes
----------------------
-
-.. autofunction:: nexgen.nxs_write.NexusWriter.ScanReader
+.. autofunction:: nexgen.nxs_write.NexusWriter.write_nexus_from_scope
 
 Writing blank datasets
 ----------------------
-**Generating blank images**
+
+Generating blank images
+^^^^^^^^^^^^^^^^^^^^^^^
 
 Using an *Eiger* or *Tristan* detector mask ...
 
@@ -39,7 +38,9 @@ Using an *Eiger* or *Tristan* detector mask ...
 
 .. autofunction:: nexgen.tools.DataWriter.generate_image_files
 
-**Generating pseudo-events** 
+
+Generating pseudo-events
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. autofunction:: nexgen.tools.DataWriter.pseudo_event_list
 
@@ -86,6 +87,12 @@ Utilities
     :members:
 
 
+Finding the scan axes
+---------------------
+
+.. autofunction:: nexgen.nxs_write.NexusWriter.ScanReader
+
+
 HDF5 metafile reader
 --------------------
 
@@ -116,6 +123,9 @@ DLS beamlines
 I19-2
 -----
 
+TODO. Just a thought. move read_from_xml to either extended request or the GDA tools (in this case maybe rename?) and modify the
+I19-2 script with an option that either writes from GDA or does the same as I24 bypassing that completely. 
+
 .. autofunction:: nexgen.beamlines.I19_2_nxs.tristan_writer
 
 .. autofunction:: nexgen.beamlines.I19_2_nxs.eiger_writer
@@ -132,18 +142,23 @@ TODO. Namedtuple thing
 SSX using Tristan Detector
 --------------------------
 
+TODO. Another thought. Considering the idea of having Tristan on I24 this should be usable from both beamlines.
+I mean... it should only be a matter of switching the name? I can be easily passed as input argument ...
+
 .. autofunction:: nexgen.beamlines.SSX_Tristan_nxs.write_nxs
 
 GDA integration tools
 ---------------------
 
-**Read geometry and detector parameters from GDA-generated JSON files**
+Read geometry and detector parameters from GDA-generated JSON files
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. autofunction:: nexgen.tools.GDAjson2params.read_geometry_from_json
 
 .. autofunction:: nexgen.tools.GDAjson2params.read_detector_params_from_json
 
-**Gather beamline and collection information from GDA-generated xml file**
+Gather beamline and collection information from GDA-generated xml file
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. autoclass:: nexgen.tools.ExtendedRequest.ExtendedRequestIO
     :members:

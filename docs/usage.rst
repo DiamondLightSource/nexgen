@@ -108,19 +108,24 @@ Generating new NeXus files
 
   .. code-block:: console
 
-    generate_nexus 2
+    generate_nexus 2 -i/-e output.master_filename=File.nxs input.vds_writer=dataset
  
  - For an existing dataset which also has a meta.h5 file
 
   .. code-block:: console
 
-    generate_nexus 3
+    generate_nexus 3 input.metafile=File_meta.h5 input.vds_writer=dataset 
+
+TODO. Change deafults. Det snaked to True. Also, probably vds writer to dataset. 
+VDS definitely. Snaked tbd.
 
 
 Copying NeXus files
 -------------------
 
- - Copy a nexus file in full, or just parts of it
+ - Copy a nexus file in full, or just parts of it. This tool will create a new file File_copy.nxs, in order to avoid modifying the orifinal data, with just the requested metadata.
+ TODO. Probably add a flag to make links absolute instead of relative if needed? Better than modifying by hand tbh. 
+        This would also need an helper function.
 
  .. code-block:: console
 
@@ -130,8 +135,9 @@ Copying NeXus files
 
     copy_nexus gen original_nexus=File.nxs data_filename=File_0001.h5 skip=NXdata skip=NXsample 
 
- - Copy metadata from a Tristan NeXus file to NXmx format. The default `experiment_type` for copying Tristan metadata is set to rotation; 
-when dealing with a single image, this value can be set to stationary like in the example below.
+ - Copy metadata from a Tristan NeXus file to NXmx format. 
+The main application fo this tool is to copy the necessary metadata to a new NeXus file following the NXmx format after binning event data into images.
+The default `experiment_type` for copying Tristan metadata is set to rotation; when dealing with a single image, this value can be set to stationary like in the example below.
 
  .. code-block:: console
 
