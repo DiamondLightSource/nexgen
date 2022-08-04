@@ -21,7 +21,7 @@ Nexgen can be installed using pip.
 
 
 Command line tools
-==================
+------------------
 
 This package started out as an easy way to quickly generate NeXus files from scratch along with blank HDF5 datasets using command line tools.
 
@@ -31,7 +31,7 @@ The `freephil <https://freephil.readthedocs.io/en/latest/>`_ package is used for
 
 
 Getting help
-------------
+============
 
 Every command line tool in the nexgen package has a help message that explains how to use it and what the options are.
 This help message will be printed by using the option `-h`, or `--help`, and each subcommand also has an help message detailing its specific options.
@@ -47,7 +47,7 @@ This help message will be printed by using the option `-h`, or `--help`, and eac
 
 
 Show PHIL parameters
---------------------
+====================
 In addition to the help message, it is possible to take a look at the list of phil parameters that can/need to be passed to the command line generator.
 
 .. code-block:: console
@@ -63,7 +63,7 @@ Th default value is set to 0, which will only show names and default values of t
 
 
 Creating a new .phil file
--------------------------
+=========================
 
 Writing the full list of parameters on the command line each time can be time consuming, not to mention subject to typing errors and the like.
 For this purpose, it is possible to generate one reusable Phil file containing the beamline description and those values from the experiment 
@@ -96,7 +96,7 @@ To access the help message for ``nexgen_phil``:
     nexgen_phil -h
 
 Generating new NeXus files
---------------------------
+==========================
 
  - For an existing dataset 
  
@@ -121,7 +121,7 @@ VDS definitely. Snaked tbd.
 
 
 Copying NeXus files
--------------------
+===================
 
  - Copy a nexus file in full, or just parts of it. This tool will create a new file File_copy.nxs, in order to avoid modifying the orifinal data, with just the requested metadata.
  TODO. Probably add a flag to make links absolute instead of relative if needed? Better than modifying by hand tbh. 
@@ -145,19 +145,19 @@ The default `experiment_type` for copying Tristan metadata is set to rotation; w
 
 
 DLS beamline specific utilities
-===============================
+-------------------------------
 
 Nexgen is currently being used for some specific applications at beamlines I19-2 and I24 at DLS.
 
 Time resolved collection with Tristan detector on I19-2
--------------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 For completeness' sake there is also an option to write a NeXus file for an Eiger detector.
 (nexgen was actually born out of a need to write the nxs file for tristan expt)
 
 
 Serial crystallography on I24
------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 I19-2: Tristan and Eiger nexus file writing, SSX with tristan detector.
 I24: serial crystallography -> still shots (extruder application), fixed target (TR or not), 3d scan (tbc)
