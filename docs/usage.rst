@@ -102,7 +102,7 @@ Generating new NeXus files
  
  .. code-block:: console
 
-    generate_nexus 1
+    generate_nexus 1 input.datafile=File_00*.h5
 
  - From scratch, along with blank data (demo)
 
@@ -115,9 +115,6 @@ Generating new NeXus files
   .. code-block:: console
 
     generate_nexus 3 input.metafile=File_meta.h5 input.vds_writer=dataset 
-
-TODO. Change deafults. Det snaked to True. Also, probably vds writer to dataset. 
-VDS definitely. Snaked tbd.
 
 
 Copying NeXus files
