@@ -102,13 +102,13 @@ Generating new NeXus files
  
  .. code-block:: console
 
-    generate_nexus 1 input.datafile=File_00*.h5
+    generate_nexus 1 beamline.phil input.datafile=File_00*.h5 input.snaked=True goniometer.starts=0,0,0,0 goniometer.ends=0,0,1,2 goniometer.increments=0,0,0.1,0.2  detector.exposure_time=0.095 detector.beam_center=989.8,1419 detector.overload=65535 detector.starts=0,140 detector.ends=0,140 beam.wavelength=0.4859
 
  - From scratch, along with blank data (demo)
 
   .. code-block:: console
 
-    generate_nexus 2 -i/-e output.master_filename=File.nxs input.vds_writer=dataset
+    generate_nexus 2 -i/-e output.master_filename=File.nxs input.vds_writer=dataset (etc...)
  
  - For an existing dataset which also has a meta.h5 file
 
