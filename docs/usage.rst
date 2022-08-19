@@ -139,22 +139,3 @@ The default `experiment_type` for copying Tristan metadata is set to rotation; w
  .. code-block:: console
 
     copy_nexus tristan tristan_nexus=Tristan_img.nxs data_filename=Tristan_img_0001.h5 experiment_type=stationary
-
-
-DLS beamline specific utilities
--------------------------------
-
-Nexgen is currently being used for some specific applications at beamlines I19-2 and I24 at DLS.
-
-Time resolved collection with Tristan detector on I19-2
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-For completeness' sake there is also an option to write a NeXus file for an Eiger detector.
-(nexgen was actually born out of a need to write the nxs file for tristan expt)
-
-
-Serial crystallography on I24
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-I19-2: Tristan and Eiger nexus file writing, SSX with tristan detector.
-I24: serial crystallography -> still shots (extruder application), fixed target (TR or not), 3d scan (tbc)
