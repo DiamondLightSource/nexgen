@@ -16,12 +16,12 @@ from .. import get_iso_timestamp, get_nexus_filename, log
 from ..nxs_write import calculate_scan_range
 from ..nxs_write.NexusWriter import call_writers
 from ..nxs_write.NXclassWriters import write_NXdatetime, write_NXentry
-from ..tools.ExtendedRequest import ExtendedRequestIO
-from ..tools.GDAjson2params import (
+from ..tools.VDS_tools import image_vds_writer
+from .GDAtools.ExtendedRequest import ExtendedRequestIO
+from .GDAtools.GDAjson2params import (
     read_detector_params_from_json,
     read_geometry_from_json,
 )
-from ..tools.VDS_tools import image_vds_writer
 from .I19_2_params import (
     dset_links,
     eiger4M_params,
