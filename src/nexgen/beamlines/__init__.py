@@ -66,7 +66,7 @@ def compute_goniometer(
         full (bool, optional): If True, calculate start and end points for all blocks. Defaults to False.
 
     Returns:
-        Tuple[Dict]: _description_
+        Tuple[Dict]: Start and end points for each block.
     """
     x0 = chip_dict["X_START"][1]
     y0 = chip_dict["Y_START"][1]
