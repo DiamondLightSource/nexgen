@@ -16,7 +16,7 @@ from .I19_2_params import goniometer_axes, source, tristan10M_params
 # Define a logger object and a formatter
 logger = logging.getLogger("nexgen.I19-2_ssx")
 
-# TODO Change tot_num_X to current chip map, or just the list of blocks
+# TODO Change tot_num_X to current chip map, or just the list of blocks. The list of blocks should go in a NXnote.
 # TODO Might need to also have I24 geometry in here
 ssx_tr_collect = namedtuple(
     "ssx_collect",
@@ -36,6 +36,7 @@ ssx_tr_collect = namedtuple(
         "pump_delay",
     ],
 )
+ssx_tr_collect.__doc__ = """Add docstring here."""
 
 coordinate_frame = "mcstas"
 
