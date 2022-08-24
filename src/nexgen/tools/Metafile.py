@@ -81,10 +81,20 @@ class DectrisMetafile(Metafile):
         return False
 
     def read_config_dset(self) -> Dict:
+        config = eval(self._handle["config"][()])
+        return config
+
+    def get_number_of_images(self) -> int:
         if self.hasConfig:
-            config = eval(self._handle["config"][()])
-            return config
-        return None
+            config = self.read_config_dset()
+            if config["nimages"] >= 1 and config["ntrigger"] == 1:
+                return config["nimages"]
+            elif config["nimages"] == 1 and config["ntrigger"] > 1:
+                # For example a "triggered" data collection
+                return config["ntrigger"]
+        else:
+            _loc = [obj for obj in self.walk if "nimages" in obj]
+            return self.__getitem__(_loc[0])[0]
 
     def get_detector_size(self) -> Tuple:
         # NB. reurns (fast, slow) but data_size in nxs file shoud be recorded (slow, fast)
