@@ -163,3 +163,36 @@ def overwrite_detector(
             except KeyError:
                 detector.__inject__(k, v)
     return link_list
+
+
+def update_goniometer(meta_file: h5py.File, goniometer: Dict):
+    overwrite_logger.info(
+        "Get goniometer axes values from meta file for Eiger detector."
+    )
+    meta = DectrisMetafile(meta_file)
+
+    if meta.hasConfig is True:
+        config = meta.read_config_dset()
+        num = meta.get_number_of_images()
+
+        goniometer["starts"] = []
+        goniometer["ends"] = []
+        goniometer["increments"] = []
+
+        for ax in goniometer["axes"]:
+            if f"{ax}_start" in config.keys():
+                s = config[f"{ax}_start"]
+                goniometer["starts"].append(s)
+                overwrite_logger.info(f"Start value for axis {ax}: {s}.")
+            if f"{ax}_increment" in config.keys():
+                inc = config[f"{ax}_increment"]
+                goniometer["increments"].append(inc)
+                overwrite_logger.info(f"Increment value for axis {ax}: {inc}.")
+                e = s + inc * num
+                goniometer["ends"].append(e)
+                overwrite_logger.info(f"End value for axis {ax}: {e}.")
+    else:
+        overwrite_logger.warning(
+            "No config/ dataset found in meta file. Goniometer axes value couldn't be updated from here."
+        )
+        return
