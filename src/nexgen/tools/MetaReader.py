@@ -166,6 +166,13 @@ def overwrite_detector(
 
 
 def update_goniometer(meta_file: h5py.File, goniometer: Dict):
+    """
+    Read the axes values from the config/ dataset in the meta file and update the goniometer.
+
+    Args:
+        meta_file (h5py.File): Handle to Dectris-shaped meta.h5 file.
+        goniometer (Dict): Dictionary containing all the goniometer axes information.
+    """
     overwrite_logger.info(
         "Get goniometer axes values from meta file for Eiger detector."
     )
