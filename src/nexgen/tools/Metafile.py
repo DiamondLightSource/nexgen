@@ -1,9 +1,10 @@
 """
 Define a Metafile object to describe the _meta.h5 file and get the necessary information from it.
 """
+from __future__ import annotations
 
 import re
-from typing import List, Tuple, Union
+from typing import Dict, List, Tuple
 
 import h5py
 
@@ -30,7 +31,7 @@ class Metafile:
     def __init__(self, handle: h5py.File):
         self._handle = handle
 
-    def __getitem__(self, key: str) -> Union[h5py.Group, h5py.Dataset]:
+    def __getitem__(self, key: str) -> h5py.Group | h5py.Dataset:
         return self._handle[key]
 
     def __len__(self):
@@ -72,6 +73,18 @@ class DectrisMetafile(Metafile):
             if "_dectris" in k and isinstance(self._handle[k], h5py.Group):
                 return True
         return False
+
+    @cached_property
+    def hasConfig(self) -> bool:
+        if "config" in self._handle.keys():
+            return True
+        return False
+
+    def read_config_dset(self) -> Dict:
+        if self.hasConfig:
+            config = eval(self._handle["config"][()])
+            return config
+        return None
 
     def get_detector_size(self) -> Tuple:
         # NB. reurns (fast, slow) but data_size in nxs file shoud be recorded (slow, fast)
