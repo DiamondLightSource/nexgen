@@ -590,7 +590,7 @@ def write_NXdetector(
                 detector["depends"][idx],
                 nxtransformations.name + "/two_theta/",
             )
-            dist = units_of_length(str(detector["starts"][idx]) + "mm", True)
+            dist = units_of_length(str(detector["starts"][idx]) + "mm")  # , True)
         else:
             grp_name = ax
             _dep = set_dependency(
