@@ -588,7 +588,7 @@ def write_NXdetector(
                 detector["depends"][idx],
                 nxtransformations.name + "/two_theta/",
             )
-            dist = detector["starts"][idx]
+            dist = units_of_length(str(detector["starts"][idx]) + "mm", True)
         else:
             grp_name = ax
             _dep = set_dependency(
@@ -616,7 +616,8 @@ def write_NXdetector(
             )
 
     # Detector distance
-    nxdetector.create_dataset("distance", data=dist)
+    nxdetector.create_dataset("distance", data=dist.magnitude)
+    create_attributes(nxdetector["distance"], ("units",), (format(dist.units, "~")))
 
 
 # NXdetector_module writer
