@@ -292,7 +292,9 @@ def write_NXsample(
         else:
             # For all other axes
             idx = goniometer["axes"].index(ax)
-            nxax = nxsample_ax.create_dataset(ax, data=goniometer["starts"][idx])
+            nxax = nxsample_ax.create_dataset(
+                ax, data=np.array([goniometer["starts"][idx]])
+            )
             _dep = set_dependency(
                 goniometer["depends"][idx], path="/entry/sample/transformations/"
             )
@@ -597,7 +599,7 @@ def write_NXdetector(
             )
         nxgrp_ax = nxtransformations.create_group(grp_name)
         create_attributes(nxgrp_ax, ("NX_class",), ("NXpositioner",))
-        nxdet_ax = nxgrp_ax.create_dataset(ax, data=detector["starts"][idx])
+        nxdet_ax = nxgrp_ax.create_dataset(ax, data=np.array([detector["starts"][idx]]))
         create_attributes(
             nxdet_ax,
             ("depends_on", "transformation_type", "units", "vector"),
