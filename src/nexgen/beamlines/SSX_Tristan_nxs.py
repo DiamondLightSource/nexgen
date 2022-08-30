@@ -23,7 +23,6 @@ ssx_tr_collect = namedtuple(
     [
         "visitpath",
         "filename",
-        "tot_num_X",
         "beam_center",
         "detector_distance",
         "start_time",
@@ -56,7 +55,6 @@ def write_nxs(**ssx_params):
     SSX_TR = ssx_tr_collect(
         visitpath=Path(ssx_params["visitpath"]).expanduser().resolve(),
         filename=ssx_params["filename"],
-        tot_num_X=float(ssx_params["tot_num_X"]),
         beam_center=ssx_params["beam_center"],
         detector_distance=ssx_params["det_dist"],
         start_time=ssx_params["start_time"].strftime("%Y-%m-%dT%H:%M:%S")
@@ -184,11 +182,6 @@ def write_nxs(**ssx_params):
                 link_list=None,
             )
 
-            # TODO I'd register the number of cells like this:
-            nxsfile["/entry/data"].create_dataset(
-                "tot_num_cells", data=SSX_TR.tot_num_X
-            )
-
             # Register pump status (hard coded as True)
             pump_info = {"pump_status": True}
             logger.info("Add pump information.")
@@ -227,7 +220,6 @@ def write_nxs(**ssx_params):
 #     write_nxs(
 #         visitpath=sys.argv[1],
 #         filename=sys.argv[2],
-#         tot_num_X=100,
 #         beam_center=[1590.7, 1643.7],
 #         det_dist=0.5,
 #         start_time=datetime.now(),
