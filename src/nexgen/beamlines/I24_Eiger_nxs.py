@@ -408,6 +408,21 @@ def write_nxs(**ssx_params):
     master_file = get_nexus_filename(filename[0])
     logger.info("NeXus file will be saved as %s" % master_file)
 
+    logger.info("Detector information")
+    logger.info(f"{detector['description']}")
+    logger.info(
+        f"Sensor made of {detector['sensor_material']} x {detector['sensor_thickness']}"
+    )
+    logger.info(
+        f"Detector is a {detector['image_size'][::-1]} array of {detector['pixel_size']} pixels"
+    )
+    for k in range(len(detector["axes"])):
+        logger.info(
+            f"Detector axis: {detector['axes'][k]} => {detector['starts'][k]}, {detector['types'][k]} on {detector['depends'][k]}"
+        )
+
+    logger.info(f"Recorded beam center is: {SSX.beam_center}.")
+
     # Call correct function for the current experiment
     if SSX.exp_type == "extruder":
         extruder(master_file, filename, SSX, metafile)
