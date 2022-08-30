@@ -78,9 +78,9 @@ detector_scope = freephil.parse(
       pixel_mask_applied = False
         .type = bool
         .help = "If the mask location is known, specify whether it's been applied of not."
-      image_size = 4148 4362
+      image_size = 4362 4148
         .type = ints(size = 2)
-        .help = "Image size in pixels: (fast, slow)"
+        .help = "Image size in pixels: (slow, fast)"
       exposure_time = None
         .type = str
         .help = "Nominal exposure time, eg 0.004s, if unit is not specified defaults to seconds"
