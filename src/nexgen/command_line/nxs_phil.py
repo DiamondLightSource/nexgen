@@ -62,10 +62,10 @@ detector_scope = freephil.parse(
         .help = "Pixels <= this value are invalid"
       pixel_size = 0.075mm 0.075mm
         .type = strings
-        .help = "Pixel size, if unit isn't passed defaults to mm"
+        .help = "Pixel size, if unit isn't passed defaults to mm (fast, slow)"
       beam_center = 2214.355 2300.496
         .type = floats(size = 2)
-        .help = "Beam position on the detector"
+        .help = "Beam position on the detector (fast, slow)"
       flatfield = None
         .type = path
         .help = "If path is given, add flatfield correction data field"

@@ -128,7 +128,7 @@ def write_nxs(**ssx_params):
         f"Sensor made of {detector['sensor_material']} x {detector['sensor_thickness']}"
     )
     logger.info(
-        f"Detector is a {detector['image_size']} array of {detector['pixel_size']} pixels"
+        f"Detector is a {detector['image_size'][::-1]} array of {detector['pixel_size']} pixels"
     )
     for k in range(len(detector["axes"])):
         logger.info(
