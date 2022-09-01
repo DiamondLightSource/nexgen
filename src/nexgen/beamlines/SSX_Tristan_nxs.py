@@ -36,10 +36,29 @@ ssx_tr_collect = namedtuple(
         "pump_delay",
     ],
 )
+
 ssx_tr_collect.__doc__ = (
     """Parameters that define a serial collection using a Tristan detector."""
 )
+ssx_tr_collect.visitpath.__doc__ = "Path to colection directory."
+ssx_tr_collect.filename.__doc__ = "Root of the filename."
+ssx_tr_collect.location.__doc__ = "Beamline on which the experiment is being run."
+ssx_tr_collect.beam_center.__doc__ = "Beam center position, in pixels."
+ssx_tr_collect.detector_distance.__doc__ = (
+    "Distance between sample and detector, in mm."
+)
+ssx_tr_collect.start_time.__doc__ = "Experiment start time."
+ssx_tr_collect.stop_time.__doc__ = "Experiment end time."
+ssx_tr_collect.exposure_time.__doc__ = "Exposure time, in s."
+ssx_tr_collect.transmission.__doc__ = "Attenuator transmission, in %."
+ssx_tr_collect.wavelength.__doc__ = "Wavelength of incident beam."
+ssx_tr_collect.pump_status.__doc__ = (
+    "True for a pump-probe experiment, false otherwise."
+)
+ssx_tr_collect.pump_exp.__doc__ = "Pump exposure time, in s."
+ssx_tr_collect.pump_delay.__doc__ = "Pump delay time, in s."
 
+# Define coordinate frame
 coordinate_frame = "mcstas"
 
 # Initialize dictionaries
