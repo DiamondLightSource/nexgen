@@ -43,6 +43,30 @@ ssx_collect = namedtuple(
     ],
 )
 
+ssx_collect.__doc__ = """Parameters that define a serial collection on I24."""
+ssx_collect.visitpath.__doc__ = "Path to colection directory."
+ssx_collect.filename.__doc__ = "Root of the filename."
+ssx_collect.exp_type.__doc__ = (
+    "Experiment being run. Accepted values for I24: extruder, fixed_target, 3Dgridscan."
+)
+ssx_collect.num_imgs.__doc__ = "Total number of images collected."
+ssx_collect.beam_center.__doc__ = "Beam center position, in pixels."
+ssx_collect.detector_distance.__doc__ = "Distance between sample and detector, in mm."
+ssx_collect.start_time.__doc__ = "Experiment start time."
+ssx_collect.stop_time.__doc__ = "Experiment end time."
+ssx_collect.exposure_time.__doc__ = "Exposure time, in s."
+ssx_collect.transmission.__doc__ = "Attenuator transmission, in %."
+ssx_collect.wavelength.__doc__ = "Wavelength of incident beam."
+ssx_collect.flux.__doc__ = "Total flux."
+ssx_collect.pump_status.__doc__ = "True for a pump-probe experiment, false otherwise."
+ssx_collect.pump_exp.__doc__ = "Pump exposure time, in s."
+ssx_collect.pump_delay.__doc__ = "Pump delay time, in s."
+ssx_collect.chip_info.__doc__ = "For a grid scan, dictionary containing basic chip information. At least it should contain: x/y_start, x/y number of blocks and block size, x/y number of steps and number of exposures."
+ssx_collect.chipmap.__doc__ = (
+    "Path to the chipmap file corresponding to the experiment."
+)
+
+# Define coordinate frame
 coordinate_frame = "mcstas"
 
 # Initialize dictionaries
@@ -362,6 +386,7 @@ def write_nxs(**ssx_params):
     # Configure logging
     log.config(logfile.as_posix())
 
+    # TODO check that detector distance is in mm.
     # Add to dictionaries
     detector["starts"] = [SSX.detector_distance]
     detector["exposure_time"] = SSX.exposure_time
