@@ -23,6 +23,7 @@ ssx_tr_collect = namedtuple(
     [
         "visitpath",
         "filename",
+        "location",
         "beam_center",
         "detector_distance",
         "start_time",
@@ -35,7 +36,9 @@ ssx_tr_collect = namedtuple(
         "pump_delay",
     ],
 )
-ssx_tr_collect.__doc__ = """Add docstring here."""
+ssx_tr_collect.__doc__ = (
+    """Parameters that define a serial collection using a Tristan detector."""
+)
 
 coordinate_frame = "mcstas"
 
@@ -55,6 +58,7 @@ def write_nxs(**ssx_params):
     SSX_TR = ssx_tr_collect(
         visitpath=Path(ssx_params["visitpath"]).expanduser().resolve(),
         filename=ssx_params["filename"],
+        location="I19",  # ssx_params["location"]
         beam_center=ssx_params["beam_center"],
         detector_distance=ssx_params["det_dist"],
         start_time=ssx_params["start_time"].strftime("%Y-%m-%dT%H:%M:%S")
@@ -220,6 +224,7 @@ def write_nxs(**ssx_params):
 #     write_nxs(
 #         visitpath=sys.argv[1],
 #         filename=sys.argv[2],
+#         location="I19",
 #         beam_center=[1590.7, 1643.7],
 #         det_dist=0.5,
 #         start_time=datetime.now(),
