@@ -13,7 +13,9 @@ logger = logging.getLogger("nexgen.I19-2_NeXus_cli")
 
 
 def gda_writer():
-    """_summary_"""
+    """
+    Write a NeXus file starting from information passed by GDA.
+    """
     logger.info("")
 
     from .I19_2_nxs import write_nxs
@@ -76,7 +78,10 @@ def gda_writer():
 
 def nexgen_writer():
     """_summary_"""
-    pass
+    parser = argparse.ArgumentParser(description="", parents=[version_parser])
+    # Add arguments here
+    args = parser.parse_args()
+    print(args)
 
 
 # TODO change in setup.cfg:

@@ -1,6 +1,5 @@
 """
-Create a NeXus file for time-resolved collections on I19-2.
-Available detectors: Tristan 10M, Eiger 2X 4M.
+Create a NeXus file for time-resolved collections on I19-2 using parameters passed from GDA.
 """
 
 import glob
