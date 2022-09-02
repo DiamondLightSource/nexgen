@@ -18,7 +18,7 @@ def gda_writer():
     """
     logger.info("")
 
-    from .I19_2_nxs import write_nxs
+    from .I19_2_gda_nxs import write_nxs
 
     parser = argparse.ArgumentParser(
         description="Create a NeXus file for I19-2 interfacing with GDA.",
