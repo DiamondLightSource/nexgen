@@ -24,34 +24,38 @@ def gda_writer():
         description="Create a NeXus file for I19-2 interfacing with GDA.",
         parents=[version_parser],
     )
-    parser.add_argument("meta_file", type=str, help="Path to _meta.h5 file")
-    parser.add_argument("xml_file", type=str, help="Path to GDA generated xml file")
+    parser.add_argument("meta_file", type=str, help="Path to _meta.h5 file.")
+    parser.add_argument("xml_file", type=str, help="Path to GDA generated xml file.")
     parser.add_argument(
-        "detector_name", type=str, help="Detector currently in use on beamline"
+        "detector_name", type=str, help="Detector currently in use on beamline."
     )
-    parser.add_argument("exp_time", type=str, help="Exposure time")
-    parser.add_argument("wavelength", type=str, help="Incident beam wavelength")
-    parser.add_argument("beam_center_x", type=str, help="Beam center x position")
-    parser.add_argument("beam_center_y", type=str, help="Beam center y position")
+    parser.add_argument("exp_time", type=str, help="Exposure time, in s.")
+    parser.add_argument("wavelength", type=str, help="Incident beam wavelength.")
     parser.add_argument(
-        "--start", "--start-time", type=str, default=None, help="Collection start time"
+        "beam_center_x", type=str, help="Beam center x position, in pixels."
     )
     parser.add_argument(
-        "--stop", "--stop-time", type=str, default=None, help="Collection end time"
+        "beam_center_y", type=str, help="Beam center y position, in pixels."
+    )
+    parser.add_argument(
+        "--start", "--start-time", type=str, default=None, help="Collection start time."
+    )
+    parser.add_argument(
+        "--stop", "--stop-time", type=str, default=None, help="Collection end time."
     )
     parser.add_argument(
         "--geom",
         "--geometry-json",
         type=str,
         default=None,
-        help="Path to GDA generated geometry json file",
+        help="Path to GDA generated geometry json file.",
     )
     parser.add_argument(
         "--det",
         "--detector-json",
         type=str,
         default=None,
-        help="Path to GDA generated detector json file",
+        help="Path to GDA generated detector json file.",
     )
     args = parser.parse_args()
 
@@ -78,12 +82,36 @@ def gda_writer():
 
 def nexgen_writer():
     """_summary_"""
-    parser = argparse.ArgumentParser(description="", parents=[version_parser])
-    # Add arguments here
+    logger.info()
+
+    from . import detAx_parser, gonioAx_parser
+
+    parser = argparse.ArgumentParser(
+        description="Create a NeXus file for I19-2 data.",
+        parents=[version_parser, gonioAx_parser, detAx_parser],
+    )
+    parser.add_argument("meta_file", type=str, help="Path to _meta.h5 file.")
+    parser.add_argument(
+        "detector_name", type=str, help="Detector currently in use on beamline."
+    )
+    parser.add_argument("exp_time", type=float, help="Exposure time, in s.")
+    parser.add_argument("transmission", type=float, help="Attenuator transmission.")
+    parser.add_argument(
+        "--wavelength", type=float, default=None, help="Incident beam wavelength, in A."
+    )
+    parser.add_argument(
+        "--beam-center", type=float, nargs="+", help="Beam center (x,y) positions."
+    )
+    parser.add_argument(
+        "--start", "--start-time", type=str, default=None, help="Collection start time."
+    )
+    parser.add_argument(
+        "--stop", "--stop-time", type=str, default=None, help="Collection end time."
+    )
     args = parser.parse_args()
     print(args)
 
 
 # TODO change in setup.cfg:
-# I19_gda_nexus = nexgen.beamlines.I19_2_cli:gda_writer
-# I19_nexus = nexgen.beamlines.I19_2_cli:nexgen_writer
+# I19_nexus = nexgen.beamlines.I19_2_cli:gda_writer
+# I19_new_nexus = nexgen.beamlines.I19_2_cli:nexgen_writer
