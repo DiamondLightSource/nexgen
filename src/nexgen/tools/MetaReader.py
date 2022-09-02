@@ -191,13 +191,21 @@ def update_goniometer(meta_file: h5py.File, goniometer: Dict):
                 s = config[f"{ax}_start"]
                 goniometer["starts"].append(s)
                 overwrite_logger.info(f"Start value for axis {ax}: {s}.")
-            if f"{ax}_increment" in config.keys():
-                inc = config[f"{ax}_increment"]
+                inc = (
+                    config[f"{ax}_increment"]
+                    if f"{ax}_increment" in config.keys()
+                    else 0.0
+                )
                 goniometer["increments"].append(inc)
                 overwrite_logger.info(f"Increment value for axis {ax}: {inc}.")
                 e = s + inc * num
                 goniometer["ends"].append(e)
                 overwrite_logger.info(f"End value for axis {ax}: {e}.")
+            else:
+                goniometer["starts"].append(0.0)
+                goniometer["ends"].append(0.0)
+                goniometer["increments"].append(0.0)
+                overwrite_logger.info(f"Axis {ax} not in meta file, values set to 0.0.")
     else:
         overwrite_logger.warning(
             "No config/ dataset found in meta file. Goniometer axes value couldn't be updated from here."
@@ -227,8 +235,11 @@ def update_detector_axes(meta_file: h5py.File, detector: Dict):
         # For the moment, assume the detector doesn't move.
         for ax in detector["axes"]:
             if f"{ax}_start" in config.keys():
-                detector["starts"].append(config[f"{ax}_start"])
+                s = config[f"{ax}_start"]
+                detector["starts"].append(s)
+                overwrite_logger.info(f"Position of axis {ax}: {s}.")
 
         detector["starts"].append(dist.to("mm").magnitude)
+        overwrite_logger.info(f"Position of axis det_z: {dist.to('mm')}.")
 
         detector["ends"] = detector["starts"]

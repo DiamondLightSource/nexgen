@@ -128,8 +128,3 @@ def nexgen_writer():
         if args.stop
         else None,
     )
-
-
-# TODO change in setup.cfg:
-# I19_nexus = nexgen.beamlines.I19_2_cli:gda_writer - DONE
-# I19_nexgen = nexgen.beamlines.I19_2_cli:nexgen_writer
