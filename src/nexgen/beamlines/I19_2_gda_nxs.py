@@ -1,12 +1,13 @@
 """
 Create a NeXus file for time-resolved collections on I19-2 using parameters passed from GDA.
 """
+from __future__ import annotations
 
 import glob
 import logging
 from collections import namedtuple
 from pathlib import Path
-from typing import Tuple, Union
+from typing import Tuple
 
 import h5py
 
@@ -29,7 +30,7 @@ from .I19_2_params import (
 )
 
 # Define a logger object and a formatter
-logger = logging.getLogger("nexgen.I19-2_NeXus")
+logger = logging.getLogger("nexgen.I19-2_NeXus_gda")
 
 # Tristan mask and flatfield files
 maskfile = "Tristan10M_mask_with_spec.h5"
@@ -69,6 +70,7 @@ tr_collect.detector_json.__doc__ = (
     "Path to GDA-generated JSON file describing the detector."
 )
 
+# Define coordinate frame
 coordinate_frame = "mcstas"
 
 # Initialize dictionaries
@@ -79,12 +81,12 @@ beam = {"flux": None}
 attenuator = {}
 
 
-def read_from_xml(xmlfile: Union[Path, str], detector_name: str):
+def read_from_xml(xmlfile: Path | str, detector_name: str):
     """
     Extract information about the collection and the beamline contained in the xml file.
 
     Args:
-        xmlfile (Union[Path, str]): Path to xml file.
+        xmlfile (Path | str): Path to xml file.
         detector_name (str): Detector in use for the current collection
 
     Returns:

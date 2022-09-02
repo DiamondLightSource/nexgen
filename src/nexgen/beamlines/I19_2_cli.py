@@ -68,7 +68,7 @@ def gda_writer():
         beam_center=[
             float(args.beam_center_x),
             float(args.beam_center_y),
-        ],  # [1590.7, 1643.7],
+        ],
         start_time=datetime.strptime(args.start, "%Y-%m-%dT%H:%M:%SZ")
         if args.start
         else None,
@@ -85,6 +85,7 @@ def nexgen_writer():
     logger.info("")
 
     from . import detAx_parser, gonioAx_parser
+    from .I19_2_nxs import nexus_writer
 
     parser = argparse.ArgumentParser(
         description="Create a NeXus file for I19-2 data.",
@@ -111,7 +112,24 @@ def nexgen_writer():
     args = parser.parse_args()
     print(args)
 
+    # TODO add axes
+    nexus_writer(
+        meta_file=args.meta_file,
+        detector_name=args.detector_name,
+        exposure_time=args.exp_time,
+        transmission=args.transmission,
+        wavelength=args.wavelength if args.wavelength else None,
+        beam_center=args.beam_center if args.beam_center else None,
+        scan_axis=args.scan_axis if args.scan_axis else None,
+        start_time=datetime.strptime(args.start, "%Y-%m-%dT%H:%M:%SZ")
+        if args.start
+        else None,
+        stop_time=datetime.strptime(args.stop, "%Y-%m-%dT%H:%M:%SZ")
+        if args.stop
+        else None,
+    )
+
 
 # TODO change in setup.cfg:
 # I19_nexus = nexgen.beamlines.I19_2_cli:gda_writer - DONE
-# I19_new_nexus = nexgen.beamlines.I19_2_cli:nexgen_writer
+# I19_nexgen = nexgen.beamlines.I19_2_cli:nexgen_writer
