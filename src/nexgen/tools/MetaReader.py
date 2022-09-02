@@ -203,3 +203,32 @@ def update_goniometer(meta_file: h5py.File, goniometer: Dict):
             "No config/ dataset found in meta file. Goniometer axes value couldn't be updated from here."
         )
         return
+
+
+def update_detector_axes(meta_file: h5py.File, detector: Dict):
+    """
+    Read the axes values from the config/ dataset in the meta file and update the detector.
+
+    Args:
+        meta_file (h5py.File): Handle to Dectris-shaped meta.h5 file.
+        detector (Dict): Dictionary containing all the detector information.
+    """
+    overwrite_logger.info("Get detector axes values from meta file for Eiger detector.")
+    meta = DectrisMetafile(meta_file)
+
+    if meta.hasConfig is True:
+        config = meta.read_config_dset()
+        dist = units_of_length(meta.get_detector_distance())
+
+        detector["starts"] = []
+        detector["ends"] = []
+
+        # First look for two_theta, then append det_z
+        # For the moment, assume the detector doesn't move.
+        for ax in detector["axes"]:
+            if f"{ax}_start" in config.keys():
+                detector["starts"].append(config[f"{ax}_start"])
+
+        detector["starts"].append(dist.to("mm").magnitude)
+
+        detector["ends"] = detector["starts"]
