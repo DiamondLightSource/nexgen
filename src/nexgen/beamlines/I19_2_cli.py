@@ -82,7 +82,7 @@ def gda_writer():
 
 def nexgen_writer():
     """_summary_"""
-    logger.info()
+    logger.info("")
 
     from . import detAx_parser, gonioAx_parser
 
@@ -113,5 +113,5 @@ def nexgen_writer():
 
 
 # TODO change in setup.cfg:
-# I19_nexus = nexgen.beamlines.I19_2_cli:gda_writer
+# I19_nexus = nexgen.beamlines.I19_2_cli:gda_writer - DONE
 # I19_new_nexus = nexgen.beamlines.I19_2_cli:nexgen_writer

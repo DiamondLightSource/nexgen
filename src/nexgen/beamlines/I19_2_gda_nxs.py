@@ -5,7 +5,6 @@ Create a NeXus file for time-resolved collections on I19-2 using parameters pass
 import glob
 import logging
 from collections import namedtuple
-from datetime import datetime
 from pathlib import Path
 from typing import Tuple, Union
 
@@ -50,6 +49,24 @@ tr_collect = namedtuple(
         "geometry_json",  # Define these 2 as None
         "detector_json",
     ],
+)
+
+tr_collect.__doc__ = (
+    """Information extracted from GDA containing collection parameters."""
+)
+tr_collect.meta_file.__doc__ = "Path to _meta.h5 file."
+tr_collect.xml_file.__doc__ = "Path to GDA-generated xml file."
+tr_collect.detector_name.__doc__ = "Name of the detector in use for current experiment."
+tr_collect.exposure_time.__doc__ = "Exposure time, in s."
+tr_collect.wavelength.__doc__ = "Incident beam wavelength, in A."
+tr_collect.beam_center.__doc__ = "Beam center (x,y) position, in pixels."
+tr_collect.start_time.__doc__ = "Collection start time."
+tr_collect.stop_time.__doc__ = "Collection end time."
+tr_collect.geometry_json.__doc__ = (
+    "Path to GDA-generated JSON file describing the beamline geometry."
+)
+tr_collect.detector_json.__doc__ = (
+    "Path to GDA-generated JSON file describing the detector."
 )
 
 coordinate_frame = "mcstas"
@@ -394,64 +411,64 @@ def write_nxs(**tr_params):
         eiger_writer(master_file, TR, osc_axis, n_frames, timestamps)
 
 
-def main():
-    "Call from the beamline"
-    # Not the best but it should do the job
-    import argparse
+# def main():
+#     "Call from the beamline"
+#     # Not the best but it should do the job
+#     import argparse
 
-    from ..command_line import version_parser
+#     from ..command_line import version_parser
 
-    parser = argparse.ArgumentParser(description=__doc__, parents=[version_parser])
-    parser.add_argument("meta_file", type=str, help="Path to _meta.h5 file")
-    parser.add_argument("xml_file", type=str, help="Path to GDA generated xml file")
-    parser.add_argument(
-        "detector_name", type=str, help="Detector currently in use on beamline"
-    )
-    parser.add_argument("exp_time", type=str, help="Exposure time")
-    parser.add_argument("wavelength", type=str, help="Incident beam wavelength")
-    parser.add_argument("beam_center_x", type=str, help="Beam center x position")
-    parser.add_argument("beam_center_y", type=str, help="Beam center y position")
-    parser.add_argument(
-        "--start", "--start-time", type=str, default=None, help="Collection start time"
-    )
-    parser.add_argument(
-        "--stop", "--stop-time", type=str, default=None, help="Collection end time"
-    )
-    parser.add_argument(
-        "--geom",
-        "--geometry-json",
-        type=str,
-        default=None,
-        help="Path to GDA generated geometry json file",
-    )
-    parser.add_argument(
-        "--det",
-        "--detector-json",
-        type=str,
-        default=None,
-        help="Path to GDA generated detector json file",
-    )
-    args = parser.parse_args()
+#     parser = argparse.ArgumentParser(description=__doc__, parents=[version_parser])
+#     parser.add_argument("meta_file", type=str, help="Path to _meta.h5 file")
+#     parser.add_argument("xml_file", type=str, help="Path to GDA generated xml file")
+#     parser.add_argument(
+#         "detector_name", type=str, help="Detector currently in use on beamline"
+#     )
+#     parser.add_argument("exp_time", type=str, help="Exposure time")
+#     parser.add_argument("wavelength", type=str, help="Incident beam wavelength")
+#     parser.add_argument("beam_center_x", type=str, help="Beam center x position")
+#     parser.add_argument("beam_center_y", type=str, help="Beam center y position")
+#     parser.add_argument(
+#         "--start", "--start-time", type=str, default=None, help="Collection start time"
+#     )
+#     parser.add_argument(
+#         "--stop", "--stop-time", type=str, default=None, help="Collection end time"
+#     )
+#     parser.add_argument(
+#         "--geom",
+#         "--geometry-json",
+#         type=str,
+#         default=None,
+#         help="Path to GDA generated geometry json file",
+#     )
+#     parser.add_argument(
+#         "--det",
+#         "--detector-json",
+#         type=str,
+#         default=None,
+#         help="Path to GDA generated detector json file",
+#     )
+#     args = parser.parse_args()
 
-    write_nxs(
-        meta_file=args.meta_file,
-        xml_file=args.xml_file,
-        detector_name=args.detector_name,  # "tristan",
-        exposure_time=float(args.exp_time),
-        wavelength=float(args.wavelength),
-        beam_center=[
-            float(args.beam_center_x),
-            float(args.beam_center_y),
-        ],  # [1590.7, 1643.7],
-        start_time=datetime.strptime(args.start, "%Y-%m-%dT%H:%M:%SZ")
-        if args.start
-        else None,
-        stop_time=datetime.strptime(args.stop, "%Y-%m-%dT%H:%M:%SZ")
-        if args.stop
-        else None,  # datetime.now(),
-        geometry_json=args.geom if args.geom else None,
-        detector_json=args.det if args.det else None,
-    )
+#     write_nxs(
+#         meta_file=args.meta_file,
+#         xml_file=args.xml_file,
+#         detector_name=args.detector_name,  # "tristan",
+#         exposure_time=float(args.exp_time),
+#         wavelength=float(args.wavelength),
+#         beam_center=[
+#             float(args.beam_center_x),
+#             float(args.beam_center_y),
+#         ],  # [1590.7, 1643.7],
+#         start_time=datetime.strptime(args.start, "%Y-%m-%dT%H:%M:%SZ")
+#         if args.start
+#         else None,
+#         stop_time=datetime.strptime(args.stop, "%Y-%m-%dT%H:%M:%SZ")
+#         if args.stop
+#         else None,  # datetime.now(),
+#         geometry_json=args.geom if args.geom else None,
+#         detector_json=args.det if args.det else None,
+#     )
 
 
 # # Example usage
