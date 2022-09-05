@@ -185,6 +185,7 @@ def eiger_writer(
 
             call_writers(
                 nxsfile,
+                filenames,
                 coordinate_frame,
                 (detector["mode"], n_frames),
                 goniometer,
