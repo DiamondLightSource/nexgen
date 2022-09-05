@@ -72,9 +72,19 @@ def tristan_writer(
     master_file: Path,
     TR: namedtuple,
     timestamps: Tuple[str, str] = (None, None),
-    axes_pos: List = None,
-    det_pos: List = None,
+    axes_pos: List[namedtuple] = None,
+    det_pos: List[namedtuple] = None,
 ):
+    """
+    A function to call the nexus writer for Tristan 10M detector.
+
+    Args:
+        master_file (Path): Path to nexus file to be written.
+        TR (namedtuple): Parameters passed from the beamline.
+        timestamps (Tuple[str, str], optional): Collection start and end time. Defaults to (None, None).
+        axes_pos (List[namedtuple], optional): List of (axis_name, start, end) values for the goniometer, passed from command line. Defaults to None.
+        det_pos (List[namedtuple], optional): List of (axis_name, start) values for the detector, passed from command line. Defaults to None.
+    """
     # Add tristan mask and flatfield files
     detector["pixel_mask"] = "Tristan10M_mask_with_spec.h5"
     detector["flatfield"] = "Tristan10M_flat_field_coeff_with_Mo_17.479keV.h5"
@@ -177,6 +187,18 @@ def eiger_writer(
     TR: namedtuple,
     timestamps: Tuple[str, str] = (None, None),
 ):
+    """
+    A function to call the nexus writer for Eiger 2X 4M detector.
+    It requires the informatin contained inside the meta file to work correctly.
+
+    Args:
+        master_file (Path): Path to nexus file to be written.
+        TR (namedtuple): Parameters passed from the beamline.
+        timestamps (Tuple[str, str], optional): Collection start and end time. Defaults to (None, None).
+
+    Raises:
+        IOError: If the axes positions can't be read from the metafile (missing config or broken links).
+    """
     # Find datafiles
     logger.info("Looking for data files ...")
     filename_template = (
