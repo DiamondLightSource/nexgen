@@ -5,6 +5,7 @@ Available detectors: Tristan 10M, Eiger 2X 4M.
 
 import argparse
 import logging
+from collections import namedtuple
 from datetime import datetime
 
 from ..command_line import version_parser
@@ -110,7 +111,27 @@ def nexgen_writer():
         "--stop", "--stop-time", type=str, default=None, help="Collection end time."
     )
     args = parser.parse_args()
-    print(args)
+
+    if args.axes and not args.ax_start:
+        raise IOError(
+            "Please pass start and increment values for each of the goniometer axes indicated."
+        )
+    if args.det_axes and not args.det_start:
+        raise IOError(
+            "Please pass start and increment values for each of the detector axes indicated."
+        )
+
+    if args.axes and args.ax_start and args.ax_inc:
+        axes = namedtuple("axes", ("id", "start", "inc"))
+        axes_list = []
+        for ax, s, i in zip(args.axes, args.ax_start, args.ax_inc):
+            axes_list.append(axes(ax, s, i))
+
+    if args.det_axes and args.det_axes and args.det_inc:
+        det_axes = namedtuple("det_axes", ("id", "start"))
+        det_list = []
+        for ax, s, i in zip(args.det_axes, args.det_start, args.det_inc):
+            det_list.append(det_axes(ax, s, i))
 
     # TODO add axes
     nexus_writer(
@@ -120,11 +141,13 @@ def nexgen_writer():
         transmission=args.transmission,
         wavelength=args.wavelength if args.wavelength else None,
         beam_center=args.beam_center if args.beam_center else None,
-        scan_axis=args.scan_axis if args.scan_axis else None,
         start_time=datetime.strptime(args.start, "%Y-%m-%dT%H:%M:%SZ")
         if args.start
         else None,
         stop_time=datetime.strptime(args.stop, "%Y-%m-%dT%H:%M:%SZ")
         if args.stop
         else None,
+        scan_axis=args.scan_axis if args.scan_axis else None,
+        gonio_pos=axes_list if args.axes else None,
+        det_pos=det_list if args.det_axes else None,
     )
