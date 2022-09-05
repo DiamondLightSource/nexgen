@@ -9,7 +9,10 @@ gonioAx_parser.add_argument(
     "--ax-start", type=float, nargs="+", help="Axes start positions."
 )
 gonioAx_parser.add_argument(
-    "--ax-inc", type=float, nargs="+", help="Eventual axes increents."
+    "--ax-inc", type=float, nargs="+", help="Eventual axes increments."
+)
+gonioAx_parser.add_argument(
+    "--ax-end", type=float, nargs="+", help="Eventual axes ends."
 )
 gonioAx_parser.add_argument("--scan-axis", type=str, help="Identify scan axis.")
 

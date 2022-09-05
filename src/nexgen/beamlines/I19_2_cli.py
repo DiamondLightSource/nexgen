@@ -28,7 +28,10 @@ def gda_writer():
     parser.add_argument("meta_file", type=str, help="Path to _meta.h5 file.")
     parser.add_argument("xml_file", type=str, help="Path to GDA generated xml file.")
     parser.add_argument(
-        "detector_name", type=str, help="Detector currently in use on beamline."
+        "detector_name",
+        type=str,
+        choices=["eiger", "tristan"],
+        help="Detector currently in use on beamline.",
     )
     parser.add_argument("exp_time", type=str, help="Exposure time, in s.")
     parser.add_argument("wavelength", type=str, help="Incident beam wavelength.")
@@ -121,17 +124,23 @@ def nexgen_writer():
             "Please pass start and increment values for each of the detector axes indicated."
         )
 
-    if args.axes and args.ax_start and args.ax_inc:
-        axes = namedtuple("axes", ("id", "start", "inc"))
-        axes_list = []
-        for ax, s, i in zip(args.axes, args.ax_start, args.ax_inc):
-            axes_list.append(axes(ax, s, i))
+    if args.axes and args.ax_start:
+        if args.detector_name == "eiger":
+            axes = namedtuple("axes", ("id", "start", "inc"))
+            axes_list = []
+            for ax, s, i in zip(args.axes, args.ax_start, args.ax_inc):
+                axes_list.append(axes(ax, s, i))
+        else:
+            axes = namedtuple("axes", ("id", "start", "end"))
+            axes_list = []
+            for ax, s, e in zip(args.axes, args.ax_start, args.ax_end):
+                axes_list.append(axes(ax, s, e))
 
-    if args.det_axes and args.det_axes and args.det_inc:
+    if args.det_axes and args.det_start:
         det_axes = namedtuple("det_axes", ("id", "start"))
         det_list = []
-        for ax, s, i in zip(args.det_axes, args.det_start, args.det_inc):
-            det_list.append(det_axes(ax, s, i))
+        for ax, s in zip(args.det_axes, args.det_start):
+            det_list.append(det_axes(ax, s))
 
     # TODO add axes
     nexus_writer(

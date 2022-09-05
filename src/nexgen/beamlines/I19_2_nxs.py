@@ -75,15 +75,107 @@ def tristan_writer(
     axes_pos: List = None,
     det_pos: List = None,
 ):
-    pass
+    # Add tristan mask and flatfield files
+    detector["pixel_mask"] = "Tristan10M_mask_with_spec.h5"
+    detector["flatfield"] = "Tristan10M_flat_field_coeff_with_Mo_17.479keV.h5"
+
+    # Update axes
+    # Goniometer
+    l = len(goniometer["axes"])
+    goniometer["starts"] = l * [0.0]
+    goniometer["increments"] = l * [0.0]
+    goniometer["ends"] = l * [0.0]
+    for ax in axes_pos:
+        idx = goniometer["axes"].index(ax.id)
+        goniometer["starts"][idx] = ax.start
+        goniometer["ends"][idx] = ax.end
+
+    # Detector
+    detector["starts"] = detector["ends"] = len(detector["axes"]) * [0.0]
+    for dax in det_pos:
+        idx = detector["axes"].index(dax.id)
+        detector["starts"][idx] = dax.start
+
+    # Identify scan axis and calculate scan range
+    if TR.scan_axis is None:
+        scan_axis = find_osc_axis(
+            goniometer["axes"],
+            goniometer["starts"],
+            goniometer["ends"],
+            goniometer["types"],
+        )
+    else:
+        scan_axis = TR.scan_axis
+    scan_idx = goniometer["axes"].index(scan_axis)
+    OSC = {scan_axis: (goniometer["starts"][scan_idx], goniometer["ends"][scan_idx])}
+
+    logger.info("--- COLLECTION INFORMATION ---")
+    logger.info("Source information")
+    logger.info(f"Facility: {source['name']} - {source['type']}.")
+    logger.info(f"Beamline: {source['beamline_name']}")
+
+    logger.info(f"Incident beam wavelength: {beam['wavelength']}")
+    logger.info(f"Attenuation: {attenuator['transmission']}")
+
+    logger.info("Goniometer information")
+    logger.info(f"Scan axis is: {scan_axis}")
+    for j in range(len(goniometer["axes"])):
+        logger.info(
+            f"Goniometer axis: {goniometer['axes'][j]} => {goniometer['starts'][j]}, {goniometer['types'][j]} on {goniometer['depends'][j]}"
+        )
+    logger.info("Detector information")
+    logger.info(f"{detector['description']}")
+    logger.info(
+        f"Sensor made of {detector['sensor_material']} x {detector['sensor_thickness']}"
+    )
+    logger.info(
+        f"Detector is a {detector['image_size'][::-1]} array of {detector['pixel_size']} pixels"
+    )
+    for k in range(len(detector["axes"])):
+        logger.info(
+            f"Detector axis: {detector['axes'][k]} => {detector['starts'][k]}, {detector['types'][k]} on {detector['depends'][k]}"
+        )
+
+    logger.info(f"Recorded beam center is: {detector['beam_center']}.")
+
+    logger.info(f"Timestamps recorded: {timestamps}")
+
+    # Write
+    try:
+        with h5py.File(master_file, "x") as nxsfile:
+            write_NXentry(nxsfile)
+
+            if timestamps[0]:
+                write_NXdatetime(nxsfile, (timestamps[0], None))
+
+            call_writers(
+                nxsfile,
+                [TR.meta_file],
+                coordinate_frame,
+                (detector["mode"], None),
+                goniometer,
+                detector,
+                module,
+                source,
+                beam,
+                attenuator,
+                OSC,
+            )
+
+            if timestamps[1]:
+                write_NXdatetime(nxsfile, (None, timestamps[1]))
+            logger.info(f"The file {master_file} was written correctly.")
+    except Exception as err:
+        logger.exception(err)
+        logger.info(
+            f"An error occurred and {master_file} couldn't be written correctly."
+        )
 
 
 def eiger_writer(
     master_file: Path,
     TR: namedtuple,
     timestamps: Tuple[str, str] = (None, None),
-    # axes_pos: List = None,
-    # det_pos: List = None,
 ):
     # Find datafiles
     logger.info("Looking for data files ...")
@@ -269,7 +361,6 @@ def nexus_writer(**params):
             logger.error("Please pass the axes positions for a Tristan collection.")
         if TR.scan_axis is None:
             logger.warning("No scan axis has been specified.")
-        # FIXME but what to do if in this case I don't have end or num_img?
     else:
         for k, v in eiger4M_params.items():
             detector[k] = v
@@ -285,3 +376,7 @@ def nexus_writer(**params):
 
     if "eiger" in TR.detector_name.lower():
         eiger_writer(master_file, TR, timestamps)
+    elif "tristan" in TR.detector_name.lower():
+        tristan_writer(
+            master_file, TR, timestamps, params["gonio_pos"], params["det_pos"]
+        )
