@@ -58,6 +58,7 @@ ssx_tr_collect.pump_status.__doc__ = (
 )
 ssx_tr_collect.pump_exp.__doc__ = "Pump exposure time, in s."
 ssx_tr_collect.pump_delay.__doc__ = "Pump delay time, in s."
+ssx_tr_collect.chipmap.__doc__ = "Chipmap or block list for grid scan."
 
 # Define coordinate frame
 coordinate_frame = "mcstas"
@@ -93,6 +94,7 @@ def write_nxs(**ssx_params):
         pump_status=True,
         pump_exp=ssx_params["pump_exp"],
         pump_delay=ssx_params["pump_delay"],
+        chipmap=ssx_params["chipmap"] if ssx_params["chipmap"] else None,
     )
 
     logfile = SSX_TR.visitpath / "TristanSSX_nxs_writer.log"
@@ -206,6 +208,10 @@ def write_nxs(**ssx_params):
                 link_list=None,
             )
 
+            # Save chipmap (list of city blocks)
+            if SSX_TR.chipmap:
+                nxsfile.create_dataset("/entry/data/chipmap", data=SSX_TR.chipmap)
+
             # Register pump status (hard coded as True)
             pump_info = {"pump_status": True}
             logger.info("Add pump information.")
@@ -255,4 +261,5 @@ def write_nxs(**ssx_params):
 #         pump_status=True,
 #         pump_exp=3.0,
 #         pump_delay=1.0,
+#         chipmap=None,
 #     )
