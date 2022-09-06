@@ -11,7 +11,7 @@ import h5py
 from .. import get_iso_timestamp, get_nexus_filename, log
 from ..nxs_write.NexusWriter import call_writers
 from ..nxs_write.NXclassWriters import write_NXdatetime, write_NXentry, write_NXnote
-from .I19_2_params import goniometer_axes, source, tristan10M_params
+from .I19_2_params import source, tristan10M_params
 
 # Define a logger object and a formatter
 logger = logging.getLogger("nexgen.I19-2_ssx")
@@ -64,7 +64,7 @@ ssx_tr_collect.chipmap.__doc__ = "Chipmap or block list for grid scan."
 coordinate_frame = "mcstas"
 
 # Initialize dictionaries
-goniometer = goniometer_axes
+goniometer = {}
 detector = tristan10M_params
 module = {}
 beam = {}
@@ -79,7 +79,7 @@ def write_nxs(**ssx_params):
     SSX_TR = ssx_tr_collect(
         visitpath=Path(ssx_params["visitpath"]).expanduser().resolve(),
         filename=ssx_params["filename"],
-        location="I19",  # ssx_params["location"]
+        location=ssx_params["location"],
         beam_center=ssx_params["beam_center"],
         detector_distance=ssx_params["det_dist"],
         start_time=ssx_params["start_time"].strftime("%Y-%m-%dT%H:%M:%S")
@@ -107,7 +107,19 @@ def write_nxs(**ssx_params):
 
     # Add to dictionaries
     # Detector
-    detector["starts"] = [0.0, SSX_TR.detector_distance]
+    # If location is I24, two_theta is not present
+    detector["starts"] = (
+        [0.0, SSX_TR.detector_distance]
+        if "I19" in SSX_TR.location
+        else [SSX_TR.detector_distance]
+    )
+    if "I24" in SSX_TR.location:
+        detector["axes"] = ["det_z"]
+        detector["types"] = ["translation"]
+        detector["units"] = ["mm"]
+        detector["depends"] = ["."]
+        detector["vectors"] = [0, 0, 1]
+        detector["increments"] = [0.0]
     detector["exposure_time"] = SSX_TR.exposure_time
     detector["beam_center"] = SSX_TR.beam_center
 
@@ -126,17 +138,19 @@ def write_nxs(**ssx_params):
     beam["flux"] = None
 
     # Goniometer
-    goniometer["starts"] = goniometer["ends"] = goniometer["increments"] = [
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-    ]
+    if "I19" in SSX_TR.location:
+        from .I19_2_params import goniometer_axes
+    elif "I24" in SSX_TR.location:
+        from .I24_Eiger_params import goniometer_axes
+
+    for k, v in goniometer_axes.items():
+        goniometer[k] = v
+
+    l = len(goniometer["axes"])
+    goniometer["starts"] = goniometer["ends"] = goniometer["increments"] = l * [0.0]
 
     # Get rotation scan range array and axis
-    osc_axis = "phi"
+    osc_axis = "phi" if "I19" in SSX_TR.location else "omega"
     osc_range = (0.0, 0.0)
 
     OSC = {osc_axis: osc_range}
