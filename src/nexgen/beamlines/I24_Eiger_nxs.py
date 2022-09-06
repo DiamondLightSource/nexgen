@@ -382,7 +382,7 @@ def write_nxs(**ssx_params):
         else Path(ssx_params["chipmap"]).expanduser().resolve(),
     )
 
-    logfile = SSX.visitpath / "nexus_writer.log"
+    logfile = SSX.visitpath / "I24_nxs_writer.log"
     # Configure logging
     log.config(logfile.as_posix())
 

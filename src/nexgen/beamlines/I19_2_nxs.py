@@ -119,7 +119,7 @@ def tristan_writer(
     scan_idx = goniometer["axes"].index(scan_axis)
     OSC = {scan_axis: (goniometer["starts"][scan_idx], goniometer["ends"][scan_idx])}
 
-    logger.info("--- COLLECTION INFORMATION ---")
+    logger.info("--- COLLECTION SUMMARY ---")
     logger.info("Source information")
     logger.info(f"Facility: {source['name']} - {source['type']}.")
     logger.info(f"Beamline: {source['beamline_name']}")
@@ -258,7 +258,7 @@ def eiger_writer(
         rotation=True,
     )
 
-    logger.info("--- COLLECTION INFORMATION ---")
+    logger.info("--- COLLECTION SUMMARY ---")
     logger.info("Source information")
     logger.info(f"Facility: {source['name']} - {source['type']}.")
     logger.info(f"Beamline: {source['beamline_name']}")
@@ -348,7 +348,7 @@ def nexus_writer(**params):
     )
 
     # Define a file handler
-    logfile = TR.meta_file.parent / "nexus_writer.log"
+    logfile = TR.meta_file.parent / "I19_2_nxs_writer.log"
     # Configure logging
     log.config(logfile.as_posix())
 

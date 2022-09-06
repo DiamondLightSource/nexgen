@@ -94,7 +94,7 @@ def write_nxs(**ssx_params):
         pump_delay=ssx_params["pump_delay"],
     )
 
-    logfile = SSX_TR.visitpath / "nexus_writer.log"
+    logfile = SSX_TR.visitpath / "TristanSSX_nxs_writer.log"
     # Configure logging
     log.config(logfile.as_posix())
 
