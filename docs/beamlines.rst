@@ -54,6 +54,8 @@ I mean... it should only be a matter of switching the name? I can be easily pass
 One thing to remember: different geometries will need to be accounted for when changing this. The goniometer should be mostly fine,
 it's all 0s anyway, but I24 does not have a 2theta axis for the detector!
 
+TODO. add place for blocks list/chipmap
+
 .. autofunction:: nexgen.beamlines.SSX_Tristan_nxs.write_nxs
 
 GDA integration tools
