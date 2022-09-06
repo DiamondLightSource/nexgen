@@ -242,8 +242,8 @@ def fixed_target(
                 ),
             )
             OSC["omega"] = np.append(OSC["omega"], osc["omega"])
-            TRANSL["sam_y"] = np.append(TRANSL["sam_y"], transl["sam_y"])
-            TRANSL["sam_x"] = np.append(TRANSL["sam_x"], transl["sam_x"])
+            TRANSL["sam_y"] = np.append(TRANSL["sam_y"], np.round(transl["sam_y"], 3))
+            TRANSL["sam_x"] = np.append(TRANSL["sam_x"], np.round(transl["sam_x"], 3))
 
         # Log data
         logger.info("Goniometer information")
