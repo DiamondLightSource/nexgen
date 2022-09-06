@@ -34,6 +34,7 @@ ssx_tr_collect = namedtuple(
         "pump_status",
         "pump_exp",
         "pump_delay",
+        "chipmap",
     ],
 )
 
