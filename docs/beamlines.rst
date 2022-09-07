@@ -33,14 +33,29 @@ I19-2
 TODO. Just a thought. move read_from_xml to either extended request or the GDA tools (in this case maybe rename?) and modify the
 I19-2 script with an option that either writes from GDA or does the same as I24 bypassing that completely. 
 
+.. autoclass:: nexgen.beamlines.I19_2_nxs.tr_collect
+
 .. autofunction:: nexgen.beamlines.I19_2_nxs.tristan_writer
 
 .. autofunction:: nexgen.beamlines.I19_2_nxs.eiger_writer
 
+From GDA ...
+
+.. autoclass:: nexgen.beamlines.I19_2_gda_nxs.tr_collect
+
+.. autofunction:: nexgen.beamlines.I19_2_gda_nxs.tristan_writer
+
+.. autofunction:: nexgen.beamlines.I19_2_gda_nxs.eiger_writer
+
+I19-2 CLI
+^^^^^^^^^
+
+TODO Maybe, somehow describe the parsing?
+
 I24
 ---
 
-TODO. Namedtuple thing
+.. autoclass:: nexgen.beamlines.I24_Eiger_nxs.ssx_collect
 
 .. autofunction:: nexgen.beamlines.I24_Eiger_nxs.extruder
 
@@ -49,12 +64,7 @@ TODO. Namedtuple thing
 SSX using Tristan Detector
 --------------------------
 
-TODO. Another thought. Considering the idea of having Tristan on I24 this should be usable from both beamlines.
-I mean... it should only be a matter of switching the name? I can be easily passed as input argument ...
-One thing to remember: different geometries will need to be accounted for when changing this. The goniometer should be mostly fine,
-it's all 0s anyway, but I24 does not have a 2theta axis for the detector!
-
-TODO. add place for blocks list/chipmap
+.. autoclass:: nexgen.beamlines.I24_Eiger_nxs.ssx_tr_collect
 
 .. autofunction:: nexgen.beamlines.SSX_Tristan_nxs.write_nxs
 
@@ -64,9 +74,9 @@ GDA integration tools
 Read geometry and detector parameters from GDA-generated JSON files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. autofunction:: nexgen.tools.GDAjson2params.read_geometry_from_json
+.. autofunction:: nexgen.beamlines.GDAtools.GDAjson2params.read_geometry_from_json
 
-.. autofunction:: nexgen.tools.GDAjson2params.read_detector_params_from_json
+.. autofunction:: nexgen.beamlines.GDAtools.GDAjson2params.read_detector_params_from_json
 
 Gather beamline and collection information from GDA-generated xml file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

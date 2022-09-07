@@ -142,7 +142,6 @@ def nexgen_writer():
         for ax, s in zip(args.det_axes, args.det_start):
             det_list.append(det_axes(ax, s))
 
-    # TODO add axes
     nexus_writer(
         meta_file=args.meta_file,
         detector_name=args.detector_name,
