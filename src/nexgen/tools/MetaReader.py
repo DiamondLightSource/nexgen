@@ -166,6 +166,13 @@ def overwrite_detector(
 
 
 def update_goniometer(meta_file: h5py.File, goniometer: Dict):
+    """
+    Read the axes values from the config/ dataset in the meta file and update the goniometer.
+
+    Args:
+        meta_file (h5py.File): Handle to Dectris-shaped meta.h5 file.
+        goniometer (Dict): Dictionary containing all the goniometer axes information.
+    """
     overwrite_logger.info(
         "Get goniometer axes values from meta file for Eiger detector."
     )
@@ -184,15 +191,55 @@ def update_goniometer(meta_file: h5py.File, goniometer: Dict):
                 s = config[f"{ax}_start"]
                 goniometer["starts"].append(s)
                 overwrite_logger.info(f"Start value for axis {ax}: {s}.")
-            if f"{ax}_increment" in config.keys():
-                inc = config[f"{ax}_increment"]
+                inc = (
+                    config[f"{ax}_increment"]
+                    if f"{ax}_increment" in config.keys()
+                    else 0.0
+                )
                 goniometer["increments"].append(inc)
                 overwrite_logger.info(f"Increment value for axis {ax}: {inc}.")
                 e = s + inc * num
                 goniometer["ends"].append(e)
                 overwrite_logger.info(f"End value for axis {ax}: {e}.")
+            else:
+                goniometer["starts"].append(0.0)
+                goniometer["ends"].append(0.0)
+                goniometer["increments"].append(0.0)
+                overwrite_logger.info(f"Axis {ax} not in meta file, values set to 0.0.")
     else:
         overwrite_logger.warning(
             "No config/ dataset found in meta file. Goniometer axes value couldn't be updated from here."
         )
         return
+
+
+def update_detector_axes(meta_file: h5py.File, detector: Dict):
+    """
+    Read the axes values from the config/ dataset in the meta file and update the detector.
+
+    Args:
+        meta_file (h5py.File): Handle to Dectris-shaped meta.h5 file.
+        detector (Dict): Dictionary containing all the detector information.
+    """
+    overwrite_logger.info("Get detector axes values from meta file for Eiger detector.")
+    meta = DectrisMetafile(meta_file)
+
+    if meta.hasConfig is True:
+        config = meta.read_config_dset()
+        dist = units_of_length(meta.get_detector_distance())
+
+        detector["starts"] = []
+        detector["ends"] = []
+
+        # First look for two_theta, then append det_z
+        # For the moment, assume the detector doesn't move.
+        for ax in detector["axes"]:
+            if f"{ax}_start" in config.keys():
+                s = config[f"{ax}_start"]
+                detector["starts"].append(s)
+                overwrite_logger.info(f"Position of axis {ax}: {s}.")
+
+        detector["starts"].append(dist.to("mm").magnitude)
+        overwrite_logger.info(f"Position of axis det_z: {dist.to('mm')}.")
+
+        detector["ends"] = detector["starts"]

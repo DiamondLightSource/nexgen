@@ -57,7 +57,7 @@ tristan10M_params = {
     "flatfield_applied": False,
     "pixel_mask": "Tristan10M_mask_with_spec.h5",
     "pixel_mask_applied": False,
-    "image_size": [4183, 3043],  # (fast, slow)
+    "image_size": [3043, 4183],  # (slow, fast)
     "axes": ["two_theta", "det_z"],
     "depends": [".", "two_theta"],
     "vectors": [-1, 0, 0, 0, 0, 1],
@@ -87,7 +87,7 @@ eiger4M_params = {
     "flatfield_applied": "_dectris/flatfield_correction_applied",
     "pixel_mask": "mask",
     "pixel_mask_applied": "_dectris/pixel_mask_applied",
-    "image_size": [2162, 2068],  # (fast, slow)
+    "image_size": [2162, 2068],  # (slow, fast)
     "axes": ["two_theta", "det_z"],
     "depends": [".", "two_theta"],
     "vectors": [-1, 0, 0, 0, 0, 1],

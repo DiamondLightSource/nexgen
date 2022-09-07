@@ -11,17 +11,19 @@ import h5py
 from .. import get_iso_timestamp, get_nexus_filename, log
 from ..nxs_write.NexusWriter import call_writers
 from ..nxs_write.NXclassWriters import write_NXdatetime, write_NXentry, write_NXnote
-from .I19_2_params import goniometer_axes, source, tristan10M_params
+from .I19_2_params import source, tristan10M_params
 
 # Define a logger object and a formatter
 logger = logging.getLogger("nexgen.I19-2_ssx")
 
+# TODO Change tot_num_X to current chip map, or just the list of blocks. The list of blocks should go in a NXnote.
+# TODO Might need to also have I24 geometry in here
 ssx_tr_collect = namedtuple(
     "ssx_collect",
     [
         "visitpath",
         "filename",
-        "tot_num_X",
+        "location",
         "beam_center",
         "detector_distance",
         "start_time",
@@ -32,13 +34,37 @@ ssx_tr_collect = namedtuple(
         "pump_status",
         "pump_exp",
         "pump_delay",
+        "chipmap",
     ],
 )
 
+ssx_tr_collect.__doc__ = (
+    """Parameters that define a serial collection using a Tristan detector."""
+)
+ssx_tr_collect.visitpath.__doc__ = "Path to colection directory."
+ssx_tr_collect.filename.__doc__ = "Root of the filename."
+ssx_tr_collect.location.__doc__ = "Beamline on which the experiment is being run."
+ssx_tr_collect.beam_center.__doc__ = "Beam center position, in pixels."
+ssx_tr_collect.detector_distance.__doc__ = (
+    "Distance between sample and detector, in mm."
+)
+ssx_tr_collect.start_time.__doc__ = "Experiment start time."
+ssx_tr_collect.stop_time.__doc__ = "Experiment end time."
+ssx_tr_collect.exposure_time.__doc__ = "Exposure time, in s."
+ssx_tr_collect.transmission.__doc__ = "Attenuator transmission, in %."
+ssx_tr_collect.wavelength.__doc__ = "Wavelength of incident beam."
+ssx_tr_collect.pump_status.__doc__ = (
+    "True for a pump-probe experiment, false otherwise."
+)
+ssx_tr_collect.pump_exp.__doc__ = "Pump exposure time, in s."
+ssx_tr_collect.pump_delay.__doc__ = "Pump delay time, in s."
+ssx_tr_collect.chipmap.__doc__ = "Chipmap or block list for grid scan."
+
+# Define coordinate frame
 coordinate_frame = "mcstas"
 
 # Initialize dictionaries
-goniometer = goniometer_axes
+goniometer = {}
 detector = tristan10M_params
 module = {}
 beam = {}
@@ -53,7 +79,7 @@ def write_nxs(**ssx_params):
     SSX_TR = ssx_tr_collect(
         visitpath=Path(ssx_params["visitpath"]).expanduser().resolve(),
         filename=ssx_params["filename"],
-        tot_num_X=float(ssx_params["tot_num_X"]),
+        location=ssx_params["location"],
         beam_center=ssx_params["beam_center"],
         detector_distance=ssx_params["det_dist"],
         start_time=ssx_params["start_time"].strftime("%Y-%m-%dT%H:%M:%S")
@@ -68,9 +94,10 @@ def write_nxs(**ssx_params):
         pump_status=True,
         pump_exp=ssx_params["pump_exp"],
         pump_delay=ssx_params["pump_delay"],
+        chipmap=ssx_params["chipmap"] if ssx_params["chipmap"] else None,
     )
 
-    logfile = SSX_TR.visitpath / "nexus_writer.log"
+    logfile = SSX_TR.visitpath / "TristanSSX_nxs_writer.log"
     # Configure logging
     log.config(logfile.as_posix())
 
@@ -80,7 +107,19 @@ def write_nxs(**ssx_params):
 
     # Add to dictionaries
     # Detector
-    detector["starts"] = [0.0, SSX_TR.detector_distance]
+    # If location is I24, two_theta is not present
+    detector["starts"] = (
+        [0.0, SSX_TR.detector_distance]
+        if "I19" in SSX_TR.location
+        else [SSX_TR.detector_distance]
+    )
+    if "I24" in SSX_TR.location:
+        detector["axes"] = ["det_z"]
+        detector["types"] = ["translation"]
+        detector["units"] = ["mm"]
+        detector["depends"] = ["."]
+        detector["vectors"] = [0, 0, 1]
+        detector["increments"] = [0.0]
     detector["exposure_time"] = SSX_TR.exposure_time
     detector["beam_center"] = SSX_TR.beam_center
 
@@ -99,17 +138,19 @@ def write_nxs(**ssx_params):
     beam["flux"] = None
 
     # Goniometer
-    goniometer["starts"] = goniometer["ends"] = goniometer["increments"] = [
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-    ]
+    if "I19" in SSX_TR.location:
+        from .I19_2_params import goniometer_axes
+    elif "I24" in SSX_TR.location:
+        from .I24_Eiger_params import goniometer_axes
+
+    for k, v in goniometer_axes.items():
+        goniometer[k] = v
+
+    l = len(goniometer["axes"])
+    goniometer["starts"] = goniometer["ends"] = goniometer["increments"] = l * [0.0]
 
     # Get rotation scan range array and axis
-    osc_axis = "phi"
+    osc_axis = "phi" if "I19" in SSX_TR.location else "omega"
     osc_range = (0.0, 0.0)
 
     OSC = {osc_axis: osc_range}
@@ -125,7 +166,7 @@ def write_nxs(**ssx_params):
         f"Sensor made of {detector['sensor_material']} x {detector['sensor_thickness']}"
     )
     logger.info(
-        f"Detector is a {detector['image_size']} array of {detector['pixel_size']} pixels"
+        f"Detector is a {detector['image_size'][::-1]} array of {detector['pixel_size']} pixels"
     )
     for k in range(len(detector["axes"])):
         logger.info(
@@ -181,10 +222,9 @@ def write_nxs(**ssx_params):
                 link_list=None,
             )
 
-            # TODO I'd register the number of cells like this:
-            nxsfile["/entry/data"].create_dataset(
-                "tot_num_cells", data=SSX_TR.tot_num_X
-            )
+            # Save chipmap (list of city blocks)
+            if SSX_TR.chipmap:
+                nxsfile.create_dataset("/entry/data/chipmap", data=SSX_TR.chipmap)
 
             # Register pump status (hard coded as True)
             pump_info = {"pump_status": True}
@@ -224,7 +264,7 @@ def write_nxs(**ssx_params):
 #     write_nxs(
 #         visitpath=sys.argv[1],
 #         filename=sys.argv[2],
-#         tot_num_X=100,
+#         location="I19",
 #         beam_center=[1590.7, 1643.7],
 #         det_dist=0.5,
 #         start_time=datetime.now(),
@@ -235,4 +275,5 @@ def write_nxs(**ssx_params):
 #         pump_status=True,
 #         pump_exp=3.0,
 #         pump_delay=1.0,
+#         chipmap=None,
 #     )

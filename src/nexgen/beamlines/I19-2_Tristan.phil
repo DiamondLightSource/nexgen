@@ -42,7 +42,7 @@ detector {
   flatfield_applied = False
   pixel_mask = None
   pixel_mask_applied = False
-  image_size = 4183,3043
+  image_size = 3043,4183
   exposure_time = None
   axes = two_theta det_z
   depends = . two_theta
