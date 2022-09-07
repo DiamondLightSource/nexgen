@@ -290,7 +290,7 @@ def write_NXmx_cli(args):
     )
     logger.info(f"Trusted pixels > {detector.underload} and < {detector.overload}")
     logger.info(
-        f"Image is a {detector.image_size} array of {detector.pixel_size} pixels"
+        f"Image is a {detector.image_size[::-1]} array of {detector.pixel_size} pixels"
     )
 
     logger.info("Detector axes:")
@@ -503,7 +503,7 @@ def write_demo_cli(args):
     if data_type[0] == "images":
         logger.info(f"Trusted pixels > {detector.underload} and < {detector.overload}")
     logger.info(
-        f"Image is a {detector.image_size} array of {detector.pixel_size} pixels"
+        f"Image is a {detector.image_size[::-1]} array of {detector.pixel_size} pixels"
     )
 
     logger.info("Detector axes:")
@@ -795,7 +795,7 @@ def write_with_meta_cli(args):
     )
     logger.info(f"Trusted pixels > {detector.underload} and < {detector.overload}")
     logger.info(
-        f"Image is a {detector.image_size} array of {detector.pixel_size} pixels"
+        f"Image is a {detector.image_size[::-1]} array of {detector.pixel_size} pixels"
     )
 
     logger.info("Detector axes:")

@@ -62,10 +62,10 @@ detector_scope = freephil.parse(
         .help = "Pixels <= this value are invalid"
       pixel_size = 0.075mm 0.075mm
         .type = strings
-        .help = "Pixel size, if unit isn't passed defaults to mm"
+        .help = "Pixel size, if unit isn't passed defaults to mm (fast, slow)"
       beam_center = 2214.355 2300.496
         .type = floats(size = 2)
-        .help = "Beam position on the detector"
+        .help = "Beam position on the detector (fast, slow)"
       flatfield = None
         .type = path
         .help = "If path is given, add flatfield correction data field"
@@ -78,9 +78,9 @@ detector_scope = freephil.parse(
       pixel_mask_applied = False
         .type = bool
         .help = "If the mask location is known, specify whether it's been applied of not."
-      image_size = 4148 4362
+      image_size = 4362 4148
         .type = ints(size = 2)
-        .help = "Image size in pixels: (fast, slow)"
+        .help = "Image size in pixels: (slow, fast)"
       exposure_time = None
         .type = str
         .help = "Nominal exposure time, eg 0.004s, if unit is not specified defaults to seconds"

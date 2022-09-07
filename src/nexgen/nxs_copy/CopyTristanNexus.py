@@ -71,7 +71,7 @@ def single_image_nexus(
                 # was not moved during the data collection, record the rotation axis
                 # position as a scalar.
                 ax_range = nxs_in["entry/data"][ax][()]
-            nxdata.create_dataset(ax, data=ax_range)
+            nxdata.create_dataset(ax, data=np.array([ax_range]))
             # Write the attributes
             for key, value in ax_attr.items():
                 nxdata[ax].attrs.create(key, value)

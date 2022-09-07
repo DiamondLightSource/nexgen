@@ -292,7 +292,9 @@ def write_NXsample(
         else:
             # For all other axes
             idx = goniometer["axes"].index(ax)
-            nxax = nxsample_ax.create_dataset(ax, data=goniometer["starts"][idx])
+            nxax = nxsample_ax.create_dataset(
+                ax, data=np.array([goniometer["starts"][idx]])
+            )
             _dep = set_dependency(
                 goniometer["depends"][idx], path="/entry/sample/transformations/"
             )
@@ -588,7 +590,7 @@ def write_NXdetector(
                 detector["depends"][idx],
                 nxtransformations.name + "/two_theta/",
             )
-            dist = detector["starts"][idx]
+            dist = units_of_length(str(detector["starts"][idx]) + "mm")  # , True)
         else:
             grp_name = ax
             _dep = set_dependency(
@@ -597,7 +599,7 @@ def write_NXdetector(
             )
         nxgrp_ax = nxtransformations.create_group(grp_name)
         create_attributes(nxgrp_ax, ("NX_class",), ("NXpositioner",))
-        nxdet_ax = nxgrp_ax.create_dataset(ax, data=detector["starts"][idx])
+        nxdet_ax = nxgrp_ax.create_dataset(ax, data=np.array([detector["starts"][idx]]))
         create_attributes(
             nxdet_ax,
             ("depends_on", "transformation_type", "units", "vector"),
@@ -616,7 +618,8 @@ def write_NXdetector(
             )
 
     # Detector distance
-    nxdetector.create_dataset("distance", data=dist)
+    nxdetector.create_dataset("distance", data=dist.magnitude)
+    create_attributes(nxdetector["distance"], ("units",), (format(dist.units, "~")))
 
 
 # NXdetector_module writer
