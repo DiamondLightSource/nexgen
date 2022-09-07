@@ -115,4 +115,3 @@ Logging configuration
 
 .. automodule:: nexgen.log
     :members:
-
