@@ -158,6 +158,15 @@ def nexgen_writer():
         for ax, s in zip(args.det_axes, args.det_start):
             det_list.append(det_axes(ax, s))
 
+    # Check that an actual meta file has been passed and not a data file
+    if "meta" not in args.meta_file:
+        logger.error(
+            f"Wrong input file passed: {args.meta_file}. Please pass the _meta.h5 file for this dataset."
+        )
+        raise IOError(
+            "The input file passed is not a _meta.h5 file. Please pass the correct file."
+        )
+
     nexus_writer(
         meta_file=args.meta_file,
         detector_name=args.detector_name,
