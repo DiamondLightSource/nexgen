@@ -102,12 +102,26 @@ def nexgen_writer():
         "detector_name", type=str, help="Detector currently in use on beamline."
     )
     parser.add_argument("exp_time", type=float, help="Exposure time, in s.")
-    parser.add_argument("transmission", type=float, help="Attenuator transmission.")
     parser.add_argument(
-        "--wavelength", type=float, default=None, help="Incident beam wavelength, in A."
+        "-tr",
+        "--transmission",
+        type=float,
+        default=None,
+        help="Attenuator transmission.",
     )
     parser.add_argument(
-        "--beam-center", type=float, nargs="+", help="Beam center (x,y) positions."
+        "-wl",
+        "--wavelength",
+        type=float,
+        default=None,
+        help="Incident beam wavelength, in A.",
+    )
+    parser.add_argument(
+        "-bc",
+        "--beam-center",
+        type=float,
+        nargs="+",
+        help="Beam center (x,y) positions.",
     )
     parser.add_argument(
         "--start", "--start-time", type=str, default=None, help="Collection start time."
@@ -148,7 +162,7 @@ def nexgen_writer():
         meta_file=args.meta_file,
         detector_name=args.detector_name,
         exposure_time=args.exp_time,
-        transmission=args.transmission,
+        transmission=args.transmission if args.transmission else None,
         wavelength=args.wavelength if args.wavelength else None,
         beam_center=args.beam_center if args.beam_center else None,
         start_time=datetime.strptime(args.start, "%Y-%m-%dT%H:%M:%SZ")

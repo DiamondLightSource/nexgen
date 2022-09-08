@@ -372,7 +372,7 @@ def nexus_writer(**params):
         goniometer[k] = v
 
     # Fill in a few dictionaries
-    attenuator["transmission"] = TR.transmission
+    attenuator["transmission"] = TR.transmission if TR.transmission else None
 
     beam["wavelength"] = TR.wavelength
 
