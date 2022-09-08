@@ -85,7 +85,9 @@ def gda_writer():
 
 
 def nexgen_writer():
-    """_summary_"""
+    """
+    Write a NXmx format NeXus file from the I19-2 beamline.
+    """
     logger.info("")
 
     from . import detAx_parser, gonioAx_parser
@@ -142,7 +144,6 @@ def nexgen_writer():
         for ax, s in zip(args.det_axes, args.det_start):
             det_list.append(det_axes(ax, s))
 
-    # TODO add axes
     nexus_writer(
         meta_file=args.meta_file,
         detector_name=args.detector_name,
