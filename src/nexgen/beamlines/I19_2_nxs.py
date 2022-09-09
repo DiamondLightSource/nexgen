@@ -344,11 +344,17 @@ def nexus_writer(**params):
         stop_time=params["stop_time"].strftime("%Y-%m-%dT%H:%M:%S")  #
         if params["stop_time"]
         else None,
-        scan_axis=params["scan_axis"],
+        scan_axis=params["scan_axis"] if params["scan_axis"] else None,
     )
 
+    # Check that the new NeXus file is to be written in the same directory
+    if params["outdir"]:
+        wdir = Path(params["outdir"]).expanduser().resolve()
+    else:
+        wdir = TR.meta_file.parent
+
     # Define a file handler
-    logfile = TR.meta_file.parent / "I19_2_nxs_writer.log"
+    logfile = wdir / "I19_2_nxs_writer.log"
     # Configure logging
     log.config(logfile.as_posix())
 
@@ -359,6 +365,7 @@ def nexus_writer(**params):
     logger.info("Creating a NeXus file for %s ..." % TR.meta_file.name)
     # Get NeXus filename
     master_file = get_nexus_filename(TR.meta_file)
+    master_file = wdir / master_file.name
     logger.info("NeXus file will be saved as %s" % master_file)
 
     # Get timestamps in the correct format if they aren't already
@@ -372,7 +379,7 @@ def nexus_writer(**params):
         goniometer[k] = v
 
     # Fill in a few dictionaries
-    attenuator["transmission"] = TR.transmission
+    attenuator["transmission"] = TR.transmission if TR.transmission else None
 
     beam["wavelength"] = TR.wavelength
 

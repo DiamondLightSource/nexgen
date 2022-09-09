@@ -6,4 +6,5 @@
 
    usage
    api
+   beamlines
 

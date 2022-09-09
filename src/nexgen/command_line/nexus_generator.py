@@ -51,13 +51,12 @@ master_phil = freephil.parse(
     }
     input {
       datafile = None
-        .multiple = True
         .type = path
         .help = "HDF5 file. For now, assumes pattern filename_%0{6}d.h5"
       coordinate_frame = *mcstas imgcif
         .type = choice
         .help = "Which coordinate system is being used to provide input vectors."
-      vds_writer = *None dataset file
+      vds_writer = None *dataset file
         .type = choice
         .help = "If not None, write vds along with external link to data in NeXus file, or create _vds.h5 file."
       snaked = False
@@ -90,7 +89,7 @@ demo_phil = freephil.parse(
       coordinate_frame = *mcstas imgcif
         .type = choice
         .help = "Which coordinate system is being used to provide input vectors"
-      vds_writer = *None dataset file
+      vds_writer = None *dataset file
         .type = choice
         .help = "If not None, either write a vds in the nexus file or create also a _vds.h5 file."
       snaked = False
@@ -121,13 +120,12 @@ meta_phil = freephil.parse(
         .type = path
         .help = "Path to _meta.h5 file for collection."
       datafile = None
-        .multiple = True
         .type = path
         .help = "HDF5 file. For now, assumes pattern filename_%0{6}d.h5"
       coordinate_frame = *mcstas imgcif
         .type = choice
         .help = "Which coordinate system is being used to provide input vectors."
-      vds_writer = *None dataset file
+      vds_writer = None *dataset file
         .type = choice
         .help = "If not None, write vds along with external link to data in NeXus file, or create _vds.h5 file."
       snaked = False
@@ -167,7 +165,9 @@ def write_NXmx_cli(args):
         sys.exit()
 
     # Path to data file
-    datafiles = [Path(d).expanduser().resolve() for d in params.input.datafile]
+    datafiles = [
+        Path(d).expanduser().resolve() for d in glob.glob(params.input.datafile)
+    ]
 
     # Get NeXus file name
     if params.output.master_filename:
@@ -667,7 +667,9 @@ def write_with_meta_cli(args):
 
     # If no datafile has been passed, look for them in the directory
     if params.input.datafile:
-        datafiles = [Path(d).expanduser().resolve() for d in params.input.datafile]
+        datafiles = [
+            Path(d).expanduser().resolve() for d in glob.glob(params.input.datafile)
+        ]
     else:
         datafile_pattern = (
             metafile.parent / f"{master_file.stem}_{6*'[0-9]'}.h5"

@@ -21,10 +21,7 @@ Nexgen can be installed using pip.
 
 
 Command line tools
-==================
-
-Generating new NeXus files
---------------------------
+------------------
 
 This package started out as an easy way to quickly generate NeXus files from scratch along with blank HDF5 datasets using command line tools.
 
@@ -34,26 +31,39 @@ The `freephil <https://freephil.readthedocs.io/en/latest/>`_ package is used for
 
 
 Getting help
-------------
+============
 
 Every command line tool in the nexgen package has a help message that explains how to use it and what the options are.
 This help message will be printed by using the option `-h`, or `--help`, and each subcommand also has an help message detailing its specific options.
 
 .. code-block:: console
+
     copy_nexus --help
 
 .. code-block:: console
+
     generate_nexus demo -h
 
 
 
 Show PHIL parameters
---------------------
+====================
 In addition to the help message, it is possible to take a look at the list of phil parameters that can/need to be passed to the command line generator.
+
+.. code-block:: console
+
+    generate_nexus 3 -c
+
+It is also possible to view more details about the Phil parameters and definition attributes by setting the `attributes_level` parameter with the `-a` argument.
+Th default value is set to 0, which will only show names and default values of the parameters.  
+
+.. code-block:: console
+
+    generate_nexus 1 -c -a 2
 
 
 Creating a new .phil file
--------------------------
+=========================
 
 Writing the full list of parameters on the command line each time can be time consuming, not to mention subject to typing errors and the like.
 For this purpose, it is possible to generate one reusable Phil file containing the beamline description and those values from the experiment 
@@ -63,45 +73,70 @@ Nexgen already includes Phil files for some MX beamlines at Diamond Light Source
 For example, the command
 
 .. code-block:: console
+
     nexgen_phil list
+
 will return a list of the .phil files currently available, and che chosen file can be downloaded by running:
 
 .. code-block:: console
-    nexgen_phil get filename.phil -o  /path/to/directory
+
+    nexgen_phil get paramfile.phil -o  /path/to/directory
 
 In case a .phil file for a specific beamline is not in the list, it is possible to create on using the ``new`` option. While this is a bit more cumbersome, 
 it has the advantage of only needing to write most of the parameters once. Once the file is created it can be parsed by ``generate_nexus``, eg.
 
 .. code-block:: console
-    generate_nexus 2 -i paramfile.phil output.master_filename=File.nxs 
+
+    generate_nexus 2 -i paramfile.phil output.master_filename=File.nxs input.vds_writer=dataset
 
 To access the help message for ``nexgen_phil``:
 
 .. code-block:: console
+
     nexgen_phil -h
+
+Generating new NeXus files
+==========================
+
+ - For an existing dataset 
+ 
+    .. code-block:: console
+
+        generate_nexus 1 beamline.phil input.datafile=File_00*.h5 input.snaked=True goniometer.starts=0,0,0,0 goniometer.ends=0,0,1,2 goniometer.increments=0,0,0.1,0.2  detector.exposure_time=0.095 detector.beam_center=989.8,1419 detector.overload=65535 detector.starts=0,140 detector.ends=0,140 beam.wavelength=0.4859
+
+ - From scratch, along with blank data (demo)
+
+    .. code-block:: console
+
+        generate_nexus 2 -i/-e output.master_filename=File.nxs input.vds_writer=dataset (etc...)
+ 
+ - For an existing dataset which also has a meta.h5 file
+
+    .. code-block:: console
+
+        generate_nexus 3 input.metafile=File_meta.h5 input.vds_writer=dataset 
 
 
 Copying NeXus files
--------------------
+===================
 
- - Copy a nexus file in full, or just parts of it
+ - Copy a nexus file in full, or just parts of it. T
 
- .. code-block:: console
-    copy_nexus gen input.original_nexus=File.nxs input.simple_copy=True
+    This tool will create a new file File_copy.nxs, in order to avoid modifying the orifinal data, with just the requested metadata.
 
- .. code-block:: console
-    copy_nexus gen input.original_nexus=File.nxs input.data_filename=File_0001.h5 input.skip=NXdata input.skip=NXsample 
+    .. code-block:: console
 
- - Copy metadata from a Tristan NeXus file to NXmx format
+        copy_nexus gen input.original_nexus=File.nxs input.simple_copy=True
 
- .. code-block:: console
-    copy_nexus tristan input.tristan_nexus=Tristan_img.nxs input.data_filename=Tristan_img_0001.h5 experiment_type=rotation
+    .. code-block:: console
 
+        copy_nexus gen original_nexus=File.nxs data_filename=File_0001.h5 skip=NXdata skip=NXsample 
 
-DLS beamline specific utilities
-===============================
+ - Copy metadata from a Tristan NeXus file to NXmx format. 
 
-Nexgen is currently being used for some specific applications at beamlines I19-2 and I24 at DLS.
+    The main application fo this tool is to copy the necessary metadata to a new NeXus file following the NXmx format after binning event data into images.
+    The default `experiment_type` for copying Tristan metadata is set to rotation; when dealing with a single image, this value can be set to stationary like in the example below.
 
-I19-2: Tristan and Eiger nexus file writing, SSX with tristan detector.
-I24: serial crystallography -> still shots (extruder application), fixed target (TR or not), 3d scan (tbc)
+    .. code-block:: console
+
+        copy_nexus tristan tristan_nexus=Tristan_img.nxs data_filename=Tristan_img_0001.h5 experiment_type=stationary

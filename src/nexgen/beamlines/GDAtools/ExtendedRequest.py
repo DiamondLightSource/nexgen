@@ -8,6 +8,8 @@ from typing import Dict, Tuple, Union
 
 
 class ExtendedRequestIO:
+    """Define an ExtendedRequest object which in GDA gathers all the information regarding beamline and collection into an xml file."""
+
     def __init__(self, xmlfile: Union[Path, str]):
         self.tree = ET.parse(xmlfile)
         self.root = self.tree.getroot()
