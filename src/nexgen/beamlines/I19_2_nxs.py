@@ -344,7 +344,7 @@ def nexus_writer(**params):
         stop_time=params["stop_time"].strftime("%Y-%m-%dT%H:%M:%S")  #
         if params["stop_time"]
         else None,
-        scan_axis=params["scan_axis"],
+        scan_axis=params["scan_axis"] if params["scan_axis"] else None,
     )
 
     # Define a file handler
