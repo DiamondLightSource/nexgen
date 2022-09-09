@@ -425,9 +425,14 @@ def write_NXdetector(
 
     # If there is a meta file, a lot of information will be linked instead of copied
     if meta and detector["mode"] == "images":
-        NXclass_logger.info(f"Found metadata to {meta.name} datasets.")
+        NXclass_logger.info(f"Found metadata in {meta.as_posix()} file.")
+        meta_link = (
+            meta.name
+            if meta.parent == Path(nxsfile.filename).parent
+            else meta.as_posix()
+        )
         for ll in link_list[0]:
-            nxdetector[ll] = h5py.ExternalLink(meta.name, detector[ll])
+            nxdetector[ll] = h5py.ExternalLink(meta_link, detector[ll])
     elif detector["mode"] == "events":
         wd = Path(nxsfile.filename).parent
         # Bad pixel mask
