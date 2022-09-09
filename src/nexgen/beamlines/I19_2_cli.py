@@ -129,6 +129,12 @@ def nexgen_writer():
     parser.add_argument(
         "--stop", "--stop-time", type=str, default=None, help="Collection end time."
     )
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=str,
+        help="Output directory for new NeXus file, if different from collection directory.",
+    )
     args = parser.parse_args()
 
     if args.axes and not args.ax_start:
@@ -183,4 +189,5 @@ def nexgen_writer():
         scan_axis=args.scan_axis if args.scan_axis else None,
         gonio_pos=axes_list if args.axes else None,
         det_pos=det_list if args.det_axes else None,
+        outdir=args.output if args.output else None,
     )
