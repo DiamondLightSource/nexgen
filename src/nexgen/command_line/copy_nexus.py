@@ -35,7 +35,7 @@ general_scope = freephil.parse(
         .help = "If True, the full NeXus tree is copied."
       skip = NXdata
         .multiple = True
-        .optional = True
+        .optional = False
         .type = str
         .help = "NX_class object, or list of, to be skipped when copying metadata.
                 If called, it will always first skip NXdata."

@@ -20,14 +20,13 @@ All the writers above can be called using the ``call_writers`` function, with th
 
 .. autofunction:: nexgen.nxs_write.NexusWriter.call_writers
 
-Finding the scan axes
----------------------
-
-.. autofunction:: nexgen.nxs_write.NexusWriter.ScanReader
+.. autofunction:: nexgen.nxs_write.NexusWriter.write_nexus_from_scope
 
 Writing blank datasets
 ----------------------
-**Generating blank images**
+
+Generating blank images
+^^^^^^^^^^^^^^^^^^^^^^^
 
 Using an *Eiger* or *Tristan* detector mask ...
 
@@ -39,7 +38,9 @@ Using an *Eiger* or *Tristan* detector mask ...
 
 .. autofunction:: nexgen.tools.DataWriter.generate_image_files
 
-**Generating pseudo-events** 
+
+Generating pseudo-events
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. autofunction:: nexgen.tools.DataWriter.pseudo_event_list
 
@@ -86,6 +87,12 @@ Utilities
     :members:
 
 
+Identify the scan axes and calculate the scan range
+---------------------------------------------------
+
+.. autofunction:: nexgen.nxs_write.NexusWriter.ScanReader
+
+
 HDF5 metafile reader
 --------------------
 
@@ -96,7 +103,14 @@ Metafile definition:
     :show-inheritance:
 
 
-A couple of functions are available for reading the information stored in the metafile and copying it across to the new NeXus file:
+When operating a Dectris detector, the goniometer and detector axes values are usually stored in the `config/` dataset. 
+
+.. autofunction:: nexgen.tools.MetaReader.update_goniometer
+
+.. autofunction:: nexgen.tools.MetaReader.update_detector
+
+
+A couple of functions are available for reading the information stored in the metafile and copying it across to the new NeXus file by overwriting the existing values unless otherwise specified:
 
 .. autofunction:: nexgen.tools.MetaReader.overwrite_beam
 
@@ -104,33 +118,7 @@ A couple of functions are available for reading the information stored in the me
 
 
 Logging configuration
----------------------
+=====================
 
 .. automodule:: nexgen.log
-    :members:
-
-=============
-DLS beamlines
-=============
-
-I19-2
------
-
-
-I24
----
-
-
-GDA integration tools
----------------------
-
-**Read geometry and detector parameters from GDA-generated JSON files**
-
-.. autofunction:: nexgen.beamlines.GDAtools.GDAjson2params.read_geometry_from_json
-
-.. autofunction:: nexgen.beamlines.GDAtools.GDAjson2params.read_detector_params_from_json
-
-**Gather beamline and collection information from GDA-generated xml file**
-
-.. autoclass:: nexgen.beamlines.GDAtools.ExtendedRequest.ExtendedRequestIO
     :members:
