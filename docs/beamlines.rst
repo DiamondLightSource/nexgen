@@ -8,20 +8,77 @@ Nexgen is currently being used for some specific applications at beamlines I19-2
 Time resolved collections on I19-2
 ----------------------------------
 
-For completeness' sake there is also an option to write a NeXus file for an Eiger detector.
-(nexgen was actually born out of a need to write the nxs file for tristan expt)
-
+- NXmx format NeXus files writer for manual Eiger/Tristan collections (where GDA is not in use).
+- Interface with GDA to write new NeXus files for a time-resolved experiment. 
 
 Serial crystallography
 ----------------------
 
-I19-2: Tristan and Eiger nexus file writing, SSX with tristan detector.
-I24: serial crystallography -> still shots (extruder application), fixed target (TR or not), 3d scan (tbc)
-
+- I19-2: Fixed target SSX with Tristan detector.
+- I24 serial crystallography with Eiger detector:
+    * Still shots (extruder application)
+    * Fixed target (time-resolved or not)
+    * 3D grid scan
 
 
 Example usage
 *************
+
+**Example 1: grid scan on I24**
+
+.. code-block:: python
+
+    "This example calls the SSX writer for a fixed_target experiment on I24."
+
+    from nexgen.beamlines.I24_Eiger_nxs import write_nxs
+    from datetime import datetime
+    
+    beam_x = 1590.7
+    beam_y = 1643.7
+
+    D = 1.480   # Detector distance passed in mm
+    t = 0.01    # Exposure time passed in s
+
+    # Example of chip_dict with minimum required values needed for goniometer computations.
+    chip_dict = {
+        'X_NUM_STEPS':    [11, 20],
+        'Y_NUM_STEPS':    [12, 20],
+        'X_STEP_SIZE':    [13, 0.125],
+        'Y_STEP_SIZE':    [14, 0.125],
+        'X_START':        [16, 0],
+        'Y_START':        [17, 0],
+        'Z_START':        [18, 0],
+        'X_NUM_BLOCKS':   [20, 8],
+        'Y_NUM_BLOCKS':   [21, 8],
+        'X_BLOCK_SIZE':   [24, 3.175],
+        'Y_BLOCK_SIZE':   [25, 3.175],
+        'N_EXPOSURES':    [30, 1],
+        'PUMP_REPEAT':    [32, 0],
+    }
+    
+    write_nxs(
+        visitpath="/path/to/dataset",
+        filename="Expt1_00",
+        exp_type="fixed_target",
+        num_imgs=1600,
+        beam_center=[beam_x, beam_y],
+        det_dist=D,
+        start_time=datetime.strptime("2022-09-09T14:19:27", "%Y-%m-%dT%H:%M:%S"),
+        stop_time=datetime.now(),
+        exp_time=t,
+        transmission=1.,
+        wavelength=0.67019,
+        flux=None,
+        pump_status="false",
+        pump_exp=None,
+        pump_delay=None,
+        chip_info=chip_dict,
+        chipmap="/path/to/chip.map/file",
+    )
+
+
+
+**Example 2: grid scan on I19-2 using Tristan10M**
 
 .. code-block:: python
 
@@ -74,6 +131,7 @@ Manually generate a NeXus file for a dataset collected on Eiger detector using t
     I19-2_nxs Expt1_00_meta.h5 eiger 0.02 -tr 100
 
 
+
 =============
 Beamlines API
 =============
@@ -119,6 +177,12 @@ SSX using Tristan Detector
 
 .. autofunction:: nexgen.beamlines.SSX_Tristan_nxs.write_nxs
 
+
+Serial crystallography: chip tools
+----------------------------------
+
+.. automodule:: nexgen.beamlines.SSX_chip
+    :members:
 
 
 GDA integration tools

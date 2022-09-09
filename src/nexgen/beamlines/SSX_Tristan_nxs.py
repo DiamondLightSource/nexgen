@@ -1,5 +1,5 @@
 """
-Create a NeXus file for serial crystallography datasets collected on I19-2 Tristan10M detector.
+Create a NeXus file for serial crystallography datasets collected on Tristan10M detector either on I19-2 or I24 beamlines.
 """
 
 import logging
