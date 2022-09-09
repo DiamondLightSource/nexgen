@@ -85,7 +85,9 @@ def gda_writer():
 
 
 def nexgen_writer():
-    """_summary_"""
+    """
+    Write a NXmx format NeXus file from the I19-2 beamline.
+    """
     logger.info("")
 
     from . import detAx_parser, gonioAx_parser
@@ -100,18 +102,38 @@ def nexgen_writer():
         "detector_name", type=str, help="Detector currently in use on beamline."
     )
     parser.add_argument("exp_time", type=float, help="Exposure time, in s.")
-    parser.add_argument("transmission", type=float, help="Attenuator transmission.")
     parser.add_argument(
-        "--wavelength", type=float, default=None, help="Incident beam wavelength, in A."
+        "-tr",
+        "--transmission",
+        type=float,
+        default=None,
+        help="Attenuator transmission.",
     )
     parser.add_argument(
-        "--beam-center", type=float, nargs="+", help="Beam center (x,y) positions."
+        "-wl",
+        "--wavelength",
+        type=float,
+        default=None,
+        help="Incident beam wavelength, in A.",
+    )
+    parser.add_argument(
+        "-bc",
+        "--beam-center",
+        type=float,
+        nargs="+",
+        help="Beam center (x,y) positions.",
     )
     parser.add_argument(
         "--start", "--start-time", type=str, default=None, help="Collection start time."
     )
     parser.add_argument(
         "--stop", "--stop-time", type=str, default=None, help="Collection end time."
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=str,
+        help="Output directory for new NeXus file, if different from collection directory.",
     )
     args = parser.parse_args()
 
@@ -142,11 +164,20 @@ def nexgen_writer():
         for ax, s in zip(args.det_axes, args.det_start):
             det_list.append(det_axes(ax, s))
 
+    # Check that an actual meta file has been passed and not a data file
+    if "meta" not in args.meta_file:
+        logger.error(
+            f"Wrong input file passed: {args.meta_file}. Please pass the _meta.h5 file for this dataset."
+        )
+        raise IOError(
+            "The input file passed is not a _meta.h5 file. Please pass the correct file."
+        )
+
     nexus_writer(
         meta_file=args.meta_file,
         detector_name=args.detector_name,
         exposure_time=args.exp_time,
-        transmission=args.transmission,
+        transmission=args.transmission if args.transmission else None,
         wavelength=args.wavelength if args.wavelength else None,
         beam_center=args.beam_center if args.beam_center else None,
         start_time=datetime.strptime(args.start, "%Y-%m-%dT%H:%M:%SZ")
@@ -158,4 +189,5 @@ def nexgen_writer():
         scan_axis=args.scan_axis if args.scan_axis else None,
         gonio_pos=axes_list if args.axes else None,
         det_pos=det_list if args.det_axes else None,
+        outdir=args.output if args.output else None,
     )
