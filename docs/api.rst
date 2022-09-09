@@ -87,8 +87,8 @@ Utilities
     :members:
 
 
-Finding the scan axes
----------------------
+Identify the scan axes and calculate the scan range
+---------------------------------------------------
 
 .. autofunction:: nexgen.nxs_write.NexusWriter.ScanReader
 
@@ -103,7 +103,14 @@ Metafile definition:
     :show-inheritance:
 
 
-A couple of functions are available for reading the information stored in the metafile and copying it across to the new NeXus file:
+When operating a Dectris detector, the goniometer and detector axes values are usually stored in the `config/` dataset. 
+
+.. autofunction:: nexgen.tools.MetaReader.update_goniometer
+
+.. autofunction:: nexgen.tools.MetaReader.update_detector
+
+
+A couple of functions are available for reading the information stored in the metafile and copying it across to the new NeXus file by overwriting the existing values unless otherwise specified:
 
 .. autofunction:: nexgen.tools.MetaReader.overwrite_beam
 
