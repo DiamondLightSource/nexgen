@@ -18,7 +18,7 @@ except ImportError:
 
 from pathlib import Path
 
-from .. import beamlines, log
+from .. import log, templates
 from . import config_parser, nexus_parser, version_parser
 
 # Define a logger object
@@ -39,7 +39,7 @@ parser.add_argument("--debug", action="store_const", const=True)
 
 
 def list_available_phil():
-    filedir = files(beamlines)
+    filedir = files(templates)
     for f in filedir.glob("*.phil"):
         print(f.name)
 
@@ -55,7 +55,7 @@ def get_beamline_phil(args):
         )
 
     # Look for file
-    filedir = files(beamlines)
+    filedir = files(templates)
     found = [f for f in sorted(filedir.glob("*.phil")) if args.phil_file == f.name]
     if len(found) == 0:
         logger.info(f"No {args.phil_file} found.")
