@@ -108,13 +108,13 @@ Generating new NeXus files
 
     .. code-block:: console
 
-        generate_nexus 2 -i/-e output.master_filename=File.nxs input.vds_writer=dataset (etc...)
+        generate_nexus 2 -i/-e beamline.phil output.master_filename=File.nxs input.vds_writer=dataset (etc...)
  
  - For an existing dataset which also has a meta.h5 file
 
     .. code-block:: console
 
-        generate_nexus 3 input.metafile=File_meta.h5 input.vds_writer=dataset 
+        generate_nexus 3 beamline.phil input.metafile=File_meta.h5 input.vds_writer=dataset 
 
 
 Copying NeXus files
