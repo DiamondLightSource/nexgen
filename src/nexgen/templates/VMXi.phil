@@ -1,0 +1,59 @@
+goniometer {
+  axes = omega sam_z sam_y sam_x
+  depends = . omega sam_z sam_y
+  vectors = 1,0,0,0,0,1,0,1,0,1,0,0
+  offsets = 0,0,0,0,0,0,0,0,0,0,0,0
+  offset_units = mm mm mm mm
+  starts = None
+  ends = None
+  increments = None
+  types = rotation translation translation translation
+  units = deg mm mm mm
+}
+source {
+  name = Diamond Light Source
+  short_name = DLS
+  type = Synchrotron X-ray Source
+  beamline_name = VMXi
+}
+beam {
+  wavelength = None
+  flux = None
+}
+attenuator {
+  transmission = None
+}
+detector {
+  mode = *images events
+  description = Eiger2 X 4M
+  detector_type = Pixel
+  sensor_material = *Si CdTe
+  sensor_thickness = 0.450mm
+  overload = None
+  underload = -1
+  pixel_size = 0.075mm 0.075mm
+  beam_center = 0 0
+  flatfield = None
+  flatfield_applied = False
+  pixel_mask = None
+  pixel_mask_applied = False
+  image_size = 2162,2068
+  exposure_time = None
+  axes = det_z
+  depends = .
+  vectors = 0,0,1
+  starts = None
+  ends = None
+  increments = 0.0
+  types = translation
+  units = mm
+  software_version = None
+}
+detector_module {
+  num_modules = 1
+  module_offset = 0 *1 2
+  fast_axis = 1,0,0
+  slow_axis = 0,-1,0
+  offsets = 0 0 0 0 0 0
+  module_size = 0 0
+}

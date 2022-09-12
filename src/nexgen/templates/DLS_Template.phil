@@ -1,0 +1,86 @@
+goniometer {
+  axes = axisname1 axisname2 
+  depends = . axisname1
+  vectors = None None
+  offsets = 0 0 0 0 0 0
+  offset_units = mm mm
+  starts = None
+  ends = None
+  increments = None
+  types = rotation translation
+  units = deg mm
+}
+
+detector {
+  mode = *images events
+  description = None
+  detector_type = Pixel
+  sensor_material = *Si CdTe
+  sensor_thickness = 0.0mm
+  overload = None
+  underload = -1
+  pixel_size = 0.0mm 0.0mm
+  beam_center = None None
+  flatfield = None
+  flatfield_applied = False
+  pixel_mask = None
+  pixel_mask_applied = False
+  image_size = None None
+  exposure_time = None
+  axes = None
+  depends = . 
+  vectors = None
+  starts = None
+  ends = None
+  increments = None
+  types = None
+  units = None
+  software_version = None
+}
+
+tristanSpec {
+  detector_tick = 1562.5ps
+  detector_frequency = 6.4e+08Hz
+  timeslice_rollover = 18
+}
+
+detector_module {
+  num_modules = 1
+  module_offset = 0 *1 2
+  fast_axis = None
+  slow_axis = None
+  offsets = 0 0 0 0 0 0
+  module_size = None
+}
+
+source {
+  name = Diamond Light Source
+  short_name = DLS
+  type = Synchrotron X-ray Source
+  beamline_name = None
+}
+
+beam {
+  wavelength = None
+  flux = None
+}
+
+attenuator {
+  transmission = 1
+}
+
+pump_probe {
+  pump_status = False
+  pump_exp = None
+  pump_delay = None
+}
+
+start_time = None
+end_time = None
+time_zone = None
+
+sample {
+  name = None
+  temperature = None
+}
+
