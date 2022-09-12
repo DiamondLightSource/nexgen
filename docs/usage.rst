@@ -82,7 +82,7 @@ will return a list of the .phil files currently available, and che chosen file c
 
     nexgen_phil get paramfile.phil -o  /path/to/directory
 
-In case a .phil file for a specific beamline is not in the list, it is possible to create on using the ``new`` option. While this is a bit more cumbersome, 
+In case a .phil file for a specific beamline is not in the list, it is possible to either download a blank template (also listed) to fill in manually or create on using the ``new`` option. While this is a bit more cumbersome, 
 it has the advantage of only needing to write most of the parameters once. Once the file is created it can be parsed by ``generate_nexus``, eg.
 
 .. code-block:: console
@@ -102,19 +102,22 @@ Generating new NeXus files
  
     .. code-block:: console
 
-        generate_nexus 1 beamline.phil input.datafile=File_00*.h5 input.snaked=True goniometer.starts=0,0,0,0 goniometer.ends=0,0,1,2 goniometer.increments=0,0,0.1,0.2  detector.exposure_time=0.095 detector.beam_center=989.8,1419 detector.overload=65535 detector.starts=0,140 detector.ends=0,140 beam.wavelength=0.4859
+        generate_nexus 1 beamline.phil input.datafile=File_00*.h5 input.snaked=True \
+        goniometer.starts=0,0,0,0 goniometer.ends=0,0,1,2 goniometer.increments=0,0,0.1,0.2  \
+        detector.exposure_time=0.095 detector.beam_center=989.8,1419 detector.overload=65535 \
+        detector.starts=0,140 detector.ends=0,140 beam.wavelength=0.4859
 
  - From scratch, along with blank data (demo)
 
     .. code-block:: console
 
-        generate_nexus 2 -i/-e output.master_filename=File.nxs input.vds_writer=dataset (etc...)
+        generate_nexus 2 -i/-e beamline.phil output.master_filename=File.nxs input.vds_writer=dataset (etc...)
  
  - For an existing dataset which also has a meta.h5 file
 
     .. code-block:: console
 
-        generate_nexus 3 input.metafile=File_meta.h5 input.vds_writer=dataset 
+        generate_nexus 3 beamline.phil input.metafile=File_meta.h5 input.vds_writer=dataset output.master_filename=/path/to/File.nxs
 
 
 Copying NeXus files

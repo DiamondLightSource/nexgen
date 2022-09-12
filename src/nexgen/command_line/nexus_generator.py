@@ -250,7 +250,7 @@ def write_NXmx_cli(args):
         assert tu in (
             ("translation", "mm"),
             ("rotation", "deg"),
-        ), "Appropriate axis units should be: mm for translations, det for rotations"
+        ), "Appropriate axis units should be: mm for translations, deg for rotations"
 
     assert len(axis_vectors) == 3 * len(
         axes
@@ -300,7 +300,7 @@ def write_NXmx_cli(args):
         assert tu in (
             ("translation", "mm"),
             ("rotation", "deg"),
-        ), "Appropriate axis units should be: mm for translations, det for rotations"
+        ), "Appropriate axis units should be: mm for translations, deg for rotations"
 
     assert len(axis_vectors) == 3 * len(
         axes
@@ -753,7 +753,7 @@ def write_with_meta_cli(args):
         assert tu in (
             ("translation", "mm"),
             ("rotation", "deg"),
-        ), "Appropriate axis units should be: mm for translations, det for rotations"
+        ), "Appropriate axis units should be: mm for translations, deg for rotations"
 
     assert len(axis_vectors) == 3 * len(
         axes
@@ -807,7 +807,7 @@ def write_with_meta_cli(args):
         assert tu in (
             ("translation", "mm"),
             ("rotation", "deg"),
-        ), "Appropriate axis units should be: mm for translations, det for rotations"
+        ), "Appropriate axis units should be: mm for translations, deg for rotations"
 
     assert len(axis_vectors) == 3 * len(
         axes

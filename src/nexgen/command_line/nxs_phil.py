@@ -216,6 +216,22 @@ timestamp_scope = freephil.parse(
     end_time = None
       .type = str
       .help = "Experiment end time, pass either a timestamp or a string, eg '2021-09-20T10:20:30' or 'Tue Sep 28 2021 10:58:01'."
+    time_zone = None
+      .type = str
+      .help = "Time zone offset from UTC."
+    """
+)
+
+sample_scope = freephil.parse(
+    """
+    sample {
+      name = None
+        .type = str
+        .help = "Descriptive name of the sample."
+      temperature = None
+        .type = str
+        .help = "Sample temperature with units."
+    }
     """
 )
 
@@ -225,3 +241,4 @@ if __name__ == "__main__":
     print(goniometer_scope.as_str())
     print(beamline_scope.as_str())
     print(timestamp_scope.as_str())
+    print(sample_scope.as_str())
