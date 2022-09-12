@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 0.6.11
+
+### Added
+- Blank template for .phil files.
+
+
+---
 ## 0.6.10
 
 ### Added
