@@ -507,19 +507,45 @@ def write_NXdetector(
                 nxdetector["flatfield"] = h5py.ExternalLink(flatfield.name, image_key)
     else:
         # Flatfield
-        if detector["flatfield"]:
+        if type(detector["flatfield"]) is str:
             nxdetector.create_dataset(
                 "flatfield_applied", data=detector["flatfield_applied"]
             )
             flatfield = Path(detector["flatfield"])
             nxdetector["flatfield"] = h5py.ExternalLink(flatfield.name, "/")
+        else:
+            nxdetector.create_dataset(
+                "flatfield_applied", data=detector["flatfield_applied"]
+            )
+            block_size = 0
+            nxdetector.create_dataset(
+                "flatfield",
+                data=detector["flatfield"],
+                **Bitshuffle(nelems=block_size, lz4=True),
+            )
+            NXclass_logger.info(
+                "A compressed copy of the flatfield has been written into the NeXus file."
+            )
         # Bad pixel mask
-        if detector["pixel_mask"]:
+        if type(detector["pixel_mask"]) is str:
             nxdetector.create_dataset(
                 "pixel_mask_applied", data=detector["pixel_mask_applied"]
             )
             mask = Path(detector["pixel_mask"])
             nxdetector["pixel_mask"] = h5py.ExternalLink(mask.name, "/")
+        else:
+            nxdetector.create_dataset(
+                "pixel_mask_applied", data=detector["pixel_mask_applied"]
+            )
+            block_size = 0
+            nxdetector.create_dataset(
+                "pixel_mask",
+                data=detector["pixel_mask"],
+                **Bitshuffle(nelems=block_size, lz4=True),
+            )
+            NXclass_logger.info(
+                "A compressed copy of the pixel_mask has been written into the NeXus file."
+            )
 
     # Beam center
     # Check that the information hasn't already been written by the meta file.
