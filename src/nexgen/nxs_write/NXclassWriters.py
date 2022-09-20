@@ -890,3 +890,26 @@ def write_NXnote(nxsfile: h5py.File, loc: str, info: Dict):
                 v = np.string_(v)
             nxnote.create_dataset(k, data=v)
             NXclass_logger.info(f"{k} dataset written in {loc}.")
+
+
+def write_NXcoordinate_system_set(nxsfile: h5py.File):
+    NXclass_logger.info(
+        "Writing NXcoordinate_system_set to define the coordinate system conventions."
+    )
+    #
+    nxcoord = nxsfile.require_group("/entry/coordinate_system_set")
+    create_attributes(
+        nxcoord,
+        ("NXclass",),
+        ("NXcoordinate_system_set",),
+    )
+
+    transf = nxcoord.require_group("transformations")
+    create_attributes(
+        transf,
+        ("NXclass",),
+        ("NXtransformations",),
+    )
+
+    # Needs at least: 3 base vectors, depends_on ("." probably?), origin
+    transf.create_dataset("depends_on", data=np.string_("."))  # To be checked
