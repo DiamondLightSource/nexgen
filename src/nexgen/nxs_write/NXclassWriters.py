@@ -102,16 +102,24 @@ def write_NXdata(
         ),
     )
 
+    # Hack for SINGLA detector data: in the datafiles in this case the entry_key for the external link will not be "data" but "/entry/data/data"
+    # How this will work fro the VDS side is yet to be determined
+    entry_key = (
+        "data"
+        if "entry" not in h5py.File(datafiles[0], "r").keys()
+        else "/entry/data/data"
+    )
+
     # If mode is images, link to blank image data. Else go to events.
     if data_type[0] == "images":
         tmp_name = f"data_%0{6}d"
         if datafiles[0].parent != Path(nxsfile.filename).parent:
             # This is needed in case the new NeXus file is to be written in a different directory from the data, eg. processing/
             for n, filename in enumerate(datafiles):
-                nxdata[tmp_name % (n + 1)] = h5py.ExternalLink(filename, "data")
+                nxdata[tmp_name % (n + 1)] = h5py.ExternalLink(filename, entry_key)
         else:
             for n, filename in enumerate(datafiles):
-                nxdata[tmp_name % (n + 1)] = h5py.ExternalLink(filename.name, "data")
+                nxdata[tmp_name % (n + 1)] = h5py.ExternalLink(filename.name, entry_key)
     elif data_type[0] == "events":
         if len(datafiles) == 1 and "meta" in datafiles[0].as_posix():
             meta = datafiles
