@@ -298,18 +298,19 @@ def calculate_origin(
     return det_origin, offset_val
 
 
-def find_number_of_images(datafile_list: List[Path]) -> int:
+def find_number_of_images(datafile_list: List[Path], entry_key: str = "data") -> int:
     """
     Calculate total number of images when there's more than one input HDF5 file.
 
     Args:
         datafile_list (List[Path]): List of paths to the input image files.
+        entry_key (str):    Key for the location of the images inside the data files. Defaults to "data".
 
     Returns:
-        num_images (int): Total number of images._summary_
+        num_images (int): Total number of images.
     """
     num_images = 0
     for filename in datafile_list:
         with h5py.File(filename, "r") as f:
-            num_images += f["data"].shape[0]
+            num_images += f[entry_key].shape[0]
     return int(num_images)
