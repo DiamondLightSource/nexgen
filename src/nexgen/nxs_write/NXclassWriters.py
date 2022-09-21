@@ -106,7 +106,8 @@ def write_NXdata(
     # How this will work fro the VDS side is yet to be determined
     entry_key = (
         "data"
-        if "entry" not in h5py.File(datafiles[0], "r").keys()
+        if "_data_00"
+        not in datafiles[0].name  # "entry" not in h5py.File(datafiles[0], "r").keys()
         else "entry/data/data"
     )
 
