@@ -60,6 +60,7 @@ def write_NXdata(
     coord_frame: str,
     osc_scan: Dict[str, np.ndarray],
     transl_scan: Dict[str, np.ndarray] = None,
+    entry_key: str = "data",
 ):
     """
     Write NXdata group at /entry/data.
@@ -72,6 +73,7 @@ def write_NXdata(
         coord_frame (str): Coordinate system the axes are currently in. If it's imgcif instead of mcstas, axes vectors will be converted.
         osc_scan (Dict[str, np.ndarray]): Rotation scan. If writing events, this is just a (start, end) tuple.
         transl_scan (Dict[str, np.ndarray], optional): Scan along the xy axes at sample. Defaults to None.
+        entry_key (str): Entry key to create the external links to the data files. Defaults to data.
 
     Raises:
         OSError: If no data is passed.
@@ -100,15 +102,6 @@ def write_NXdata(
                 0,
             ],
         ),
-    )
-
-    # Hack for SINGLA detector data: in the datafiles in this case the entry_key for the external link will not be "data" but "/entry/data/data"
-    # How this will work fro the VDS side is yet to be determined
-    entry_key = (
-        "data"
-        if "_data_00"
-        not in datafiles[0].name  # "entry" not in h5py.File(datafiles[0], "r").keys()
-        else "entry/data/data"
     )
 
     # If mode is images, link to blank image data. Else go to events.
