@@ -955,7 +955,7 @@ def write_NXcoordinate_system_set(
         baseX,
         ("depends_on", "transformation_type", "units", "vector"),
         (
-            "",
+            set_dependency("y", transf.name),
             "translation",
             "mm",
             base_vectors[0],
@@ -967,7 +967,7 @@ def write_NXcoordinate_system_set(
         baseY,
         ("depends_on", "transformation_type", "units", "vector"),
         (
-            "",
+            set_dependency("z", transf.name),
             "translation",
             "mm",
             base_vectors[1],
@@ -979,7 +979,7 @@ def write_NXcoordinate_system_set(
         baseZ,
         ("depends_on", "transformation_type", "units", "vector"),
         (
-            "",
+            set_dependency(".", transf.name),
             "translation",
             "mm",
             base_vectors[2],
