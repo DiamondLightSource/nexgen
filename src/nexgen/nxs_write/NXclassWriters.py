@@ -107,7 +107,7 @@ def write_NXdata(
     entry_key = (
         "data"
         if "entry" not in h5py.File(datafiles[0], "r").keys()
-        else "/entry/data/data"
+        else "entry/data/data"
     )
 
     # If mode is images, link to blank image data. Else go to events.
