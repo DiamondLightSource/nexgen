@@ -1,11 +1,12 @@
 """
 Writer functions for different groups of a NeXus file.
 """
+from __future__ import annotations
 
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple
 
 import h5py
 import numpy as np
@@ -658,9 +659,9 @@ def write_NXdetector_module(
     nxsfile: h5py.File,
     module: Dict,
     coord_frame: str,
-    image_size: Union[List, Tuple],
-    pixel_size: Union[List, Tuple],
-    beam_center: Optional[Union[List, Tuple]] = None,
+    image_size: List | Tuple,
+    pixel_size: List | Tuple,
+    beam_center: Optional[List | Tuple] = None,
 ):
     """
     Write NXdetector_module group at /entry/instrument/detector/module.
@@ -892,10 +893,29 @@ def write_NXnote(nxsfile: h5py.File, loc: str, info: Dict):
             NXclass_logger.info(f"{k} dataset written in {loc}.")
 
 
-def write_NXcoordinate_system_set(nxsfile: h5py.File):
+def write_NXcoordinate_system_set(
+    nxsfile: h5py.File,
+    convention: str = "ED",
+    base_vectors: List
+    | Tuple = [
+        (1, 0, 0),
+        (0, 0, 1),
+        (0, -1, 0),
+    ],  # Example here from ED... to be checked.
+    origin: List | Tuple | np.ndarray = [0.0, 0.0, 0.0],
+):
+    """_summary_
+
+    Args:
+        nxsfile (h5py.File): _description_
+        convention (str, optional): _description_. Defaults to "ED".
+        base_vectors (List | Tuple, optional): _description_. Defaults to [(), (), ()].
+        origin (List | Tuple | np.ndarray, optional): _description_. Defaults to [0.0, 0.0, 0.0].
+    """
     NXclass_logger.info(
-        "Writing NXcoordinate_system_set to define the coordinate system conventions."
+        f"Writing NXcoordinate_system_set to define the coordinate system convention for {convention}."
     )
+
     #
     nxcoord = nxsfile.require_group("/entry/coordinate_system_set")
     create_attributes(
@@ -913,3 +933,47 @@ def write_NXcoordinate_system_set(nxsfile: h5py.File):
 
     # Needs at least: 3 base vectors, depends_on ("." probably?), origin
     transf.create_dataset("depends_on", data=np.string_("."))  # To be checked
+    transf.create_dataset("origin", data=origin)
+
+    # Base vectors
+    NXclass_logger.info(
+        "Base vectors: \n"
+        f"x: {base_vectors[0]} \n"
+        f"y: {base_vectors[1]} \n"
+        f"z: {base_vectors[2]} \n"
+    )
+    baseX = transf.create_dataset("x", data=([0.0]))
+    create_attributes(
+        baseX,
+        ("depends_on", "transformation_type", "units", "vector"),
+        (
+            "",
+            "translation",
+            "mm",
+            base_vectors[0],
+        ),
+    )
+
+    baseY = transf.create_dataset("y", data=([0.0]))
+    create_attributes(
+        baseY,
+        ("depends_on", "transformation_type", "units", "vector"),
+        (
+            "",
+            "translation",
+            "mm",
+            base_vectors[1],
+        ),
+    )
+
+    baseZ = transf.create_dataset("z", data=([0.0]))
+    create_attributes(
+        baseZ,
+        ("depends_on", "transformation_type", "units", "vector"),
+        (
+            "",
+            "translation",
+            "mm",
+            base_vectors[2],
+        ),
+    )
