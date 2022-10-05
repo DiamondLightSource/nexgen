@@ -8,7 +8,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-import h5py
 import numpy as np
 from hdf5plugin import Bitshuffle
 
@@ -21,6 +20,9 @@ from .. import (
     ureg,
 )
 from . import calculate_origin, create_attributes, set_dependency
+
+import h5py  # isort: skip
+
 
 NXclass_logger = logging.getLogger("nexgen.NXclass_writers")
 NXclass_logger.setLevel(logging.DEBUG)

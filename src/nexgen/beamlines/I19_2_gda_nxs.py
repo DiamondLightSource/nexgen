@@ -9,7 +9,7 @@ from collections import namedtuple
 from pathlib import Path
 from typing import Tuple
 
-import h5py
+from hdf5plugin import Bitshuffle  # noqa: F401
 
 from .. import get_iso_timestamp, get_nexus_filename, log
 from ..nxs_write import calculate_scan_range
@@ -28,6 +28,9 @@ from .I19_2_params import (
     source,
     tristan10M_params,
 )
+
+import h5py  # isort: skip
+
 
 # Define a logger object and a formatter
 logger = logging.getLogger("nexgen.I19-2_NeXus_gda")

@@ -5,6 +5,9 @@
 ### Added
 - Blank template for .phil files.
 
+### Fixed
+- Plugin for Mask and Flatfield copy/compress/write to NeXus.
+
 
 ---
 ## 0.6.10
