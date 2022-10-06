@@ -908,14 +908,21 @@ def write_NXcoordinate_system_set(
     ],  # Example here from ED... to be checked.
     origin: List | Tuple | np.ndarray = [0.0, 0.0, 0.0],
 ):
-    """_summary_
+    """
+    Write a container object to store coordinate system conventions different from mcstas.
+
+    The NXcoordinate_system_set base class is used here to define and store the mappings between mcstas and a different coordinate system relevant to the data.
+    It should hold at least one NXtransformations group containing a depends_on field, which specifies whether this coordinate system is the reference ("."),
+    as well as the three base vectors and the location of the origin.
 
     Args:
-        nxsfile (h5py.File): _description_
-        convention (str, optional): _description_. Defaults to "ED".
-        base_vectors (List | Tuple, optional): _description_. Defaults to [(), (), ()].
-        origin (List | Tuple | np.ndarray, optional): _description_. Defaults to [0.0, 0.0, 0.0].
+        nxsfile (h5py.File): Handle to NeXus file.
+        convention (str, optional): Convention decription. Defaults to "ED".
+        base_vectors (List | Tuple, optional): The three base vectors of the coordinate system. Defaults to [(), (), ()].
+        origin (List | Tuple | np.ndarray, optional): The location of the origin of the coordinate system. Defaults to [0.0, 0.0, 0.0].
     """
+    # TODO base_vectors should probably hold more information than just the vectors... at the very least the dependency chain.
+    # Otherwise it could be passed as another optional argument, as long as it's in the correct order.
     NXclass_logger.info(
         f"Writing NXcoordinate_system_set to define the coordinate system convention for {convention}."
     )
