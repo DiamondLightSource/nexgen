@@ -56,6 +56,20 @@ def imgcif2mcstas(vector: List | Tuple | np.array) -> Tuple:
     return tuple(np.dot(c2n, vector))
 
 
+def coord2mcstas(vector: List | Tuple | np.array, rot: np.ndarray) -> Tuple:
+    """
+    General conversion from a new coordinate convention to the NeXus McStas coordinate system.
+
+    Args:
+        vector (List | Tuple | np.array): Coordinates to be converted.
+        rot (np.ndarray): Rotation matrix.
+
+    Returns:
+        Tuple: Converted coordinate values
+    """
+    return tuple(np.dot(rot, vector))
+
+
 def get_filename_template(input_filename: Path) -> str:
     """
     Get the data file name template from either the master or the meta file.
