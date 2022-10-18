@@ -395,6 +395,57 @@ def write_NXsource(nxsfile: h5py.File, source: Dict):
     nxsource.create_dataset("type", data=np.string_(source["type"]))
 
 
+# Copy and compress mask or flatfield file in NXdetector
+def write_compressed_copy(
+    nxgroup: h5py.Group,
+    dset_name: str,
+    data: np.ndarray = None,
+    filename: Path | str = None,
+    dset_key: str = None,
+    block_size: int = 0,
+):
+    """
+    Write a compressed copy of some dataset in the desired HDF5 group, using the Bitshuffle filter with lz4 compression.
+    The main application for this function in nexgen is to write a compressed copy of a pixel mask or a flatfield file/dataset \
+    directly into the NXdetector group of a NXmx NeXus file.
+    The data and filename arguments are mutually exclusive as only one of them can be used as input.
+    If a filename is passed, it is also required to pass the key for the relevant dataset to be copied. Failure to do so will result \
+    in nothing being written to the NeXus file.
+
+    Args:
+        nxgroup (h5py.Group): Handle to HDF5 group.
+        dset_name (str): Name of the new dataset to be written.
+        data (np.ndarray, optional): Dataset to be compressed. Defaults to None.
+        filename (Path | str, optional): Filename containing the dataset to be compressed into the NeXus file. Defaults to None.
+        dset_key (str, optional): Dataset name inside the passed file. Defaults to None.
+        block_size (int, optional): Number of elements per block, it needs to be divisible by 8. Defaults to 0.
+
+    Raises:
+        ValueError: If both a dataset and a filename have been passed to the function.
+    """
+    if data and filename:
+        raise ValueError(
+            "The dset and filename arguments are mutually exclusive."
+            "Please pass only the one from which the data should be copied."
+        )
+    if filename and not dset_key:
+        NXclass_logger.warning(
+            f"Missing key to find the dataset to be copied inside {filename}. {dset_name} will not be written into the NeXus file."
+        )
+        return
+
+    if filename:
+        with h5py.File(filename, "r") as fh:
+            data = fh[dset_key][()]
+
+    nxgroup.create_dataset(
+        dset_name, data=data, **Bitshuffle(nelems=block_size, lz4=True)
+    )
+    NXclass_logger.info(
+        f"A compressed copy of the {dset_name} has been written into the NeXus file."
+    )
+
+
 # NXdetector writer
 def write_NXdetector(
     nxsfile: h5py.File,
@@ -455,20 +506,25 @@ def write_NXdetector(
             ]
             if maskfile:
                 NXclass_logger.info("Pixel mask file found in working directory.")
-                block_size = 0
-                with h5py.File(maskfile[0], "r") as mh:
-                    mask = mh["image"][()]
-                    nxdetector.create_dataset(
-                        "pixel_mask",
-                        data=mask,
-                        **Bitshuffle(nelems=block_size, lz4=True),
-                    )
-                NXclass_logger.info(
-                    "A compressed copy of the pixel mask has been written into the NeXus file."
+                write_compressed_copy(
+                    nxdetector, "pixel_mask", filename=maskfile[0], dset_key="image"
                 )
+                # block_size = 0
+                # with h5py.File(maskfile[0], "r") as mh:
+                #     mask = mh["image"][()]
+                #     nxdetector.create_dataset(
+                #         "pixel_mask",
+                #         data=mask,
+                #         **Bitshuffle(nelems=block_size, lz4=True),
+                #     )
+                # NXclass_logger.info(
+                #     "A compressed copy of the pixel mask has been written into the NeXus file."
+                # )
             else:
-                NXclass_logger.warning("No pixel mask file found in working directory.")
-                NXclass_logger.warning("Writing an ExternalLink.")
+                NXclass_logger.warning(
+                    "No pixel mask file found in working directory."
+                    "Writing and ExternalLink."
+                )
                 mask = Path(detector["pixel_mask"])
                 image_key = (
                     "image" if "tristan" in detector["description"].lower() else "/"
@@ -489,22 +545,25 @@ def write_NXdetector(
             ]
             if flatfieldfile:
                 NXclass_logger.info("Flatfield file found in working directory.")
-                block_size = 0
-                with h5py.File(flatfieldfile[0], "r") as mh:
-                    flatfield = mh["image"][()]
-                    nxdetector.create_dataset(
-                        "flatfield",
-                        data=flatfield,
-                        **Bitshuffle(nelems=block_size, lz4=True),
-                    )
-                NXclass_logger.info(
-                    "A compressed copy of the flatfield has been written into the NeXus file."
+                write_compressed_copy(
+                    nxdetector, "flatfield", filename=flatfieldfile[0], dset_key="image"
                 )
+                # block_size = 0
+                # with h5py.File(flatfieldfile[0], "r") as mh:
+                #     flatfield = mh["image"][()]
+                #     nxdetector.create_dataset(
+                #         "flatfield",
+                #         data=flatfield,
+                #         **Bitshuffle(nelems=block_size, lz4=True),
+                #     )
+                # NXclass_logger.info(
+                #     "A compressed copy of the flatfield has been written into the NeXus file."
+                # )
             else:
                 NXclass_logger.warning(
                     "No flatfield file found in the working directory."
+                    "Writing and ExternalLink."
                 )
-                NXclass_logger.warning("Writing an ExternalLink.")
                 flatfield = Path(detector["flatfield"])
                 image_key = (
                     "image" if "tristan" in detector["description"].lower() else "/"
@@ -522,15 +581,16 @@ def write_NXdetector(
             nxdetector.create_dataset(
                 "flatfield_applied", data=detector["flatfield_applied"]
             )
-            block_size = 0
-            nxdetector.create_dataset(
-                "flatfield",
-                data=detector["flatfield"],
-                **Bitshuffle(nelems=block_size, lz4=True),
-            )
-            NXclass_logger.info(
-                "A compressed copy of the flatfield has been written into the NeXus file."
-            )
+            write_compressed_copy(nxdetector, "flatfield", data=detector["flatfield"])
+            # block_size = 0
+            # nxdetector.create_dataset(
+            #     "flatfield",
+            #     data=detector["flatfield"],
+            #     **Bitshuffle(nelems=block_size, lz4=True),
+            # )
+            # NXclass_logger.info(
+            #     "A compressed copy of the flatfield has been written into the NeXus file."
+            # )
         # Bad pixel mask
         if type(detector["pixel_mask"]) is str:
             nxdetector.create_dataset(
@@ -542,15 +602,16 @@ def write_NXdetector(
             nxdetector.create_dataset(
                 "pixel_mask_applied", data=detector["pixel_mask_applied"]
             )
-            block_size = 0
-            nxdetector.create_dataset(
-                "pixel_mask",
-                data=detector["pixel_mask"],
-                **Bitshuffle(nelems=block_size, lz4=True),
-            )
-            NXclass_logger.info(
-                "A compressed copy of the pixel_mask has been written into the NeXus file."
-            )
+            write_compressed_copy(nxdetector, "pixel_mask", data=detector["pixel_mask"])
+            # block_size = 0
+            # nxdetector.create_dataset(
+            #     "pixel_mask",
+            #     data=detector["pixel_mask"],
+            #     **Bitshuffle(nelems=block_size, lz4=True),
+            # )
+            # NXclass_logger.info(
+            #     "A compressed copy of the pixel_mask has been written into the NeXus file."
+            # )
 
     # Beam center
     # Check that the information hasn't already been written by the meta file.
@@ -903,8 +964,8 @@ def write_NXcoordinate_system_set(
     base_vectors: List
     | Tuple = [
         (1, 0, 0),
-        (0, 0, 1),
-        (0, -1, 0),
+        (0, 0, -1),
+        (0, 1, 0),
     ],  # Example here from ED... to be checked.
     origin: List | Tuple | np.ndarray = [0.0, 0.0, 0.0],
 ):
