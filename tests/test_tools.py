@@ -17,11 +17,11 @@ def test_cif2nxs():
 
 
 def test_coord2nxs():
-    rot = np.array([[1, 0, 0], [0, 0, -1], [0, 1, 0]])
-    assert nexgen.coord2mcstas([0, 0, 0], rot) == (0, 0, 0)
-    assert nexgen.coord2mcstas([1, 0, 0]) == (1, 0, 0)
-    assert nexgen.coord2mcstas([0, 1, 0]) == (0, 0, 1)
-    assert nexgen.coord2mcstas([0, 0, 1]) == (0, -1, 0)
+    R = np.array([[1, 0, 0], [0, 0, -1], [0, 1, 0]])
+    assert nexgen.coord2mcstas([0, 0, 0], R) == (0, 0, 0)
+    assert nexgen.coord2mcstas([1, 0, 0], R) == (1, 0, 0)
+    assert nexgen.coord2mcstas([0, 1, 0], R) == (0, 0, 1)
+    assert nexgen.coord2mcstas([0, 0, 1], R) == (0, -1, 0)
 
 
 def test_get_filename_template():
