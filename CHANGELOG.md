@@ -1,5 +1,17 @@
 # CHANGELOG
 
+##
+
+### Added
+- Function to write a compressed copy of a dataset in a specified NXgroup. Main application: mask and flatfield in NXdetector.
+- General conversion to mcstas from a user defined coordinate frame.
+- NXcoordinate_system_set writer.
+
+### Changed
+- Entry key for data in NXdata as argument.
+- Rotation axis for the detector not hard coded to two theta anymore.
+
+---
 ## 0.6.11
 
 ### Added
