@@ -643,17 +643,20 @@ def write_NXdetector(
         idx = detector["axes"].index(ax)
         if ax == "det_z":
             grp_name = "detector_z"
-            _dep = set_dependency(
-                detector["depends"][idx],
-                nxtransformations.name + "/two_theta/",
-            )
             dist = units_of_length(str(detector["starts"][idx]) + "mm")  # , True)
         else:
             grp_name = ax
-            _dep = set_dependency(
-                detector["depends"][idx],
-                nxtransformations.name + "/detector_z/",
-            )
+
+        # It shouldn't be too much of an issue but just in case ...
+        if detector["depends"][idx] == "det_z":
+            grp_dep = "detector_z"
+        else:
+            grp_dep = detector["depends"][idx]
+        _dep = set_dependency(
+            detector["depends"][idx],
+            nxtransformations.name + f"/{grp_dep}/",
+        )
+
         nxgrp_ax = nxtransformations.create_group(grp_name)
         create_attributes(nxgrp_ax, ("NX_class",), ("NXpositioner",))
         nxdet_ax = nxgrp_ax.create_dataset(ax, data=np.array([detector["starts"][idx]]))
