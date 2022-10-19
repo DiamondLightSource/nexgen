@@ -163,7 +163,7 @@ def split_arrays(
         a = array[3 * j : 3 * j + 3]
         if coord_frame == "imgcif":
             array_dict[axes_names[j]] = imgcif2mcstas(a)
-        elif coord_frame != "imgcif" and coord_frame != "mcstas":
+        elif coord_frame != "mcstas" and coord_frame != "imgcif":
             array_dict[axes_names[j]] = coord2mcstas(a, mat)
         else:
             array_dict[axes_names[j]] = tuple(a)
