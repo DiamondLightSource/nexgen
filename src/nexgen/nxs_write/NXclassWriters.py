@@ -420,7 +420,7 @@ def write_compressed_copy(
     Raises:
         ValueError: If both a dataset and a filename have been passed to the function.
     """
-    if data and filename:
+    if data is not None and filename is not None:
         raise ValueError(
             "The dset and filename arguments are mutually exclusive."
             "Please pass only the one from which the data should be copied."
