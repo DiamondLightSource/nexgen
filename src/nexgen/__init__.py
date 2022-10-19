@@ -147,7 +147,9 @@ def split_arrays(
     Split a list of values into arrays.
 
     This function splits up the list of values passed as phil parameters for vector, offset of all existing axes.
-    If the coordinate frame is set to imgCIF, the arrays will have to be converted into mcstas.
+    If the coordinate frame is set to imgCIF, or to any other system different from mcstas, the arrays will have to be converted.
+    While the conversion from imgCIF is predefined inside nexgen, for any other coordinate frame it is necessary to give the relative \
+    transformation matrix.
 
     Args:
         coord_frame (str): The coordinate system in which we are working: mcstas or imgCIF.
