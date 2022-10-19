@@ -50,8 +50,7 @@ def test_split_arrays():
     assert nexgen.split_arrays("imgcif", ["phi"], [1, 0, 0]) == {"phi": (-1, 0, 0)}
     mat = np.array([[1, 0, 0], [0, 0, -1], [0, 1, 0]])
     assert nexgen.split_arrays("microED", ["alpha"], [0, -1, 0], mat) == {
-        "alpha",
-        (0, 0, -1),
+        "alpha": (0, 0, -1)
     }
     two_axes = nexgen.split_arrays("mcstas", ["omega", "phi"], [1, 0, 0, 0, 1, 0])
     assert two_axes["omega"] == (1, 0, 0) and two_axes["phi"] == (0, 1, 0)
