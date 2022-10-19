@@ -229,10 +229,7 @@ def write_NXsample(
     # Create sample_{axisname} groups
     vectors = split_arrays(coord_frame, goniometer["axes"], goniometer["vectors"])
     for ax in goniometer["axes"]:
-        if "sam" in ax:
-            grp_name = "sample_" + ax.split("_")[1]
-        else:
-            grp_name = "sample_" + ax
+        grp_name = f"sample_{ax[-1]}" if "sam_" in ax else f"sample_{ax}"
         nxsample_ax = nxsample.create_group(grp_name)
         create_attributes(nxsample_ax, ("NX_class",), ("NXpositioner",))
         if ax == osc_axis:

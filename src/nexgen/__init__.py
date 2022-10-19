@@ -56,18 +56,18 @@ def imgcif2mcstas(vector: List | Tuple | np.array) -> Tuple:
     return tuple(np.dot(c2n, vector))
 
 
-def coord2mcstas(vector: List | Tuple | np.array, rot: np.ndarray) -> Tuple:
+def coord2mcstas(vector: List | Tuple | np.array, mat: np.ndarray) -> Tuple:
     """
     General conversion from a new coordinate convention to the NeXus McStas coordinate system.
 
     Args:
         vector (List | Tuple | np.array): Coordinates to be converted.
-        rot (np.ndarray): Rotation matrix.
+        mat (np.ndarray): Coordinate transformation matrix.
 
     Returns:
         Tuple: Converted coordinate values
     """
-    return tuple(np.dot(rot, vector))
+    return tuple(np.dot(mat, vector))
 
 
 def get_filename_template(input_filename: Path) -> str:
@@ -140,7 +140,9 @@ def walk_nxs(nxs_obj: h5py.File | h5py.Group) -> List[str]:
     return obj_list
 
 
-def split_arrays(coord_frame: str, axes_names: List, array: List) -> Dict[str, Tuple]:
+def split_arrays(
+    coord_frame: str, axes_names: List, array: List, mat: np.ndarray = None
+) -> Dict[str, Tuple]:
     """
     Split a list of values into arrays.
 
@@ -151,6 +153,7 @@ def split_arrays(coord_frame: str, axes_names: List, array: List) -> Dict[str, T
         coord_frame (str): The coordinate system in which we are working: mcstas or imgCIF.
         axes_names (List): List of goniometer axes.
         array (List): List of vector values to be split up.
+        mat (np.ndarray, optional): Coordinate transformation matrix.
 
     Returns:
         array_dict (Dict[str, Tuple]): Dictionary of arrays corresponding to each axis. Keys are axes names.
@@ -160,6 +163,8 @@ def split_arrays(coord_frame: str, axes_names: List, array: List) -> Dict[str, T
         a = array[3 * j : 3 * j + 3]
         if coord_frame == "imgcif":
             array_dict[axes_names[j]] = imgcif2mcstas(a)
+        elif coord_frame != "imgcif" and coord_frame != "mcstas":
+            array_dict[axes_names[j]] = coord2mcstas(a, mat)
         else:
             array_dict[axes_names[j]] = tuple(a)
     return array_dict
