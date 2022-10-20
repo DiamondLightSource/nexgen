@@ -56,7 +56,7 @@ def test_given_no_data_files_when_write_NXdata_then_assert_error():
 def test_write_NXentry(dummy_nexus_file):
     entry = write_NXentry(dummy_nexus_file)
 
-    assert dummy_nexus_file["/entry/"].attrs["NX_class"] == b"Nxentry"
+    assert dummy_nexus_file["/entry/"].attrs["NX_class"] == b"NXentry"
     assert dummy_nexus_file["/entry/"].attrs["default"] == b"data"
 
     assert "definition" in entry.keys()
