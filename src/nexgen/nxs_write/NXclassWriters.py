@@ -373,6 +373,8 @@ def write_NXsource(nxsfile: h5py.File, source: Dict):
     nxsource.create_dataset("name", data=np.string_(source["name"]))
     create_attributes(nxsource["name"], ("short_name",), (source["short_name"],))
     nxsource.create_dataset("type", data=np.string_(source["type"]))
+    if "probe" in source.keys():
+        nxsource.create_dataset("probe", data=np.string_(source["probe"]))
 
 
 # NXdetector writer

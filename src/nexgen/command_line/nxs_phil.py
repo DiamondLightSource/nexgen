@@ -178,6 +178,9 @@ beamline_scope = freephil.parse(
       beamline_name = None
         .type = str
         .help = "Beamline name"
+      probe = None
+        .type = str
+        .help = "Type of radiation probe"
     }
 
     beam {
@@ -190,7 +193,7 @@ beamline_scope = freephil.parse(
     }
 
     attenuator {
-      transmission = 1
+      transmission = None
         .type = float
         .help = "Attenuation of beam intensity"
     }
