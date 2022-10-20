@@ -265,7 +265,6 @@ def call_writers(
     write_NXdetector_module(
         nxsfile,
         module,
-        coordinate_frame,
         detector["image_size"],  # [::-1],
         detector["pixel_size"],
         beam_center=detector["beam_center"],
