@@ -8,11 +8,16 @@ import math
 from pathlib import Path
 from typing import Dict, List, Tuple
 
-import h5py
+# import h5py
 import numpy as np
-from h5py import AttributeManager
+from hdf5plugin import Bitshuffle
+
+# from h5py import AttributeManager
 from scanspec.core import Path as ScanPath
 from scanspec.specs import Line
+
+import h5py  # isort: skip
+from h5py import AttributeManager  # isort: skip
 
 
 def create_attributes(nxs_obj: h5py.Group | h5py.Dataset, names: Tuple, values: Tuple):
@@ -314,3 +319,56 @@ def find_number_of_images(datafile_list: List[Path], entry_key: str = "data") ->
         with h5py.File(filename, "r") as f:
             num_images += f[entry_key].shape[0]
     return int(num_images)
+
+
+# Copy and compress a dataset inside a specified NXclass
+def write_compressed_copy(
+    nxgroup: h5py.Group,
+    dset_name: str,
+    data: np.ndarray = None,
+    filename: Path | str = None,
+    dset_key: str = None,
+    block_size: int = 0,
+):
+    """
+    Write a compressed copy of some dataset in the desired HDF5 group, using the Bitshuffle filter with lz4 compression.
+    The main application for this function in nexgen is to write a compressed copy of a pixel mask or a flatfield file/dataset \
+    directly into the NXdetector group of a NXmx NeXus file.
+    The data and filename arguments are mutually exclusive as only one of them can be used as input.
+    If a filename is passed, it is also required to pass the key for the relevant dataset to be copied. Failure to do so will result \
+    in nothing being written to the NeXus file.
+
+    Args:
+        nxgroup (h5py.Group): Handle to HDF5 group.
+        dset_name (str): Name of the new dataset to be written.
+        data (np.ndarray, optional): Dataset to be compressed. Defaults to None.
+        filename (Path | str, optional): Filename containing the dataset to be compressed into the NeXus file. Defaults to None.
+        dset_key (str, optional): Dataset name inside the passed file. Defaults to None.
+        block_size (int, optional): Number of elements per block, it needs to be divisible by 8. Defaults to 0.
+
+    Raises:
+        ValueError: If both a dataset and a filename have been passed to the function.
+    """
+    from .NXclassWriters import NXclass_logger
+
+    if data is not None and filename is not None:
+        raise ValueError(
+            "The dset and filename arguments are mutually exclusive."
+            "Please pass only the one from which the data should be copied."
+        )
+    if filename and not dset_key:
+        NXclass_logger.warning(
+            f"Missing key to find the dataset to be copied inside {filename}. {dset_name} will not be written into the NeXus file."
+        )
+        return
+
+    if filename:
+        with h5py.File(filename, "r") as fh:
+            data = fh[dset_key][()]
+
+    nxgroup.create_dataset(
+        dset_name, data=data, **Bitshuffle(nelems=block_size, lz4=True)
+    )
+    NXclass_logger.info(
+        f"A compressed copy of the {dset_name} has been written into the NeXus file."
+    )
