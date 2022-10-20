@@ -61,7 +61,6 @@ def test_given_no_data_type_specified_when_write_NXdata_then_exception_raised(
             [Path("tmp")],
             test_goniometer_axes,
             ("", 0),
-            "",
             osc_scan,
         )
 
@@ -75,7 +74,6 @@ def test_given_one_data_file_when_write_NXdata_then_data_in_file(
         [Path("tmp")],
         test_goniometer_axes,
         ("images", 0),
-        "mcstas",
         osc_scan,
     )
     assert dummy_nexus_file["/entry/data"].attrs["NX_class"] == b"NXdata"
@@ -95,7 +93,6 @@ def test_given_scan_axis_when_write_NXdata_then_axis_in_data_entry_with_correct_
         [Path("tmp")],
         test_goniometer_axes,
         ("images", 0),
-        "mcstas",
         osc_scan,
     )
 
@@ -121,14 +118,12 @@ def test_given_scan_axis_when_write_NXsample_then_scan_axis_data_copied_from_dat
         [Path("tmp")],
         test_goniometer_axes,
         ("images", 0),
-        "mcstas",
         osc_scan,
     )
 
     write_NXsample(
         dummy_nexus_file,
         test_goniometer_axes,
-        "mcstas",
         ("images", 0),
         osc_scan,
     )

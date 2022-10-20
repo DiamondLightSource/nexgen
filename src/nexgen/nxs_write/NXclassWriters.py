@@ -10,7 +10,13 @@ from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
-from .. import get_iso_timestamp, imgcif2mcstas, units_of_length, units_of_time, ureg
+from .. import (  # coord2mcstas,
+    get_iso_timestamp,
+    imgcif2mcstas,
+    units_of_length,
+    units_of_time,
+    ureg,
+)
 from . import calculate_origin, create_attributes, set_dependency, write_compressed_copy
 
 # from hdf5plugin import Bitshuffle   # noqa: F401
@@ -54,7 +60,6 @@ def write_NXdata(
     datafiles: List[Path],
     goniometer: Dict,
     data_type: Tuple[str, int],
-    coord_frame: str,
     osc_scan: Dict[str, np.ndarray],
     transl_scan: Dict[str, np.ndarray] = None,
     entry_key: str = "data",
@@ -67,7 +72,6 @@ def write_NXdata(
         datafiles (List[Path]): List of Path objects pointing to HDF5 data files.
         goniometer (Dict): Dictionary containing all the axes information.
         data_type (Tuple[str, int]): Images or events.
-        coord_frame (str): Coordinate system the axes are currently in. If it's imgcif instead of mcstas, axes vectors will be converted.
         osc_scan (Dict[str, np.ndarray]): Rotation scan. If writing events, this is just a (start, end) tuple.
         transl_scan (Dict[str, np.ndarray], optional): Scan along the xy axes at sample. Defaults to None.
         entry_key (str): Entry key to create the external links to the data files. Defaults to data.
@@ -173,7 +177,6 @@ def write_NXdata(
 def write_NXsample(
     nxsfile: h5py.File,
     goniometer: Dict,
-    coord_frame: str,
     data_type: Tuple[str, int],
     osc_scan: Dict[str, np.ndarray],
     transl_scan: Dict[str, np.ndarray] = None,
@@ -184,7 +187,6 @@ def write_NXsample(
     Args:
         nxsfile (h5py.File): NeXus file handle.
         goniometer (Dict):Dictionary containing all the axes information.
-        coord_frame (str): Coordinate system the axes are currently in. If it's imgcif instead of mcstas, axes vectors will be converted.
         data_type (Tuple[str, int]): Images or events.
         osc_scan (Dict[str, np.ndarray]): Rotation scan. If writing events, this is just a (start, end) tuple.
         transl_scan (Dict[str, np.ndarray], optional): Scan along the xy axes at sample. Defaults to None.
@@ -379,62 +381,10 @@ def write_NXsource(nxsfile: h5py.File, source: Dict):
     nxsource.create_dataset("type", data=np.string_(source["type"]))
 
 
-# # Copy and compress mask or flatfield file in NXdetector
-# def write_compressed_copy(
-#     nxgroup: h5py.Group,
-#     dset_name: str,
-#     data: np.ndarray = None,
-#     filename: Path | str = None,
-#     dset_key: str = None,
-#     block_size: int = 0,
-# ):
-#     """
-#     Write a compressed copy of some dataset in the desired HDF5 group, using the Bitshuffle filter with lz4 compression.
-#     The main application for this function in nexgen is to write a compressed copy of a pixel mask or a flatfield file/dataset \
-#     directly into the NXdetector group of a NXmx NeXus file.
-#     The data and filename arguments are mutually exclusive as only one of them can be used as input.
-#     If a filename is passed, it is also required to pass the key for the relevant dataset to be copied. Failure to do so will result \
-#     in nothing being written to the NeXus file.
-
-#     Args:
-#         nxgroup (h5py.Group): Handle to HDF5 group.
-#         dset_name (str): Name of the new dataset to be written.
-#         data (np.ndarray, optional): Dataset to be compressed. Defaults to None.
-#         filename (Path | str, optional): Filename containing the dataset to be compressed into the NeXus file. Defaults to None.
-#         dset_key (str, optional): Dataset name inside the passed file. Defaults to None.
-#         block_size (int, optional): Number of elements per block, it needs to be divisible by 8. Defaults to 0.
-
-#     Raises:
-#         ValueError: If both a dataset and a filename have been passed to the function.
-#     """
-#     if data is not None and filename is not None:
-#         raise ValueError(
-#             "The dset and filename arguments are mutually exclusive."
-#             "Please pass only the one from which the data should be copied."
-#         )
-#     if filename and not dset_key:
-#         NXclass_logger.warning(
-#             f"Missing key to find the dataset to be copied inside {filename}. {dset_name} will not be written into the NeXus file."
-#         )
-#         return
-
-#     if filename:
-#         with h5py.File(filename, "r") as fh:
-#             data = fh[dset_key][()]
-
-#     nxgroup.create_dataset(
-#         dset_name, data=data, **Bitshuffle(nelems=block_size, lz4=True)
-#     )
-#     NXclass_logger.info(
-#         f"A compressed copy of the {dset_name} has been written into the NeXus file."
-#     )
-
-
 # NXdetector writer
 def write_NXdetector(
     nxsfile: h5py.File,
     detector: Dict,
-    coord_frame: str,
     data_type: Tuple[str, int],
     meta: Path = None,
     link_list: List = None,
@@ -445,7 +395,6 @@ def write_NXdetector(
     Args:
         nxsfile (h5py.File): NeXus file handle.
         detector (Dict): Dictionary containing all detector information.
-        coord_frame (str): Coordinate system the axes are currently in. If it's imgcif instead of mcstas, axes vectors will be converted.
         data_type (Tuple[str, int]): Images or events.
         meta (Path, optional): Path to _meta.h5 file. Defaults to None.
         link_list (List, optional): List of values from the meta file to be linked instead of copied. Defaults to None.
@@ -702,6 +651,9 @@ def write_NXdetector_module(
     if coord_frame == "imgcif":
         fast_axis = imgcif2mcstas(module["fast_axis"])
         slow_axis = imgcif2mcstas(module["slow_axis"])
+    # elif coord_frame != "mcstas" and coord_frame != "imgcif":
+    #     fast_axis = coord2mcstas(module["fast_axis"], np.array())
+    #     slow_axis = coord2mcstas(module["slow_axis"], np.array())
     else:
         fast_axis = tuple(module["fast_axis"])
         slow_axis = tuple(module["slow_axis"])

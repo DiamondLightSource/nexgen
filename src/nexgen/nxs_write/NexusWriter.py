@@ -224,7 +224,6 @@ def call_writers(
         datafiles,
         goniometer,
         data_type,
-        coordinate_frame,
         osc_scan,
         transl_scan,
     )
@@ -241,7 +240,6 @@ def call_writers(
     write_NXdetector(
         nxsfile,
         detector,
-        coordinate_frame,
         data_type,
         metafile,
         link_list,
@@ -264,7 +262,6 @@ def call_writers(
     write_NXsample(
         nxsfile,
         goniometer,
-        coordinate_frame,
         data_type,
         osc_scan,
         transl_scan,
