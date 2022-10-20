@@ -12,6 +12,8 @@ from nexgen.nxs_write.NXclassWriters import (
     write_NXdata,
     write_NXdatetime,
     write_NXdetector_module,
+    write_NXentry,
+    write_NXnote,
     write_NXsample,
 )
 
@@ -49,6 +51,16 @@ def test_given_no_data_files_when_write_NXdata_then_assert_error():
     mock_hdf5_file = MagicMock()
     with pytest.raises(OSError):
         write_NXdata(mock_hdf5_file, [], {}, "", "", [])
+
+
+def test_write_NXentry(dummy_nexus_file):
+    entry = write_NXentry(dummy_nexus_file)
+
+    assert dummy_nexus_file["/entry/"].attrs["NX_class"] == b"Nxentry"
+    assert dummy_nexus_file["/entry/"].attrs["default"] == b"data"
+
+    assert "definition" in entry.keys()
+    assert dummy_nexus_file["/entry/definition"][()] == b"NXmx"
 
 
 def test_given_no_data_type_specified_when_write_NXdata_then_exception_raised(
@@ -188,3 +200,13 @@ def test_write_NXdatetime_with_missing_timestamp(dummy_nexus_file):
     assert "end_time" in dummy_nexus_file[entry_path].keys()
     end = dummy_nexus_file[entry_path + "end_time"][()].decode()
     assert end.endswith("Z")
+
+
+def test_write_NXnote_in_given_location(dummy_nexus_file):
+    loc_path = "/entry/source/pump_probe/"
+    info = {"pump_status": True, "pump_exp": 0.001}
+    write_NXnote(dummy_nexus_file, loc_path, info)
+
+    assert "pump_status" in dummy_nexus_file[loc_path].keys()
+    assert "pump_exp" in dummy_nexus_file[loc_path].keys()
+    assert_array_equal(dummy_nexus_file[loc_path + "pump_exp"][()], 0.001)
