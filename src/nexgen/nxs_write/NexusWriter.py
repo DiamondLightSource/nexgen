@@ -10,7 +10,7 @@ from typing import Dict, List, Tuple
 import h5py
 import numpy as np
 
-from .. import get_filename_template, units_of_time
+from .. import get_filename_template, split_arrays, units_of_time
 from ..tools.DataWriter import generate_event_files, generate_image_files
 from ..tools.MetaReader import overwrite_beam, overwrite_detector
 from ..tools.VDS_tools import image_vds_writer, vds_file_writer
@@ -198,6 +198,17 @@ def call_writers(
     logger = logging.getLogger("nexgen.Call")
     logger.setLevel(logging.DEBUG)
     logger.info("Calling the writers ...")
+
+    # Split vectors and offsets in goniometer and detector for writing
+    goniometer["vectors"] = list(
+        split_arrays("mcstas", goniometer["axes"], goniometer["vectors"]).values()
+    )
+    goniometer["offsets"] = list(
+        split_arrays("mcstas", goniometer["axes"], goniometer["offsets"]).values()
+    )
+    detector["vectors"] = list(
+        split_arrays("mcstas", detector["axes"], detector["vectors"]).values()
+    )
 
     # Check that filenames are paths
     if all(isinstance(f, Path) for f in datafiles) is False:

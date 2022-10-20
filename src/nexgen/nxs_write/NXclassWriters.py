@@ -10,14 +10,7 @@ from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
-from .. import (
-    get_iso_timestamp,
-    imgcif2mcstas,
-    split_arrays,
-    units_of_length,
-    units_of_time,
-    ureg,
-)
+from .. import get_iso_timestamp, imgcif2mcstas, units_of_length, units_of_time, ureg
 from . import calculate_origin, create_attributes, set_dependency, write_compressed_copy
 
 # from hdf5plugin import Bitshuffle   # noqa: F401
@@ -144,7 +137,6 @@ def write_NXdata(
         goniometer["depends"][idx], path="/entry/sample/transformations/"
     )
 
-    vectors = split_arrays(coord_frame, goniometer["axes"], goniometer["vectors"])
     # Write attributes for axis
     create_attributes(
         ax,
@@ -153,7 +145,7 @@ def write_NXdata(
             dep,
             goniometer["types"][idx],
             goniometer["units"][idx],
-            vectors[osc_axis],
+            goniometer["vectors"][idx],
         ),
     )
 
@@ -172,7 +164,7 @@ def write_NXdata(
                     ax_dep,
                     goniometer["types"][ax_idx],
                     goniometer["units"][ax_idx],
-                    vectors[k],
+                    goniometer["vectors"][ax_idx],
                 ),
             )
 
@@ -229,15 +221,12 @@ def write_NXsample(
             scan_axes.append(k)
 
     # Create sample_{axisname} groups
-    vectors = split_arrays(coord_frame, goniometer["axes"], goniometer["vectors"])
-    for ax in goniometer["axes"]:
+    for idx, ax in enumerate(goniometer["axes"]):
         grp_name = f"sample_{ax[-1]}" if "sam_" in ax else f"sample_{ax}"
         nxsample_ax = nxsample.create_group(grp_name)
         create_attributes(nxsample_ax, ("NX_class",), ("NXpositioner",))
         if ax == osc_axis:
             # If we're dealing with the scan axis
-            idx = goniometer["axes"].index(osc_axis)
-            # ... I was clearly overthinking this
             if (
                 "data" in nxsfile["/entry"].keys()
                 and ax in nxsfile["/entry/data"].keys()
@@ -256,7 +245,7 @@ def write_NXsample(
                         _dep,
                         goniometer["types"][idx],
                         goniometer["units"][idx],
-                        vectors[osc_axis],
+                        goniometer["vectors"][idx],
                     ),
                 )
                 nxtransformations[ax] = nxsfile[nxax.name]
@@ -277,7 +266,6 @@ def write_NXsample(
                 nxsample_ax[ax] = nxsfile[nxsfile["/entry/data"][ax].name]
                 nxtransformations[ax] = nxsfile[nxsfile["/entry/data"][ax].name]
             else:
-                idx = goniometer["axes"].index(ax)
                 nxax = nxsample_ax.create_dataset(ax, data=transl_scan[ax])
                 _dep = set_dependency(
                     goniometer["depends"][idx], path="/entry/sample/transformations/"
@@ -289,13 +277,12 @@ def write_NXsample(
                         _dep,
                         goniometer["types"][idx],
                         goniometer["units"][idx],
-                        vectors[ax],
+                        goniometer["vectors"][idx],
                     ),
                 )
                 nxtransformations[ax] = nxsfile[nxax.name]
         else:
             # For all other axes
-            idx = goniometer["axes"].index(ax)
             nxax = nxsample_ax.create_dataset(
                 ax, data=np.array([goniometer["starts"][idx]])
             )
@@ -309,12 +296,10 @@ def write_NXsample(
                     _dep,
                     goniometer["types"][idx],
                     goniometer["units"][idx],
-                    vectors[ax],
+                    goniometer["vectors"][idx],
                 ),
             )
             nxtransformations[ax] = nxsfile[nxax.name]
-
-    # Not the best but it works ...
 
     # Look for nxbeam in file, if it's there make link
     try:
@@ -634,12 +619,9 @@ def write_NXdetector(
         ("NXtransformations",),
     )
 
-    # Create groups for detector_z and two_theta if present
-    vectors = split_arrays(coord_frame, detector["axes"], detector["vectors"])
-
-    # This assumes only detector_z or two_theta as axes, and that they are fixed.
-    for ax in detector["axes"]:
-        idx = detector["axes"].index(ax)
+    # Create groups for detector_z and any other detector axis (eg. two_theta) if present
+    # This assumes that the detector axes are fixed.
+    for idx, ax in enumerate(detector["axes"]):
         if ax == "det_z":
             grp_name = "detector_z"
             dist = units_of_length(str(detector["starts"][idx]) + "mm")  # , True)
@@ -666,7 +648,7 @@ def write_NXdetector(
                 _dep,
                 detector["types"][idx],
                 detector["units"][idx],
-                vectors[ax],
+                detector["vectors"][idx],
             ),
         )
         if ax == detector["axes"][-1]:
