@@ -10,7 +10,7 @@ from typing import Dict, List, Tuple
 import h5py
 import numpy as np
 
-from .. import get_filename_template, split_arrays, units_of_time
+from .. import get_filename_template, imgcif2mcstas, split_arrays, units_of_time
 from ..tools.DataWriter import generate_event_files, generate_image_files
 from ..tools.MetaReader import overwrite_beam, overwrite_detector
 from ..tools.VDS_tools import image_vds_writer, vds_file_writer
@@ -201,14 +201,30 @@ def call_writers(
 
     # Split vectors and offsets in goniometer and detector for writing
     goniometer["vectors"] = list(
-        split_arrays("mcstas", goniometer["axes"], goniometer["vectors"]).values()
+        split_arrays(
+            coordinate_frame, goniometer["axes"], goniometer["vectors"]
+        ).values()
     )
     goniometer["offsets"] = list(
-        split_arrays("mcstas", goniometer["axes"], goniometer["offsets"]).values()
+        split_arrays(
+            coordinate_frame, goniometer["axes"], goniometer["offsets"]
+        ).values()
     )
     detector["vectors"] = list(
-        split_arrays("mcstas", detector["axes"], detector["vectors"]).values()
+        split_arrays(coordinate_frame, detector["axes"], detector["vectors"]).values()
     )
+
+    if "offsets" in module.keys():
+        module["offsets"] = list(
+            split_arrays(
+                coordinate_frame, ["fast_axis", "slow_axis"], module["offsets"]
+            ).values()
+        )
+
+    # Convert remaining vectors (fast and slow axis) if coordinate system is not mcstas.
+    if coordinate_frame == "imgcif":
+        module["fast_axis"] = imgcif2mcstas(module["fast_axis"])
+        module["slow_axis"] = imgcif2mcstas(module["slow_axis"])
 
     # Check that filenames are paths
     if all(isinstance(f, Path) for f in datafiles) is False:

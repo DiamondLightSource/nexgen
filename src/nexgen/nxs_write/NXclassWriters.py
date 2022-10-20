@@ -10,13 +10,7 @@ from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
-from .. import (  # coord2mcstas,
-    get_iso_timestamp,
-    imgcif2mcstas,
-    units_of_length,
-    units_of_time,
-    ureg,
-)
+from .. import get_iso_timestamp, units_of_length, units_of_time, ureg
 from . import calculate_origin, create_attributes, set_dependency, write_compressed_copy
 
 # from hdf5plugin import Bitshuffle   # noqa: F401
@@ -616,7 +610,6 @@ def write_NXdetector(
 def write_NXdetector_module(
     nxsfile: h5py.File,
     module: Dict,
-    coord_frame: str,
     image_size: List | Tuple,
     pixel_size: List | Tuple,
     beam_center: Optional[List | Tuple] = None,
@@ -627,7 +620,6 @@ def write_NXdetector_module(
     Args:
         nxsfile (h5py.File): NeXus file handle.
         module (Dict): Dictionary containing the detector module information: fast and slow axes, how many modules.
-        coord_frame (str): Coordinate system the axes are currently in. If it's imgcif instead of mcstas, axes vectors will be converted.
         image_size (List | Tuple): Size of the detector.
         pixel_size (List | Tuple): Size of the single pixels in fast and slow direction, in mm.
         beam_center (Optional[List | Tuple], optional): Beam center position, needed only if origin needs to be calculated. Defaults to None.
@@ -647,18 +639,13 @@ def write_NXdetector_module(
     nxmodule.create_dataset("data_stride", data=np.array([1, 1]))
 
     # Write fast_ and slow_ pixel_direction
-    # Convert vectors if needed
-    if coord_frame == "imgcif":
-        fast_axis = imgcif2mcstas(module["fast_axis"])
-        slow_axis = imgcif2mcstas(module["slow_axis"])
-    # elif coord_frame != "mcstas" and coord_frame != "imgcif":
-    #     fast_axis = coord2mcstas(module["fast_axis"], np.array())
-    #     slow_axis = coord2mcstas(module["slow_axis"], np.array())
-    else:
-        fast_axis = tuple(module["fast_axis"])
-        slow_axis = tuple(module["slow_axis"])
+    fast_axis = tuple(module["fast_axis"])
+    slow_axis = tuple(module["slow_axis"])
 
-    # offsets = split_arrays(coord_frame, ["fast_axis", "slow_axis"], module["offsets"])
+    if "offsets" in module.keys():
+        offsets = module["offsets"]
+    else:
+        offsets = [(0, 0, 0), (0, 0, 0)]
 
     x_pix = units_of_length(pixel_size[0], True)
     fast_pixel = nxmodule.create_dataset("fast_pixel_direction", data=x_pix.magnitude)
@@ -674,7 +661,7 @@ def write_NXdetector_module(
         ),
         (
             "/entry/instrument/detector/transformations/detector_z/det_z",
-            [0, 0, 0],
+            offsets[0],
             "mm",
             "translation",
             format(x_pix.units, "~"),
@@ -696,7 +683,7 @@ def write_NXdetector_module(
         ),
         (
             "/entry/instrument/detector/module/fast_pixel_direction",
-            [0, 0, 0],
+            offsets[1],
             "mm",
             "translation",
             format(y_pix.units, "~"),
@@ -705,6 +692,14 @@ def write_NXdetector_module(
     )
 
     # If module_offset is set to 1 or 2, calculate accordinlgy and write the field
+    if "module_offset" not in module.keys():
+        NXclass_logger.warning(
+            "Module_offset option wasn't passed."
+            "It will be automatically set to '1' and the origin calculated accordingly."
+            "To skip this calculation please set module_offset to '0'."
+        )
+        module["module_offset"] = "1"
+
     if module["module_offset"] != "0":
         pixel_size_m = [
             x_pix.magnitude,

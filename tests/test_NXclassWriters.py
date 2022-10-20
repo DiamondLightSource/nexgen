@@ -155,9 +155,7 @@ def test_given_module_offset_of_1_when_write_NXdetector_module_then_fast_and_slo
     dummy_nexus_file,
 ):
     test_module["module_offset"] = "1"
-    write_NXdetector_module(
-        dummy_nexus_file, test_module, "", [10, 10], [0.1, 0.1], [0, 0]
-    )
+    write_NXdetector_module(dummy_nexus_file, test_module, [10, 10], [0.1, 0.1], [0, 0])
 
     module_nexus_path = "/entry/instrument/detector/module/"
     for axis in ["slow_pixel_direction", "fast_pixel_direction"]:

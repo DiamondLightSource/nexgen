@@ -10,6 +10,8 @@
 ### Changed
 - Entry key for data in NXdata as argument.
 - Rotation axis for the detector not hard coded to two theta anymore.
+- Splitting of arrays done before feeding the goniometer/detector dictionaries to the NXclass writers.
+- All conversions to mcstas done before passing vectors/arrays to writers
 
 ---
 ## 0.6.11
