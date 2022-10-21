@@ -13,7 +13,8 @@ from nexgen.nxs_write.NexusWriter import ScanReader
 
 from .. import coord2mcstas, split_arrays
 from . import find_number_of_images
-from .NXclassWriters import (  # write_NXcoordinate_system_set,
+from .NXclassWriters import (
+    write_NXcoordinate_system_set,
     write_NXdata,
     write_NXdatetime,
     write_NXdetector,
@@ -29,13 +30,25 @@ from .NXclassWriters import (  # write_NXcoordinate_system_set,
 # ED_coord_system = {
 #     "convention": "ED",
 #     "origin": (0, 0, 0),
-#     "x": ([], "."),
-#     "y": ([], "x"),
-#     "z": ([], "y"),
+#     "x": (".", "translation", "mm", []),        # (depends, type, unit, vector)
+#     "y": ("x", "translation", "mm", []),
+#     "z": ("y", "translation", "mm", []),
 # }
 
 
 def reframe_arrays(coordinate_frame, goniometer, detector, module, ED_coord_system):
+    """_summary_
+
+    Args:
+        coordinate_frame (_type_): _description_
+        goniometer (_type_): _description_
+        detector (_type_): _description_
+        module (_type_): _description_
+        ED_coord_system (_type_): _description_
+
+    Raises:
+        ValueError: _description_
+    """
     # If the vectors are not yet split, first do that
     if len(goniometer["vectors"]) == 3 * len(goniometer["axes"]):
         goniometer["vectors"] = list(
@@ -66,7 +79,11 @@ def reframe_arrays(coordinate_frame, goniometer, detector, module, ED_coord_syst
                 "Impossible to convert to mcstas."
             )
         mat = np.array(
-            [ED_coord_system["x"][0], ED_coord_system["y"][0], ED_coord_system["z"][0]]
+            [
+                ED_coord_system["x"][-1],
+                ED_coord_system["y"][-1],
+                ED_coord_system["z"][-1],
+            ]
         )
 
         # Goniometer
@@ -95,8 +112,23 @@ def ED_call_writers(
     n_images: int = None,
     timestamps: List | Tuple = None,
     notes: Dict[str, Any] = None,
-    # mask_flatfield_file: Path | str = None        # This should already be in detector at this point
 ):
+    """_summary_
+
+    Args:
+        nxsfile (h5py.File): _description_
+        datafiles (List[Path  |  str]): _description_
+        goniometer (Dict[str, Any]): _description_
+        detector (Dict[str, Any]): _description_
+        module (Dict[str, Any]): _description_
+        source (Dict[str, Any]): _description_
+        beam (Dict[str, Any]): _description_
+        ED_coord_system (Dict[str, Any]): _description_
+        coordinate_frame (str, optional): _description_. Defaults to "mcstas".
+        n_images (int, optional): _description_. Defaults to None.
+        timestamps (List | Tuple, optional): _description_. Defaults to None.
+        notes (Dict[str, Any], optional): _description_. Defaults to None.
+    """
     logger = logging.getLogger("nexgen.EDCall")
     logger.setLevel(logging.DEBUG)
     logger.info("")
@@ -138,7 +170,10 @@ def ED_call_writers(
     write_NXentry(nxsfile)
 
     # NXcoordinate_system_set: /entry/coordinate_system_set
-    # TODO
+    base_vectors = {k: ED_coord_system.get(k) for k in ["x", "y", "z"]}
+    write_NXcoordinate_system_set(
+        nxsfile, ED_coord_system["convention"], base_vectors, ED_coord_system["origin"]
+    )
 
     # NXdata: /entry/data
     write_NXdata(
