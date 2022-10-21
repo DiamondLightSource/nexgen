@@ -225,7 +225,7 @@ def test_write_NXcoordinate_system_set(dummy_nexus_file):
     assert "coordinate_system_set" in dummy_nexus_file["/entry/"].keys()
 
     loc = "/entry/coordinate_system_set/transformations/"
-    assert dummy_nexus_file[loc + "depends_on"] == b"."
+    assert dummy_nexus_file[loc + "depends_on"][()] == b"."
     assert "x" in dummy_nexus_file[loc].keys()
     assert "y" in dummy_nexus_file[loc].keys()
     assert "z" in dummy_nexus_file[loc].keys()
