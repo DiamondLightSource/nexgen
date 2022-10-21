@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 import h5py
 import numpy as np
@@ -165,14 +165,14 @@ def call_writers(
     datafiles: List[Path | str],
     coordinate_frame: str,
     data_type: Tuple[str, int],
-    goniometer: Dict,
-    detector: Dict,
-    module: Dict,
-    source: Dict,
-    beam: Dict,
-    attenuator: Dict,
-    osc_scan: Dict,
-    transl_scan: Dict = None,
+    goniometer: Dict[str, Any],
+    detector: Dict[str, Any],
+    module: Dict[str, Any],
+    source: Dict[str, Any],
+    beam: Dict[str, Any],
+    attenuator: Dict[str, Any],
+    osc_scan: Dict[str, np.ndarray],
+    transl_scan: Dict[str, np.ndarray] = None,
     metafile: Path | str = None,
     link_list: List = None,
 ):
@@ -184,14 +184,14 @@ def call_writers(
         datafiles (List[Path |str]): List of at least 1 Path object to a HDF5 data file.
         coordinate_frame (str): Coordinate system being used. Accepted frames are imgcif and mcstas.
         data_type (Tuple[str, int]): Images or event-mode data, and eventually how many are being written.
-        goniometer (Dict): Goniometer geometry description.
-        detector (Dict): Detector specific parameters and its axes.
-        module (Dict): Geometry and description of detector module.
-        source (Dict): Facility information.
-        beam (Dict): Beam properties.
-        attenuator (Dict): Attenuator properties.
-        osc_scan (Dict): Axis defining the rotation scan. It should be passed even when still.
-        transl_scan (Dict, optional): Axes defining a linear or 2D scan. Defaults to None.
+        goniometer (Dict[str, Any] Goniometer geometry description.
+        detector (Dict[str, Any]): Detector specific parameters and its axes.
+        module (Dict[str, Any]): Geometry and description of detector module.
+        source (Dict[str, Any]): Facility information.
+        beam (Dict[str, Any]): Beam properties.
+        attenuator (Dict[str, Any]): Attenuator properties.
+        osc_scan (Dict[str, np.ndarray]): Axis defining the rotation scan. It should be passed even when still.
+        transl_scan (Dict[str, np.ndarray], optional): Axes defining a linear or 2D scan. Defaults to None.
         metafile (Path | str, optional): File containing the metadata. Defaults to None.
         link_list (List, optional): List of datasets that can be copied from the metafile. Defaults to None.
     """

@@ -793,13 +793,13 @@ def write_NXcollection(
 
 
 # NXdatetime writer
-def write_NXdatetime(nxsfile: h5py.File, timestamps: Tuple):
+def write_NXdatetime(nxsfile: h5py.File, timestamps: List | Tuple):
     """
     Write start and end timestamps under /entry/start_time and /entry/end_time.
 
     Args:
         nxsfile (h5py.File): Nexus file to be written.
-        timestamps (Tuple): Timestamps (start, end).
+        timestamps (List | Tuple): Timestamps (start, end).
     """
     nxentry = nxsfile.require_group("entry")
 
@@ -853,14 +853,9 @@ def write_NXnote(nxsfile: h5py.File, loc: str, info: Dict):
 
 def write_NXcoordinate_system_set(
     nxsfile: h5py.File,
-    convention: str = "ED",
-    base_vectors: List
-    | Tuple = [
-        (1, 0, 0),
-        (0, 0, -1),
-        (0, 1, 0),
-    ],  # Example here from ED... to be checked.
-    origin: List | Tuple | np.ndarray = [0.0, 0.0, 0.0],
+    convention: str,
+    base_vectors: List | Tuple | np.ndarray,
+    origin: List | Tuple | np.ndarray,
 ):
     """
     Write a container object to store coordinate system conventions different from mcstas.
@@ -875,7 +870,7 @@ def write_NXcoordinate_system_set(
         base_vectors (List | Tuple, optional): The three base vectors of the coordinate system. Defaults to [(), (), ()].
         origin (List | Tuple | np.ndarray, optional): The location of the origin of the coordinate system. Defaults to [0.0, 0.0, 0.0].
     """
-    # TODO base_vectors should probably hold more information than just the vectors... at the very least the dependency chain.
+    # TODO FIXME base_vectors should probably hold more information than just the vectors... at the very least the dependency chain.
     # Otherwise it could be passed as another optional argument, as long as it's in the correct order.
     NXclass_logger.info(
         f"Writing NXcoordinate_system_set to define the coordinate system convention for {convention}."
