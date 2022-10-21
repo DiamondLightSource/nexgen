@@ -1,4 +1,5 @@
-"""_summary_
+"""
+Writer for NXmx format NeXus files for Electron Diffraction.
 """
 from __future__ import annotations
 
@@ -9,10 +10,9 @@ from typing import Any, Dict, List, Tuple
 import h5py
 import numpy as np
 
-from nexgen.nxs_write.NexusWriter import ScanReader
-
 from .. import coord2mcstas, split_arrays
 from . import find_number_of_images
+from .NexusWriter import ScanReader
 from .NXclassWriters import (
     write_NXcoordinate_system_set,
     write_NXdata,
@@ -26,6 +26,9 @@ from .NXclassWriters import (
     write_NXsource,
 )
 
+logger = logging.getLogger("nexgen.ED_Writer")
+logger.setLevel(logging.DEBUG)
+
 # SOmething like this ?
 # ED_coord_system = {
 #     "convention": "ED",
@@ -36,15 +39,24 @@ from .NXclassWriters import (
 # }
 
 
-def reframe_arrays(coordinate_frame, goniometer, detector, module, ED_coord_system):
-    """_summary_
+def reframe_arrays(
+    coordinate_frame: str,
+    goniometer: Dict[str, Any],
+    detector: Dict[str, Any],
+    module: Dict[str, Any],
+    ED_coord_system: Dict[str, Any],
+):
+    """
+    Split a list of offset/vector values into arrays. If the coordinate frame is not mcstas, \
+    convert the arrays using the base vectors of the ED coordinate system.
 
     Args:
-        coordinate_frame (_type_): _description_
-        goniometer (_type_): _description_
-        detector (_type_): _description_
-        module (_type_): _description_
-        ED_coord_system (_type_): _description_
+        coordinate_frame (str): Coordinate system being used.
+        goniometer (Dict[str, Any]): Goniometer geometry description.
+        detector (Dict[str, Any]): Detector specific parameters and its axes.
+        module (Dict[str, Any]): Geometry and description of detector module.
+        ED_coord_system (Dict[str, Any]): Definition of the current coordinate frame for ED. \
+            It should at least contain the convention, origin and base vectors.
 
     Raises:
         ValueError: _description_
@@ -73,6 +85,7 @@ def reframe_arrays(coordinate_frame, goniometer, detector, module, ED_coord_syst
 
     # If the input vectors have not yet been converted to mcstas, do the conversion
     if coordinate_frame != "mcstas":
+        logger.info("Input coordinate frame is not mcstas, vectors will be converted.")
         if coordinate_frame != ED_coord_system["convention"]:
             raise ValueError(
                 "The input coordinate frame value doesn't match the current cordinate system convention."
@@ -113,25 +126,29 @@ def ED_call_writers(
     timestamps: List | Tuple = None,
     notes: Dict[str, Any] = None,
 ):
-    """_summary_
+    """
+    Write a new NXmx format-like NeXus file for Electron Diffraction data.
+    This function performs a few checks on the coordinate frame of the input vectors \
+    and then calls the writers for the relevant NeXus base classes.
 
     Args:
-        nxsfile (h5py.File): _description_
-        datafiles (List[Path  |  str]): _description_
-        goniometer (Dict[str, Any]): _description_
-        detector (Dict[str, Any]): _description_
-        module (Dict[str, Any]): _description_
-        source (Dict[str, Any]): _description_
-        beam (Dict[str, Any]): _description_
-        ED_coord_system (Dict[str, Any]): _description_
-        coordinate_frame (str, optional): _description_. Defaults to "mcstas".
+        nxsfile (h5py.File): Handle to NeXus file to be written.
+        datafiles (List[Path  |  str]): List of at least 1 Path object to a HDF5 data file.
+        goniometer (Dict[str, Any]): Goniometer geometry description.
+        detector (Dict[str, Any]): Detector specific parameters and its axes.
+        module (Dict[str, Any]): Geometry and description of detector module.
+        source (Dict[str, Any]): Facility information.
+        beam (Dict[str, Any]): Beam properties.
+        ED_coord_system (Dict[str, Any]): Definition of the current coordinate frame for ED. \
+            It should at least contain the convention, origin and base vectors.
+        coordinate_frame (str, optional): Coordinate system being used. Defaults to "mcstas".
         n_images (int, optional): _description_. Defaults to None.
-        timestamps (List | Tuple, optional): _description_. Defaults to None.
-        notes (Dict[str, Any], optional): _description_. Defaults to None.
+        timestamps (List | Tuple, optional): Start and end time of the collection, if known. \
+            Preferably passed as datetime.datetime. Defaults to None.
+        notes (Dict[str, Any], optional): Any useful information/comment about the collection. \
+            The keys of the dictionaries will be the dataset names and the values the data. Defaults to None.
     """
-    logger = logging.getLogger("nexgen.EDCall")
-    logger.setLevel(logging.DEBUG)
-    logger.info("")
+    logger.info("NeXus writer for Electron Diffraction data.")
 
     # For the moment since there's no attenuator just set to none
     attenuator = {"transmission": None}
@@ -199,7 +216,7 @@ def ED_call_writers(
     write_NXdetector_module(
         nxsfile,
         module,
-        detector["image_size"],  # [::-1],
+        detector["image_size"],
         detector["pixel_size"],
         beam_center=detector["beam_center"],
     )
