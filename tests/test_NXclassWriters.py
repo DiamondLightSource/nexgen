@@ -9,6 +9,7 @@ import pytest
 from numpy.testing import assert_array_equal
 
 from nexgen.nxs_write.NXclassWriters import (
+    write_NXcoordinate_system_set,
     write_NXdata,
     write_NXdatetime,
     write_NXdetector_module,
@@ -208,3 +209,26 @@ def test_write_NXnote_in_given_location(dummy_nexus_file):
     assert "pump_status" in dummy_nexus_file[loc_path].keys()
     assert "pump_exp" in dummy_nexus_file[loc_path].keys()
     assert_array_equal(dummy_nexus_file[loc_path + "pump_exp"][()], 0.001)
+
+
+def test_write_NXcoordinate_system_set(dummy_nexus_file):
+    bases = {
+        "x": (".", "translation", "mm", [0, 0, 1]),
+        "y": ("x", "translation", "mm", [0, 0, 0]),
+        "z": ("y", "translation", "mm", [-1, 0, 0]),
+    }
+
+    write_NXcoordinate_system_set(
+        dummy_nexus_file, "new_coord_system", bases, (1, 1, 0)
+    )
+
+    assert "coordinate_system_set" in dummy_nexus_file["/entry/"].keys()
+
+    loc = "/entry/coordinate_system_set/transformations/"
+    assert dummy_nexus_file[loc + "depends_on"] == b"."
+    assert "x" in dummy_nexus_file[loc].keys()
+    assert "y" in dummy_nexus_file[loc].keys()
+    assert "z" in dummy_nexus_file[loc].keys()
+    assert_array_equal(dummy_nexus_file[loc + "origin"][()], (1, 1, 0))
+    assert_array_equal(dummy_nexus_file[loc + "x"][()], 1)
+    assert_array_equal(dummy_nexus_file[loc + "y"].attrs["vector"], [0, 0, 0])
