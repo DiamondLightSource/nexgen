@@ -7,12 +7,16 @@
 - Function to write a compressed copy of a dataset in a specified NXgroup. Main application: mask and flatfield in NXdetector.
 - General conversion to mcstas from a user defined coordinate frame.
 - NXcoordinate_system_set writer.
+- Tests for NXentry, NXcoordinate_system_set and NXnote writers.
 
 ### Changed
 - Entry key for data in NXdata as argument.
 - Rotation axis for the detector not hard coded to two theta anymore.
 - Splitting of arrays done before feeding the goniometer/detector dictionaries to the NXclass writers.
-- All conversions to mcstas done before passing vectors/arrays to writers
+- All conversions to mcstas done before passing vectors/arrays to writers.
+
+### Fixed
+- Outstanding data_size order issues.
 
 ---
 ## 0.6.11

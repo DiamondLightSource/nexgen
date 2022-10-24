@@ -29,15 +29,6 @@ from .NXclassWriters import (
 logger = logging.getLogger("nexgen.ED_Writer")
 logger.setLevel(logging.DEBUG)
 
-# SOmething like this ?
-# ED_coord_system = {
-#     "convention": "ED",
-#     "origin": (0, 0, 0),
-#     "x": (".", "translation", "mm", []),        # (depends, type, unit, vector)
-#     "y": ("x", "translation", "mm", []),
-#     "z": ("y", "translation", "mm", []),
-# }
-
 
 def reframe_arrays(
     coordinate_frame: str,
