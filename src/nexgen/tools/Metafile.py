@@ -61,7 +61,7 @@ class Metafile:
 
 class DectrisMetafile(Metafile):
     """
-    Describes a _meta.h5 file for a Dectris detector.
+    Describes a _meta.h5 file for a Dectris Eiger detector.
     """
 
     def __init__(self, handle: h5py.File):

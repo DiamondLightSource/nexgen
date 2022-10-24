@@ -3,6 +3,7 @@
 ##
 
 ### Added
+- NeXus writer for Electron Diffraction data.
 - Function to write a compressed copy of a dataset in a specified NXgroup. Main application: mask and flatfield in NXdetector.
 - General conversion to mcstas from a user defined coordinate frame.
 - NXcoordinate_system_set writer.
