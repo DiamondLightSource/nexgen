@@ -785,8 +785,8 @@ def write_NXcollection(
     NXclass_logger.info("Start writing detectorSpecific group as NXcollection.")
     # Create detectorSpecific group
     grp = nxdetector.require_group("detectorSpecific")
-    grp.create_dataset("x_pixels", data=detector["image_size"][0])
-    grp.create_dataset("y_pixels", data=detector["image_size"][1])
+    grp.create_dataset("x_pixels", data=detector["image_size"][1])  # fast axis
+    grp.create_dataset("y_pixels", data=detector["image_size"][0])  # slow axis
     if data_type[0] == "images":
         grp.create_dataset("nimages", data=data_type[1])
     if meta and data_type[0] == "images":

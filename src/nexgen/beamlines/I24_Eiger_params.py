@@ -33,7 +33,7 @@ eiger9M_params = {
     "flatfield_applied": "_dectris/flatfield_correction_applied",
     "pixel_mask": "mask",
     "pixel_mask_applied": "_dectris/pixel_mask_applied",
-    "image_size": [3108, 3262],  # (fast, slow)
+    "image_size": [3262, 3108],  # (slow, fast)
     "axes": ["det_z"],
     "depends": ["."],
     "vectors": [0, 0, 1],
