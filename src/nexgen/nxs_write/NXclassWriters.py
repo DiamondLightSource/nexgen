@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
+from numpy.typing import ArrayLike
 
 from .. import get_iso_timestamp, units_of_length, units_of_time, ureg
 from . import calculate_origin, create_attributes, set_dependency, write_compressed_copy
@@ -54,8 +55,8 @@ def write_NXdata(
     datafiles: List[Path],
     goniometer: Dict,
     data_type: Tuple[str, int],
-    osc_scan: Dict[str, np.ndarray],
-    transl_scan: Dict[str, np.ndarray] = None,
+    osc_scan: Dict[str, ArrayLike],
+    transl_scan: Dict[str, ArrayLike] = None,
     entry_key: str = "data",
 ):
     """
@@ -66,8 +67,8 @@ def write_NXdata(
         datafiles (List[Path]): List of Path objects pointing to HDF5 data files.
         goniometer (Dict): Dictionary containing all the axes information.
         data_type (Tuple[str, int]): Images or events.
-        osc_scan (Dict[str, np.ndarray]): Rotation scan. If writing events, this is just a (start, end) tuple.
-        transl_scan (Dict[str, np.ndarray], optional): Scan along the xy axes at sample. Defaults to None.
+        osc_scan (Dict[str, ArrayLike]): Rotation scan. If writing events, this is just a (start, end) tuple.
+        transl_scan (Dict[str, ArrayLike], optional): Scan along the xy axes at sample. Defaults to None.
         entry_key (str): Entry key to create the external links to the data files. Defaults to data.
 
     Raises:
@@ -172,8 +173,8 @@ def write_NXsample(
     nxsfile: h5py.File,
     goniometer: Dict,
     data_type: Tuple[str, int],
-    osc_scan: Dict[str, np.ndarray],
-    transl_scan: Dict[str, np.ndarray] = None,
+    osc_scan: Dict[str, ArrayLike],
+    transl_scan: Dict[str, ArrayLike] = None,
 ):
     """
     Write NXsample group at /entry/sample.
@@ -182,8 +183,8 @@ def write_NXsample(
         nxsfile (h5py.File): NeXus file handle.
         goniometer (Dict):Dictionary containing all the axes information.
         data_type (Tuple[str, int]): Images or events.
-        osc_scan (Dict[str, np.ndarray]): Rotation scan. If writing events, this is just a (start, end) tuple.
-        transl_scan (Dict[str, np.ndarray], optional): Scan along the xy axes at sample. Defaults to None.
+        osc_scan (Dict[str, ArrayLike]): Rotation scan. If writing events, this is just a (start, end) tuple.
+        transl_scan (Dict[str, ArrayLike], optional): Scan along the xy axes at sample. Defaults to None.
     """
     NXclass_logger.info("Start writing NXsample and NXtransformations.")
     # Create NXsample group, unless it already exists, in which case just open it.
@@ -872,7 +873,7 @@ def write_NXcoordinate_system_set(
     nxsfile: h5py.File,
     convention: str,
     base_vectors: Dict[str, Tuple],
-    origin: List | Tuple | np.ndarray,
+    origin: List | Tuple | ArrayLike,
 ):
     """
     Write a container object to store coordinate system conventions different from mcstas.

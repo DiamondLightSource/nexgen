@@ -17,6 +17,7 @@ from typing import Any, Dict, List, Tuple
 import h5py
 import numpy as np
 import pint
+from numpy.typing import ArrayLike
 
 # Logging set up
 logging.getLogger("nexgen").addHandler(logging.NullHandler())
@@ -41,7 +42,7 @@ format_list = [
 ]
 
 
-def imgcif2mcstas(vector: List | Tuple | np.array) -> Tuple:
+def imgcif2mcstas(vector: List | Tuple | ArrayLike) -> Tuple:
     """
     Convert from the standard coordinate frame used by imgCIF/CBF to the
     NeXus McStas coordinate system.
@@ -56,7 +57,7 @@ def imgcif2mcstas(vector: List | Tuple | np.array) -> Tuple:
     return tuple(np.dot(c2n, vector))
 
 
-def coord2mcstas(vector: List | Tuple | np.array, mat: np.ndarray) -> Tuple:
+def coord2mcstas(vector: List | Tuple | np.array, mat: ArrayLike) -> Tuple:
     """
     General conversion from a new coordinate convention to the NeXus McStas coordinate system.
 
@@ -141,7 +142,7 @@ def walk_nxs(nxs_obj: h5py.File | h5py.Group) -> List[str]:
 
 
 def split_arrays(
-    coord_frame: str, axes_names: List, array: List, mat: np.ndarray = None
+    coord_frame: str, axes_names: List, array: List, mat: ArrayLike = None
 ) -> Dict[str, Tuple]:
     """
     Split a list of values into arrays.

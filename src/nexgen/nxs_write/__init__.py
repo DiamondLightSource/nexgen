@@ -11,6 +11,7 @@ from typing import Dict, List, Tuple
 # import h5py
 import numpy as np
 from hdf5plugin import Bitshuffle
+from numpy.typing import ArrayLike
 
 # from h5py import AttributeManager
 from scanspec.core import Path as ScanPath
@@ -160,7 +161,7 @@ def calculate_scan_range(
     n_images: Tuple | int = None,
     snaked: bool = True,
     rotation: bool = False,
-) -> Dict[str, np.ndarray]:
+) -> Dict[str, ArrayLike]:
     """
     Calculate the scan range for a linear/grid scan or a rotation scan from the number of images to be written.
     If the number of images is not provided, it can be calculated from the increment value of the axis (these values are mutually exclusive).
@@ -184,7 +185,7 @@ def calculate_scan_range(
         ValueError: For a grid scan, if axes_increments is None, n_images must be a tuple of len=2 to be sure to accurately calculate the scan points.
 
     Returns:
-        Dict[str, np.ndarray]: A dictionary of ("axis_name": axis_range) key-value pairs.
+        Dict[str, ArrayLike]: A dictionary of ("axis_name": axis_range) key-value pairs.
     """
     if type(axes_names) != list or type(axes_starts) != list or type(axes_ends) != list:
         raise TypeError("Input values for axes must be passed as lists.")
@@ -325,7 +326,7 @@ def find_number_of_images(datafile_list: List[Path], entry_key: str = "data") ->
 def write_compressed_copy(
     nxgroup: h5py.Group,
     dset_name: str,
-    data: np.ndarray = None,
+    data: ArrayLike = None,
     filename: Path | str = None,
     dset_key: str = None,
     block_size: int = 0,
@@ -341,7 +342,7 @@ def write_compressed_copy(
     Args:
         nxgroup (h5py.Group): Handle to HDF5 group.
         dset_name (str): Name of the new dataset to be written.
-        data (np.ndarray, optional): Dataset to be compressed. Defaults to None.
+        data (ArrayLike, optional): Dataset to be compressed. Defaults to None.
         filename (Path | str, optional): Filename containing the dataset to be compressed into the NeXus file. Defaults to None.
         dset_key (str, optional): Dataset name inside the passed file. Defaults to None.
         block_size (int, optional): Number of elements per block, it needs to be divisible by 8. Defaults to 0.

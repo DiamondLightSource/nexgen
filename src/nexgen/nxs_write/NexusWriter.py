@@ -9,6 +9,7 @@ from typing import Any, Dict, List, Tuple
 
 import h5py
 import numpy as np
+from numpy.typing import ArrayLike
 
 from .. import get_filename_template, imgcif2mcstas, split_arrays, units_of_time
 from ..tools.DataWriter import generate_event_files, generate_image_files
@@ -171,8 +172,8 @@ def call_writers(
     source: Dict[str, Any],
     beam: Dict[str, Any],
     attenuator: Dict[str, Any],
-    osc_scan: Dict[str, np.ndarray],
-    transl_scan: Dict[str, np.ndarray] = None,
+    osc_scan: Dict[str, ArrayLike],
+    transl_scan: Dict[str, ArrayLike] = None,
     metafile: Path | str = None,
     link_list: List = None,
 ):
@@ -190,8 +191,8 @@ def call_writers(
         source (Dict[str, Any]): Facility information.
         beam (Dict[str, Any]): Beam properties.
         attenuator (Dict[str, Any]): Attenuator properties.
-        osc_scan (Dict[str, np.ndarray]): Axis defining the rotation scan. It should be passed even when still.
-        transl_scan (Dict[str, np.ndarray], optional): Axes defining a linear or 2D scan. Defaults to None.
+        osc_scan (Dict[str, ArrayLike]): Axis defining the rotation scan. It should be passed even when still.
+        transl_scan (Dict[str, ArrayLike], optional): Axes defining a linear or 2D scan. Defaults to None.
         metafile (Path | str, optional): File containing the metadata. Defaults to None.
         link_list (List, optional): List of datasets that can be copied from the metafile. Defaults to None.
     """
