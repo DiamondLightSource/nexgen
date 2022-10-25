@@ -171,7 +171,11 @@ def extract_from_SINGLA_master(master: Path | str) -> Dict[str, Any]:
     with h5py.File(master, "r") as fh:
         singla = SinglaMaster(fh)
         MASK = singla.get_mask()
+        if MASK[1] is not None:
+            logger.info("Pixel_mask has been found in master file.")
         FF = singla.get_flafield()
+        if FF[1] is not None:
+            logger.info("Flatfield has been found in master file.")
         D["pixel_mask"] = MASK[1]
         D["pixel_mask_applied"] = MASK[0]
         D["flatfield"] = FF[1]

@@ -12,7 +12,7 @@ ED_coord_system = {
     "z": ("y", "translation", "mm", [0, 0, 1]),
 }
 
-goniometer_axes = {
+goniometer = {
     "axes": ["alpha", "sam_z", "sam_y", "sam_x"],
     "depends": [".", "alpha", "sam_z", "sam_y"],
     "vectors": [(-1, 0, 0), (0, 0, 1), (0, 1, 0), (1, 0, 0)],

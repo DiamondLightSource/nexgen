@@ -139,7 +139,7 @@ def ED_call_writers(
         notes (Dict[str, Any], optional): Any useful information/comment about the collection. \
             The keys of the dictionaries will be the dataset names and the values the data. Defaults to None.
     """
-    logger.info("NeXus writer for Electron Diffraction data.")
+    logger.info("Call the NXclass writers for Electron Diffraction data.")
 
     # For the moment since there's no attenuator just set to none
     attenuator = {"transmission": None}
