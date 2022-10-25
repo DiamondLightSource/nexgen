@@ -607,6 +607,23 @@ def write_NXdetector(
     nxdetector.create_dataset("distance", data=dist.magnitude)
     create_attributes(nxdetector["distance"], ("units",), (format(dist.units, "~")))
 
+    # Check if there are any remaining datasets to be written (usually from the meta file but not always)
+    others = [
+        "threshold_energy",
+        "bit_depth_readout",
+        "detector_number",
+        "detector_readout_time",
+        "photon_energy",
+    ]
+    for dset in others:
+        if nxdetector.__contains__(dset) is False and dset in detector.keys():
+            val = (
+                np.string_(detector[dset])
+                if type(detector[dset]) is str
+                else [(detector[dset])]
+            )
+            nxdetector.create_dataset(dset, data=val)
+
 
 # NXdetector_module writer
 def write_NXdetector_module(
