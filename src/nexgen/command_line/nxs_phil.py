@@ -238,6 +238,22 @@ sample_scope = freephil.parse(
     """
 )
 
+coord_system_scope = freephil.parse(
+    """
+    coord_system {
+      convention = None
+        .type = str
+        .help = "Name of the new coordinate system."
+      origin = 0 0 0
+        .type = floats
+        .help = "Location of the origin."
+      vectors = 1 0 0 0 1 0 0 0 1
+        .type = floats
+        .help = "x,y,z axes vectors for the transformation."
+    }
+    """
+)
+
 if __name__ == "__main__":
     print(detector_scope.as_str())
     print(module_scope.as_str())

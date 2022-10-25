@@ -33,6 +33,7 @@ singla_1M = {
     "overload": 199996,
     "underload": -1,
     "pixel_size": ["0.075mm", "0.075mm"],
+    "beam_center": None,
     "flatfield": None,
     "pixel_mask": None,
     "image_size": [1062, 1028],  # (slow, fast)

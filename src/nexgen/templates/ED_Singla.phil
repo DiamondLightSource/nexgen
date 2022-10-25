@@ -1,6 +1,6 @@
 goniometer {
-  axes = omega sam_z sam_y sam_x
-  depends = . omega sam_z sam_y
+  axes = alpha sam_z sam_y sam_x
+  depends = . alpha sam_z sam_y
   vectors = -1,0,0,0,0,1,0,1,0,1,0,0
   offsets = 0,0,0,0,0,0,0,0,0,0,0,0
   offset_units = mm mm mm mm
@@ -14,27 +14,23 @@ source {
   name = Diamond Light Source
   short_name = DLS
   type = Synchrotron X-ray Source
-  beamline_name = I24
+  beamline_name = eBic
+  probe = electron
 }
 beam {
-  wavelength = None
+  wavelength = 0.02
   flux = None
 }
 attenuator {
   transmission = None
 }
-pump_probe {
-  pump_status = False
-  pump_exp = None
-  pump_delay = None
-}
 detector {
   mode = *images events
-  description = Eiger 2X 9M
-  detector_type = Pixel
-  sensor_material = Si *CdTe
-  sensor_thickness = 0.750mm
-  overload = 50649
+  description = Dectris Singla 1M
+  detector_type = HPC
+  sensor_material = *Si CdTe
+  sensor_thickness = 0.450mm
+  overload = 199996
   underload = -1
   pixel_size = 0.075mm 0.075mm
   beam_center = None
@@ -42,7 +38,7 @@ detector {
   flatfield_applied = False
   pixel_mask = None
   pixel_mask_applied = False
-  image_size = 3262 3108
+  image_size = 1062 1028
   exposure_time = None
   axes = det_z
   depends = .
@@ -61,4 +57,9 @@ detector_module {
   slow_axis = 0,-1,0
   offsets = 0,0,0,0,0,0
   module_size = 0 0
+}
+coord_system {
+  convention = ED
+  origin = 0 0 0
+  vectors = 0 1 0 -1 0 0 0 0 1
 }
