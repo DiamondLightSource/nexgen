@@ -8,6 +8,8 @@ from pathlib import Path
 
 import h5py
 
+from nexgen.nxs_write import find_number_of_images
+
 from .. import get_iso_timestamp, get_nexus_filename, log
 from ..beamlines.ED_params import ED_coord_system, beam, goniometer, module, source
 from ..nxs_write.EDNexusWriter import ED_call_writers
@@ -30,7 +32,7 @@ def write_from_SINGLA(args):
     datafiles = [Path(f).expanduser().resolve() for f in args.datafiles]
 
     # Configure logger
-    logfile = datafiles[0].master / "EDnxs.log"
+    logfile = datafiles[0].parent / "EDnxs.log"
     log.config(logfile.as_posix())
 
     # Get NeXus file name
@@ -81,7 +83,7 @@ def write_from_SINGLA(args):
             )
 
         if args.vds is True:
-            nimages = nxs["/entry/instrument/detector/detectorSpecific/nimages"][()]
+            nimages = find_number_of_images(datafiles, "/entry/data/data")
             image_vds_writer(nxs, (int(nimages), *detector["image_size"]))
 
         logger.info("NeXus file written correctly.")
@@ -111,6 +113,3 @@ singla_parser.set_defaults(func=write_from_SINGLA)
 def main():
     args = parser.parse_args()
     args.func(args)
-
-
-main()

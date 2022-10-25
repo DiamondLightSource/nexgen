@@ -185,3 +185,5 @@ def extract_from_SINGLA_master(master: Path | str) -> Dict[str, Any]:
         D["detector_number"] = singla.get_detector_number()
         D["detector_readout_time"] = singla.get_detector_readout_time()
         D["photon_energy"] = singla.get_photon_energy()
+
+    return D
