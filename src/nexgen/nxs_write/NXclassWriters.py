@@ -485,6 +485,10 @@ def write_NXdetector(
             )
             flatfield = Path(detector["flatfield"])
             nxdetector["flatfield"] = h5py.ExternalLink(flatfield.name, "/")
+        elif detector["flatfield"] is None:
+            NXclass_logger.warning(
+                "No copy of the flatfield has been found, eithere as a file or dataset."
+            )
         else:
             nxdetector.create_dataset(
                 "flatfield_applied", data=detector["flatfield_applied"]
@@ -497,6 +501,10 @@ def write_NXdetector(
             )
             mask = Path(detector["pixel_mask"])
             nxdetector["pixel_mask"] = h5py.ExternalLink(mask.name, "/")
+        elif detector["pixel_mask"] is None:
+            NXclass_logger.warning(
+                "No copy of the pixel_mask has been found, eithere as a file or dataset."
+            )
         else:
             nxdetector.create_dataset(
                 "pixel_mask_applied", data=detector["pixel_mask_applied"]
@@ -621,7 +629,7 @@ def write_NXdetector(
             val = (
                 np.string_(detector[dset])
                 if type(detector[dset]) is str
-                else [(detector[dset])]
+                else detector[dset]
             )
             nxdetector.create_dataset(dset, data=val)
 
