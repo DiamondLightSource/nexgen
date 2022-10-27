@@ -18,18 +18,16 @@ module_scope = freephil.parse(
                 0 -> do not calculate module_offset
                 1 -> un-normalized displacement, set module_offset to 1
                 2 -> normalized displacement and set module_offset to magnitude of displacement"
-      fast_axis = 1 0 0
+      fast_axis = None
         .type = floats(size = 3)
         .help = "Fast axis at datum position"
-      slow_axis = 0 -1 0
+      slow_axis = None
         .type = floats(size = 3)
         .help = "Slow axis at datum position"
-      offsets = 0 0 0 0 0 0
-        .multiple = True
+      offsets = None
         .type = floats
         .help = "Axis offsets - one after the other - fast then slow"
-      module_size = 0 0
-        .multiple = True
+      module_size = None
         .type = ints
         .help = "In case of multiple modules, pass the size of each single module"
     }

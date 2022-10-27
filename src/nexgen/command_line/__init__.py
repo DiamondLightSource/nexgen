@@ -117,39 +117,8 @@ def add_tristan_spec(detector, tristanSpec):
         detector.__inject__(k, v)
 
 
-EDcoord_parser = argparse.ArgumentParser(add_help=False)
-EDcoord_parser.add_argument("--coord-frame", type=str, default="mcstas")
-EDcoord_parser.add_argument(
-    "-cs",
-    "--cs-name",
-    help="Define new coordinate system convention.",
-    type=str,
-)
-EDcoord_parser.add_argument(
-    "-O",
-    "--origin",
-    help="Location of the origin of the coordinate system.",
-    nargs="+",
-    type=int,
-)
-EDcoord_parser.add_argument(
-    "-x",
-    "--baseX",
-    help="Base vector for x axis.",
-    nargs="+",
-    type=int,
-)
-EDcoord_parser.add_argument(
-    "-y",
-    "--baseY",
-    help="Base vector for y axis.",
-    nargs="+",
-    type=int,
-)
-EDcoord_parser.add_argument(
-    "-z",
-    "--baseZ",
-    help="Base vector for z axis.",
-    nargs="+",
-    type=int,
-)
+def phil2dict(D):
+    l = [k for k in D.keys() if "__phil_" in k]
+    for i in l:
+        D.__delitem__(i)
+    return D

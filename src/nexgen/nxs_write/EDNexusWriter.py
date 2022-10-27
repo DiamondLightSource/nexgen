@@ -74,6 +74,13 @@ def reframe_arrays(
             ).values()
         )
 
+    if module["offsets"] and len(module["offsets"]) == 6:
+        module["offsets"] = list(
+            split_arrays(
+                coordinate_frame, ["fast_axis", "slow_axis"], module["offsets"]
+            ).values()
+        )
+
     # If the input vectors have not yet been converted to mcstas, do the conversion
     if coordinate_frame != "mcstas":
         logger.info("Input coordinate frame is not mcstas, vectors will be converted.")
@@ -157,9 +164,6 @@ def ED_call_writers(
     if all(isinstance(f, Path) for f in datafiles) is False:
         datafiles = [Path(f).expanduser().resolve() for f in datafiles]
 
-    # Define data_type
-    data_type = ("images", n_images)
-
     # Define entry_key if dealing with singla detector
     data_entry_key = (
         "/entry/data/data" if "SINGLA" in detector["description"].upper() else "data"
@@ -168,11 +172,19 @@ def ED_call_writers(
     # If n_images is not passed, calculate it from data files
     if not n_images:
         n_images = find_number_of_images(datafiles, data_entry_key)
+        logger.info(f"Total number of images: {n_images}.")
+
+    # Define data_type
+    data_type = ("images", n_images)
 
     # Calculate scan
     OSC, _ = ScanReader(
         goniometer, n_images=n_images
     )  # No grid scan, can be added if needed at later time
+    logger.info(f"Rotation scan axis: {list(OSC.keys())[0]}.")
+    logger.info(
+        f"Scan from {list(OSC.values())[0][0]} to {list(OSC.values())[0][-1]}.\n"
+    )
 
     # NXentry: /entry
     write_NXentry(nxsfile)

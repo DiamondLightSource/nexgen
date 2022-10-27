@@ -33,7 +33,7 @@ detector {
   overload = 199996
   underload = -1
   pixel_size = 0.075mm 0.075mm
-  beam_center = None
+  beam_center = 0 0
   flatfield = None
   flatfield_applied = False
   pixel_mask = None
@@ -59,7 +59,7 @@ detector_module {
   module_size = 0 0
 }
 coord_system {
-  convention = ED
-  origin = 0 0 0
-  vectors = 0 1 0 -1 0 0 0 0 1
+  convention = None
+  origin = None
+  vectors = None
 }
