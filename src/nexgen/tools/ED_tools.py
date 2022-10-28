@@ -140,7 +140,7 @@ class SinglaMaster:
             return None
         return self.__getitem__(_loc[0])[()]
 
-    def get_software_version(self) -> str:
+    def get_software_version(self) -> bytes:
         _loc = [obj for obj in self.walk if "software_version" in obj]
         if len(_loc) == 0:
             return None

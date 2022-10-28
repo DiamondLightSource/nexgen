@@ -47,37 +47,32 @@ def reframe_arrays(
         detector (Dict[str, Any]): Detector specific parameters and its axes.
         module (Dict[str, Any]): Geometry and description of detector module.
         ED_coord_system (Dict[str, Any]): Definition of the current coordinate frame for ED. \
-            It should at least contain the convention, origin and base vectors.
+            It should at least contain the convention, origin and axes information as a tuple of (depends_on, type, units, vector). \
+                e.g. for X axis: {"x": (".", "translation", "mm", [1,0,0])}
 
     Raises:
-        ValueError: _description_
+        ValueError: When the input coordinate system name and the coordinate system convention for the vectors doesn't match.
     """
-    # If the vectors are not yet split, first do that
+    # If the vectors are not yet split, first do that as if dealing with mcstas
     if len(goniometer["vectors"]) == 3 * len(goniometer["axes"]):
         goniometer["vectors"] = list(
-            split_arrays(
-                coordinate_frame, goniometer["axes"], goniometer["vectors"]
-            ).values()
+            split_arrays("mcstas", goniometer["axes"], goniometer["vectors"]).values()
         )
 
     if len(goniometer["offsets"]) == 3 * len(goniometer["axes"]):
         goniometer["offsets"] = list(
-            split_arrays(
-                coordinate_frame, goniometer["axes"], goniometer["offsets"]
-            ).values()
+            split_arrays("mcstas", goniometer["axes"], goniometer["offsets"]).values()
         )
 
     if len(detector["vectors"]) == 3 * len(detector["axes"]):
         detector["vectors"] = list(
-            split_arrays(
-                coordinate_frame, detector["axes"], detector["vectors"]
-            ).values()
+            split_arrays("mcstas", detector["axes"], detector["vectors"]).values()
         )
 
     if module["offsets"] and len(module["offsets"]) == 6:
         module["offsets"] = list(
             split_arrays(
-                coordinate_frame, ["fast_axis", "slow_axis"], module["offsets"]
+                "mcstas", ["fast_axis", "slow_axis"], module["offsets"]
             ).values()
         )
 

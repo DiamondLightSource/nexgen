@@ -9,7 +9,7 @@ from nexgen.tools.MetaReader import overwrite_beam
 
 dummy_config = '{"nimages": 10, "ntrigger": 1}'
 
-test_detector_size = (512, 1028)
+test_detector_size = (512, 1028)  # slow, fast
 test_beam = {"wavelength": 0.0}
 
 
