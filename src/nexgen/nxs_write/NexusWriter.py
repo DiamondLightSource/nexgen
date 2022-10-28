@@ -5,12 +5,13 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 import h5py
 import numpy as np
+from numpy.typing import ArrayLike
 
-from .. import get_filename_template, units_of_time
+from .. import get_filename_template, imgcif2mcstas, split_arrays, units_of_time
 from ..tools.DataWriter import generate_event_files, generate_image_files
 from ..tools.MetaReader import overwrite_beam, overwrite_detector
 from ..tools.VDS_tools import image_vds_writer, vds_file_writer
@@ -165,14 +166,14 @@ def call_writers(
     datafiles: List[Path | str],
     coordinate_frame: str,
     data_type: Tuple[str, int],
-    goniometer: Dict,
-    detector: Dict,
-    module: Dict,
-    source: Dict,
-    beam: Dict,
-    attenuator: Dict,
-    osc_scan: Dict,
-    transl_scan: Dict = None,
+    goniometer: Dict[str, Any],
+    detector: Dict[str, Any],
+    module: Dict[str, Any],
+    source: Dict[str, Any],
+    beam: Dict[str, Any],
+    attenuator: Dict[str, Any],
+    osc_scan: Dict[str, ArrayLike],
+    transl_scan: Dict[str, ArrayLike] = None,
     metafile: Path | str = None,
     link_list: List = None,
 ):
@@ -184,20 +185,47 @@ def call_writers(
         datafiles (List[Path |str]): List of at least 1 Path object to a HDF5 data file.
         coordinate_frame (str): Coordinate system being used. Accepted frames are imgcif and mcstas.
         data_type (Tuple[str, int]): Images or event-mode data, and eventually how many are being written.
-        goniometer (Dict): Goniometer geometry description.
-        detector (Dict): Detector specific parameters and its axes.
-        module (Dict): Geometry and description of detector module.
-        source (Dict): Facility information.
-        beam (Dict): Beam properties.
-        attenuator (Dict): Attenuator properties.
-        osc_scan (Dict): Axis defining the rotation scan. It should be passed even when still.
-        transl_scan (Dict, optional): Axes defining a linear or 2D scan. Defaults to None.
+        goniometer (Dict[str, Any] Goniometer geometry description.
+        detector (Dict[str, Any]): Detector specific parameters and its axes.
+        module (Dict[str, Any]): Geometry and description of detector module.
+        source (Dict[str, Any]): Facility information.
+        beam (Dict[str, Any]): Beam properties.
+        attenuator (Dict[str, Any]): Attenuator properties.
+        osc_scan (Dict[str, ArrayLike]): Axis defining the rotation scan. It should be passed even when still.
+        transl_scan (Dict[str, ArrayLike], optional): Axes defining a linear or 2D scan. Defaults to None.
         metafile (Path | str, optional): File containing the metadata. Defaults to None.
         link_list (List, optional): List of datasets that can be copied from the metafile. Defaults to None.
     """
     logger = logging.getLogger("nexgen.Call")
     logger.setLevel(logging.DEBUG)
     logger.info("Calling the writers ...")
+
+    # Split vectors and offsets in goniometer and detector for writing
+    goniometer["vectors"] = list(
+        split_arrays(
+            coordinate_frame, goniometer["axes"], goniometer["vectors"]
+        ).values()
+    )
+    goniometer["offsets"] = list(
+        split_arrays(
+            coordinate_frame, goniometer["axes"], goniometer["offsets"]
+        ).values()
+    )
+    detector["vectors"] = list(
+        split_arrays(coordinate_frame, detector["axes"], detector["vectors"]).values()
+    )
+
+    if "offsets" in module.keys():
+        module["offsets"] = list(
+            split_arrays(
+                coordinate_frame, ["fast_axis", "slow_axis"], module["offsets"]
+            ).values()
+        )
+
+    # Convert remaining vectors (fast and slow axis) if coordinate system is not mcstas.
+    if coordinate_frame == "imgcif":
+        module["fast_axis"] = imgcif2mcstas(module["fast_axis"])
+        module["slow_axis"] = imgcif2mcstas(module["slow_axis"])
 
     # Check that filenames are paths
     if all(isinstance(f, Path) for f in datafiles) is False:
@@ -213,7 +241,6 @@ def call_writers(
         datafiles,
         goniometer,
         data_type,
-        coordinate_frame,
         osc_scan,
         transl_scan,
     )
@@ -230,7 +257,6 @@ def call_writers(
     write_NXdetector(
         nxsfile,
         detector,
-        coordinate_frame,
         data_type,
         metafile,
         link_list,
@@ -240,7 +266,6 @@ def call_writers(
     write_NXdetector_module(
         nxsfile,
         module,
-        coordinate_frame,
         detector["image_size"],  # [::-1],
         detector["pixel_size"],
         beam_center=detector["beam_center"],
@@ -253,7 +278,6 @@ def call_writers(
     write_NXsample(
         nxsfile,
         goniometer,
-        coordinate_frame,
         data_type,
         osc_scan,
         transl_scan,

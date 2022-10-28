@@ -1,24 +1,21 @@
 """
 Writer functions for different groups of a NeXus file.
 """
+from __future__ import annotations
 
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
-from hdf5plugin import Bitshuffle
+from numpy.typing import ArrayLike
 
-from .. import (
-    get_iso_timestamp,
-    imgcif2mcstas,
-    split_arrays,
-    units_of_length,
-    units_of_time,
-    ureg,
-)
-from . import calculate_origin, create_attributes, set_dependency
+from .. import get_iso_timestamp, units_of_length, units_of_time, ureg
+from . import calculate_origin, create_attributes, set_dependency, write_compressed_copy
+
+# from hdf5plugin import Bitshuffle   # noqa: F401
+
 
 import h5py  # isort: skip
 
@@ -58,9 +55,9 @@ def write_NXdata(
     datafiles: List[Path],
     goniometer: Dict,
     data_type: Tuple[str, int],
-    coord_frame: str,
-    osc_scan: Dict[str, np.ndarray],
-    transl_scan: Dict[str, np.ndarray] = None,
+    osc_scan: Dict[str, ArrayLike],
+    transl_scan: Dict[str, ArrayLike] = None,
+    entry_key: str = "data",
 ):
     """
     Write NXdata group at /entry/data.
@@ -70,9 +67,9 @@ def write_NXdata(
         datafiles (List[Path]): List of Path objects pointing to HDF5 data files.
         goniometer (Dict): Dictionary containing all the axes information.
         data_type (Tuple[str, int]): Images or events.
-        coord_frame (str): Coordinate system the axes are currently in. If it's imgcif instead of mcstas, axes vectors will be converted.
-        osc_scan (Dict[str, np.ndarray]): Rotation scan. If writing events, this is just a (start, end) tuple.
-        transl_scan (Dict[str, np.ndarray], optional): Scan along the xy axes at sample. Defaults to None.
+        osc_scan (Dict[str, ArrayLike]): Rotation scan. If writing events, this is just a (start, end) tuple.
+        transl_scan (Dict[str, ArrayLike], optional): Scan along the xy axes at sample. Defaults to None.
+        entry_key (str): Entry key to create the external links to the data files. Defaults to data.
 
     Raises:
         OSError: If no data is passed.
@@ -109,10 +106,10 @@ def write_NXdata(
         if datafiles[0].parent != Path(nxsfile.filename).parent:
             # This is needed in case the new NeXus file is to be written in a different directory from the data, eg. processing/
             for n, filename in enumerate(datafiles):
-                nxdata[tmp_name % (n + 1)] = h5py.ExternalLink(filename, "data")
+                nxdata[tmp_name % (n + 1)] = h5py.ExternalLink(filename, entry_key)
         else:
             for n, filename in enumerate(datafiles):
-                nxdata[tmp_name % (n + 1)] = h5py.ExternalLink(filename.name, "data")
+                nxdata[tmp_name % (n + 1)] = h5py.ExternalLink(filename.name, entry_key)
     elif data_type[0] == "events":
         if len(datafiles) == 1 and "meta" in datafiles[0].as_posix():
             meta = datafiles
@@ -139,7 +136,6 @@ def write_NXdata(
         goniometer["depends"][idx], path="/entry/sample/transformations/"
     )
 
-    vectors = split_arrays(coord_frame, goniometer["axes"], goniometer["vectors"])
     # Write attributes for axis
     create_attributes(
         ax,
@@ -148,7 +144,7 @@ def write_NXdata(
             dep,
             goniometer["types"][idx],
             goniometer["units"][idx],
-            vectors[osc_axis],
+            goniometer["vectors"][idx],
         ),
     )
 
@@ -167,7 +163,7 @@ def write_NXdata(
                     ax_dep,
                     goniometer["types"][ax_idx],
                     goniometer["units"][ax_idx],
-                    vectors[k],
+                    goniometer["vectors"][ax_idx],
                 ),
             )
 
@@ -176,10 +172,9 @@ def write_NXdata(
 def write_NXsample(
     nxsfile: h5py.File,
     goniometer: Dict,
-    coord_frame: str,
     data_type: Tuple[str, int],
-    osc_scan: Dict[str, np.ndarray],
-    transl_scan: Dict[str, np.ndarray] = None,
+    osc_scan: Dict[str, ArrayLike],
+    transl_scan: Dict[str, ArrayLike] = None,
 ):
     """
     Write NXsample group at /entry/sample.
@@ -187,10 +182,9 @@ def write_NXsample(
     Args:
         nxsfile (h5py.File): NeXus file handle.
         goniometer (Dict):Dictionary containing all the axes information.
-        coord_frame (str): Coordinate system the axes are currently in. If it's imgcif instead of mcstas, axes vectors will be converted.
         data_type (Tuple[str, int]): Images or events.
-        osc_scan (Dict[str, np.ndarray]): Rotation scan. If writing events, this is just a (start, end) tuple.
-        transl_scan (Dict[str, np.ndarray], optional): Scan along the xy axes at sample. Defaults to None.
+        osc_scan (Dict[str, ArrayLike]): Rotation scan. If writing events, this is just a (start, end) tuple.
+        transl_scan (Dict[str, ArrayLike], optional): Scan along the xy axes at sample. Defaults to None.
     """
     NXclass_logger.info("Start writing NXsample and NXtransformations.")
     # Create NXsample group, unless it already exists, in which case just open it.
@@ -224,18 +218,12 @@ def write_NXsample(
             scan_axes.append(k)
 
     # Create sample_{axisname} groups
-    vectors = split_arrays(coord_frame, goniometer["axes"], goniometer["vectors"])
-    for ax in goniometer["axes"]:
-        if "sam" in ax:
-            grp_name = "sample_" + ax.split("_")[1]
-        else:
-            grp_name = "sample_" + ax
+    for idx, ax in enumerate(goniometer["axes"]):
+        grp_name = f"sample_{ax[-1]}" if "sam_" in ax else f"sample_{ax}"
         nxsample_ax = nxsample.create_group(grp_name)
         create_attributes(nxsample_ax, ("NX_class",), ("NXpositioner",))
         if ax == osc_axis:
             # If we're dealing with the scan axis
-            idx = goniometer["axes"].index(osc_axis)
-            # ... I was clearly overthinking this
             if (
                 "data" in nxsfile["/entry"].keys()
                 and ax in nxsfile["/entry/data"].keys()
@@ -254,7 +242,7 @@ def write_NXsample(
                         _dep,
                         goniometer["types"][idx],
                         goniometer["units"][idx],
-                        vectors[osc_axis],
+                        goniometer["vectors"][idx],
                     ),
                 )
                 nxtransformations[ax] = nxsfile[nxax.name]
@@ -275,7 +263,6 @@ def write_NXsample(
                 nxsample_ax[ax] = nxsfile[nxsfile["/entry/data"][ax].name]
                 nxtransformations[ax] = nxsfile[nxsfile["/entry/data"][ax].name]
             else:
-                idx = goniometer["axes"].index(ax)
                 nxax = nxsample_ax.create_dataset(ax, data=transl_scan[ax])
                 _dep = set_dependency(
                     goniometer["depends"][idx], path="/entry/sample/transformations/"
@@ -287,13 +274,12 @@ def write_NXsample(
                         _dep,
                         goniometer["types"][idx],
                         goniometer["units"][idx],
-                        vectors[ax],
+                        goniometer["vectors"][idx],
                     ),
                 )
                 nxtransformations[ax] = nxsfile[nxax.name]
         else:
             # For all other axes
-            idx = goniometer["axes"].index(ax)
             nxax = nxsample_ax.create_dataset(
                 ax, data=np.array([goniometer["starts"][idx]])
             )
@@ -307,12 +293,10 @@ def write_NXsample(
                     _dep,
                     goniometer["types"][idx],
                     goniometer["units"][idx],
-                    vectors[ax],
+                    goniometer["vectors"][idx],
                 ),
             )
             nxtransformations[ax] = nxsfile[nxax.name]
-
-    # Not the best but it works ...
 
     # Look for nxbeam in file, if it's there make link
     try:
@@ -390,13 +374,14 @@ def write_NXsource(nxsfile: h5py.File, source: Dict):
     nxsource.create_dataset("name", data=np.string_(source["name"]))
     create_attributes(nxsource["name"], ("short_name",), (source["short_name"],))
     nxsource.create_dataset("type", data=np.string_(source["type"]))
+    if "probe" in source.keys():
+        nxsource.create_dataset("probe", data=np.string_(source["probe"]))
 
 
 # NXdetector writer
 def write_NXdetector(
     nxsfile: h5py.File,
     detector: Dict,
-    coord_frame: str,
     data_type: Tuple[str, int],
     meta: Path = None,
     link_list: List = None,
@@ -407,7 +392,6 @@ def write_NXdetector(
     Args:
         nxsfile (h5py.File): NeXus file handle.
         detector (Dict): Dictionary containing all detector information.
-        coord_frame (str): Coordinate system the axes are currently in. If it's imgcif instead of mcstas, axes vectors will be converted.
         data_type (Tuple[str, int]): Images or events.
         meta (Path, optional): Path to _meta.h5 file. Defaults to None.
         link_list (List, optional): List of values from the meta file to be linked instead of copied. Defaults to None.
@@ -452,20 +436,14 @@ def write_NXdetector(
             ]
             if maskfile:
                 NXclass_logger.info("Pixel mask file found in working directory.")
-                block_size = 0
-                with h5py.File(maskfile[0], "r") as mh:
-                    mask = mh["image"][()]
-                    nxdetector.create_dataset(
-                        "pixel_mask",
-                        data=mask,
-                        **Bitshuffle(nelems=block_size, lz4=True),
-                    )
-                NXclass_logger.info(
-                    "A compressed copy of the pixel mask has been written into the NeXus file."
+                write_compressed_copy(
+                    nxdetector, "pixel_mask", filename=maskfile[0], dset_key="image"
                 )
             else:
-                NXclass_logger.warning("No pixel mask file found in working directory.")
-                NXclass_logger.warning("Writing an ExternalLink.")
+                NXclass_logger.warning(
+                    "No pixel mask file found in working directory."
+                    "Writing and ExternalLink."
+                )
                 mask = Path(detector["pixel_mask"])
                 image_key = (
                     "image" if "tristan" in detector["description"].lower() else "/"
@@ -486,22 +464,14 @@ def write_NXdetector(
             ]
             if flatfieldfile:
                 NXclass_logger.info("Flatfield file found in working directory.")
-                block_size = 0
-                with h5py.File(flatfieldfile[0], "r") as mh:
-                    flatfield = mh["image"][()]
-                    nxdetector.create_dataset(
-                        "flatfield",
-                        data=flatfield,
-                        **Bitshuffle(nelems=block_size, lz4=True),
-                    )
-                NXclass_logger.info(
-                    "A compressed copy of the flatfield has been written into the NeXus file."
+                write_compressed_copy(
+                    nxdetector, "flatfield", filename=flatfieldfile[0], dset_key="image"
                 )
             else:
                 NXclass_logger.warning(
                     "No flatfield file found in the working directory."
+                    "Writing and ExternalLink."
                 )
-                NXclass_logger.warning("Writing an ExternalLink.")
                 flatfield = Path(detector["flatfield"])
                 image_key = (
                     "image" if "tristan" in detector["description"].lower() else "/"
@@ -509,19 +479,37 @@ def write_NXdetector(
                 nxdetector["flatfield"] = h5py.ExternalLink(flatfield.name, image_key)
     else:
         # Flatfield
-        if detector["flatfield"]:
+        if type(detector["flatfield"]) is str:
             nxdetector.create_dataset(
                 "flatfield_applied", data=detector["flatfield_applied"]
             )
             flatfield = Path(detector["flatfield"])
             nxdetector["flatfield"] = h5py.ExternalLink(flatfield.name, "/")
+        elif detector["flatfield"] is None:
+            NXclass_logger.warning(
+                "No copy of the flatfield has been found, eithere as a file or dataset."
+            )
+        else:
+            nxdetector.create_dataset(
+                "flatfield_applied", data=detector["flatfield_applied"]
+            )
+            write_compressed_copy(nxdetector, "flatfield", data=detector["flatfield"])
         # Bad pixel mask
-        if detector["pixel_mask"]:
+        if type(detector["pixel_mask"]) is str:
             nxdetector.create_dataset(
                 "pixel_mask_applied", data=detector["pixel_mask_applied"]
             )
             mask = Path(detector["pixel_mask"])
             nxdetector["pixel_mask"] = h5py.ExternalLink(mask.name, "/")
+        elif detector["pixel_mask"] is None:
+            NXclass_logger.warning(
+                "No copy of the pixel_mask has been found, eithere as a file or dataset."
+            )
+        else:
+            nxdetector.create_dataset(
+                "pixel_mask_applied", data=detector["pixel_mask_applied"]
+            )
+            write_compressed_copy(nxdetector, "pixel_mask", data=detector["pixel_mask"])
 
     # Beam center
     # Check that the information hasn't already been written by the meta file.
@@ -585,25 +573,25 @@ def write_NXdetector(
         ("NXtransformations",),
     )
 
-    # Create groups for detector_z and two_theta if present
-    vectors = split_arrays(coord_frame, detector["axes"], detector["vectors"])
-
-    # This assumes only detector_z or two_theta as axes, and that they are fixed.
-    for ax in detector["axes"]:
-        idx = detector["axes"].index(ax)
+    # Create groups for detector_z and any other detector axis (eg. two_theta) if present
+    # This assumes that the detector axes are fixed.
+    for idx, ax in enumerate(detector["axes"]):
         if ax == "det_z":
             grp_name = "detector_z"
-            _dep = set_dependency(
-                detector["depends"][idx],
-                nxtransformations.name + "/two_theta/",
-            )
             dist = units_of_length(str(detector["starts"][idx]) + "mm")  # , True)
         else:
             grp_name = ax
-            _dep = set_dependency(
-                detector["depends"][idx],
-                nxtransformations.name + "/detector_z/",
-            )
+
+        # It shouldn't be too much of an issue but just in case ...
+        if detector["depends"][idx] == "det_z":
+            grp_dep = "detector_z"
+        else:
+            grp_dep = detector["depends"][idx]
+        _dep = set_dependency(
+            detector["depends"][idx],
+            nxtransformations.name + f"/{grp_dep}/",
+        )
+
         nxgrp_ax = nxtransformations.create_group(grp_name)
         create_attributes(nxgrp_ax, ("NX_class",), ("NXpositioner",))
         nxdet_ax = nxgrp_ax.create_dataset(ax, data=np.array([detector["starts"][idx]]))
@@ -614,7 +602,7 @@ def write_NXdetector(
                 _dep,
                 detector["types"][idx],
                 detector["units"][idx],
-                vectors[ax],
+                detector["vectors"][idx],
             ),
         )
         if ax == detector["axes"][-1]:
@@ -628,15 +616,31 @@ def write_NXdetector(
     nxdetector.create_dataset("distance", data=dist.magnitude)
     create_attributes(nxdetector["distance"], ("units",), (format(dist.units, "~")))
 
+    # Check if there are any remaining datasets to be written (usually from the meta file but not always)
+    others = [
+        "threshold_energy",
+        "bit_depth_readout",
+        "detector_number",
+        "detector_readout_time",
+        "photon_energy",
+    ]
+    for dset in others:
+        if nxdetector.__contains__(dset) is False and dset in detector.keys():
+            val = (
+                np.string_(detector[dset])
+                if type(detector[dset]) is str
+                else detector[dset]
+            )
+            nxdetector.create_dataset(dset, data=val)
+
 
 # NXdetector_module writer
 def write_NXdetector_module(
     nxsfile: h5py.File,
     module: Dict,
-    coord_frame: str,
-    image_size: Union[List, Tuple],
-    pixel_size: Union[List, Tuple],
-    beam_center: Optional[Union[List, Tuple]] = None,
+    image_size: List | Tuple,
+    pixel_size: List | Tuple,
+    beam_center: Optional[List | Tuple] = None,
 ):
     """
     Write NXdetector_module group at /entry/instrument/detector/module.
@@ -644,7 +648,6 @@ def write_NXdetector_module(
     Args:
         nxsfile (h5py.File): NeXus file handle.
         module (Dict): Dictionary containing the detector module information: fast and slow axes, how many modules.
-        coord_frame (str): Coordinate system the axes are currently in. If it's imgcif instead of mcstas, axes vectors will be converted.
         image_size (List | Tuple): Size of the detector.
         pixel_size (List | Tuple): Size of the single pixels in fast and slow direction, in mm.
         beam_center (Optional[List | Tuple], optional): Beam center position, needed only if origin needs to be calculated. Defaults to None.
@@ -664,15 +667,13 @@ def write_NXdetector_module(
     nxmodule.create_dataset("data_stride", data=np.array([1, 1]))
 
     # Write fast_ and slow_ pixel_direction
-    # Convert vectors if needed
-    if coord_frame == "imgcif":
-        fast_axis = imgcif2mcstas(module["fast_axis"])
-        slow_axis = imgcif2mcstas(module["slow_axis"])
-    else:
-        fast_axis = tuple(module["fast_axis"])
-        slow_axis = tuple(module["slow_axis"])
+    fast_axis = tuple(module["fast_axis"])
+    slow_axis = tuple(module["slow_axis"])
 
-    # offsets = split_arrays(coord_frame, ["fast_axis", "slow_axis"], module["offsets"])
+    if "offsets" in module.keys():
+        offsets = module["offsets"]
+    else:
+        offsets = [(0, 0, 0), (0, 0, 0)]
 
     x_pix = units_of_length(pixel_size[0], True)
     fast_pixel = nxmodule.create_dataset("fast_pixel_direction", data=x_pix.magnitude)
@@ -688,7 +689,7 @@ def write_NXdetector_module(
         ),
         (
             "/entry/instrument/detector/transformations/detector_z/det_z",
-            [0, 0, 0],
+            offsets[0],
             "mm",
             "translation",
             format(x_pix.units, "~"),
@@ -710,7 +711,7 @@ def write_NXdetector_module(
         ),
         (
             "/entry/instrument/detector/module/fast_pixel_direction",
-            [0, 0, 0],
+            offsets[1],
             "mm",
             "translation",
             format(y_pix.units, "~"),
@@ -719,6 +720,14 @@ def write_NXdetector_module(
     )
 
     # If module_offset is set to 1 or 2, calculate accordinlgy and write the field
+    if "module_offset" not in module.keys():
+        NXclass_logger.warning(
+            "Module_offset option wasn't passed."
+            "It will be automatically set to '1' and the origin calculated accordingly."
+            "To skip this calculation please set module_offset to '0'."
+        )
+        module["module_offset"] = "1"
+
     if module["module_offset"] != "0":
         pixel_size_m = [
             x_pix.magnitude,
@@ -785,8 +794,8 @@ def write_NXcollection(
     NXclass_logger.info("Start writing detectorSpecific group as NXcollection.")
     # Create detectorSpecific group
     grp = nxdetector.require_group("detectorSpecific")
-    grp.create_dataset("x_pixels", data=detector["image_size"][0])
-    grp.create_dataset("y_pixels", data=detector["image_size"][1])
+    grp.create_dataset("x_pixels", data=detector["image_size"][1])  # fast axis
+    grp.create_dataset("y_pixels", data=detector["image_size"][0])  # slow axis
     if data_type[0] == "images":
         grp.create_dataset("nimages", data=data_type[1])
     if meta and data_type[0] == "images":
@@ -810,13 +819,13 @@ def write_NXcollection(
 
 
 # NXdatetime writer
-def write_NXdatetime(nxsfile: h5py.File, timestamps: Tuple):
+def write_NXdatetime(nxsfile: h5py.File, timestamps: List | Tuple):
     """
     Write start and end timestamps under /entry/start_time and /entry/end_time.
 
     Args:
         nxsfile (h5py.File): Nexus file to be written.
-        timestamps (Tuple): Timestamps (start, end).
+        timestamps (List | Tuple): Timestamps (start, end).
     """
     nxentry = nxsfile.require_group("entry")
 
@@ -866,3 +875,71 @@ def write_NXnote(nxsfile: h5py.File, loc: str, info: Dict):
                 v = np.string_(v)
             nxnote.create_dataset(k, data=v)
             NXclass_logger.info(f"{k} dataset written in {loc}.")
+
+
+def write_NXcoordinate_system_set(
+    nxsfile: h5py.File,
+    convention: str,
+    base_vectors: Dict[str, Tuple],
+    origin: List | Tuple | ArrayLike,
+):
+    """
+    Write a container object to store coordinate system conventions different from mcstas.
+
+    The NXcoordinate_system_set base class is used here to define and store the mappings between mcstas and a different coordinate system relevant to the data.
+    It should hold at least one NXtransformations group containing a depends_on field, which specifies whether this coordinate system is the reference ("."),
+    as well as the three base vectors and the location of the origin.
+
+    A template for base_vectors:
+    base_vectors = {"x": (depends_on, transformation_type, units, vector), ...}
+
+    Args:
+        nxsfile (h5py.File): Handle to NeXus file.
+        convention (str): Convention decription. Defaults to "ED".
+        base_vectors (Dict[str, Tuple]): The three base vectors of the coordinate system.
+        origin (List | Tuple | np.ndarray): The location of the origin of the coordinate system.
+    """
+    NXclass_logger.info(
+        f"Writing NXcoordinate_system_set to define the coordinate system convention for {convention}."
+    )
+
+    #
+    nxcoord = nxsfile.require_group("/entry/coordinate_system_set")
+    create_attributes(
+        nxcoord,
+        ("NXclass",),
+        ("NXcoordinate_system_set",),
+    )
+
+    transf = nxcoord.require_group("transformations")
+    create_attributes(
+        transf,
+        ("NXclass",),
+        ("NXtransformations",),
+    )
+
+    # Needs at least: 3 base vectors, depends_on ("." probably?), origin
+    transf.create_dataset("depends_on", data=np.string_("."))  # To be checked
+    transf.create_dataset("origin", data=origin)
+
+    # Base vectors
+    NXclass_logger.info(
+        "Base vectors: \n"
+        f"x: {base_vectors['x'][-1]} \n"
+        f"y: {base_vectors['y'][-1]} \n"
+        f"z: {base_vectors['z'][-1]} \n"
+    )
+    idx = 0
+    for k, v in base_vectors.items():
+        base = transf.create_dataset(k, data=np.array(origin[idx]))
+        create_attributes(
+            base,
+            ("depends_on", "transformation_type", "units", "vector"),
+            (
+                set_dependency(v[0], transf.name),
+                v[1],
+                v[2],
+                v[3],
+            ),
+        )
+        idx += 1

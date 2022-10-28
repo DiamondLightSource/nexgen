@@ -17,6 +17,7 @@ from typing import Any, Dict, List, Tuple
 import h5py
 import numpy as np
 import pint
+from numpy.typing import ArrayLike
 
 # Logging set up
 logging.getLogger("nexgen").addHandler(logging.NullHandler())
@@ -41,7 +42,7 @@ format_list = [
 ]
 
 
-def imgcif2mcstas(vector: List | Tuple | np.array) -> Tuple:
+def imgcif2mcstas(vector: List | Tuple | ArrayLike) -> Tuple:
     """
     Convert from the standard coordinate frame used by imgCIF/CBF to the
     NeXus McStas coordinate system.
@@ -54,6 +55,20 @@ def imgcif2mcstas(vector: List | Tuple | np.array) -> Tuple:
     """
     c2n = np.array([[-1, 0, 0], [0, 1, 0], [0, 0, -1]])
     return tuple(np.dot(c2n, vector))
+
+
+def coord2mcstas(vector: List | Tuple | np.array, mat: ArrayLike) -> Tuple:
+    """
+    General conversion from a new coordinate convention to the NeXus McStas coordinate system.
+
+    Args:
+        vector (List | Tuple | np.array): Coordinates to be converted.
+        mat (np.ndarray): Coordinate transformation matrix.
+
+    Returns:
+        Tuple: Converted coordinate values
+    """
+    return tuple(np.dot(mat, vector))
 
 
 def get_filename_template(input_filename: Path) -> str:
@@ -126,17 +141,22 @@ def walk_nxs(nxs_obj: h5py.File | h5py.Group) -> List[str]:
     return obj_list
 
 
-def split_arrays(coord_frame: str, axes_names: List, array: List) -> Dict[str, Tuple]:
+def split_arrays(
+    coord_frame: str, axes_names: List, array: List, mat: ArrayLike = None
+) -> Dict[str, Tuple]:
     """
     Split a list of values into arrays.
 
     This function splits up the list of values passed as phil parameters for vector, offset of all existing axes.
-    If the coordinate frame is set to imgCIF, the arrays will have to be converted into mcstas.
+    If the coordinate frame is set to imgCIF, or to any other system different from mcstas, the arrays will have to be converted.
+    While the conversion from imgCIF is predefined inside nexgen, for any other coordinate frame it is necessary to give the relative \
+    transformation matrix.
 
     Args:
         coord_frame (str): The coordinate system in which we are working: mcstas or imgCIF.
         axes_names (List): List of goniometer axes.
         array (List): List of vector values to be split up.
+        mat (np.ndarray, optional): Coordinate transformation matrix.
 
     Returns:
         array_dict (Dict[str, Tuple]): Dictionary of arrays corresponding to each axis. Keys are axes names.
@@ -146,6 +166,8 @@ def split_arrays(coord_frame: str, axes_names: List, array: List) -> Dict[str, T
         a = array[3 * j : 3 * j + 3]
         if coord_frame == "imgcif":
             array_dict[axes_names[j]] = imgcif2mcstas(a)
+        elif coord_frame != "mcstas" and coord_frame != "imgcif":
+            array_dict[axes_names[j]] = coord2mcstas(a, mat)
         else:
             array_dict[axes_names[j]] = tuple(a)
     return array_dict

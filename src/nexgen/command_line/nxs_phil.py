@@ -18,18 +18,16 @@ module_scope = freephil.parse(
                 0 -> do not calculate module_offset
                 1 -> un-normalized displacement, set module_offset to 1
                 2 -> normalized displacement and set module_offset to magnitude of displacement"
-      fast_axis = 1 0 0
+      fast_axis = None
         .type = floats(size = 3)
         .help = "Fast axis at datum position"
-      slow_axis = 0 -1 0
+      slow_axis = None
         .type = floats(size = 3)
         .help = "Slow axis at datum position"
-      offsets = 0 0 0 0 0 0
-        .multiple = True
+      offsets = None
         .type = floats
         .help = "Axis offsets - one after the other - fast then slow"
-      module_size = 0 0
-        .multiple = True
+      module_size = None
         .type = ints
         .help = "In case of multiple modules, pass the size of each single module"
     }
@@ -42,7 +40,7 @@ detector_scope = freephil.parse(
       mode = *images events
         .type = choice
         .help = "Detector acquisition mode. Defaults to images. Only relevant for Tristan collections."
-      description = Eiger 2XE 16M
+      description = None
         .type = str
         .help = "Detector class to record"
       detector_type = Pixel
@@ -51,19 +49,19 @@ detector_scope = freephil.parse(
       sensor_material = *Si CdTe
         .type = choice
         .help = "Sensor material (e.g. silicon)"
-      sensor_thickness = 0.320mm
+      sensor_thickness = 0.0mm
         .type = str
         .help = "Sensor thickness, if unit is not specified defaults to mm"
-      overload = 65535
+      overload = None
         .type = int
         .help = "Pixels >= this value are invalid due to overloading"
       underload = -1
         .type = int
         .help = "Pixels <= this value are invalid"
-      pixel_size = 0.075mm 0.075mm
+      pixel_size = 0.0mm 0.0mm
         .type = strings
         .help = "Pixel size, if unit isn't passed defaults to mm (fast, slow)"
-      beam_center = 2214.355 2300.496
+      beam_center = 0.0 0.0
         .type = floats(size = 2)
         .help = "Beam position on the detector (fast, slow)"
       flatfield = None
@@ -78,39 +76,42 @@ detector_scope = freephil.parse(
       pixel_mask_applied = False
         .type = bool
         .help = "If the mask location is known, specify whether it's been applied of not."
-      image_size = 4362 4148
+      image_size = 0 0
         .type = ints(size = 2)
         .help = "Image size in pixels: (slow, fast)"
       exposure_time = None
         .type = str
         .help = "Nominal exposure time, eg 0.004s, if unit is not specified defaults to seconds"
-      axes = two_theta det_z
+      axes = None
         .type = strings
         .help = "Axis names for the detector axes. The detector sits on the last one."
-      depends = . two_theta
+      depends = None
         .type = strings
         .help = "Axis names for the axis dependencies"
-      vectors = 1 0 0 0 0 -1
+      vectors = None
         .type = floats
         .help = "Axis vectors - one after the other"
-      starts = 0.0 100.0
+      starts = None
         .type = floats
         .help = "Starting values for axes"
-      ends = 0.0 100.0
+      ends = None
         .type = floats
         .help = "Ending values for axes, only different to start for scan axis"
-      increments = 0.0 0.0
+      increments = None
         .type = floats
         .help = "Increment values for axes, non-zero only for scan axis"
-      types = rotation translation
+      types = None
         .type = strings
         .help = "Axis types, rotation or translation"
-      units = deg mm
+      units = None
         .type = strings
         .help = "Axis units, from mm or deg"
       software_version = None
         .type = str
         .help = "Detector software version"
+      bit_depth_readout = None
+        .type = int
+        .help = How many bits the electronics reads per pixel.
     }
     tristanSpec {
       detector_tick = 1562.5ps
@@ -129,34 +130,34 @@ detector_scope = freephil.parse(
 goniometer_scope = freephil.parse(
     """
     goniometer {
-      axes = omega sam_z sam_y sam_x chi phi
+      axes = None
         .type = strings
         .help = "Axis names for the goniometer axes. Sample depends on the last one in the list"
-      depends = . omega sam_z sam_y sam_x chi
+      depends = None
         .type = strings
         .help = "Axis names for the axis dependencies"
-      vectors = 1 0 0 0 0 1 0 1 0 1 0 0 0 0 1 1 0 0
+      vectors = None
         .type = floats
         .help = "Axis vectors - one after the other"
-      offsets = 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+      offsets = None
         .type = floats
         .help = "Axis offsets - one after the other"
-      offset_units = mm mm mm mm mm mm
+      offset_units = None
         .type = strings
-        .help = "Units of the axis offsets"
-      starts = 0.0 0.0 0.0 0.0 0.0 0.0
+        .help = "Units of the axis offsets (usually mm)"
+      starts = None
         .type = floats
         .help = "Starting values for axes"
-      ends = 90.0 0.0 0.0 0.0 0.0 0.0
+      ends = None
         .type = floats
         .help = "Ending values for axes, only different to start for scan axis"
-      increments = 0.1 0.0 0.0 0.0 0.0 0.0
+      increments = None
         .type = floats
         .help = "Increment values for axes, non-zero only for scan axis"
-      types = rotation translation translation translation rotation rotation
+      types = None
         .type = strings
         .help = "Axis types, rotation or translation"
-      units = deg mm mm mm deg deg deg
+      units = None
         .type = strings
         .help = "Axis units, from mm or deg"
     }
@@ -178,10 +179,13 @@ beamline_scope = freephil.parse(
       beamline_name = None
         .type = str
         .help = "Beamline name"
+      probe = None
+        .type = str
+        .help = "Type of radiation probe"
     }
 
     beam {
-      wavelength = 0.979590
+      wavelength = None
         .type = float
         .help = "Wavelength of incident beam, angstroms"
       flux = None
@@ -190,7 +194,7 @@ beamline_scope = freephil.parse(
     }
 
     attenuator {
-      transmission = 1
+      transmission = None
         .type = float
         .help = "Attenuation of beam intensity"
     }
@@ -231,6 +235,22 @@ sample_scope = freephil.parse(
       temperature = None
         .type = str
         .help = "Sample temperature with units."
+    }
+    """
+)
+
+coord_system_scope = freephil.parse(
+    """
+    coord_system {
+      convention = None
+        .type = str
+        .help = "Name of the new coordinate system."
+      origin = None
+        .type = floats
+        .help = "Location of the origin e.g. 0,0,0."
+      vectors = None
+        .type = floats
+        .help = "x,y,z axes vectors for the transformation."
     }
     """
 )

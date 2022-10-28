@@ -61,7 +61,7 @@ class Metafile:
 
 class DectrisMetafile(Metafile):
     """
-    Describes a _meta.h5 file for a Dectris detector.
+    Describes a _meta.h5 file for a Dectris Eiger detector.
     """
 
     def __init__(self, handle: h5py.File):
@@ -97,7 +97,7 @@ class DectrisMetafile(Metafile):
             return self.__getitem__(_loc[0])[0]
 
     def get_detector_size(self) -> Tuple:
-        # NB. reurns (fast, slow) but data_size in nxs file shoud be recorded (slow, fast)
+        # NB. returns (fast, slow) but data_size in nxs file shoud be recorded (slow, fast)
         # => det_size[::-1]
         _loc = [obj for obj in self.walk if "pixels_in_detector" in obj]
         det_size = []
@@ -105,7 +105,7 @@ class DectrisMetafile(Metafile):
             det_size.append(self.__getitem__(i)[0])
         if len(det_size) == 0:
             return None
-        return tuple(det_size)
+        return tuple(det_size[::-1])
 
     def get_pixel_size(self) -> List:
         _loc = [obj for obj in self.walk if "pixel_size" in obj]

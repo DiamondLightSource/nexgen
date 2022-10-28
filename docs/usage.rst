@@ -2,7 +2,7 @@
 Usage
 =====
 
-**Nexgen** is a Python package that provides a set of tools to write NeXus files for experiments at Diamond Light Source, following 
+**Nexgen** is a Python package that provides a set of tools to write NeXus files for experiments at Diamond Light Source, following
 the NXmx application definition for macromolecular crystallography. This is meant to include all relevant experiment metadata
 required to process the datasets, including detector and goniometer description.
 
@@ -12,7 +12,7 @@ Installation
 Nexgen can be installed using pip.
 
 .. code-block:: console
-    
+
     pip install nexgen
 
 
@@ -27,7 +27,7 @@ This package started out as an easy way to quickly generate NeXus files from scr
 
 
 **Parsing**
-The `freephil <https://freephil.readthedocs.io/en/latest/>`_ package is used for parsing metadata from the command line. 
+The `freephil <https://freephil.readthedocs.io/en/latest/>`_ package is used for parsing metadata from the command line.
 
 
 Getting help
@@ -55,7 +55,7 @@ In addition to the help message, it is possible to take a look at the list of ph
     generate_nexus 3 -c
 
 It is also possible to view more details about the Phil parameters and definition attributes by setting the `attributes_level` parameter with the `-a` argument.
-Th default value is set to 0, which will only show names and default values of the parameters.  
+Th default value is set to 0, which will only show names and default values of the parameters.
 
 .. code-block:: console
 
@@ -66,8 +66,8 @@ Creating a new .phil file
 =========================
 
 Writing the full list of parameters on the command line each time can be time consuming, not to mention subject to typing errors and the like.
-For this purpose, it is possible to generate one reusable Phil file containing the beamline description and those values from the experiment 
-metadata that can be considered constant.  
+For this purpose, it is possible to generate one reusable Phil file containing the beamline description and those values from the experiment
+metadata that can be considered constant.
 
 Nexgen already includes Phil files for some MX beamlines at Diamond Light Source, which can be viewed and downloaded by running ``nexgen_phil`` with the ``list`` and ``get`` options.
 For example, the command
@@ -82,7 +82,7 @@ will return a list of the .phil files currently available, and che chosen file c
 
     nexgen_phil get paramfile.phil -o  /path/to/directory
 
-In case a .phil file for a specific beamline is not in the list, it is possible to either download a blank template (also listed) to fill in manually or create on using the ``new`` option. While this is a bit more cumbersome, 
+In case a .phil file for a specific beamline is not in the list, it is possible to either download a blank template (also listed) to fill in manually or create on using the ``new`` option. While this is a bit more cumbersome,
 it has the advantage of only needing to write most of the parameters once. Once the file is created it can be parsed by ``generate_nexus``, eg.
 
 .. code-block:: console
@@ -98,8 +98,8 @@ To access the help message for ``nexgen_phil``:
 Generating new NeXus files
 ==========================
 
- - For an existing dataset 
- 
+ - For an existing dataset
+
     .. code-block:: console
 
         generate_nexus 1 beamline.phil input.datafile=File_00*.h5 input.snaked=True \
@@ -112,12 +112,23 @@ Generating new NeXus files
     .. code-block:: console
 
         generate_nexus 2 -i/-e beamline.phil output.master_filename=File.nxs input.vds_writer=dataset (etc...)
- 
+
  - For an existing dataset which also has a meta.h5 file
 
     .. code-block:: console
 
         generate_nexus 3 beamline.phil input.metafile=File_meta.h5 input.vds_writer=dataset output.master_filename=/path/to/File.nxs
+
+Generating NXmx-like NeXus files for Electron Diffraction
+=========================================================
+
+Example usage for a dataset collected on Dectris Singla 1M detector:
+
+.. code-block:: console
+
+    ED_nexus singla ED_Singla.phil input.datafiles=FILE_data_*.h5 goniometer.starts=0,0,0,0 \
+    goniometer.ends=900,0,0,0 goniometer.increments=1,0,0,0 detector.starts=400 detector.beam_center=1,1 \
+    -m FILE_master.h5
 
 
 Copying NeXus files
@@ -133,9 +144,9 @@ Copying NeXus files
 
     .. code-block:: console
 
-        copy_nexus gen original_nexus=File.nxs data_filename=File_0001.h5 skip=NXdata skip=NXsample 
+        copy_nexus gen original_nexus=File.nxs data_filename=File_0001.h5 skip=NXdata skip=NXsample
 
- - Copy metadata from a Tristan NeXus file to NXmx format. 
+ - Copy metadata from a Tristan NeXus file to NXmx format.
 
     The main application fo this tool is to copy the necessary metadata to a new NeXus file following the NXmx format after binning event data into images.
     The default `experiment_type` for copying Tristan metadata is set to rotation; when dealing with a single image, this value can be set to stationary like in the example below.
