@@ -69,7 +69,7 @@ def reframe_arrays(
             split_arrays("mcstas", detector["axes"], detector["vectors"]).values()
         )
 
-    if module["offsets"] and len(module["offsets"]) == 6:
+    if "offsets" in module.keys() and len(module["offsets"]) == 6:
         module["offsets"] = list(
             split_arrays(
                 "mcstas", ["fast_axis", "slow_axis"], module["offsets"]
