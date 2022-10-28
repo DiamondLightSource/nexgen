@@ -1,15 +1,17 @@
 """
 General tools for blank data writing.
 """
+from __future__ import annotations
 
 import logging
 import time
 from pathlib import Path
-from typing import List, Tuple, Union
+from typing import List, Tuple
 
 import h5py
 import numpy as np
 from hdf5plugin import Bitshuffle
+from numpy.typing import ArrayLike
 
 data_logger = logging.getLogger("nexgen.DataWriter")
 
@@ -34,20 +36,20 @@ tristan_chunk = 2097152
 
 # Build-a-detector functions
 def build_an_eiger(
-    image_size: Union[List, Tuple],
+    image_size: List | Tuple,
     det_description: str,
     n_modules: Tuple[int, int] = None,
-) -> np.ndarray:
+) -> ArrayLike:
     """
     Generate an Eiger-like blank image.
 
     Args:
-        image_size (Union[List, Tuple]): Detector size, fefines image dimensions as (slow_axis , fast_axis).
+        image_size (List | Tuple): Detector size, fefines image dimensions as (slow_axis , fast_axis).
         det_description (str): Identifies the type of Eiger detector.
         n_modules (Tuple[int, int], optional): Number of modules in the detector. Defaults to None.
 
     Returns:
-        IM (np.ndarray): Blank image - an array of zeros with an Eiger-like mask.
+        IM (ArrayLike): Blank image - an array of zeros with an Eiger-like mask.
     """
     for k, v in eiger_modules.items():
         if k in det_description.upper():
@@ -83,18 +85,18 @@ def build_an_eiger(
 
 
 def build_a_tristan(
-    image_size: Union[List, Tuple],
+    image_size: List | Tuple,
     det_description: str,
-) -> np.ndarray:
+) -> ArrayLike:
     """
     Generate a Tristan-like blank image.
 
     Args:
-        image_size (Union[List, Tuple]): Detector size, fefines image dimensions as (slow_axis , fast_axis).
+        image_size (List | Tuple): Detector size, fefines image dimensions as (slow_axis , fast_axis).
         det_description (str): Identifies the Tristan detector.
 
     Returns:
-        IM (np.ndarray): Blank image - an array of zeros with an Eiger-like mask.
+        IM (ArrayLike): Blank image - an array of zeros with an Eiger-like mask.
     """
     for k, v in tristan_modules.items():
         if k in det_description.upper():
@@ -125,8 +127,8 @@ def build_a_tristan(
 
 
 def generate_image_files(
-    datafiles: List[Union[Path, str]],
-    image_size: Union[List, Tuple],
+    datafiles: List[Path | str],
+    image_size: List | Tuple,
     det_description: str,
     tot_num_images: int,
 ):
@@ -134,8 +136,8 @@ def generate_image_files(
     Generate HDF5 files of blank images.
 
     Args:
-        datafiles (List[Union[Path, str]]): List of HDF5 files to be written.
-        image_size (Union[List, Tuple]): Image dimensions as (slow_axis, fast_axis).
+        datafiles (List[Path | str]): List of HDF5 files to be written.
+        image_size (List | Tuple): Image dimensions as (slow_axis, fast_axis).
         det_description (str): Type of detector. The string should include the number of modules.
         tot_num_images (int): Total number of images to be written across the files.
 
@@ -190,8 +192,8 @@ def generate_image_files(
 # Event list generator
 # TODO Better than before, but this is still pretty slow.
 def pseudo_event_list(
-    x_lim: Tuple[int, Union[int, None]],
-    y_lim: Tuple[int, Union[int, None]],
+    x_lim: Tuple[int, int | None],
+    y_lim: Tuple[int, int | None],
     exp_time: float,
 ) -> Tuple[List, List]:
     """
@@ -229,7 +231,7 @@ def pseudo_event_list(
 
 
 def generate_event_files(
-    datafiles: List[Union[Path, str]],
+    datafiles: List[Path | str],
     num_chunks: int,
     det_description: str,
     exp_time: float,

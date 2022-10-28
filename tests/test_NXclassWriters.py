@@ -9,9 +9,12 @@ import pytest
 from numpy.testing import assert_array_equal
 
 from nexgen.nxs_write.NXclassWriters import (
+    write_NXcoordinate_system_set,
     write_NXdata,
     write_NXdatetime,
     write_NXdetector_module,
+    write_NXentry,
+    write_NXnote,
     write_NXsample,
 )
 
@@ -21,15 +24,9 @@ test_goniometer_axes = {
     "axes": ["omega", "sam_z", "sam_y"],
     "depends": [".", "omega", "sam_z"],
     "vectors": [
-        -1,
-        0,
-        0,
-        0,
-        -1,
-        0,
-        -1,
-        0,
-        0,
+        (-1, 0, 0),
+        (0, -1, 0),
+        (-1, 0, 0),
     ],
     "types": [
         "rotation",
@@ -37,7 +34,7 @@ test_goniometer_axes = {
         "translation",
     ],
     "units": ["deg", "mm", "mm"],
-    "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    "offsets": [(0, 0, 0), (0, 0, 0), (0, 0, 0)],
     "starts": [0, 0, 0],
     "ends": [90, 0, 0],
     "increments": [1, 0, 0],
@@ -57,6 +54,16 @@ def test_given_no_data_files_when_write_NXdata_then_assert_error():
         write_NXdata(mock_hdf5_file, [], {}, "", "", [])
 
 
+def test_write_NXentry(dummy_nexus_file):
+    entry = write_NXentry(dummy_nexus_file)
+
+    assert dummy_nexus_file["/entry/"].attrs["NX_class"] == b"NXentry"
+    assert dummy_nexus_file["/entry/"].attrs["default"] == b"data"
+
+    assert "definition" in entry.keys()
+    assert dummy_nexus_file["/entry/definition"][()] == b"NXmx"
+
+
 def test_given_no_data_type_specified_when_write_NXdata_then_exception_raised(
     dummy_nexus_file,
 ):
@@ -67,7 +74,6 @@ def test_given_no_data_type_specified_when_write_NXdata_then_exception_raised(
             [Path("tmp")],
             test_goniometer_axes,
             ("", 0),
-            "",
             osc_scan,
         )
 
@@ -81,7 +87,6 @@ def test_given_one_data_file_when_write_NXdata_then_data_in_file(
         [Path("tmp")],
         test_goniometer_axes,
         ("images", 0),
-        "",
         osc_scan,
     )
     assert dummy_nexus_file["/entry/data"].attrs["NX_class"] == b"NXdata"
@@ -101,7 +106,6 @@ def test_given_scan_axis_when_write_NXdata_then_axis_in_data_entry_with_correct_
         [Path("tmp")],
         test_goniometer_axes,
         ("images", 0),
-        "",
         osc_scan,
     )
 
@@ -127,14 +131,12 @@ def test_given_scan_axis_when_write_NXsample_then_scan_axis_data_copied_from_dat
         [Path("tmp")],
         test_goniometer_axes,
         ("images", 0),
-        "",
         osc_scan,
     )
 
     write_NXsample(
         dummy_nexus_file,
         test_goniometer_axes,
-        "",
         ("images", 0),
         osc_scan,
     )
@@ -154,9 +156,7 @@ def test_given_module_offset_of_1_when_write_NXdetector_module_then_fast_and_slo
     dummy_nexus_file,
 ):
     test_module["module_offset"] = "1"
-    write_NXdetector_module(
-        dummy_nexus_file, test_module, "", [10, 10], [0.1, 0.1], [0, 0]
-    )
+    write_NXdetector_module(dummy_nexus_file, test_module, [10, 10], [0.1, 0.1], [0, 0])
 
     module_nexus_path = "/entry/instrument/detector/module/"
     for axis in ["slow_pixel_direction", "fast_pixel_direction"]:
@@ -199,3 +199,36 @@ def test_write_NXdatetime_with_missing_timestamp(dummy_nexus_file):
     assert "end_time" in dummy_nexus_file[entry_path].keys()
     end = dummy_nexus_file[entry_path + "end_time"][()].decode()
     assert end.endswith("Z")
+
+
+def test_write_NXnote_in_given_location(dummy_nexus_file):
+    loc_path = "/entry/source/pump_probe/"
+    info = {"pump_status": True, "pump_exp": 0.001}
+    write_NXnote(dummy_nexus_file, loc_path, info)
+
+    assert "pump_status" in dummy_nexus_file[loc_path].keys()
+    assert "pump_exp" in dummy_nexus_file[loc_path].keys()
+    assert_array_equal(dummy_nexus_file[loc_path + "pump_exp"][()], 0.001)
+
+
+def test_write_NXcoordinate_system_set(dummy_nexus_file):
+    bases = {
+        "x": (".", "translation", "mm", [0, 0, 1]),
+        "y": ("x", "translation", "mm", [0, 0, 0]),
+        "z": ("y", "translation", "mm", [-1, 0, 0]),
+    }
+
+    write_NXcoordinate_system_set(
+        dummy_nexus_file, "new_coord_system", bases, (1, 1, 0)
+    )
+
+    assert "coordinate_system_set" in dummy_nexus_file["/entry/"].keys()
+
+    loc = "/entry/coordinate_system_set/transformations/"
+    assert dummy_nexus_file[loc + "depends_on"][()] == b"."
+    assert "x" in dummy_nexus_file[loc].keys()
+    assert "y" in dummy_nexus_file[loc].keys()
+    assert "z" in dummy_nexus_file[loc].keys()
+    assert_array_equal(dummy_nexus_file[loc + "origin"][()], (1, 1, 0))
+    assert_array_equal(dummy_nexus_file[loc + "x"][()], 1)
+    assert_array_equal(dummy_nexus_file[loc + "y"].attrs["vector"], [0, 0, 0])

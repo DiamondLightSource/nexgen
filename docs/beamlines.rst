@@ -9,7 +9,7 @@ Time resolved collections on I19-2
 ----------------------------------
 
 - NXmx format NeXus files writer for manual Eiger/Tristan collections (where GDA is not in use).
-- Interface with GDA to write new NeXus files for a time-resolved experiment. 
+- Interface with GDA to write new NeXus files for a time-resolved experiment.
 
 Serial crystallography
 ----------------------
@@ -32,7 +32,7 @@ Example usage
 
     from nexgen.beamlines.I24_Eiger_nxs import write_nxs
     from datetime import datetime
-    
+
     beam_x = 1590.7
     beam_y = 1643.7
 
@@ -55,7 +55,7 @@ Example usage
         'N_EXPOSURES':    [30, 1],
         'PUMP_REPEAT':    [32, 0],
     }
-    
+
     write_nxs(
         visitpath="/path/to/dataset",
         filename="Expt1_00",
@@ -86,13 +86,13 @@ Example usage
 
     from nexgen.beamlines.SSX_Tristan_nxs import write_nxs
     from datetime import datetime
-    
+
     beam_x = 1590.7
     beam_y = 1643.7
 
     D = 0.5     # Detector distance passed in mm
     t = 0.002   # Exposure time passed in s
-    
+
     write_nxs(
         visitpath="/path/to/dataset",
         filename="Expt1_00",
@@ -117,7 +117,7 @@ I19-2 CLI
 Example usage
 *************
 
-Write a NeXus file for a Tristan collection using a GDA-generated xml file containing the beamline information: 
+Write a NeXus file for a Tristan collection using a GDA-generated xml file containing the beamline information:
 
 .. code-block:: console
 
@@ -129,74 +129,3 @@ Manually generate a NeXus file for a dataset collected on Eiger detector using t
 .. code-block:: console
 
     I19-2_nxs Expt1_00_meta.h5 eiger 0.02 -tr 100
-
-
-
-=============
-Beamlines API
-=============
-
-I19-2
------
-
-Directly from the beamline ...
-
-.. autoclass:: nexgen.beamlines.I19_2_nxs.tr_collect
-    :members:
-
-.. autofunction:: nexgen.beamlines.I19_2_nxs.tristan_writer
-
-.. autofunction:: nexgen.beamlines.I19_2_nxs.eiger_writer
-
-From GDA ...
-
-.. autoclass:: nexgen.beamlines.I19_2_gda_nxs.tr_collect
-    :members:
-
-.. autofunction:: nexgen.beamlines.I19_2_gda_nxs.tristan_writer
-
-.. autofunction:: nexgen.beamlines.I19_2_gda_nxs.eiger_writer
-
-
-I24
----
-
-.. autoclass:: nexgen.beamlines.I24_Eiger_nxs.ssx_collect
-    :members:
-
-.. autofunction:: nexgen.beamlines.I24_Eiger_nxs.extruder
-
-.. autofunction:: nexgen.beamlines.I24_Eiger_nxs.fixed_target
-
-
-SSX using Tristan Detector
---------------------------
-
-.. autoclass:: nexgen.beamlines.SSX_Tristan_nxs.ssx_tr_collect
-    :members:
-
-.. autofunction:: nexgen.beamlines.SSX_Tristan_nxs.write_nxs
-
-
-Serial crystallography: chip tools
-----------------------------------
-
-.. automodule:: nexgen.beamlines.SSX_chip
-    :members:
-
-
-GDA integration tools
----------------------
-
-Read geometry and detector parameters from GDA-generated JSON files
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. autofunction:: nexgen.beamlines.GDAtools.GDAjson2params.read_geometry_from_json
-
-.. autofunction:: nexgen.beamlines.GDAtools.GDAjson2params.read_detector_params_from_json
-
-Gather beamline and collection information from GDA-generated xml file
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. autoclass:: nexgen.tools.ExtendedRequest.ExtendedRequestIO
-    :members:

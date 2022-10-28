@@ -5,6 +5,7 @@
    :caption: Contents:
 
    usage
-   api
    beamlines
+   api
+   api_beamlines
 

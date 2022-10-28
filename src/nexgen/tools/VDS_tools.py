@@ -154,20 +154,22 @@ def image_vds_writer(
     full_data_shape: Union[Tuple, List],
     start_index: int = 0,
     data_type: Any = np.uint16,
+    entry_key: str = "data",
 ):
     """
     Virtual DataSet writer function for image data.
 
     Args:
-        nxsfile (h5py.File): NeXus file being written.
+        nxsfile (h5py.File): Handle to NeXus file being written.
         full_data_shape (Union[Tuple, List]): Shape of the full dataset, usually defined as (num_frames, *image_size).
         start_index(int): The start point for the source data. Defaults to 0.
         data_type (Any, optional): The type of the input data. Defaults to np.uint16.
+        entry_key (str): Entry key for the Virtual DataSet name. Defaults to data.
     """
     vds_logger.info("Start creating VDS ...")
     # Where the vds will go
     nxdata = nxsfile["/entry/data"]
-    entry_key = "data"
+    # entry_key = "data"
     dset_names = find_datasets_in_file(nxdata)
 
     datasets = split_datasets(dset_names, full_data_shape, start_index)
@@ -184,6 +186,7 @@ def vds_file_writer(
     datafiles: List[Path],
     data_shape: Union[Tuple, List],
     data_type: Any = np.uint16,
+    entry_key: str = "data",
 ):
     """
     Write a Virtual DataSet _vds.h5 file for image data.
@@ -193,11 +196,12 @@ def vds_file_writer(
         datafiles (List[Path]): List of paths to source files.
         data_shape (Union[Tuple, List]): Shape of the dataset, usually defined as (num_frames, *image_size).
         data_type (Any, optional): Dtype. Defaults to np.uint16.
+        entry_key (str): Entry key for the Virtual DataSet name. Defaults to data.
     """
     vds_logger.info("Start creating VDS ...")
     # Where the vds will go
     nxdata = nxsfile["/entry/data"]
-    entry_key = "data"
+    # entry_key = "data"
 
     # For every source dataset define its shape and number of frames
     # Once again, it is assumed that the maximum number of frames per dataset is 1000

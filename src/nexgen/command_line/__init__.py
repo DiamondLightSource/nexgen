@@ -115,3 +115,10 @@ def add_tristan_spec(detector, tristanSpec):
         if "__phil" in k:
             continue
         detector.__inject__(k, v)
+
+
+def phil2dict(D):
+    l = [k for k in D.keys() if "__phil_" in k]
+    for i in l:
+        D.__delitem__(i)
+    return D
