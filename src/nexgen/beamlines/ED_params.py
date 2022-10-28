@@ -36,6 +36,7 @@ singla_1M = {
     "beam_center": None,
     "flatfield": None,
     "pixel_mask": None,
+    "exposure_time": None,
     "image_size": [1062, 1028],  # (slow, fast)
     "axes": ["det_z"],
     "depends": ["."],
