@@ -16,11 +16,20 @@ NXmx writers
 .. automodule:: nexgen.nxs_write.NXclassWriters
     :members:
 
-All the writers above can be called using the ``call_writers`` function, with the exception of ``write_NXentry``, ``write_NXdatetime`` and ``write_NXnote``.  
+For a standard NXmx data collection, the NXclass writers can be called using the ``call_writers`` function, with the exception of ``write_NXentry``, ``write_NXdatetime`` and ``write_NXnote``.
 
 .. autofunction:: nexgen.nxs_write.NexusWriter.call_writers
 
+If using phil scopes instead of dictionaries to store the goniometer/detector/beamline/... information, the following function has been added:
+
 .. autofunction:: nexgen.nxs_write.NexusWriter.write_nexus_from_scope
+
+
+When dealing with an Electron Diffraction dataset, there may also be a need to convert the vectors to mcstas from another coordinate system convention, as well as save the relevant information about the new coordinate system into a NXcoordinate_system_set base class.
+The ``ED_call_writers`` function from the ``nxs_write.EDNexusWriter`` takes care of these computations.
+
+.. automodule:: nexgen.nxs_write.EDNexusWriter
+    :members:
 
 Writing blank datasets
 ----------------------
@@ -103,7 +112,7 @@ Metafile definition:
     :show-inheritance:
 
 
-When operating a Dectris detector, the goniometer and detector axes values are usually stored in the `config/` dataset. 
+When operating a Dectris detector, the goniometer and detector axes values are usually stored in the `config/` dataset.
 
 .. autofunction:: nexgen.tools.MetaReader.update_goniometer
 
@@ -115,6 +124,15 @@ A couple of functions are available for reading the information stored in the me
 .. autofunction:: nexgen.tools.MetaReader.overwrite_beam
 
 .. autofunction:: nexgen.tools.MetaReader.overwrite_detector
+
+
+Reader for Singla detector master file
+--------------------------------------
+
+.. autoclass:: nexgen.tools.ED_tools.SinglaMaster
+    :members:
+
+.. autofunction:: nexgen.tools.ED_tools.extract_from_SINGLA_master
 
 
 Logging configuration

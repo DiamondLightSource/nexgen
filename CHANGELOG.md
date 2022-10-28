@@ -3,11 +3,13 @@
 ##
 
 ### Added
-- NeXus writer for Electron Diffraction data.
+- NeXus writer function, phil template and parameter file for Electron Diffraction data.
+- CLI for Electron Diffraction.
 - Function to write a compressed copy of a dataset in a specified NXgroup. Main application: mask and flatfield in NXdetector.
 - General conversion to mcstas from a user defined coordinate frame.
 - NXcoordinate_system_set writer.
 - Tests for NXentry, NXcoordinate_system_set and NXnote writers.
+- Tests for Metafile tools and ElectronDiffraction tools.
 
 ### Changed
 - Entry key for data in NXdata as argument.
@@ -37,7 +39,7 @@
 - Ability to specify non-zero indexed VDS.
 - New cli for I19-2 NeXus writer - it can now work with and without GDA-generated metadata.
 - Docstrings for namedtuples in beamline scripts.
-- Show phil parameters using `--show-config` from the command line. 
+- Show phil parameters using `--show-config` from the command line.
 
 ### Changed
 - SSX chip reading tools moved to SSX_chip.py
