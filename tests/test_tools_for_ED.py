@@ -86,7 +86,7 @@ def test_get_mask_and_flatfield_from_singla_master_file(dummy_singla_master_file
     D = extract_from_SINGLA_master(dummy_singla_master_file.name)
     assert "pixel_mask" in D.keys() and "flatfield" in D.keys()
     assert D["pixel_mask"] is None
-    assert D["pixel_mask_applied"] is False
+    assert D["pixel_mask_applied"] == 0
     assert np.all(D["flatfield"] == test_flatfield) is True
     assert D["flatfield_applied"] is None
 
