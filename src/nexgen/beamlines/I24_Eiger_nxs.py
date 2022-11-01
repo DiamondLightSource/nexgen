@@ -188,6 +188,9 @@ def fixed_target(
         metafile (Path, optional):  Path to the _meta.h5 file. Defaults to None.
         timestamps (Tuple[str], optional): Start and end time of data collection, if known. Defaults to None.
         pump_info (Dict, optional): Details of a pump probe experiment eg. pump exposure time, pump delay, etc. Defaults to None.
+
+    Raises:
+        ValueError: When the chip information is missing.
     """
     logger.info("Write NeXus file for fixed target.")
 
