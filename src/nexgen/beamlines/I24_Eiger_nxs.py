@@ -17,7 +17,7 @@ from ..nxs_write.NexusWriter import ScanReader, call_writers
 from ..nxs_write.NXclassWriters import write_NXdatetime, write_NXentry, write_NXnote
 from ..tools.VDS_tools import image_vds_writer
 from .I24_Eiger_params import dset_links, eiger9M_params, goniometer_axes, source
-from .SSX_chip import compute_goniometer, read_chip_map
+from .SSX_chip import Chip, compute_goniometer, read_chip_map
 
 # Define a logger object and a formatter
 logger = logging.getLogger("nexgen.I24")
@@ -199,23 +199,36 @@ def fixed_target(
             Impossible to determine scan parameters. NeXus file won't be written."
         )
 
+    chip = Chip(
+        "fastchip",
+        num_steps=[chip_info["X_NUM_STEPS"][1], chip_info["Y_NUM_STEPS"][1]],
+        step_size=[chip_info["X_STEP_SIZE"][1], chip_info["Y_STEP_SIZE"][1]],
+        num_blocks=[chip_info["X_NUM_BLOCKS"][1], chip_info["Y_NUM_BLOCKS"][1]],
+        block_size=[chip_info["X_BLOCK_SIZE"][1], chip_info["Y_BLOCK_SIZE"][1]],
+        start_pos=[
+            chip_info["X_START"][1],
+            chip_info["Y_START"][1],
+            chip_info["Z_START"][1],
+        ],
+    )
+
     # Is it a time resolved SSX experiment?
     if int(chip_info["N_EXPOSURES"][1]) == 1:
         goniometer["increments"] = [0.0, 0.0, 0.0, 0.0]
         # Read chip map
         blocks = read_chip_map(
             chipmap,
-            chip_info["X_NUM_BLOCKS"][1],
-            chip_info["Y_NUM_BLOCKS"][1],
+            chip.num_blocks[0],  # chip_info["X_NUM_BLOCKS"][1],
+            chip.num_blocks[1],  # chip_info["Y_NUM_BLOCKS"][1],
         )
 
         # Calculate scan start/end positions on chip
         if type(blocks) is dict:
             logger.info(f"Scanning blocks: {list(blocks.keys())}.")
-            start_pos, end_pos = compute_goniometer(chip_info, blocks=blocks)
+            start_pos, end_pos = compute_goniometer(chip, blocks=blocks)
         else:
             logger.info("Full chip: all the blocks will be scanned.")
-            start_pos, end_pos = compute_goniometer(chip_info, full=True)
+            start_pos, end_pos = compute_goniometer(chip, full=True)
 
         # Iterate over blocks to calculate scan points
         OSC = {"omega": np.array([])}
@@ -226,8 +239,8 @@ def fixed_target(
             osc, transl = ScanReader(
                 goniometer,
                 n_images=(
-                    chip_info["Y_NUM_STEPS"][1],
-                    chip_info["X_NUM_STEPS"][1],
+                    chip.num_steps[1],  # chip_info["Y_NUM_STEPS"][1],
+                    chip.num_steps[0],  # chip_info["X_NUM_STEPS"][1],
                 ),
             )
             OSC["omega"] = np.append(OSC["omega"], osc["omega"])

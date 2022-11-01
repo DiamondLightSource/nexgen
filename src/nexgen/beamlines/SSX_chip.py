@@ -3,10 +3,29 @@ Tools to read a chip and compute the coordinates of a Serial Crystallography col
 """
 from __future__ import annotations
 
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, Tuple
+from typing import Dict, List, Tuple
 
 # I24 chip tools
+
+
+@dataclass
+class Chip:
+    """
+    Define a fixed target chip.
+    """
+
+    name: str
+
+    num_steps: List[int, int] | Tuple[int, int]
+    step_size: List[float, float] | Tuple[float, float]
+    num_blocks: List[int, int] | Tuple[int, int]
+    block_size: List[int, int] | Tuple[int, int]
+
+    start_pos: List[float, float, float] | Tuple[float, float, float] = field(
+        default_factory=[0.0, 0.0, 0.0]
+    )
 
 
 def read_chip_map(mapfile: Path, x_blocks: int, y_blocks: int) -> Dict | str:
@@ -55,7 +74,7 @@ def read_chip_map(mapfile: Path, x_blocks: int, y_blocks: int) -> Dict | str:
 
 
 def compute_goniometer(
-    chip_dict: Dict, blocks: Dict = None, full: bool = False
+    chip: Chip, blocks: Dict = None, full: bool = False
 ) -> Tuple[Dict]:
     """
     Compute the sam_y, sam_x goniometer start and end positions for a fastchip scan.
@@ -64,66 +83,58 @@ def compute_goniometer(
     If full is passed, assume every block in the chip is being scanned.
 
     Args:
-        chip_dict (Dict): General information about the chip.
+        chip (Chip): General information about the chip.
         blocks (Dict, optional): Coordinates of scanned blocks. Defaults to None.
         full (bool, optional): If True, calculate start and end points for all blocks. Defaults to False.
 
     Returns:
         Tuple[Dict]: Start and end points for each block.
     """
-    x0 = chip_dict["X_START"][1]
-    y0 = chip_dict["Y_START"][1]
+    x0 = chip.start_pos[0]  # chip_dict["X_START"][1]
+    y0 = chip.start_pos[1]
     starts = {}
     ends = {}
 
     if full is True:
-        for x in range(chip_dict["X_NUM_BLOCKS"][1]):
-            x_start = x0 + x * chip_dict["X_BLOCK_SIZE"][1]
+        for x in range(chip.num_blocks[0]):
+            x_start = x0 + x * chip.block_size[0]
             if x % 2 == 0:
-                for y in range(chip_dict["Y_NUM_BLOCKS"][1]):
-                    y_start = y0 + y * chip_dict["Y_BLOCK_SIZE"][1]
+                for y in range(chip.num_blocks[1]):
+                    y_start = y0 + y * chip.block_size[1]
                     x_end = (
                         x_start
-                        + chip_dict["X_NUM_STEPS"][1] * chip_dict["X_STEP_SIZE"][1]
+                        + chip.num_steps[0]
+                        * chip.step_size[
+                            0
+                        ]  # chip_dict["X_NUM_STEPS"][1] * chip_dict["X_STEP_SIZE"][1]
                     )
                     y_end = (
                         y_start
-                        + chip_dict["Y_NUM_STEPS"][1] * chip_dict["Y_STEP_SIZE"][1]
+                        + chip.num_steps[1]
+                        * chip.step_size[
+                            1
+                        ]  # chip_dict["Y_NUM_STEPS"][1] * chip_dict["Y_STEP_SIZE"][1]
                     )
                     starts[(x, y)] = [0, 0, y_start, x_start]
                     ends[(x, y)] = [0, 0, y_end, x_end]
             else:
-                for y in range(chip_dict["Y_NUM_BLOCKS"][1] - 1, -1, -1):
-                    y_end = y0 + y * chip_dict["Y_BLOCK_SIZE"][1]
-                    x_end = (
-                        x_start
-                        + chip_dict["X_NUM_STEPS"][1] * chip_dict["X_STEP_SIZE"][1]
-                    )
-                    y_start = (
-                        y_end
-                        + chip_dict["Y_NUM_STEPS"][1] * chip_dict["Y_STEP_SIZE"][1]
-                    )
+                for y in range(chip.num_blocks[1] - 1, -1, -1):
+                    y_end = y0 + y * chip.block_size[1]
+                    x_end = x_start + chip.num_steps[0] * chip.step_size[0]
+                    y_start = y_end + chip.num_steps[1] * chip.step_size[1]
                     starts[(x, y)] = [0, 0, y_start, x_start]
                     ends[(x, y)] = [0, 0, y_end, x_end]
     else:
         for k, v in blocks.items():
-            x_start = x0 + v[0] * chip_dict["X_BLOCK_SIZE"][1]
+            x_start = x0 + v[0] * chip.block_size[0]
             if v[0] % 2 == 0:
-                y_start = x0 + v[1] * chip_dict["Y_BLOCK_SIZE"][1]
-                x_end = (
-                    x_start + chip_dict["X_NUM_STEPS"][1] * chip_dict["X_STEP_SIZE"][1]
-                )
-                y_end = (
-                    y_start + chip_dict["Y_NUM_STEPS"][1] * chip_dict["Y_STEP_SIZE"][1]
-                )
+                y_start = x0 + v[1] * chip.block_size[1]
+                x_end = x_start + chip.num_steps[0] * chip.step_size[0]
+                y_end = y_start + chip.num_steps[1] * chip.step_size[1]
             else:
-                y_end = x0 + v[1] * chip_dict["Y_BLOCK_SIZE"][1]
-                x_end = (
-                    x_start + chip_dict["X_NUM_STEPS"][1] * chip_dict["X_STEP_SIZE"][1]
-                )
-                y_start = (
-                    y_end + chip_dict["Y_NUM_STEPS"][1] * chip_dict["Y_STEP_SIZE"][1]
-                )
+                y_end = x0 + v[1] * chip.block_size[1]
+                x_end = x_start + chip.num_steps[0] * chip.step_size[0]
+                y_start = y_end + chip.num_steps[1] * chip.step_size[1]
             starts[k] = [0.0, 0.0, round(y_start, 3), round(x_start, 3)]
             ends[k] = [0.0, 0.0, round(y_end, 3), round(x_end, 3)]
 
