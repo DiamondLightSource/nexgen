@@ -28,12 +28,12 @@ class Chip:
     )
 
 
-def read_chip_map(mapfile: Path, x_blocks: int, y_blocks: int) -> Dict | str:
+def read_chip_map(mapfile: Path | str, x_blocks: int, y_blocks: int) -> Dict | str:
     """
     Read the .map file for the current collection on a chip.
 
     Args:
-        mapfile (Path): Path to .map file. If None, assumes fullchip.
+        mapfile (Path | str): Path to .map file. If None, assumes fullchip.
         x_blocks (int): Total number of blocks in x direction in the chip.
         y_blocks (int): Total number of blocks in x direction in the chip.
 
@@ -49,14 +49,15 @@ def read_chip_map(mapfile: Path, x_blocks: int, y_blocks: int) -> Dict | str:
         chipmap = f.read()
 
     block_list = []
+    max_num_blocks = x_blocks * y_blocks
     for n, line in enumerate(chipmap.rsplit("\n")):
-        if n == 64:
+        if n == max_num_blocks:
             break
         k = line[:2]
         v = line[-1:]
         if v == "1":
             block_list.append(k)
-    if len(block_list) == x_blocks * y_blocks:
+    if len(block_list) == max_num_blocks:
         # blocks["fullchip"] = len(block_list)
         return "fullchip"
 
