@@ -14,6 +14,17 @@ from typing import Dict, List, Tuple
 class Chip:
     """
     Define a fixed target chip.
+
+    Args:
+        name (str):
+        num_steps (List[int] | Tuple[int]):
+        step_size (List[float] | Tuple[float]):
+        num_blocks (List[int] | Tuple[int]):
+        block_size (List[int] | Tuple[int]):
+        start_pos (List[float]):
+
+    Returns:
+        _type_: _description_
     """
 
     name: str
@@ -23,9 +34,10 @@ class Chip:
     num_blocks: List[int, int] | Tuple[int, int]
     block_size: List[int, int] | Tuple[int, int]
 
-    start_pos: List[float, float, float] | Tuple[float, float, float] = field(
-        default_factory=[0.0, 0.0, 0.0]
-    )
+    start_pos: List[float, float, float] = field(default_factory=[0.0, 0.0, 0.0])
+
+    def tot_blocks(self):
+        return self.num_blocks[0] * self.num_blocks[1]
 
 
 def read_chip_map(mapfile: Path | str, x_blocks: int, y_blocks: int) -> Dict | str:
@@ -35,7 +47,7 @@ def read_chip_map(mapfile: Path | str, x_blocks: int, y_blocks: int) -> Dict | s
     Args:
         mapfile (Path | str): Path to .map file. If None, assumes fullchip.
         x_blocks (int): Total number of blocks in x direction in the chip.
-        y_blocks (int): Total number of blocks in x direction in the chip.
+        y_blocks (int): Total number of blocks in y direction in the chip.
 
     Returns:
         Dict | str: A dictionary indicating the coordinates on the chip of the scanned blocks,
@@ -75,24 +87,44 @@ def read_chip_map(mapfile: Path | str, x_blocks: int, y_blocks: int) -> Dict | s
 
 
 def compute_goniometer(
-    chip: Chip, blocks: Dict = None, full: bool = False
+    chip: Chip,
+    axes: List,
+    blocks: Dict = None,
+    full: bool = False,
+    ax0: str = "sam_x",
+    ax1: str = "sam_y",
 ) -> Tuple[Dict]:
-    """
-    Compute the sam_y, sam_x goniometer start and end positions for a fastchip scan.
-    For this calculation, at least the number and size of blocks, as well as size ans step of each window \
-    should be contained in the chip_dict.
-    If full is passed, assume every block in the chip is being scanned.
+    """Compute the start and end coordinates of a chip scan.
+
+    If full is set as True, TBD
 
     Args:
-        chip (Chip): General information about the chip.
-        blocks (Dict, optional): Coordinates of scanned blocks. Defaults to None.
-        full (bool, optional): If True, calculate start and end points for all blocks. Defaults to False.
+        chip (Chip): General description of the chip schematics.
+        axes (List): List of all the goniometer axes.
+        blocks (Dict, optional): Scanned blocks. Defaults to None.
+        full (bool, optional): True if all blocks have been scanned. Defaults to False.
+        ax0 (str, optional): Goniometer axis corresponding to 'x' on chip. Defaults to "sam_x".
+        ax1 (str, optional): Goniometer axis corresponding to 'y' on chip. Defaults to "sam_y".
 
     Returns:
-        Tuple[Dict]: Start and end points for each block.
+        Tuple[Dict]: Goniometer start and end coordinates for each block.
+
+    Raises:
+        ValueError: If one or both of the axes names passed as input are not in the list og goniometer axes.
     """
     x0 = chip.start_pos[0]  # chip_dict["X_START"][1]
     y0 = chip.start_pos[1]
+
+    if ax0 not in axes or ax1 not in axes:
+        raise ValueError(
+            "Axis not found in the list of goniometer axes. Please check your input."
+            f"Goniometer axes: {axes}. Looking for {ax0} and {ax1}."
+        )
+
+    num_axes = len(axes)
+    idx_X = axes.index(ax0)
+    idx_Y = axes.index(ax1)
+
     starts = {}
     ends = {}
 
@@ -116,15 +148,31 @@ def compute_goniometer(
                             1
                         ]  # chip_dict["Y_NUM_STEPS"][1] * chip_dict["Y_STEP_SIZE"][1]
                     )
-                    starts[(x, y)] = [0, 0, y_start, x_start]
-                    ends[(x, y)] = [0, 0, y_end, x_end]
+                    starts[(x, y)] = [
+                        x_start if i == idx_X else y_start if i == idx_Y else 0.0
+                        for i in range(num_axes)
+                    ]
+                    ends[(x, y)] = [
+                        x_end if i == idx_X else y_end if i == idx_Y else 0.0
+                        for i in range(num_axes)
+                    ]
+                    # starts[(x, y)] = [0, 0, y_start, x_start]
+                    # ends[(x, y)] = [0, 0, y_end, x_end]
             else:
                 for y in range(chip.num_blocks[1] - 1, -1, -1):
                     y_end = y0 + y * chip.block_size[1]
                     x_end = x_start + chip.num_steps[0] * chip.step_size[0]
                     y_start = y_end + chip.num_steps[1] * chip.step_size[1]
-                    starts[(x, y)] = [0, 0, y_start, x_start]
-                    ends[(x, y)] = [0, 0, y_end, x_end]
+                    starts[(x, y)] = [
+                        x_start if i == idx_X else y_start if i == idx_Y else 0.0
+                        for i in range(num_axes)
+                    ]
+                    ends[(x, y)] = [
+                        x_end if i == idx_X else y_end if i == idx_Y else 0.0
+                        for i in range(num_axes)
+                    ]
+                    # starts[(x, y)] = [0, 0, y_start, x_start]
+                    # ends[(x, y)] = [0, 0, y_end, x_end]
     else:
         for k, v in blocks.items():
             x_start = x0 + v[0] * chip.block_size[0]
@@ -136,7 +184,23 @@ def compute_goniometer(
                 y_end = x0 + v[1] * chip.block_size[1]
                 x_end = x_start + chip.num_steps[0] * chip.step_size[0]
                 y_start = y_end + chip.num_steps[1] * chip.step_size[1]
-            starts[k] = [0.0, 0.0, round(y_start, 3), round(x_start, 3)]
-            ends[k] = [0.0, 0.0, round(y_end, 3), round(x_end, 3)]
+            starts[k] = [
+                round(x_start, 3)
+                if i == idx_X
+                else round(y_start, 3)
+                if i == idx_Y
+                else 0.0
+                for i in range(num_axes)
+            ]
+            ends[k] = [
+                round(x_end, 3)
+                if i == idx_X
+                else round(y_end, 3)
+                if i == idx_Y
+                else 0.0
+                for i in range(num_axes)
+            ]
+            # starts[k] = [0.0, 0.0, round(y_start, 3), round(x_start, 3)]
+            # ends[k] = [0.0, 0.0, round(y_end, 3), round(x_end, 3)]
 
     return starts, ends

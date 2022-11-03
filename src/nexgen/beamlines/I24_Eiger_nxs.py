@@ -228,10 +228,12 @@ def fixed_target(
         # Calculate scan start/end positions on chip
         if type(blocks) is dict:
             logger.info(f"Scanning blocks: {list(blocks.keys())}.")
-            start_pos, end_pos = compute_goniometer(chip, blocks=blocks)
+            start_pos, end_pos = compute_goniometer(
+                chip, goniometer["axes"], blocks=blocks
+            )
         else:
             logger.info("Full chip: all the blocks will be scanned.")
-            start_pos, end_pos = compute_goniometer(chip, full=True)
+            start_pos, end_pos = compute_goniometer(chip, goniometer["axes"], full=True)
 
         # Iterate over blocks to calculate scan points
         OSC = {"omega": np.array([])}
