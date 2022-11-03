@@ -2,7 +2,7 @@ import tempfile
 
 import pytest
 
-from nexgen.beamlines.SSX_chip import Chip, read_chip_map
+from nexgen.beamlines.SSX_chip import Chip, compute_goniometer, read_chip_map
 
 test_chip = Chip(
     "testchip",
@@ -12,6 +12,12 @@ test_chip = Chip(
     block_size=[3.175, 3.175],
     start_pos=[0.0, 0.0, 0.0],
 )
+
+test_goniometer = {"axes": ["omega", "sam_y", "sam_x", "phi"]}
+
+
+def test_chip_tot_blocks():
+    assert test_chip.tot_blocks() == 4
 
 
 def test_no_chip_map_passed_returns_fullchip():
@@ -40,3 +46,27 @@ def test_read_chip_map(dummy_chipmap_file):
     )
     assert type(blocks) == dict and len(blocks) == 2
     assert list(blocks.keys()) == ["01", "02"]
+
+
+def test_compute_goniometer_fails_if_axes_not_found():
+    with pytest.raises(ValueError):
+        compute_goniometer(test_chip, ["omega", "phi", "sam_x"], full=True)
+
+
+def test_compute_goniometer_for_full_chip():
+    starts, ends = compute_goniometer(test_chip, test_goniometer["axes"], full=True)
+    assert len(starts) == test_chip.tot_blocks()
+    assert len(ends) == test_chip.tot_blocks()
+    assert list(starts.keys()) == [(0, 0), (0, 1), (1, 1), (1, 0)]
+    assert starts.keys() == ends.keys()
+
+
+def test_compute_goniometer_from_chipmap(dummy_chipmap_file):
+    blocks = read_chip_map(
+        dummy_chipmap_file.name, test_chip.num_blocks[0], test_chip.num_blocks[1]
+    )
+    starts, ends = compute_goniometer(test_chip, test_goniometer["axes"], blocks=blocks)
+    assert list(starts.keys()) == ["01", "02"]
+    assert starts.keys() == ends.keys()
+    assert starts["01"] == [0.0, 0.0, 0.0, 0.0]
+    assert ends["01"] == [0.0, 2.5, 2.5, 0.0]
