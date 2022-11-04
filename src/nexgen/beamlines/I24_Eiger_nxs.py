@@ -226,14 +226,14 @@ def fixed_target(
         )
 
         # Calculate scan start/end positions on chip
-        if type(blocks) is dict:
+        if list(blocks.values())[0] == "fullchip":
+            logger.info("Full chip: all the blocks will be scanned.")
+            start_pos, end_pos = compute_goniometer(chip, goniometer["axes"], full=True)
+        else:
             logger.info(f"Scanning blocks: {list(blocks.keys())}.")
             start_pos, end_pos = compute_goniometer(
                 chip, goniometer["axes"], blocks=blocks
             )
-        else:
-            logger.info("Full chip: all the blocks will be scanned.")
-            start_pos, end_pos = compute_goniometer(chip, goniometer["axes"], full=True)
 
         # Iterate over blocks to calculate scan points
         OSC = {"omega": np.array([])}
@@ -309,6 +309,8 @@ def fixed_target(
                         logger.warning(
                             "Pump delay has not been recorded and won't be written to file."
                         )
+                    # Add pump-repeat to info dictionary
+                    pump_info["pump_repeat"] = chip_info["PUMP_REPEAT"][1]
                     loc = "/entry/source/notes"
                     write_NXnote(nxsfile, loc, pump_info)
 
@@ -335,17 +337,15 @@ def fixed_target(
 def grid_scan_3D(
     master_file: Path,
     filename: List[Path],
-    SSX: namedtuple,
+    num_imgs: int,
+    chip_info: Dict,
+    chipmap: Path | str,
     metafile: Path = None,
+    timestamps: Tuple[str] = None,
+    pump_info: Dict = None,
 ):
     logger.info("Write NeXus file for 3D gid scan.")
-
-    # Get timestamps in the correct format
-    timestamps = (
-        get_iso_timestamp(SSX.start_time),
-        get_iso_timestamp(SSX.stop_time),
-    )
-    logger.info(f"Timestamps recorded: {timestamps}")
+    # The question here is ... what about rotation?
 
 
 def write_nxs(**ssx_params):
@@ -483,7 +483,16 @@ def write_nxs(**ssx_params):
             pump_info,
         )
     elif SSX.exp_type == "3Dgridscan":
-        grid_scan_3D(master_file, filename, SSX, metafile)
+        grid_scan_3D(
+            master_file,
+            filename,
+            int(SSX.num_imgs),
+            SSX.chip_info,
+            SSX.chipmap,
+            metafile,
+            timestamps,
+            pump_info,
+        )
 
     logger.info("*EOF*\n")
 

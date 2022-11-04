@@ -21,7 +21,9 @@ def test_chip_tot_blocks():
 
 
 def test_no_chip_map_passed_returns_fullchip():
-    assert read_chip_map(None, 1, 1) == "fullchip"
+    res = read_chip_map(None, 1, 1)
+    assert type(res) is dict
+    assert list(res.values())[0] == "fullchip"
 
 
 @pytest.fixture

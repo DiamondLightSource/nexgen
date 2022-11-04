@@ -99,7 +99,7 @@ def ScanReader(
             TRANSL = calculate_scan_range(
                 transl_axes, transl_start, transl_end, transl_increment, snaked=snaked
             )
-        logger.info(f"{len(transl_axes)} scan axis/axes found (translation).")
+        logger.debug(f"{len(transl_axes)} scan axis/axes found (translation).")
     else:
         TRANSL = None
 
@@ -156,7 +156,7 @@ def ScanReader(
                 rotation=True,
             )
 
-    # logger.info(f"{osc_axis} set as rotation axis.")
+    logger.debug(f"{osc_axis} set as rotation axis.")
     return OSC, TRANSL
 
 

@@ -224,7 +224,14 @@ def write_nxs(**ssx_params):
 
             # Save chipmap (list of city blocks)
             if SSX_TR.chipmap:
-                nxsfile.create_dataset("/entry/data/chipmap", data=SSX_TR.chipmap)
+                # Assuming 8x8 fast chip
+                from .SSX_chip import read_chip_map
+
+                chip = read_chip_map(SSX_TR.chipmap, 8, 8)
+                nxsfile.create_dataset("/entry/data/chipmap", data=str(chip))
+                # To read this: eval(dset[()])
+                # Instead of saving chipmap location read file and save dictionary.
+                # TODO add part to copy functions to get the positions.
 
             # Register pump status (hard coded as True)
             pump_info = {"pump_status": True}
