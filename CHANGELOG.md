@@ -19,6 +19,7 @@
 
 ### Fixed
 - Outstanding data_size order issues.
+- Sample depends_on bug in NXsample writer: the value can now be passed as input argument to write_NXsample. If absent, it will default to the last axis in the goniometer list.
 
 ---
 ## 0.6.11

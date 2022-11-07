@@ -175,6 +175,7 @@ def write_NXsample(
     data_type: Tuple[str, int],
     osc_scan: Dict[str, ArrayLike],
     transl_scan: Dict[str, ArrayLike] = None,
+    sample_depends_on: str = None,
 ):
     """
     Write NXsample group at /entry/sample.
@@ -185,6 +186,7 @@ def write_NXsample(
         data_type (Tuple[str, int]): Images or events.
         osc_scan (Dict[str, ArrayLike]): Rotation scan. If writing events, this is just a (start, end) tuple.
         transl_scan (Dict[str, ArrayLike], optional): Scan along the xy axes at sample. Defaults to None.
+        sample_depends_on (str): Axis on which the sample depends on. If absent, the depends_on field will be set to the last axis listed in the goniometer. Defaults to None.
     """
     NXclass_logger.info("Start writing NXsample and NXtransformations.")
     # Create NXsample group, unless it already exists, in which case just open it.
@@ -207,9 +209,16 @@ def write_NXsample(
     osc_axis, osc_range = list(osc_scan.items())[0]
 
     # Save sample depends_on
-    nxsample.create_dataset(
-        "depends_on", data=set_dependency(osc_axis, path=nxtransformations.name)
-    )
+    if sample_depends_on:
+        nxsample.create_dataset(
+            "depends_on",
+            data=set_dependency(sample_depends_on, path=nxtransformations.name),
+        )
+    else:
+        nxsample.create_dataset(
+            "depends_on",
+            data=set_dependency(goniometer["axes"][-1], path=nxtransformations.name),
+        )
 
     # Get xy details if passed
     scan_axes = []

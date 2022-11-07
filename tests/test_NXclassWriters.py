@@ -152,6 +152,64 @@ def test_given_scan_axis_when_write_NXsample_then_scan_axis_data_copied_from_dat
     assert dummy_nexus_file[axis_entry + "_end"][1] == 2
 
 
+def test_sample_depends_on_written_correctly_in_NXsample(dummy_nexus_file):
+    test_axis = "omega"
+    test_scan_range = [0, 1, 2]
+    osc_scan = {test_axis: test_scan_range}
+
+    # Doing this to write the scan axis data into the data group
+    write_NXdata(
+        dummy_nexus_file,
+        [Path("tmp")],
+        test_goniometer_axes,
+        ("images", 0),
+        osc_scan,
+    )
+
+    write_NXsample(
+        dummy_nexus_file,
+        test_goniometer_axes,
+        ("images", 0),
+        osc_scan,
+        sample_depends_on=test_axis,
+    )
+
+    assert "depends_on" in dummy_nexus_file["/entry/sample"]
+    assert (
+        dummy_nexus_file["/entry/sample/depends_on"][()]
+        == b"/entry/sample/transformations/omega"
+    )
+
+
+def test_sample_depends_on_written_correctly_in_NXsample_when_value_not_passed(
+    dummy_nexus_file,
+):
+    test_axis = "omega"
+    test_scan_range = [0, 1, 2]
+    osc_scan = {test_axis: test_scan_range}
+
+    test_depends = f"/entry/sample/transformations/{test_goniometer_axes['axes'][-1]}"
+
+    # Doing this to write the scan axis data into the data group
+    write_NXdata(
+        dummy_nexus_file,
+        [Path("tmp")],
+        test_goniometer_axes,
+        ("images", 0),
+        osc_scan,
+    )
+
+    write_NXsample(
+        dummy_nexus_file,
+        test_goniometer_axes,
+        ("images", 0),
+        osc_scan,
+    )
+
+    assert "depends_on" in dummy_nexus_file["/entry/sample"]
+    assert dummy_nexus_file["/entry/sample/depends_on"][()] == test_depends.encode()
+
+
 def test_given_module_offset_of_1_when_write_NXdetector_module_then_fast_and_slow_axis_depends_on_module_offset(
     dummy_nexus_file,
 ):
