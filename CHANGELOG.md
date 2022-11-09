@@ -1,6 +1,6 @@
 # CHANGELOG
 
-##
+## 0.6.12
 
 ### Added
 - NeXus writer function, phil template and parameter file for Electron Diffraction data.

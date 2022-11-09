@@ -169,6 +169,21 @@ def ED_call_writers(
         n_images = find_number_of_images(datafiles, data_entry_key)
         logger.info(f"Total number of images: {n_images}.")
 
+    if goniometer["ends"] is None:
+        logger.info(
+            "Goniometer end position has not been passed. The value for the rotation axis will be calculated from the number of images."
+        )
+        ax_idx = [
+            goniometer["increments"].index(i)
+            for i in goniometer["increments"]
+            if i != 0
+        ][0]
+        end = goniometer["starts"][ax_idx] + goniometer["increments"][ax_idx] * n_images
+        goniometer["ends"] = [
+            end if i == ax_idx else 0.0 for i in range(len(goniometer["axes"]))
+        ]
+        logger.info(f"Goniometer end positions set to {goniometer['ends']}")
+
     # Define data_type
     data_type = ("images", n_images)
 

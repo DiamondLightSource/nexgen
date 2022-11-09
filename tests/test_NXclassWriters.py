@@ -9,6 +9,7 @@ import pytest
 from numpy.testing import assert_array_equal
 
 from nexgen.nxs_write.NXclassWriters import (
+    write_NXcollection,
     write_NXcoordinate_system_set,
     write_NXdata,
     write_NXdatetime,
@@ -290,3 +291,23 @@ def test_write_NXcoordinate_system_set(dummy_nexus_file):
     assert_array_equal(dummy_nexus_file[loc + "origin"][()], (1, 1, 0))
     assert_array_equal(dummy_nexus_file[loc + "x"][()], 1)
     assert_array_equal(dummy_nexus_file[loc + "y"].attrs["vector"], [0, 0, 0])
+
+
+def test_write_NXcollection_for_images(dummy_nexus_file):
+    nxdet = dummy_nexus_file.require_group("/entry/instrument/detector")
+    test_detector_spec = {
+        "description": "eiger",
+        "image_size": [512, 1028],
+        "software_version": "0.0.0",
+    }
+    write_NXcollection(nxdet, test_detector_spec, ("images", 10))
+
+    spec = "/entry/instrument/detector/detectorSpecific/"
+    assert dummy_nexus_file[spec + "software_version"][()] == b"0.0.0"
+    assert_array_equal(dummy_nexus_file[spec + "nimages"][()], 10)
+    assert_array_equal(
+        dummy_nexus_file[spec + "x_pixels"][()], test_detector_spec["image_size"][1]
+    )
+    assert_array_equal(
+        dummy_nexus_file[spec + "y_pixels"][()], test_detector_spec["image_size"][0]
+    )

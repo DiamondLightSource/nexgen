@@ -640,7 +640,8 @@ def write_NXdetector(
                 if type(detector[dset]) is str
                 else detector[dset]
             )
-            nxdetector.create_dataset(dset, data=val)
+            if val is not None:  # FIXME bit of a gorilla here, for bit_depth_readout
+                nxdetector.create_dataset(dset, data=val)
 
 
 # NXdetector_module writer

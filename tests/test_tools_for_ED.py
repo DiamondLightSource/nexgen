@@ -4,7 +4,7 @@ import h5py
 import numpy as np
 import pytest
 
-from nexgen.nxs_write.EDNexusWriter import reframe_arrays
+from nexgen.nxs_write.EDNexusWriter import ED_call_writers, reframe_arrays
 from nexgen.tools.ED_tools import SinglaMaster, extract_from_SINGLA_master
 
 test_goniometer = {
@@ -60,6 +60,18 @@ def test_reframe_arrays_from_another_coordinate_system():
 def test_reframe_arrays_fails_if_coordinate_system_ill_defined():
     with pytest.raises(ValueError):
         reframe_arrays("", test_goniometer, test_detector, test_module, test_new_coords)
+
+
+def test_ED_call_fails_if_missing_required_argument():
+    with pytest.raises(TypeError):
+        ED_call_writers("", [], test_goniometer, test_detector, test_module)
+
+
+def test_ED_call_fails_if_empty_dictionary_passed():
+    with pytest.raises(KeyError):
+        ED_call_writers(
+            "", [], test_goniometer, test_detector, {}, {}, {}, test_new_coords
+        )
 
 
 @pytest.fixture
