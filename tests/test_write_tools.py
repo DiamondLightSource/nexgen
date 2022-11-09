@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from nexgen.nxs_write import (
     calculate_origin,
@@ -7,6 +8,7 @@ from nexgen.nxs_write import (
     find_number_of_images,
     find_osc_axis,
     set_dependency,
+    write_compressed_copy,
 )
 
 test_goniometer = {
@@ -187,3 +189,8 @@ def test_calculate_origin():
 def test_find_number_of_images_returns_0_if_no_file_passed():
     n_images = find_number_of_images([])
     assert n_images == 0
+
+
+def test_write_copy_raises_error_if_both_array_and_file():
+    with pytest.raises(ValueError):
+        write_compressed_copy("", "", np.array([0.0]), "filename")
