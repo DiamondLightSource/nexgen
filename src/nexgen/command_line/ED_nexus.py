@@ -98,37 +98,37 @@ def write_from_SINGLA(args):
         get_iso_timestamp(params.end_time),
     )
 
-    if goniometer["ends"] is None and params.input.n_imgs is None:
-        from ..nxs_write import find_number_of_images
+    # if goniometer["ends"] is None and params.input.n_imgs is None:
+    #     from ..nxs_write import find_number_of_images
 
-        n_imgs = find_number_of_images(datafiles, "/entry/data/data")
-        if n_imgs == 0:
-            logger.error("Impossible to calculate axes positions.")
-            raise IOError(
-                "Axes positions can't be correctly determined."
-                "Please pass at least a list of end positions for the goniometer (eg. goniometer.ends=0,0,0,0) or the total number of images in the dataset."
-            )
-        params.input.n_imgs = n_imgs
-        logger.info(f"Number of images in data files: {params.input.n_imgs}")
+    #     n_imgs = find_number_of_images(datafiles, "/entry/data/data")
+    #     if n_imgs == 0:
+    #         logger.error("Impossible to calculate axes positions.")
+    #         raise IOError(
+    #             "Axes positions can't be correctly determined."
+    #             "Please pass at least a list of end positions for the goniometer (eg. goniometer.ends=0,0,0,0) or the total number of images in the dataset."
+    #         )
+    #     params.input.n_imgs = n_imgs
+    #     logger.info(f"Number of images in data files: {params.input.n_imgs}")
 
-    if params.input.n_imgs:
-        if goniometer["ends"] is None:
-            logger.info(
-                "Goniometer end position has not been passed. The value for the rotation axis will be calculated from the number of images."
-            )
-            ax_idx = [
-                goniometer["increments"].index(i)
-                for i in goniometer["increments"]
-                if i != 0
-            ][0]
-            end = (
-                goniometer["starts"][ax_idx]
-                + goniometer["increments"][ax_idx] * params.input.n_imgs
-            )
-            goniometer["ends"] = [
-                end if i == ax_idx else 0.0 for i in range(len(goniometer["axes"]))
-            ]
-            logger.info(f"Goniometer end positions set to {goniometer['ends']}")
+    # if params.input.n_imgs:
+    #     if goniometer["ends"] is None:
+    #         logger.info(
+    #             "Goniometer end position has not been passed. The value for the rotation axis will be calculated from the number of images."
+    #         )
+    #         ax_idx = [
+    #             goniometer["increments"].index(i)
+    #             for i in goniometer["increments"]
+    #             if i != 0
+    #         ][0]
+    #         end = (
+    #             goniometer["starts"][ax_idx]
+    #             + goniometer["increments"][ax_idx] * params.input.n_imgs
+    #         )
+    #         goniometer["ends"] = [
+    #             end if i == ax_idx else 0.0 for i in range(len(goniometer["axes"]))
+    #         ]
+    #         logger.info(f"Goniometer end positions set to {goniometer['ends']}")
 
     logger.warning(
         f"Coordinate frame of input arrays currently set to {coordinate_frame}."
