@@ -387,7 +387,9 @@ def fixed_target(
                     write_NXnote(nxsfile, loc, pump_info)
 
                 # Write VDS
-                # for offset in range()
+                # TODO discuss how VDS should be saved. All in one probably not ideal for this application.
+                image_vds_writer(nxsfile, (int(num_imgs), *detector["image_size"]))
+                # for offset in range(0, tot_imgs, n_windows_in_block*N)
                 # image_vds_writer(nxsfile, (int(num_imgs), *detector["image_size"]), offset)
 
                 if timestamps:
