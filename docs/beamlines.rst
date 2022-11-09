@@ -16,8 +16,8 @@ Serial crystallography
 
 - I19-2: Fixed target SSX with Tristan detector.
 - I24 serial crystallography with Eiger detector:
-    * Still shots (extruder application)
-    * Fixed target (time-resolved or not)
+    * Still shots
+    * Fixed target
     * 3D grid scan
 
 
@@ -39,7 +39,7 @@ Example usage
     D = 1.480   # Detector distance passed in mm
     t = 0.01    # Exposure time passed in s
 
-    # Example of chip_dict with minimum required values needed for goniometer computations.
+    # Example of chip_dict (form beamline I24) with minimum required values needed for goniometer computations.
     chip_dict = {
         'X_NUM_STEPS':    [11, 20],
         'Y_NUM_STEPS':    [12, 20],
