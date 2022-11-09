@@ -216,51 +216,50 @@ def fixed_target(
     )
 
     # Is it a time resolved SSX experiment?
-    if int(chip_info["N_EXPOSURES"][1]) == 1:
-        goniometer["increments"] = [0.0, 0.0, 0.0, 0.0]
-        # Read chip map
-        blocks = read_chip_map(
-            chipmap,
-            chip.num_blocks[0],  # chip_info["X_NUM_BLOCKS"][1],
-            chip.num_blocks[1],  # chip_info["Y_NUM_BLOCKS"][1],
+    # if int(chip_info["N_EXPOSURES"][1]) == 1:
+    goniometer["increments"] = [0.0, 0.0, 0.0, 0.0]
+    # Read chip map
+    blocks = read_chip_map(
+        chipmap,
+        chip.num_blocks[0],  # chip_info["X_NUM_BLOCKS"][1],
+        chip.num_blocks[1],  # chip_info["Y_NUM_BLOCKS"][1],
+    )
+
+    # Calculate scan start/end positions on chip
+    if list(blocks.values())[0] == "fullchip":
+        logger.info("Full chip: all the blocks will be scanned.")
+        start_pos, end_pos = compute_goniometer(chip, goniometer["axes"], full=True)
+    else:
+        logger.info(f"Scanning blocks: {list(blocks.keys())}.")
+        start_pos, end_pos = compute_goniometer(chip, goniometer["axes"], blocks=blocks)
+
+    # Iterate over blocks to calculate scan points
+    OSC = {"omega": np.array([])}
+    TRANSL = {"sam_y": np.array([]), "sam_x": np.array([])}
+    for s, e in zip(start_pos.values(), end_pos.values()):
+        goniometer["starts"] = s
+        goniometer["ends"] = e
+        osc, transl = ScanReader(
+            goniometer,
+            n_images=(
+                chip.num_steps[1],  # chip_info["Y_NUM_STEPS"][1],
+                chip.num_steps[0],  # chip_info["X_NUM_STEPS"][1],
+            ),
         )
+        OSC["omega"] = np.append(OSC["omega"], osc["omega"])
+        TRANSL["sam_y"] = np.append(TRANSL["sam_y"], np.round(transl["sam_y"], 3))
+        TRANSL["sam_x"] = np.append(TRANSL["sam_x"], np.round(transl["sam_x"], 3))
 
-        # Calculate scan start/end positions on chip
-        if list(blocks.values())[0] == "fullchip":
-            logger.info("Full chip: all the blocks will be scanned.")
-            start_pos, end_pos = compute_goniometer(chip, goniometer["axes"], full=True)
-        else:
-            logger.info(f"Scanning blocks: {list(blocks.keys())}.")
-            start_pos, end_pos = compute_goniometer(
-                chip, goniometer["axes"], blocks=blocks
-            )
+    # Log data
+    logger.info("Goniometer information")
+    for j in range(len(goniometer["axes"])):
+        logger.info(
+            f"Goniometer axis: {goniometer['axes'][j]} => {goniometer['types'][j]} on {goniometer['depends'][j]}"
+        )
+    logger.info(f"Oscillation axis: {list(OSC.keys())[0]}.")
+    logger.info(f"Grid scan axes: {list(TRANSL.keys())}.")
 
-        # Iterate over blocks to calculate scan points
-        OSC = {"omega": np.array([])}
-        TRANSL = {"sam_y": np.array([]), "sam_x": np.array([])}
-        for s, e in zip(start_pos.values(), end_pos.values()):
-            goniometer["starts"] = s
-            goniometer["ends"] = e
-            osc, transl = ScanReader(
-                goniometer,
-                n_images=(
-                    chip.num_steps[1],  # chip_info["Y_NUM_STEPS"][1],
-                    chip.num_steps[0],  # chip_info["X_NUM_STEPS"][1],
-                ),
-            )
-            OSC["omega"] = np.append(OSC["omega"], osc["omega"])
-            TRANSL["sam_y"] = np.append(TRANSL["sam_y"], np.round(transl["sam_y"], 3))
-            TRANSL["sam_x"] = np.append(TRANSL["sam_x"], np.round(transl["sam_x"], 3))
-
-        # Log data
-        logger.info("Goniometer information")
-        for j in range(len(goniometer["axes"])):
-            logger.info(
-                f"Goniometer axis: {goniometer['axes'][j]} => {goniometer['types'][j]} on {goniometer['depends'][j]}"
-            )
-        logger.info(f"Oscillation axis: {list(OSC.keys())[0]}.")
-        logger.info(f"Grid scan axes: {list(TRANSL.keys())}.")
-
+    if int(chip_info["N_EXPOSURES"][1]) == 1:
         # Check that things make sense
         if num_imgs != len(OSC["omega"]):
             logger.warning(
@@ -328,10 +327,77 @@ def fixed_target(
             )
 
     else:
+        N = chip_info["N_EXPOSURES"][1]
+        logger.info(f"Each position has been collected {N} times.")
         pump_repeat = int(chip_info["PUMP_REPEAT"][1])
-        print("TimeResolved goes here")
-        print(f"Repeat: {pump_repeat}")
-        # same as before but with the repeat added headache
+        logger.info(f"Pump repeat setting: {pump_repeat}")
+
+        # Repeat each position N times
+        OSC = {k: [val for val in v for _ in range(N)] for k, v in OSC.items()}
+        TRANSL = {k: [val for val in v for _ in range(N)] for k, v in TRANSL.items()}
+
+        # Check that things make sense
+        if num_imgs != len(OSC["omega"]):
+            logger.warning(
+                f"The total number of scan points is {len(OSC['omega'])}, which does not match the total nu mber of images passed as input {num_imgs}."
+            )
+            logger.warning(
+                "Reset SSX.num_imgs to number of scan points for vds creation"
+            )
+            tot_imgs = len(OSC["omega"])
+        else:
+            tot_imgs = num_imgs
+
+        # Write NeXus file (for now no VDS)
+        try:
+            with h5py.File(master_file, "w") as nxsfile:
+                write_NXentry(nxsfile)
+
+                call_writers(
+                    nxsfile,
+                    filename,
+                    coordinate_frame,
+                    (detector["mode"], tot_imgs),
+                    goniometer,
+                    detector,
+                    module,
+                    source,
+                    beam,
+                    attenuator,
+                    OSC,
+                    transl_scan=TRANSL,
+                    metafile=metafile,
+                    link_list=dset_links,
+                )
+
+                # Write pump-probe information if requested
+                if pump_info:
+                    logger.info("Write pump information to file.")
+                    if pump_info["pump_exposure_time"] is None:
+                        logger.warning(
+                            "Pump exposure time has not been recorded and won't be written to file."
+                        )
+                    if pump_info["pump_delay"] is None:
+                        logger.warning(
+                            "Pump delay has not been recorded and won't be written to file."
+                        )
+                    # Add pump-repeat to info dictionary
+                    pump_info["pump_repeat"] = chip_info["PUMP_REPEAT"][1]
+                    loc = "/entry/source/notes"
+                    write_NXnote(nxsfile, loc, pump_info)
+
+                # Write VDS
+                # for offset in range()
+                # image_vds_writer(nxsfile, (int(num_imgs), *detector["image_size"]), offset)
+
+                if timestamps:
+                    write_NXdatetime(nxsfile, timestamps)
+            logger.info(f"The file {master_file} was written correctly.")
+        except Exception as err:
+            logger.exception(err)
+            logger.info(
+                f"An error occurred and {master_file} couldn't be written correctly."
+            )
 
 
 def grid_scan_3D(
