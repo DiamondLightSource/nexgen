@@ -1,6 +1,5 @@
 """Utilities for writing NeXus files for beamlines at Diamond Light Source."""
 
-
 import argparse
 
 gonioAx_parser = argparse.ArgumentParser(add_help=False)

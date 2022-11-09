@@ -110,6 +110,13 @@ def test_calc_rotation_range():
         == np.array([0.0, 0.5])
     )
 
+    # Check reverse rotation calculation
+    rev = calculate_scan_range(
+        [ax], [0.0], [-1.0], axes_increments=[0.2], rotation=True
+    )
+    assert rev[ax][0] == 0.0
+    assert round(rev[ax][-1], 1) == -0.8
+
 
 def test_calc_scan_range():
     # Check linear scan

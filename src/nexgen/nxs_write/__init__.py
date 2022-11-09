@@ -209,7 +209,11 @@ def calculate_scan_range(
             n_images = round(abs(axes_starts[0] - axes_ends[0]) / axes_increments[0])
 
         if axes_starts[0] != axes_ends[0] and axes_increments:
-            axes_ends[0] = axes_ends[0] - axes_increments[0]
+            if axes_starts[0] > axes_ends[0]:
+                # Account for reverse rotation.
+                axes_ends[0] = axes_ends[0] + axes_increments[0]
+            else:
+                axes_ends[0] = axes_ends[0] - axes_increments[0]
         elif axes_starts[0] != axes_ends[0] and not axes_increments:
             inc = (axes_ends[0] - axes_starts[0]) / n_images
             axes_ends[0] = axes_ends[0] - inc

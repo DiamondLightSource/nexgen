@@ -8,7 +8,9 @@
 - Function to write a compressed copy of a dataset in a specified NXgroup. Main application: mask and flatfield in NXdetector.
 - General conversion to mcstas from a user defined coordinate frame.
 - NXcoordinate_system_set writer.
+- Multiple exposures for fixed-target scan in I24 writer. (Issue [#75](https://github.com/dials/nexgen/issues/75) opened to discuss VDS possibilities.)
 - Tests for NXentry, NXcoordinate_system_set and NXnote writers.
+- Tests for SSX chip tools.
 - Tests for Metafile tools and ElectronDiffraction tools.
 
 ### Changed
@@ -19,6 +21,7 @@
 
 ### Fixed
 - Outstanding data_size order issues.
+- Sample depends_on bug in NXsample writer: the value can now be passed as input argument to write_NXsample. If absent, it will default to the last axis in the goniometer list.
 
 ---
 ## 0.6.11
