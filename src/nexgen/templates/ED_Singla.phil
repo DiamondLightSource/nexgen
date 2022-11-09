@@ -1,7 +1,7 @@
 goniometer {
   axes = alpha sam_z sam_y sam_x
   depends = . alpha sam_z sam_y
-  vectors = -1,0,0,0,0,1,0,1,0,1,0,0
+  vectors = 0,-1,0,0,0,1,0,1,0,1,0,0
   offsets = 0,0,0,0,0,0,0,0,0,0,0,0
   offset_units = mm mm mm mm
   starts = None
