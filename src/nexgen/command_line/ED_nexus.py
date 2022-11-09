@@ -98,6 +98,32 @@ def write_from_SINGLA(args):
         get_iso_timestamp(params.end_time),
     )
 
+    if goniometer["ends"] is None and params.input.n_imgs is None:
+        logger.error("Impossible to calculate axes positions.")
+        raise IOError(
+            "Axes positions can't be correctly determined."
+            "Please pass at least a list of end positions for the goniometer (eg. goniometer.ends=0,0,0,0) or the total number of images in the dataset."
+        )
+
+    if params.input.n_imgs:
+        if goniometer["ends"] is None:
+            logger.info(
+                "Goniometer end position has not been passed. The value for the rotation axis will be calculated from the number of images."
+            )
+            ax_idx = [
+                goniometer["increments"].index(i)
+                for i in goniometer["increments"]
+                if i != 0
+            ][0]
+            end = (
+                goniometer["starts"][ax_idx]
+                + goniometer["increments"][ax_idx] * params.input.n_imgs
+            )
+            goniometer["ends"] = [
+                end if i == ax_idx else 0.0 for i in range(len(goniometer["axes"]))
+            ]
+            logger.info(f"Goniometer end positions set to {goniometer['ends']}")
+
     logger.warning(
         f"Coordinate frame of input arrays currently set to {coordinate_frame}."
         "If that is not the case, please indicate the correct one with --coord-frame."
