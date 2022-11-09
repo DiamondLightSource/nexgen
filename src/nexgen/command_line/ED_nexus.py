@@ -99,11 +99,17 @@ def write_from_SINGLA(args):
     )
 
     if goniometer["ends"] is None and params.input.n_imgs is None:
-        logger.error("Impossible to calculate axes positions.")
-        raise IOError(
-            "Axes positions can't be correctly determined."
-            "Please pass at least a list of end positions for the goniometer (eg. goniometer.ends=0,0,0,0) or the total number of images in the dataset."
-        )
+        from ..nxs_write import find_number_of_images
+
+        n_imgs = find_number_of_images(datafiles, "/entry/data/data")
+        if n_imgs == 0:
+            logger.error("Impossible to calculate axes positions.")
+            raise IOError(
+                "Axes positions can't be correctly determined."
+                "Please pass at least a list of end positions for the goniometer (eg. goniometer.ends=0,0,0,0) or the total number of images in the dataset."
+            )
+        params.input.n_imgs = n_imgs
+        logger.info(f"Number of images in data files: {params.input.n_imgs}")
 
     if params.input.n_imgs:
         if goniometer["ends"] is None:
