@@ -10,6 +10,7 @@
 - NXcoordinate_system_set writer.
 - Multiple exposures for fixed-target scan in I24 writer. (Issue [#75](https://github.com/dials/nexgen/issues/75) opened to discuss VDS possibilities.)
 - Tests for NXentry, NXcoordinate_system_set and NXnote writers.
+- Tests for SSX chip tools.
 - Tests for Metafile tools and ElectronDiffraction tools.
 
 ### Changed

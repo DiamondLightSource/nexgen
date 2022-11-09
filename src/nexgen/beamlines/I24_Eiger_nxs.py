@@ -186,7 +186,7 @@ def fixed_target(
         chip_info (Dict): Basic information about the chip in use and collection dynamics.
         chipmap (Path | str): Path to the chipmap file corresponding to the current collection.
         metafile (Path, optional):  Path to the _meta.h5 file. Defaults to None.
-        timestamps (Tuple[str], optional): Start and end time of data collection, if known. Defaults to None.
+        timestamps (Tuple[str], optional): Start and end time of data collection, if known. See docs for accepted formats. Defaults to None.
         pump_info (Dict, optional): Details of a pump probe experiment eg. pump exposure time, pump delay, etc. Defaults to None.
 
     Raises:
@@ -215,8 +215,6 @@ def fixed_target(
         ],
     )
 
-    # Is it a time resolved SSX experiment?
-    # if int(chip_info["N_EXPOSURES"][1]) == 1:
     goniometer["increments"] = [0.0, 0.0, 0.0, 0.0]
     # Read chip map
     blocks = read_chip_map(
@@ -276,9 +274,6 @@ def fixed_target(
         try:
             with h5py.File(master_file, "x") as nxsfile:
                 write_NXentry(nxsfile)
-
-                # if timestamps[0]:
-                #     write_NXdatetime(nxsfile, (timestamps[0], None))
 
                 call_writers(
                     nxsfile,
@@ -412,8 +407,54 @@ def grid_scan_3D(
     timestamps: Tuple[str] = None,
     pump_info: Dict = None,
 ):
+    """
+    Write the NeXus file for 3D grid scans, pump probe and not.
+
+    Args:
+        master_file (Path): Path to the NeXus file to be written.
+        filename (List[Path]):  List of paths to file.
+        num_imgs (int): Total number of images passed as a beamline parameter.
+        chip_info (Dict): Basic information about the chip in use and collection dynamics.
+        chipmap (Path | str): Path to the chipmap file corresponding to the current collection.
+        metafile (Path, optional): Path to the _meta.h5 file. Defaults to None.
+        timestamps (Tuple[str], optional): Start and end time of data collection, if known. See docs for accepted formats. Defaults to None.
+        pump_info (Dict, optional): Details of a pump probe experiment eg. pump exposure time, pump delay, etc. Defaults to None.
+
+    Raises:
+        ValueError: When the chip information is missing.
+    """
     logger.info("Write NeXus file for 3D gid scan.")
     # The question here is ... what about rotation?
+
+    logger.info("Write NeXus file for fixed target.")
+
+    # Check that the chip dict has been passed, raise error is not
+    if chip_info is None:
+        logger.error("No chip_dict found.")
+        raise ValueError(
+            "No information about the FT chip has been passed. \
+            Impossible to determine scan parameters. NeXus file won't be written."
+        )
+
+    chip = Chip(
+        "fastchip",
+        num_steps=[chip_info["X_NUM_STEPS"][1], chip_info["Y_NUM_STEPS"][1]],
+        step_size=[chip_info["X_STEP_SIZE"][1], chip_info["Y_STEP_SIZE"][1]],
+        num_blocks=[chip_info["X_NUM_BLOCKS"][1], chip_info["Y_NUM_BLOCKS"][1]],
+        block_size=[chip_info["X_BLOCK_SIZE"][1], chip_info["Y_BLOCK_SIZE"][1]],
+        start_pos=[
+            chip_info["X_START"][1],
+            chip_info["Y_START"][1],
+            chip_info["Z_START"][1],
+        ],
+    )
+    # Read chip map
+    blocks = read_chip_map(
+        chipmap,
+        chip.num_blocks[0],  # chip_info["X_NUM_BLOCKS"][1],
+        chip.num_blocks[1],  # chip_info["Y_NUM_BLOCKS"][1],
+    )
+    print(blocks)
 
 
 def write_nxs(**ssx_params):
