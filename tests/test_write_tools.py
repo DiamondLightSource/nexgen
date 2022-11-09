@@ -4,6 +4,7 @@ from nexgen.nxs_write import (
     calculate_origin,
     calculate_scan_range,
     find_grid_scan_axes,
+    find_number_of_images,
     find_osc_axis,
     set_dependency,
 )
@@ -181,3 +182,8 @@ def test_calculate_origin():
     )
     assert len(vec1) == 3
     assert val1 == 1.0
+
+
+def test_find_number_of_images_returns_0_if_no_file_passed():
+    n_images = find_number_of_images([])
+    assert n_images == 0
