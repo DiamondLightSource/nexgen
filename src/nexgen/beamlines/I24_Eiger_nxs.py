@@ -322,7 +322,7 @@ def fixed_target(
             )
 
     else:
-        N = chip_info["N_EXPOSURES"][1]
+        N = int(chip_info["N_EXPOSURES"][1])
         logger.info(f"Each position has been collected {N} times.")
         pump_repeat = int(chip_info["PUMP_REPEAT"][1])
         logger.info(f"Pump repeat setting: {pump_repeat}")
