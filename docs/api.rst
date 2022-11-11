@@ -68,7 +68,7 @@ VDS writer
 Copying tools
 =============
 
-.. automodule:: nexgen.nex_copy.CopyNexus
+.. automodule:: nexgen.nxs_copy.CopyNexus
     :members:
 
 .. automodule:: nexgen.nxs_copy.CopyTristanNexus
@@ -116,7 +116,7 @@ When operating a Dectris detector, the goniometer and detector axes values are u
 
 .. autofunction:: nexgen.tools.MetaReader.update_goniometer
 
-.. autofunction:: nexgen.tools.MetaReader.update_detector
+.. autofunction:: nexgen.tools.MetaReader.update_detector_axes
 
 
 A couple of functions are available for reading the information stored in the metafile and copying it across to the new NeXus file by overwriting the existing values unless otherwise specified:
