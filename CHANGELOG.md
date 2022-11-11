@@ -1,5 +1,16 @@
 # CHANGELOG
 
+##
+
+### Changed
+- Chip definition in SSX tools.
+- WORKAROUND: Define end position of goniometer for a 2d scan (fixed target) on I24 as (end - increment) to avoind scanspec miscalculating the scan values.
+
+### Fixed
+- Cast n_exposures for I24 fixed target experiment to int.
+
+
+---
 ## 0.6.12
 
 ### Added
@@ -22,6 +33,7 @@
 ### Fixed
 - Outstanding data_size order issues.
 - Sample depends_on bug in NXsample writer: the value can now be passed as input argument to write_NXsample. If absent, it will default to the last axis in the goniometer list.
+
 
 ---
 ## 0.6.11

@@ -20,6 +20,18 @@ def test_chip_tot_blocks():
     assert test_chip.tot_blocks() == 4
 
 
+def test_chip_windows():
+    assert test_chip.tot_windows_per_block() == 400
+    assert test_chip.window_size() == (2.5, 2.5)
+
+
+def test_chip_types():
+    assert type(test_chip.num_steps[0]) is int
+    assert type(test_chip.step_size[0]) is float
+    assert type(test_chip.num_blocks[0]) is int
+    assert type(test_chip.block_size[0]) is float
+
+
 def test_no_chip_map_passed_returns_fullchip():
     res = read_chip_map(None, 1, 1)
     assert type(res) is dict
