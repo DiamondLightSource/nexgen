@@ -215,7 +215,7 @@ def fixed_target(
         ],
     )
 
-    goniometer["increments"] = [0.0, 0.0, 0.0, 0.0]
+    goniometer["increments"] = [0.0, 0.0, chip.step_size[1], chip.step_size[0]]
     # Read chip map
     blocks = read_chip_map(
         chipmap,
@@ -236,7 +236,9 @@ def fixed_target(
     TRANSL = {"sam_y": np.array([]), "sam_x": np.array([])}
     for s, e in zip(start_pos.values(), end_pos.values()):
         goniometer["starts"] = s
-        goniometer["ends"] = e
+        goniometer["ends"] = [
+            end - inc for end, inc in zip(e, goniometer["increments"])
+        ]  # Workaround for scanspec issue (we don't want to write the actual end of the chip)
         osc, transl = ScanReader(
             goniometer,
             n_images=(
