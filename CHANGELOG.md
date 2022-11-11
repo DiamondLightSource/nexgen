@@ -1,6 +1,8 @@
 # CHANGELOG
 
-##
+## Added
+- requirements.txt file
+- readthedocs and codecov config files
 
 ### Changed
 - Chip definition in SSX tools.
