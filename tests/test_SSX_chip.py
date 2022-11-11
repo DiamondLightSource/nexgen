@@ -20,6 +20,11 @@ def test_chip_tot_blocks():
     assert test_chip.tot_blocks() == 4
 
 
+def test_chip_windows():
+    assert test_chip.tot_windows_per_block() == 400
+    assert test_chip.window_size() == (2.5, 2.5)
+
+
 def test_chip_types():
     assert type(test_chip.num_steps[0]) is int
     assert type(test_chip.step_size[0]) is float

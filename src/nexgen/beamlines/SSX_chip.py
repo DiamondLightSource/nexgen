@@ -33,8 +33,23 @@ class Chip:
 
     start_pos: List[float, float, float] = field(default_factory=[0.0, 0.0, 0.0])
 
-    def tot_blocks(self):
+    def tot_blocks(self) -> int:
         return self.num_blocks[0] * self.num_blocks[1]
+
+    def tot_windows_per_block(self) -> int:
+        return self.num_steps[0] * self.num_steps[1]
+
+    def window_size(self) -> Tuple[float]:
+        return (
+            self.num_steps[0] * self.step_size[0],
+            self.num_steps[1] * self.step_size[1],
+        )
+
+    def chip_size(self) -> Tuple[float]:
+        return (
+            self.num_blocks[0] * self.block_size[0],
+            self.num_blocks[1] * self.block_size[1],
+        )
 
 
 def read_chip_map(mapfile: Path | str, x_blocks: int, y_blocks: int) -> Dict:
