@@ -29,7 +29,7 @@ class Chip:
     num_steps: List[int, int] | Tuple[int, int]
     step_size: List[float, float] | Tuple[float, float]
     num_blocks: List[int, int] | Tuple[int, int]
-    block_size: List[int, int] | Tuple[int, int]
+    block_size: List[float, float] | Tuple[float, float]
 
     start_pos: List[float, float, float] = field(default_factory=[0.0, 0.0, 0.0])
 
