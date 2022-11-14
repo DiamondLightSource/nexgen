@@ -35,6 +35,13 @@ I24
 .. autofunction:: nexgen.beamlines.I24_Eiger_nxs.fixed_target
 
 
+Serial crystallography: chip tools
+----------------------------------
+
+.. automodule:: nexgen.beamlines.SSX_chip
+    :members:
+
+
 SSX using Tristan Detector
 --------------------------
 
@@ -42,13 +49,6 @@ SSX using Tristan Detector
     :members:
 
 .. autofunction:: nexgen.beamlines.SSX_Tristan_nxs.write_nxs
-
-
-Serial crystallography: chip tools
-----------------------------------
-
-.. automodule:: nexgen.beamlines.SSX_chip
-    :members:
 
 
 GDA integration tools
