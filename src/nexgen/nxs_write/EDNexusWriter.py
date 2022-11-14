@@ -8,9 +8,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 import h5py
-import numpy as np
 
-from .. import coord2mcstas, split_arrays
+from .. import reframe_arrays
 from . import find_number_of_images
 from .NexusWriter import ScanReader
 from .NXclassWriters import (
@@ -28,80 +27,6 @@ from .NXclassWriters import (
 
 logger = logging.getLogger("nexgen.ED_Writer")
 logger.setLevel(logging.DEBUG)
-
-
-def reframe_arrays(
-    coordinate_frame: str,
-    goniometer: Dict[str, Any],
-    detector: Dict[str, Any],
-    module: Dict[str, Any],
-    ED_coord_system: Dict[str, Any],
-):
-    """
-    Split a list of offset/vector values into arrays. If the coordinate frame is not mcstas, \
-    convert the arrays using the base vectors of the ED coordinate system.
-
-    Args:
-        coordinate_frame (str): Coordinate system being used.
-        goniometer (Dict[str, Any]): Goniometer geometry description.
-        detector (Dict[str, Any]): Detector specific parameters and its axes.
-        module (Dict[str, Any]): Geometry and description of detector module.
-        ED_coord_system (Dict[str, Any]): Definition of the current coordinate frame for ED. \
-            It should at least contain the convention, origin and axes information as a tuple of (depends_on, type, units, vector). \
-                e.g. for X axis: {"x": (".", "translation", "mm", [1,0,0])}
-
-    Raises:
-        ValueError: When the input coordinate system name and the coordinate system convention for the vectors doesn't match.
-    """
-    # If the vectors are not yet split, first do that as if dealing with mcstas
-    if len(goniometer["vectors"]) == 3 * len(goniometer["axes"]):
-        goniometer["vectors"] = list(
-            split_arrays("mcstas", goniometer["axes"], goniometer["vectors"]).values()
-        )
-
-    if len(goniometer["offsets"]) == 3 * len(goniometer["axes"]):
-        goniometer["offsets"] = list(
-            split_arrays("mcstas", goniometer["axes"], goniometer["offsets"]).values()
-        )
-
-    if len(detector["vectors"]) == 3 * len(detector["axes"]):
-        detector["vectors"] = list(
-            split_arrays("mcstas", detector["axes"], detector["vectors"]).values()
-        )
-
-    if "offsets" in module.keys() and len(module["offsets"]) == 6:
-        module["offsets"] = list(
-            split_arrays(
-                "mcstas", ["fast_axis", "slow_axis"], module["offsets"]
-            ).values()
-        )
-
-    # If the input vectors have not yet been converted to mcstas, do the conversion
-    if coordinate_frame != "mcstas":
-        logger.info("Input coordinate frame is not mcstas, vectors will be converted.")
-        if coordinate_frame != ED_coord_system["convention"]:
-            raise ValueError(
-                "The input coordinate frame value doesn't match the current cordinate system convention."
-                "Impossible to convert to mcstas."
-            )
-        mat = np.array(
-            [
-                ED_coord_system["x"][-1],
-                ED_coord_system["y"][-1],
-                ED_coord_system["z"][-1],
-            ]
-        )
-
-        # Goniometer
-        goniometer["vectors"] = [coord2mcstas(v, mat) for v in goniometer["vectors"]]
-        goniometer["offsets"] = [coord2mcstas(v, mat) for v in goniometer["offsets"]]
-
-        # Detector
-        detector["vectors"] = [coord2mcstas(v, mat) for v in detector["vectors"]]
-
-        # Module
-        module["fast_axis"] = coord2mcstas(module["fast_axis"], mat)
-        module["slow_axis"] = coord2mcstas(module["slow_axis"], mat)
 
 
 # Write NeXus base classes for ED.
@@ -148,10 +73,10 @@ def ED_call_writers(
 
     # Deal with vecotrs/offsets/whatever
     reframe_arrays(
-        coordinate_frame,
         goniometer,
         detector,
         module,
+        coordinate_frame,
         ED_coord_system,
     )
 
