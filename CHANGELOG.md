@@ -7,6 +7,7 @@
 - readthedocs and codecov config files
 
 ### Changed
+- Refactoring of split_arrays and reframe_arrays: split arrays now does just that - splitting into size-3 tuples. Everything else, in particulare the conversion from other coordinate systems, is taken care of by reframe_arrays.
 - Chip definition in SSX tools.
 - WORKAROUND: Define end position of goniometer for a 2d scan (fixed target) on I24 as (end - increment) to avoind scanspec miscalculating the scan values.
 

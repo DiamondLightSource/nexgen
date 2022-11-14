@@ -11,10 +11,10 @@ source = {
 goniometer_axes = {
     "axes": ["omega", "sam_z", "sam_y", "sam_x"],
     "depends": [".", "omega", "sam_z", "sam_y"],
-    "vectors": [-1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0],
+    "vectors": [(-1, 0, 0), (0, 0, 1), (0, 1, 0), (1, 0, 0)],
     "types": ["rotation", "translation", "translation", "translation"],
     "units": ["deg", "mm", "mm", "mm"],
-    "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    "offsets": [(0, 0, 0), (0, 0, 0), (0, 0, 0), (0, 0, 0)],
     "starts": None,
     "ends": None,
     "increments": None,

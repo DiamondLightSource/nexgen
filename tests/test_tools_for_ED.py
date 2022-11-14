@@ -4,7 +4,7 @@ import h5py
 import numpy as np
 import pytest
 
-from nexgen.nxs_write.EDNexusWriter import ED_call_writers, reframe_arrays
+from nexgen.nxs_write.EDNexusWriter import ED_call_writers
 from nexgen.tools.ED_tools import SinglaMaster, extract_from_SINGLA_master
 
 test_goniometer = {
@@ -28,38 +28,6 @@ test_new_coords = {
 }
 
 test_flatfield = np.array([[0, 0, 0], [0, 0, 0]])
-
-
-def test_reframe_arrays_without_coordinate_conversion():
-    reframe_arrays(
-        "mcstas",
-        test_goniometer,
-        test_detector,
-        test_module,
-        test_new_coords,
-    )
-    assert test_goniometer["vectors"] == [(1, 0, 0), (0, 0, 1)]
-    assert test_module["offsets"] == [(0, 0, 0), (0, 0, 0)]
-    assert test_detector["vectors"] == [(0, 0, 1)]
-
-
-def test_reframe_arrays_from_another_coordinate_system():
-    reframe_arrays(
-        "rotate",
-        test_goniometer,
-        test_detector,
-        test_module,
-        test_new_coords,
-    )
-    assert test_detector["vectors"] == [(0, 0, -1)]
-    assert test_goniometer["vectors"] == [(1, 0, 0), (0, 0, -1)]
-    assert test_module["fast_axis"] == (1, 0, 0)
-    assert test_module["slow_axis"] == (0, -1, 0)
-
-
-def test_reframe_arrays_fails_if_coordinate_system_ill_defined():
-    with pytest.raises(ValueError):
-        reframe_arrays("", test_goniometer, test_detector, test_module, test_new_coords)
 
 
 def test_ED_call_fails_if_missing_required_argument():
