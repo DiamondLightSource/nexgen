@@ -1,6 +1,8 @@
 # CHANGELOG
 
-## Added
+## 0.6.13
+
+### Added
 - requirements.txt file
 - readthedocs and codecov config files
 
