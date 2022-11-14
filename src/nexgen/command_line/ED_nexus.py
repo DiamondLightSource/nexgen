@@ -128,9 +128,7 @@ def write_from_SINGLA(args):
         from .. import split_arrays
 
         # Note: setting to coordinate frame to avoid any conversions. FIXME
-        vectors = split_arrays(
-            coordinate_frame, ["x", "y", "z"], params.coord_system.vectors
-        )
+        vectors = split_arrays(["x", "y", "z"], params.coord_system.vectors)
         logger.info(
             f"New vectors defined for {params.coord_system.convention} coordinate system."
         )
