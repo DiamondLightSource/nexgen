@@ -57,7 +57,7 @@ def imgcif2mcstas(vector: List | Tuple | ArrayLike) -> Tuple:
     return tuple(np.dot(c2n, vector))
 
 
-def coord2mcstas(vector: List | Tuple | np.array, mat: ArrayLike) -> Tuple:
+def coord2mcstas(vector: List | Tuple | ArrayLike, mat: ArrayLike) -> Tuple:
     """
     General conversion from a new coordinate convention to the NeXus McStas coordinate system.
 

@@ -171,7 +171,8 @@ def ED_call_writers(
 
     if goniometer["ends"] is None:
         logger.info(
-            "Goniometer end position has not been passed. The value for the rotation axis will be calculated from the number of images."
+            "Goniometer end position has not been passed."
+            "The value for the rotation axis will be calculated from the number of images."
         )
         ax_idx = [
             goniometer["increments"].index(i)
