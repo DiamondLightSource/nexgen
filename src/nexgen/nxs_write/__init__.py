@@ -330,18 +330,23 @@ def set_instrument_name(source: Dict, facility_id: str = "DIAMOND") -> str:
     """Set the instrument name from the details saved in source.
 
     If source type is not defined in the input dictionary, the function will assume it is a Synchrotron.
+    If the facility_id is defined inside the source dictionary, that is the value that will be used.
     Naming tries to follow the recommended convention for NXmx:
     https://mmcif.wwpdb.org/dictionaries/mmcif_pdbx_v50.dic/Items/_diffrn_source.type.html
 
     Args:
-        source (Dict): Dictionary containing the facility information.
+        source (Dict): Dictionary containing the facility information. \
+            Minimum required keys: name, beamline_name
         facility_id (str, optional): Facility identifier. Defaults to "DIAMOND".
 
     Returns:
         name (str): The name to write under '/entry/instrument/name'
     """
+    if "facility_id" in source.keys() and source["facility_id"] is not None:
+        facility_id = source["facility_id"]
+
     if "type" not in source.keys() or source["type"] is None:
-        name = f"{facility_id} BEAMLINE {source['beamline_name']}"
+        return f"{facility_id} BEAMLINE {source['beamline_name']}"
 
     if "SYNCHROTRON" in source["type"].upper():
         name = f"{facility_id} BEAMLINE {source['beamline_name']}"

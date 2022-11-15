@@ -203,6 +203,15 @@ def test_set_instrument_name():
     )
 
 
+def test_set_instrument_name_override_facility_id():
+    test_source = {
+        "type": "Electron Microscope",
+        "facility_id": "DIAMOND MICROSCOPE",
+        "beamline_name": "eBic",
+    }
+    assert set_instrument_name(test_source) == "DIAMOND MICROSCOPE eBic"
+
+
 def tes_set_instrument_assumes_synchrotron_if_unspecified():
     test_source = {"short_name": "DLS", "beamline_name": "I04"}
     assert set_instrument_name(test_source) == "DIAMOND BEAMLINE I04"
