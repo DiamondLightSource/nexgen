@@ -146,6 +146,7 @@ The instrument name and source are defined by the values parsed from source, whi
 To specify a more specific name for the `/entry/instrument/name` field, the following command can be added to the command line:
 
 .. code-block:: console
+
     source.facility_id="DIAMOND MICROSCOPE"
 
 which will result in the instrument name being set to `DIAMOND MICROSCOPE eBic` instead of `DIAMOND eBic`.
