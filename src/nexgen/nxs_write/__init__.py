@@ -326,6 +326,30 @@ def find_number_of_images(datafile_list: List[Path], entry_key: str = "data") ->
     return int(num_images)
 
 
+def set_instrument_name(source: Dict, facility_id: str = "DIAMOND") -> str:
+    """Set the instrument name from the details saved in source.
+
+    If source type is not defined in the input dictionary, the function will assume it is a Synchrotron.
+    Naming tries to follow the recommended convention for NXmx:
+    https://mmcif.wwpdb.org/dictionaries/mmcif_pdbx_v50.dic/Items/_diffrn_source.type.html
+
+    Args:
+        source (Dict): Dictionary containing the facility information.
+        facility_id (str, optional): Facility identifier. Defaults to "DIAMOND".
+
+    Returns:
+        name (str): The name to write under '/entry/instrument/name'
+    """
+    if "type" not in source.keys() or source["type"] is None:
+        name = f"{facility_id} BEAMLINE {source['beamline_name']}"
+
+    if "SYNCHROTRON" in source["type"].upper():
+        name = f"{facility_id} BEAMLINE {source['beamline_name']}"
+    else:
+        name = f"{facility_id} {source['beamline_name']}"
+    return name
+
+
 # Copy and compress a dataset inside a specified NXclass
 def write_compressed_copy(
     nxgroup: h5py.Group,

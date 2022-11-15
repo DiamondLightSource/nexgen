@@ -98,6 +98,10 @@ def write_from_SINGLA(args):
         get_iso_timestamp(params.end_time),
     )
 
+    logger.info("Source information")
+    logger.info(f"Facility: {source['name']} - {source['type']}.")
+    logger.info(f"Beamline / instrument: {source['beamline_name']}")
+
     logger.warning(
         f"Coordinate frame of input arrays currently set to {coordinate_frame}."
         "If that is not the case, please indicate the correct one with --coord-frame."

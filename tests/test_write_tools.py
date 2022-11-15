@@ -8,6 +8,7 @@ from nexgen.nxs_write import (
     find_number_of_images,
     find_osc_axis,
     set_dependency,
+    set_instrument_name,
     write_compressed_copy,
 )
 
@@ -189,6 +190,22 @@ def test_calculate_origin():
 def test_find_number_of_images_returns_0_if_no_file_passed():
     n_images = find_number_of_images([])
     assert n_images == 0
+
+
+def test_set_instrument_name():
+    test_source_1 = {"type": "Synchrotron X-Ray Source", "beamline_name": "I24"}
+    test_source_2 = {"type": "Electron Microscope", "beamline_name": "eBic"}
+    assert set_instrument_name(test_source_1) == "DIAMOND BEAMLINE I24"
+    assert set_instrument_name(test_source_2) == "DIAMOND eBic"
+    assert (
+        set_instrument_name(test_source_2, facility_id="MICROSCOPE")
+        == "MICROSCOPE eBic"
+    )
+
+
+def tes_set_instrument_assumes_synchrotron_if_unspecified():
+    test_source = {"short_name": "DLS", "beamline_name": "I04"}
+    assert set_instrument_name(test_source) == "DIAMOND BEAMLINE I04"
 
 
 def test_write_copy_raises_error_if_both_array_and_file():

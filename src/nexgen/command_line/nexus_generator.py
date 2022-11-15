@@ -226,7 +226,7 @@ def write_NXmx_cli(args):
     # Log information
     logger.info("Source information")
     logger.info(f"Facility: {source.name} - {source.type}.")
-    logger.info(f"Beamline: {source.beamline_name}")
+    logger.info(f"Beamline / Instrument: {source.beamline_name}")
 
     if timestamps[0] is not None:
         logger.info(f"Collection start time: {timestamps[0]}")
@@ -444,7 +444,7 @@ def write_demo_cli(args):
 
     logger.info("Source information")
     logger.info(f"Facility: {source.name} - {source.type}.")
-    logger.info(f"Beamline: {source.beamline_name}")
+    logger.info(f"Beamline / Instrument: {source.beamline_name}")
 
     logger.info("Coordinate system: %s" % cf)
     if cf == "imgcif":
@@ -729,7 +729,7 @@ def write_with_meta_cli(args):
     # Log information
     logger.info("Source information")
     logger.info(f"Facility: {source.name} - {source.type}.")
-    logger.info(f"Beamline: {source.beamline_name}")
+    logger.info(f"Beamline / Instrument: {source.beamline_name}")
 
     if timestamps[0] is not None:
         logger.info(f"Collection start time: {timestamps[0]}")
