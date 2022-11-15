@@ -39,7 +39,7 @@ ED_phil = freephil.parse(
 
     include scope nexgen.command_line.nxs_phil.goniometer_scope
 
-    include scope nexgen.command_line.nxs_phil.beamline_scope
+    include scope nexgen.command_line.nxs_phil.instrument_scope
 
     include scope nexgen.command_line.nxs_phil.detector_scope
 
