@@ -58,7 +58,7 @@ source = {
     "name": "Diamond Light Source",
     "short_name": "DLS",
     "type": "Electron Microscope",
-    "beamline_name": "eBic",
+    "beamline_name": "eBIC",
     "probe": "electron",
 }
 
