@@ -12,7 +12,13 @@ import numpy as np
 from numpy.typing import ArrayLike
 
 from .. import get_iso_timestamp, units_of_length, units_of_time, ureg
-from . import calculate_origin, create_attributes, set_dependency, write_compressed_copy
+from . import (
+    calculate_origin,
+    create_attributes,
+    set_dependency,
+    set_instrument_name,
+    write_compressed_copy,
+)
 
 # from hdf5plugin import Bitshuffle   # noqa: F401
 
@@ -315,9 +321,7 @@ def write_NXsample(
 
 
 # NXinstrument
-def write_NXinstrument(
-    nxsfile: h5py.File, beam: Dict, attenuator: Dict, beamline_n: str
-):
+def write_NXinstrument(nxsfile: h5py.File, beam: Dict, attenuator: Dict, source: Dict):
     """
     Write NXinstrument group at /entry/instrument.
 
@@ -325,7 +329,7 @@ def write_NXinstrument(
         nxsfile (h5py.File): NeXus file handle.
         beam (Dict):Dictionary with beam information, mainly wavelength and flux.
         attenuator (Dict): Dictionary containing transmission.
-        beamline_n (str): Identifies which beamline the data was collected on.
+        source (Dict): Dictionary containing the facility information.
     """
     NXclass_logger.info("Start writing NXinstrument.")
     # Create NXinstrument group, unless it already exists, in which case just open it.
@@ -337,11 +341,14 @@ def write_NXinstrument(
     )
 
     # Write /name field and relative attribute
-    NXclass_logger.info(f"DLS beamline {beamline_n}")
-    nxinstrument.create_dataset(
-        "name", data=np.string_("DIAMOND BEAMLINE " + beamline_n)
+    NXclass_logger.info(f"{source['short_name']} {source['beamline_name']}")
+    name_str = set_instrument_name(source)
+    nxinstrument.create_dataset("name", data=np.string_(name_str))
+    create_attributes(
+        nxinstrument["name"],
+        ("short_name",),
+        (f"{source['short_name']} {source['beamline_name']}",),
     )
-    create_attributes(nxinstrument["name"], ("short_name",), ("DLS " + beamline_n,))
 
     NXclass_logger.info("Write NXattenuator and NXbeam.")
     # Write NXattenuator group: entry/instrument/attenuator

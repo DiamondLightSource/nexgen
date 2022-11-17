@@ -231,7 +231,7 @@ def call_writers(
         nxsfile,
         beam,
         attenuator,
-        source["beamline_name"],
+        source,
     )
 
     # NXdetector: entry/instrument/detector

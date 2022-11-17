@@ -164,7 +164,7 @@ goniometer_scope = freephil.parse(
     """
 )
 
-beamline_scope = freephil.parse(
+instrument_scope = freephil.parse(
     """
     source {
       name = Diamond Light Source
@@ -179,6 +179,9 @@ beamline_scope = freephil.parse(
       beamline_name = None
         .type = str
         .help = "Beamline name"
+      facility_id = None
+        .type = str
+        .help = "Identifier to use to define instrument name, when different from Diamond. Defaults to None"
       probe = None
         .type = str
         .help = "Type of radiation probe"
@@ -259,6 +262,6 @@ if __name__ == "__main__":
     print(detector_scope.as_str())
     print(module_scope.as_str())
     print(goniometer_scope.as_str())
-    print(beamline_scope.as_str())
+    print(instrument_scope.as_str())
     print(timestamp_scope.as_str())
     print(sample_scope.as_str())

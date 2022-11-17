@@ -39,7 +39,7 @@ ED_phil = freephil.parse(
 
     include scope nexgen.command_line.nxs_phil.goniometer_scope
 
-    include scope nexgen.command_line.nxs_phil.beamline_scope
+    include scope nexgen.command_line.nxs_phil.instrument_scope
 
     include scope nexgen.command_line.nxs_phil.detector_scope
 
@@ -97,6 +97,10 @@ def write_from_SINGLA(args):
         get_iso_timestamp(params.start_time),
         get_iso_timestamp(params.end_time),
     )
+
+    logger.info("Source information")
+    logger.info(f"Facility: {source['name']} - {source['type']}.")
+    logger.info(f"Beamline / instrument: {source['beamline_name']}")
 
     logger.warning(
         f"Coordinate frame of input arrays currently set to {coordinate_frame}."

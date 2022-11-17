@@ -130,6 +130,27 @@ Example usage for a dataset collected on Dectris Singla 1M detector:
     goniometer.ends=900,0,0,0 goniometer.increments=1,0,0,0 detector.starts=400 detector.beam_center=1,1 \
     -m FILE_master.h5
 
+The instrument name and source are defined by the values parsed from source, which are shown in the following dictionary:
+
+.. code-block:: python
+
+    source = {
+        "name": "Diamond Light Source",
+        "short_name": "DLS",
+        "type": "Electron Microscope",
+        "beamline_name": "eBic",
+        "probe": "electron",
+    }
+
+
+To specify a more specific name for the `/entry/instrument/name` field, the following command can be added to the command line:
+
+.. code-block:: console
+
+    source.facility_id="DIAMOND MICROSCOPE"
+
+which will result in the instrument name being set to `DIAMOND MICROSCOPE eBic` instead of `DIAMOND eBic`.
+
 
 Copying NeXus files
 ===================
