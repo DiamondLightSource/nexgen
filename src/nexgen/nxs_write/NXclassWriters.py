@@ -321,7 +321,9 @@ def write_NXsample(
     try:
         nxsample["beam"] = nxsfile["/entry/instrument/beam"]
     except KeyError:
-        pass
+        NXclass_logger.debug(
+            "No NXbeam group found elsewhere in the NeXus file." "No link written."
+        )
 
     if sample_details:
         for k, v in sample_details.items():
