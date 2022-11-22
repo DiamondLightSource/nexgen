@@ -6,7 +6,7 @@ from __future__ import annotations
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 from numpy.typing import ArrayLike
@@ -48,7 +48,9 @@ def write_NXentry(nxsfile: h5py.File, definition: str = "NXmx") -> h5py.Group:
 
     # Start writing the NeXus tree with NXentry at the top level
     nxentry = nxsfile.require_group("entry")
-    create_attributes(nxentry, ("NX_class", "default"), ("NXentry", "data"))
+    create_attributes(
+        nxentry, ("NX_class", "default", "version"), ("NXentry", "data", "1.0")
+    )
 
     # Application definition: /entry/definition
     nxentry.create_dataset("definition", data=np.string_(definition))
@@ -182,6 +184,7 @@ def write_NXsample(
     osc_scan: Dict[str, ArrayLike],
     transl_scan: Dict[str, ArrayLike] = None,
     sample_depends_on: str = None,
+    sample_details: Dict[str, Any] = None,
 ):
     """
     Write NXsample group at /entry/sample.
@@ -193,6 +196,7 @@ def write_NXsample(
         osc_scan (Dict[str, ArrayLike]): Rotation scan. If writing events, this is just a (start, end) tuple.
         transl_scan (Dict[str, ArrayLike], optional): Scan along the xy axes at sample. Defaults to None.
         sample_depends_on (str): Axis on which the sample depends on. If absent, the depends_on field will be set to the last axis listed in the goniometer. Defaults to None.
+        sample_details (Dict[str, Any]): General information about the sample, eg. name, temperature.
     """
     NXclass_logger.info("Start writing NXsample and NXtransformations.")
     # Create NXsample group, unless it already exists, in which case just open it.
@@ -317,7 +321,15 @@ def write_NXsample(
     try:
         nxsample["beam"] = nxsfile["/entry/instrument/beam"]
     except KeyError:
-        pass
+        NXclass_logger.debug(
+            "No NXbeam group found elsewhere in the NeXus file." "No link written."
+        )
+
+    if sample_details:
+        for k, v in sample_details.items():
+            if type(v) is str:
+                v = np.string_(v)
+            nxsample.create_dataset(k, data=v)
 
 
 # NXinstrument

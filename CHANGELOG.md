@@ -5,9 +5,10 @@
 ### Added
 - Phil parameter to override instrument name if not at synchrotron eg. for electron diffraction.
 - Function to work out the value of "/entry/instrument/name" so that it's not hard coded.
+- Datasets for eventual details in write_NXsample.
 
 ### Changed
-- Instrument name not hard coded anymore in `write_NXinstrument`.
+- Instrument name not hard coded anymore in write_NXinstrument.
 - Quick explanation in docs for electron diffraction.
 - Parameter files for Electron Diffraction.
 
