@@ -60,6 +60,7 @@ def test_write_NXentry(dummy_nexus_file):
 
     assert dummy_nexus_file["/entry/"].attrs["NX_class"] == b"NXentry"
     assert dummy_nexus_file["/entry/"].attrs["default"] == b"data"
+    assert dummy_nexus_file["/entry/"].attrs["version"] == b"1.0"
 
     assert "definition" in entry.keys()
     assert dummy_nexus_file["/entry/definition"][()] == b"NXmx"
@@ -209,6 +210,39 @@ def test_sample_depends_on_written_correctly_in_NXsample_when_value_not_passed(
 
     assert "depends_on" in dummy_nexus_file["/entry/sample"]
     assert dummy_nexus_file["/entry/sample/depends_on"][()] == test_depends.encode()
+
+
+def test_sample_details_in_NXsample(dummy_nexus_file):
+
+    test_details = {"name": b"test_sample", "temperature": "25C"}
+    test_axis = "omega"
+    test_scan_range = [0, 1, 2]
+    osc_scan = {test_axis: test_scan_range}
+
+    # Doing this to write the scan axis data into the data group
+    write_NXdata(
+        dummy_nexus_file,
+        [Path("tmp")],
+        test_goniometer_axes,
+        ("images", 0),
+        osc_scan,
+    )
+
+    write_NXsample(
+        dummy_nexus_file,
+        test_goniometer_axes,
+        ("images", 0),
+        osc_scan,
+        sample_details=test_details,
+    )
+
+    assert "name" in dummy_nexus_file["/entry/sample"]
+    assert "temperature" in dummy_nexus_file["/entry/sample"]
+    assert dummy_nexus_file["/entry/sample/name"][()] == test_details["name"]
+    assert (
+        dummy_nexus_file["/entry/sample/temperature"][()]
+        == test_details["temperature"].encode()
+    )
 
 
 def test_given_module_offset_of_1_when_write_NXdetector_module_then_fast_and_slow_axis_depends_on_module_offset(
