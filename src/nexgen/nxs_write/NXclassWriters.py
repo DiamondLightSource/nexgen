@@ -48,7 +48,9 @@ def write_NXentry(nxsfile: h5py.File, definition: str = "NXmx") -> h5py.Group:
 
     # Start writing the NeXus tree with NXentry at the top level
     nxentry = nxsfile.require_group("entry")
-    create_attributes(nxentry, ("NX_class", "default"), ("NXentry", "data"))
+    create_attributes(
+        nxentry, ("NX_class", "default", "version"), ("NXentry", "data", "1.0")
+    )
 
     # Application definition: /entry/definition
     nxentry.create_dataset("definition", data=np.string_(definition))
