@@ -229,11 +229,11 @@ def write_nxs(**ssx_params):
 
                 chip = read_chip_map(SSX_TR.chipmap, 8, 8)
                 mapping = {"chipmap": str(chip)}
-                # nxsfile.create_dataset("/entry/data/chipmap", data=str(chip))
+                logger.info(
+                    f"Chipmap read from {SSX_TR.chipmap}, saving in '/entry/source/notes/chipmap'."
+                )
                 write_NXnote(nxsfile, "/entry/source/notes/", mapping)
                 # To read this: eval(dset[()])
-                # Instead of saving chipmap location read file and save dictionary.
-                # TODO add part to copy functions to get the positions.
 
             # Register pump status (hard coded as True)
             pump_info = {"pump_status": True}
