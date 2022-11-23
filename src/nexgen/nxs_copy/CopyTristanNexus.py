@@ -125,6 +125,7 @@ def multiple_images_nexus(
         nxdata = nxentry.create_group("data")
         # Add link to data
         nxdata["data"] = h5py.ExternalLink(data_file.name, "data")
+        # Compute and write axis information based on whether it's a rotation scan or a grid scan
         # Compute and write axis information
         ax, ax_attr = identify_tristan_scan_axis(nxs_in)
         if ax:

@@ -37,7 +37,7 @@ def get_skip_list(nxentry: h5py.Group, skip_obj: List[str]) -> List[str]:
     Get a list of all the objects that should not be copied in the new NeXus file.
 
     Args:
-        nxentry (h5py.Group): "/entry/" group of a NeXus file.
+        nxentry (h5py.Group): NXentry group of a NeXus file.
         skip_obj (List[str]): List of objects that should not be copied.
 
     Returns:
@@ -129,3 +129,23 @@ def convert_scan_axis(nxsample: h5py.Group, nxdata: h5py.Group, ax: str):
     name = "sample_" + ax + "/" + ax
     del nxsample[name]
     nxsample[name] = nxdata[ax]
+
+
+def find_chipmap_in_tristan_nxs(
+    nxentry: h5py.Group, loc: str = "source/notes/chipmap"
+) -> bool:
+    """
+    Look for the saved chipmap for a SSX experiment inside a tristan nexus file.
+
+    Args:
+        nxentry (h5py.Group): NXentry group of a NeXus file.
+        loc (str, optional): Location where the chipmap should be saved. Defaults to "source/notes/chipmap".
+
+    Returns:
+        bool: Returns True is a chipmap is found, False otherwise.
+    """
+    obj_list = walk_nxs(nxentry)
+    if loc in obj_list:
+        return True
+    else:
+        return False
