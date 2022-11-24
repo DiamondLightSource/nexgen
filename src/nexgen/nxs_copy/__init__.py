@@ -10,7 +10,8 @@ import h5py
 import numpy as np
 
 from .. import walk_nxs
-from ..nxs_write import create_attributes
+from ..beamlines.SSX_chip import Chip, compute_goniometer
+from ..nxs_write import calculate_scan_range, create_attributes
 
 
 def h5str(h5_value: str | np.string_ | bytes) -> str:
@@ -151,3 +152,67 @@ def find_chipmap_in_tristan_nxs(
         return True
     else:
         return False
+
+
+def compute_ssx_axes(nxs_in, nbins, rot_ax, rot_val):
+    # Get chipmap: use default chipmap location: /entry/source/notes/chipmap
+    blocks = eval(nxs_in["/entry/source/notes/chipmap"][()])
+
+    # Define chip
+    chip_info = eval(nxs_in["/entry/source/notes/chip"][()])
+    chip = Chip(
+        "fastchip",
+        num_steps=[chip_info["X_NUM_STEPS"], chip_info["Y_NUM_STEPS"]],
+        step_size=[chip_info["X_STEP_SIZE"], chip_info["Y_STEP_SIZE"]],
+        num_blocks=[chip_info["X_NUM_BLOCKS"], chip_info["Y_NUM_BLOCKS"]],
+        block_size=[chip_info["X_BLOCK_SIZE"], chip_info["Y_BLOCK_SIZE"]],
+        start_pos=[
+            chip_info["X_START"],
+            chip_info["Y_START"],
+            chip_info["Z_START"],
+        ],
+    )
+
+    # Get axis list
+    axes_list = [k for k in nxs_in["/entry/sample/transformations"].keys()]
+    x_idx = axes_list.index("sam_x")
+    y_idx = axes_list.index("sam_y")
+
+    # Calculate scan start/end positions on chip
+    if (
+        list(blocks.values())[0] == "fullchip"
+        and nbins == chip.tot_windows_per_block() * chip.tot_blocks()
+    ):
+        # All windows in the whole chip have been scanned once
+        start_pos, end_pos = compute_goniometer(chip, axes_list, full=True)
+        num = (chip.num_steps[1], chip.num_steps[0])
+    elif nbins == len(blocks) * chip.tot_windows_per_block():
+        # All the windows in the selected blocks have been scanned once
+        start_pos, end_pos = compute_goniometer(chip, axes_list, blocks=blocks)
+        num = (chip.num_steps[1], chip.num_steps[0])
+    else:
+        # Either each window shot multiple times or binning over multiple windows. TBC.
+        # if nbins == N*(len(blocks) * chip.tot_windows_per_block()) ---> see n_exposure thing from I24; nbins % () == 0, nbins / () = N_EXPOSURES
+        # else do some sort of average over a bunch of windows.
+        pass
+
+    # Translation values
+    TRANSL = {"sam_y": np.array([]), "sam_x": np.array([])}
+    for s, e in start_pos.values(), end_pos.values():
+        starts = [
+            s[y_idx],
+            s[x_idx],
+        ]  # because I can't be sure they will be in the right order!
+        ends = [
+            e[y_idx] - chip.step_size[1],
+            e[x_idx] - chip.step_size[0],
+        ]  # because scanspec
+        transl = calculate_scan_range(["sam_y", "sam_x"], starts, ends, n_images=num)
+        TRANSL["sam_y"] = np.append(TRANSL["sam_y"], np.round(transl["sam_y"], 3))
+        TRANSL["sam_x"] = np.append(TRANSL["sam_x"], np.round(transl["sam_x"], 3))
+
+    # Rotation values
+    OSC = calculate_scan_range(
+        [rot_ax], [rot_val[0]], [rot_val[1]], n_images=nbins, rotation=True
+    )
+    return OSC, TRANSL

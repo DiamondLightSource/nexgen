@@ -11,13 +11,12 @@ import numpy as np
 
 from ..nxs_write import create_attributes
 from . import (
+    compute_ssx_axes,
     convert_scan_axis,
     find_chipmap_in_tristan_nxs,
     get_nexus_tree,
     identify_tristan_scan_axis,
 )
-
-# from ..beamlines.SSX_chip import Chip, compute_goniometer
 
 tristan_logger = logging.getLogger("nexgen.CopyTristanNeXus")
 
@@ -165,12 +164,27 @@ def multiple_images_nexus(
                         "For a grid scan please pass the number of binned images nbins instead of the oscillation."
                         "The scan axes translations can't be calculated from the oscillation angle."
                     )
-                # Use default chipmap location: /entry/source/notes/chipmap
-                blocks = eval(nxs_in["/entry/source/notes/chipmap"][()])
-                print(blocks)
-                # In the first instance, assume that all windows in the blocks are scanned.
-                # If this coincides with nbins, good.
-                # Else, make it work with nbins
+
+                rot_ax, transl_ax = compute_ssx_axes(
+                    nxs_in, nbins, ax, (start, stop)
+                )  # Hopefully start and stop are the same
+                nxsample = nxentry["sample"]
+
+                # First rotation (attributes already found)
+                nxdata.create_dataset(ax, data=rot_ax[ax])
+                for key, value in ax_attr.items():
+                    nxdata[ax].attrs.create(key, value)
+                convert_scan_axis(nxsample, nxdata, ax)
+                # Then translation axes
+                for ax_name, ax_range in transl_ax.items():
+                    nxdata.create_dataset(ax_name, data=ax_range)
+                    # Get attributes for relevant axis in nxs_in
+                    ax_attr = dict(
+                        nxs_in["/entry/sample/transformations/" + ax_name].attrs
+                    )
+                    for key, value in ax_attr.items():
+                        nxdata[ax_name].attrs.create(key, value)
+                    convert_scan_axis(nxsample, nxdata, ax_name)
             else:
                 if osc and nbins:
                     raise ValueError(

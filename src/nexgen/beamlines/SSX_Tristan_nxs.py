@@ -244,6 +244,7 @@ def write_nxs(**ssx_params):
                     "Y_STEP_SIZE": 0.125,
                     "X_START": 0,
                     "Y_START": 0,
+                    "Z_START": 0,
                     "X_NUM_BLOCKS": 8,
                     "Y_NUM_BLOCKS": 8,
                     "X_BLOCK_SIZE": 3.175,
