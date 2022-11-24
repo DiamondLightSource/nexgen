@@ -126,25 +126,27 @@ def convert_scan_axis(nxsample: h5py.Group, nxdata: h5py.Group, ax: str):
     """
     del nxsample["transformations/" + ax]
     nxsample["transformations/" + ax] = nxdata[ax]
-    name = "sample_" + ax + "/" + ax
+    name = (
+        "sample_" + ax + "/" + ax if "sam" not in ax else "sample_" + ax[-1] + "/" + ax
+    )
     del nxsample[name]
     nxsample[name] = nxdata[ax]
 
 
 def find_chipmap_in_tristan_nxs(
-    nxentry: h5py.Group, loc: str = "source/notes/chipmap"
+    nxobj: h5py.File | h5py.Group, loc: str = "entry/source/notes/chipmap"
 ) -> bool:
     """
     Look for the saved chipmap for a SSX experiment inside a tristan nexus file.
 
     Args:
-        nxentry (h5py.Group): NXentry group of a NeXus file.
-        loc (str, optional): Location where the chipmap should be saved. Defaults to "source/notes/chipmap".
+        nxobj (h5py.File | h5py.Group): NeXus object to be searched, could be a file or a group.
+        loc (str, optional): Location where the chipmap should be saved. Defaults to "entry/source/notes/chipmap".
 
     Returns:
         bool: Returns True is a chipmap is found, False otherwise.
     """
-    obj_list = walk_nxs(nxentry)
+    obj_list = walk_nxs(nxobj)
     if loc in obj_list:
         return True
     else:
