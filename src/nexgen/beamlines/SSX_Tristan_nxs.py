@@ -16,8 +16,6 @@ from .I19_2_params import source, tristan10M_params
 # Define a logger object and a formatter
 logger = logging.getLogger("nexgen.I19-2_ssx")
 
-# TODO Change tot_num_X to current chip map, or just the list of blocks. The list of blocks should go in a NXnote.
-# TODO Might need to also have I24 geometry in here
 ssx_tr_collect = namedtuple(
     "ssx_collect",
     [
@@ -31,10 +29,8 @@ ssx_tr_collect = namedtuple(
         "exposure_time",
         "transmission",
         "wavelength",
-        "pump_status",
-        "pump_exp",
-        "pump_delay",
         "chipmap",
+        "chip_info",
     ],
 )
 
@@ -53,12 +49,8 @@ ssx_tr_collect.stop_time.__doc__ = "Experiment end time."
 ssx_tr_collect.exposure_time.__doc__ = "Exposure time, in s."
 ssx_tr_collect.transmission.__doc__ = "Attenuator transmission, in %."
 ssx_tr_collect.wavelength.__doc__ = "Wavelength of incident beam."
-ssx_tr_collect.pump_status.__doc__ = (
-    "True for a pump-probe experiment, false otherwise."
-)
-ssx_tr_collect.pump_exp.__doc__ = "Pump exposure time, in s."
-ssx_tr_collect.pump_delay.__doc__ = "Pump delay time, in s."
 ssx_tr_collect.chipmap.__doc__ = "Chipmap or block list for grid scan."
+ssx_tr_collect.chip_info.__doc__ = "For a grid scan, dictionary containing basic chip information. At least it should contain: x/y_start, x/y number of blocks and block size, x/y number of steps and number of exposures."
 
 # Define coordinate frame
 coordinate_frame = "mcstas"
@@ -91,10 +83,8 @@ def write_nxs(**ssx_params):
         exposure_time=ssx_params["exp_time"],
         transmission=ssx_params["transmission"],
         wavelength=ssx_params["wavelength"],
-        pump_status=True,
-        pump_exp=ssx_params["pump_exp"],
-        pump_delay=ssx_params["pump_delay"],
         chipmap=ssx_params["chipmap"] if ssx_params["chipmap"] else None,
+        chip_info=ssx_params["chip_info"] if ssx_params["chip_info"] else None,
     )
 
     logfile = SSX_TR.visitpath / "TristanSSX_nxs_writer.log"
@@ -234,27 +224,33 @@ def write_nxs(**ssx_params):
                 )
                 write_NXnote(nxsfile, "/entry/source/notes/", mapping)
                 # To read this: eval(dset[()])
-
-            # Register pump status (hard coded as True)
-            pump_info = {"pump_status": True}
-            logger.info("Add pump information.")
-            if SSX_TR.pump_exp:
-                pump_info["pump_exposure_time"] = SSX_TR.pump_exp
-                logger.info(f"Recorded pump exposure time: {SSX_TR.pump_exp}")
+            # Save chip info if passed. If not save I24-like chip info plus warning message
+            logger.info("Save chip information in /entry/source/notes/chip")
+            if SSX_TR.chip_info:
+                # Make chip info more readable
+                chip_info = {k: v[1] for k, v in SSX_TR.chip_info.items()}
+                chipdef = {"chip": str(chip_info)}
+                write_NXnote(nxsfile, "/entry/source/notes/", chipdef)
             else:
-                pump_info["pump_exposure_time"] = None
                 logger.warning(
-                    "Pump exposure time has not been recorded and won't be written to file."
+                    f"Dictionary containing chip info was not passed to the writer."
+                    "The following values will be written as default: "
+                    "x/y_num_blocks = 8 \n x/y_block_size = 3.175 \n x/y_num_steps = 20 \n x/y_step_size = 0.125"
                 )
-            if SSX_TR.pump_delay:
-                pump_info["pump_delay"] = SSX_TR.pump_delay
-                logger.info(f"Recorded pump delay time: {SSX_TR.pump_delay}")
-            else:
-                pump_info["pump_delay"] = None
-                logger.warning(
-                    "Pump delay has not been recorded and won't be written to file."
-                )
-            write_NXnote(nxsfile, "/entry/source/notes", pump_info)
+                chip_info = {
+                    "X_NUM_STEPS": 20,
+                    "Y_NUM_STEPS": 20,
+                    "X_STEP_SIZE": 0.125,
+                    "Y_STEP_SIZE": 0.125,
+                    "X_START": 0,
+                    "Y_START": 0,
+                    "X_NUM_BLOCKS": 8,
+                    "Y_NUM_BLOCKS": 8,
+                    "X_BLOCK_SIZE": 3.175,
+                    "Y_BLOCK_SIZE": 3.175,
+                }
+                chipdef = {"chip": str(chip_info)}
+                write_NXnote(nxsfile, "/entry/source/notes", chipdef)
 
             if timestamps[1]:
                 write_NXdatetime(nxsfile, (None, timestamps[1]))
@@ -281,8 +277,6 @@ def write_nxs(**ssx_params):
 #         exp_time=0.002,
 #         transmission=1.0,
 #         wavelength=0.649,
-#         pump_status=True,
-#         pump_exp=3.0,
-#         pump_delay=1.0,
 #         chipmap=None,
+#         chip_info=None,
 #     )
