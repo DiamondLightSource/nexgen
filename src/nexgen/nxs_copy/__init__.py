@@ -178,7 +178,12 @@ def compute_ssx_axes(nxs_in, nbins, rot_ax, rot_val):
     x_idx = axes_list.index("sam_x")
     y_idx = axes_list.index("sam_y")
 
+    num_blocks = (
+        chip.tot_blocks() if list(blocks.values())[0] == "fullchip" else len(blocks)
+    )
+
     # Calculate scan start/end positions on chip
+    N_EXP = 1
     if (
         list(blocks.values())[0] == "fullchip"
         and nbins == chip.tot_windows_per_block() * chip.tot_blocks()
@@ -186,19 +191,19 @@ def compute_ssx_axes(nxs_in, nbins, rot_ax, rot_val):
         # All windows in the whole chip have been scanned once
         start_pos, end_pos = compute_goniometer(chip, axes_list, full=True)
         num = (chip.num_steps[1], chip.num_steps[0])
-    elif nbins == len(blocks) * chip.tot_windows_per_block():
-        # All the windows in the selected blocks have been scanned once
+    elif nbins % (num_blocks * chip.tot_windows_per_block()) == 0:
+        # All the windows in the selected blocks have been scanned at least once
+        N_EXP = nbins // (num_blocks * chip.tot_windows_per_block())
         start_pos, end_pos = compute_goniometer(chip, axes_list, blocks=blocks)
         num = (chip.num_steps[1], chip.num_steps[0])
     else:
-        # Either each window shot multiple times or binning over multiple windows. TBC.
-        # if nbins == N*(len(blocks) * chip.tot_windows_per_block()) ---> see n_exposure thing from I24; nbins % () == 0, nbins / () = N_EXPOSURES
-        # else do some sort of average over a bunch of windows.
+        # binning over multiple windows. TBC.
+        # do some sort of average over a bunch of windows.
         pass
 
     # Translation values
     TRANSL = {"sam_y": np.array([]), "sam_x": np.array([])}
-    for s, e in start_pos.values(), end_pos.values():
+    for s, e in zip(start_pos.values(), end_pos.values()):
         starts = [
             s[y_idx],
             s[x_idx],
@@ -215,4 +220,10 @@ def compute_ssx_axes(nxs_in, nbins, rot_ax, rot_val):
     OSC = calculate_scan_range(
         [rot_ax], [rot_val[0]], [rot_val[1]], n_images=nbins, rotation=True
     )
+
+    if N_EXP > 1:
+        OSC = {k: [val for val in v for _ in range(N_EXP)] for k, v in OSC.items()}
+        TRANSL = {
+            k: [val for val in v for _ in range(N_EXP)] for k, v in TRANSL.items()
+        }
     return OSC, TRANSL
