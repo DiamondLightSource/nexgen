@@ -1,16 +1,19 @@
 # CHANGELOG
 
-##
+## 0.6.14
 
 ### Added
 - Phil parameter to override instrument name if not at synchrotron eg. for electron diffraction.
 - Function to work out the value of "/entry/instrument/name" so that it's not hard coded.
 - Datasets for eventual details in write_NXsample.
+- Function to identify a chipmap inside a Tristan NeXus file for grid scans.
+- Function to define the axes positions during a SSX Tristan collection. When multiple windows are binned in the same image, the determination of the (x,y)positions on the chip becomes difficult and could lead to misunderstanding. Thus, instead of sam_x and sam_y the number of windows per bin will be saved as NXnote in "/entry/data/windows_per_image".
 
 ### Changed
 - Instrument name not hard coded anymore in write_NXinstrument.
 - Quick explanation in docs for electron diffraction.
 - Parameter files for Electron Diffraction.
+- CopyTristanNexus can now write a NXmx format NeXus file for binned images from a grid scan collection.
 
 ## 0.6.13
 

@@ -10,7 +10,13 @@ import h5py
 import numpy as np
 
 from ..nxs_write import create_attributes
-from . import convert_scan_axis, get_nexus_tree, identify_tristan_scan_axis
+from . import (
+    compute_ssx_axes,
+    convert_scan_axis,
+    find_chipmap_in_tristan_nxs,
+    get_nexus_tree,
+    identify_tristan_scan_axis,
+)
 
 tristan_logger = logging.getLogger("nexgen.CopyTristanNeXus")
 
@@ -92,11 +98,13 @@ def multiple_images_nexus(
     """
     Create a NeXus file for a multiple-image dataset or multiple image sequences from a pump-probe collection.
 
-    Copy the nexus tree from the original NeXus file for a collection on Tristan
-    detector. In this case multiple images from a rotation collection have been
-    binned and the scan_axis to be found in the input file is a (start, stop) tuple.
-    The scan_axis in the new file will therefore be a list of angles.
-    Osc and num_bins are mutually exclusive arguments to work out the scan_axis list.
+    Copy the nexus tree from the original NeXus file for a collection on Tristan detector. There are two main applications for this function.
+    In the first case, multiple images from a rotation collection have been binned and the scan_axis to be found in the input file is a (start, stop) tuple.
+    The scan_axis in the new file will therefore be a list of angles. Osc and num_bins are mutually exclusive arguments to work out the scan_axis list.
+    In the second case, multiple images from a 2D grid scan collection have been binned. The "rotation" scan_axis is still to be found in the input file as a
+    (start, stop) tuple - although in this instance the two values should coincide. The values for the "translation" scan axes instead can be worked out from
+    the chipmap dictionary, saved as a Unicode string inside the original NeXus file during collection, and nbins. It should be noted that passing osc in this
+    case will raise an error and exit.
 
     Args:
         data_file (Optional[Union[Path, str]]): String or Path pointing to the HDF5 file containing the newly binned images.
@@ -107,7 +115,8 @@ def multiple_images_nexus(
         nbins (int, optional): Number of binned images. Defaults to None.
 
     Raises:
-        ValueError: When both osc and nbins have been passed. The two values are mutually exclusive.
+        ValueError: When osc has been passed instead of nbins for a grid scan collection.
+        ValueError: When both osc and nbins have been passed for a rotation collection. The two values are mutually exclusive.
         ValueError: When neither osc nor nbins has been passed. It won't be possible to calculate the scan range without at least one of them.
 
     Returns:
@@ -148,27 +157,67 @@ def multiple_images_nexus(
                 # position as a scalar.
                 start = stop = nxs_in["entry/data"][ax][()]
 
-            if osc and nbins:
-                raise ValueError(
-                    "osc and nbins are mutually exclusive, "
-                    "please pass only one of them."
-                )
-            elif osc:
-                ax_range = np.arange(start, stop, osc)
-            elif nbins:
-                ax_range = np.linspace(start, stop, nbins + 1)[:-1]
-            else:
-                raise ValueError(
-                    "Impossible to calculate scan_axis, "
-                    "please pass either osc or nbins."
-                )
+            # Write position based on whether it's a rotation scan or a grid scan
+            if find_chipmap_in_tristan_nxs(nxs_in) is True:
+                if osc and not nbins:
+                    raise ValueError(
+                        "For a grid scan please pass the number of binned images nbins instead of the oscillation."
+                        "The scan axes translations can't be calculated from the oscillation angle."
+                    )
 
-            nxdata.create_dataset(ax, data=ax_range)
-            # Write the attributes
-            for key, value in ax_attr.items():
-                nxdata[ax].attrs.create(key, value)
-            # Now fix all other instances of scan_axis in the tree
-            nxsample = nxentry["sample"]
-            convert_scan_axis(nxsample, nxdata, ax)
+                rot_ax, transl_ax, windows_per_bin = compute_ssx_axes(
+                    nxs_in, nbins, ax, (start, stop)
+                )  # Hopefully start and stop are the same
+                nxsample = nxentry["sample"]
+
+                # First rotation (attributes already found)
+                nxdata.create_dataset(ax, data=rot_ax[ax])
+                for key, value in ax_attr.items():
+                    nxdata[ax].attrs.create(key, value)
+                convert_scan_axis(nxsample, nxdata, ax)
+
+                # Check whether multiple windows have been binned together
+                if windows_per_bin is not None:
+                    from ..nxs_write.NXclassWriters import write_NXnote
+
+                    write_NXnote(
+                        nxs_out, "/entry/data", {"windows_per_image": windows_per_bin}
+                    )
+                    # And exit here
+                    return nxs_filename.as_posix()
+
+                # Then translation axes
+                for ax_name, ax_range in transl_ax.items():
+                    nxdata.create_dataset(ax_name, data=ax_range)
+                    # Get attributes for relevant axis in nxs_in
+                    ax_attr = dict(
+                        nxs_in["/entry/sample/transformations/" + ax_name].attrs
+                    )
+                    for key, value in ax_attr.items():
+                        nxdata[ax_name].attrs.create(key, value)
+                    convert_scan_axis(nxsample, nxdata, ax_name)
+            else:
+                if osc and nbins:
+                    raise ValueError(
+                        "osc and nbins are mutually exclusive, "
+                        "please pass only one of them."
+                    )
+                elif osc:
+                    ax_range = np.arange(start, stop, osc)
+                elif nbins:
+                    ax_range = np.linspace(start, stop, nbins + 1)[:-1]
+                else:
+                    raise ValueError(
+                        "Impossible to calculate scan_axis, "
+                        "please pass either osc or nbins."
+                    )
+
+                nxdata.create_dataset(ax, data=ax_range)
+                # Write the attributes
+                for key, value in ax_attr.items():
+                    nxdata[ax].attrs.create(key, value)
+                # Now fix all other instances of scan_axis in the tree
+                nxsample = nxentry["sample"]
+                convert_scan_axis(nxsample, nxdata, ax)
 
     return nxs_filename.as_posix()
