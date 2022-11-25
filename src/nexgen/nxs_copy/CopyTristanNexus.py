@@ -165,7 +165,7 @@ def multiple_images_nexus(
                         "The scan axes translations can't be calculated from the oscillation angle."
                     )
 
-                rot_ax, transl_ax = compute_ssx_axes(
+                rot_ax, transl_ax, windows_per_bin = compute_ssx_axes(
                     nxs_in, nbins, ax, (start, stop)
                 )  # Hopefully start and stop are the same
                 nxsample = nxentry["sample"]
@@ -175,6 +175,17 @@ def multiple_images_nexus(
                 for key, value in ax_attr.items():
                     nxdata[ax].attrs.create(key, value)
                 convert_scan_axis(nxsample, nxdata, ax)
+
+                # Check whether multiple windows have been binned together
+                if windows_per_bin is not None:
+                    from ..nxs_write.NXclassWriters import write_NXnote
+
+                    write_NXnote(
+                        nxs_out, "/entry/data", {"windows_per_image": windows_per_bin}
+                    )
+                    # And exit here
+                    return nxs_filename.as_posix()
+
                 # Then translation axes
                 for ax_name, ax_range in transl_ax.items():
                     nxdata.create_dataset(ax_name, data=ax_range)

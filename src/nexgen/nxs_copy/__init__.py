@@ -178,52 +178,48 @@ def compute_ssx_axes(nxs_in, nbins, rot_ax, rot_val):
     x_idx = axes_list.index("sam_x")
     y_idx = axes_list.index("sam_y")
 
+    # Rotation values
+    OSC = calculate_scan_range(
+        [rot_ax], [rot_val[0]], [rot_val[1]], n_images=nbins, rotation=True
+    )
+
     num_blocks = (
         chip.tot_blocks() if list(blocks.values())[0] == "fullchip" else len(blocks)
     )
 
     # Calculate scan start/end positions on chip
     N_EXP = 1
-    if (
-        list(blocks.values())[0] == "fullchip"
-        and nbins == chip.tot_windows_per_block() * chip.tot_blocks()
-    ):
-        # All windows in the whole chip have been scanned once
-        start_pos, end_pos = compute_goniometer(chip, axes_list, full=True)
-        num = (chip.num_steps[1], chip.num_steps[0])
-    elif nbins % (num_blocks * chip.tot_windows_per_block()) == 0:
-        # All the windows in the selected blocks have been scanned at least once
+    if nbins % (num_blocks * chip.tot_windows_per_block()) == 0:
+        # All the windows in the selected blocks (full chip or not) have been scanned at least once.
         N_EXP = nbins // (num_blocks * chip.tot_windows_per_block())
         start_pos, end_pos = compute_goniometer(chip, axes_list, blocks=blocks)
         num = (chip.num_steps[1], chip.num_steps[0])
+        # Translation values
+        TRANSL = {"sam_y": np.array([]), "sam_x": np.array([])}
+        for s, e in zip(start_pos.values(), end_pos.values()):
+            starts = [
+                s[y_idx],
+                s[x_idx],
+            ]  # because I can't be sure they will be in the right order!
+            ends = [
+                e[y_idx] - chip.step_size[1],
+                e[x_idx] - chip.step_size[0],
+            ]  # because scanspec
+            transl = calculate_scan_range(
+                ["sam_y", "sam_x"], starts, ends, n_images=num
+            )
+            TRANSL["sam_y"] = np.append(TRANSL["sam_y"], np.round(transl["sam_y"], 3))
+            TRANSL["sam_x"] = np.append(TRANSL["sam_x"], np.round(transl["sam_x"], 3))
+
+        if N_EXP > 1:
+            OSC = {k: [val for val in v for _ in range(N_EXP)] for k, v in OSC.items()}
+            TRANSL = {
+                k: [val for val in v for _ in range(N_EXP)] for k, v in TRANSL.items()
+            }
+        return OSC, TRANSL, None
     else:
-        # binning over multiple windows. TBC.
-        # do some sort of average over a bunch of windows.
-        return {}, {}
-
-    # Translation values
-    TRANSL = {"sam_y": np.array([]), "sam_x": np.array([])}
-    for s, e in zip(start_pos.values(), end_pos.values()):
-        starts = [
-            s[y_idx],
-            s[x_idx],
-        ]  # because I can't be sure they will be in the right order!
-        ends = [
-            e[y_idx] - chip.step_size[1],
-            e[x_idx] - chip.step_size[0],
-        ]  # because scanspec
-        transl = calculate_scan_range(["sam_y", "sam_x"], starts, ends, n_images=num)
-        TRANSL["sam_y"] = np.append(TRANSL["sam_y"], np.round(transl["sam_y"], 3))
-        TRANSL["sam_x"] = np.append(TRANSL["sam_x"], np.round(transl["sam_x"], 3))
-
-    # Rotation values
-    OSC = calculate_scan_range(
-        [rot_ax], [rot_val[0]], [rot_val[1]], n_images=nbins, rotation=True
-    )
-
-    if N_EXP > 1:
-        OSC = {k: [val for val in v for _ in range(N_EXP)] for k, v in OSC.items()}
-        TRANSL = {
-            k: [val for val in v for _ in range(N_EXP)] for k, v in TRANSL.items()
-        }
-    return OSC, TRANSL
+        # Hopefully this will not happen..
+        # Do not set N_EXP, there should be no repeat here
+        # Find out how many consecutive windows are binned together.
+        windows_per_bin = (num_blocks * chip.tot_windows_per_block()) // nbins
+        return OSC, {}, windows_per_bin
