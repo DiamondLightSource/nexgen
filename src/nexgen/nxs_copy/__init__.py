@@ -8,6 +8,7 @@ from typing import Any, Dict, List, Tuple
 
 import h5py
 import numpy as np
+from numpy.typing import ArrayLike
 
 from .. import walk_nxs
 from ..beamlines.SSX_chip import Chip, compute_goniometer
@@ -154,7 +155,23 @@ def find_chipmap_in_tristan_nxs(
         return False
 
 
-def compute_ssx_axes(nxs_in, nbins, rot_ax, rot_val):
+def compute_ssx_axes(
+    nxs_in: h5py.File, nbins: int, rot_ax: str, rot_val: Tuple | List | ArrayLike
+) -> Tuple[Dict, Dict, int | None]:
+    """
+    Computes the positions on chip corresponding to the binned images from a Tristan gri scan collection.
+    If multiple windows have been binned into a single image, instead of the sam_(x,y) translation axes values, the number of windows per images will
+    be returned and saved in the NeXus file.
+
+    Args:
+        nxs_in (h5py.File): File handle for the original Tristan collection NeXus file.
+        nbins (int): Number of images.
+        rot_ax (str): Rotation axis.
+        rot_val (Tuple | List | ArrayLike): Rotation axis start and stop values, as found in the original NeXus.
+
+    Returns:
+        OSC, TRANSL, windows_per_bin (Tuple[Dict, Dict, int | None]): Oscillation range, Translation range, number of windows per binned image.
+    """
     # Get chipmap: use default chipmap location: /entry/source/notes/chipmap
     blocks = eval(nxs_in["/entry/source/notes/chipmap"][()])
 
