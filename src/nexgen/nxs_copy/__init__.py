@@ -196,10 +196,10 @@ def compute_ssx_axes(nxs_in, nbins, rot_ax, rot_val):
         N_EXP = nbins // (num_blocks * chip.tot_windows_per_block())
         start_pos, end_pos = compute_goniometer(chip, axes_list, blocks=blocks)
         num = (chip.num_steps[1], chip.num_steps[0])
-    # else:
-    # binning over multiple windows. TBC.
-    # do some sort of average over a bunch of windows.
-    #    pass
+    else:
+        # binning over multiple windows. TBC.
+        # do some sort of average over a bunch of windows.
+        return {}, {}
 
     # Translation values
     TRANSL = {"sam_y": np.array([]), "sam_x": np.array([])}
