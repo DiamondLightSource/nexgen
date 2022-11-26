@@ -33,7 +33,7 @@ detector {
   overload = 199996
   underload = -1
   pixel_size = 0.075mm 0.075mm
-  beam_center = 0 0
+  beam_center = None
   flatfield = None
   flatfield_applied = False
   pixel_mask = None

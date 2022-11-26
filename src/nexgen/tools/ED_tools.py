@@ -7,6 +7,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 import h5py
+import hdf5plugin
+import numpy as np
 from numpy.typing import ArrayLike
 
 try:
@@ -187,3 +189,52 @@ def extract_from_SINGLA_master(master: Path | str) -> Dict[str, Any]:
         D["photon_energy"] = singla.get_photon_energy()
 
     return D
+
+
+def centroid_max(image: ArrayLike) -> Tuple[float, float]:
+    """Find the centre of gravity of the maximum pixels"""
+
+    y, x = np.where(image == np.amax(image))
+    return np.mean(x), np.mean(y)
+
+
+def find_beam_centre(master: Path | str, data: Path | str) -> Tuple[float, float]:
+
+    with h5py.File(master, "r") as fh:
+        singla = SinglaMaster(fh)
+        pixel_mask = singla.get_mask()[1]
+
+    # Set the ROI to be +/- 100 pixels around the image centre
+    yc, xc = (e // 2 for e in pixel_mask.shape)
+    x0 = xc - 100
+    x1 = xc + 100
+    y0 = yc - 100
+    y1 = yc + 100
+
+    # Bool selection for masked pixels in the ROI
+    pixel_mask = pixel_mask[y0:y1, x0:x1] == 1
+
+    images = []
+    with h5py.File(data, "r") as fh:
+        data = fh["/entry/data/data"]
+        num_images = data.shape[0]
+        for i in range(0, num_images, num_images // 10):
+            image = data[i, y0:y1, x0:x1]
+            image[pixel_mask] = 0
+            images.append(image)
+
+    beam_centres = [centroid_max(im) for im in images]
+    x, y = zip(*beam_centres)
+
+    # For robustness against blank images, remove any value more than 5 px
+    # from the median
+    med_x = np.median(x)
+    med_y = np.median(y)
+    x = [e for e in x if abs(e - med_x) < 5]
+    y = [e for e in y if abs(e - med_y) < 5]
+
+    # Correct for offset of the ROI and shift to centre pixel
+    fast = xc - 100 + np.mean(x) + 0.5
+    slow = yc - 100 + np.mean(y) + 0.5
+
+    return fast, slow
