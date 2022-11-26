@@ -147,12 +147,12 @@ def write_from_SINGLA(args):
         )
         detector.update(extract_from_SINGLA_master(master))
 
-    # Calculate beam centre if missing
-    if detector["beam_center"] is None:
-        detector["beam_center"] = find_beam_centre(master, datafiles[0])
-        logger.info(
-            f"Calculated beam centre to be {detector['beam_center']}."
-        )
+        # Calculate beam centre if missing
+        if detector["beam_center"] is None:
+            detector["beam_center"] = find_beam_centre(master, datafiles[0])
+            logger.info(
+                f"Calculated beam centre to be {detector['beam_center']}."
+            )
 
     # Start writing
     logger.info("Start writing NeXus file ...")
