@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 import h5py
-import hdf5plugin  # noqa: F401
 import numpy as np
 from numpy.typing import ArrayLike
 
