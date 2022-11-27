@@ -204,6 +204,10 @@ def find_beam_centre(master: Path | str, data: Path | str) -> Tuple[float, float
         singla = SinglaMaster(fh)
         pixel_mask = singla.get_mask()[1]
 
+    # If the module gap is unmasked we would get bad results
+    if pixel_mask is None:
+        return None
+
     # Set the ROI to be +/- 100 pixels around the image centre
     yc, xc = (e // 2 for e in pixel_mask.shape)
     x0 = xc - 100
