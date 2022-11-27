@@ -218,7 +218,7 @@ def find_beam_centre(master: Path | str, data: Path | str) -> Tuple[float, float
     with h5py.File(data, "r") as fh:
         data = fh["/entry/data/data"]
         num_images = data.shape[0]
-        for i in range(0, num_images, num_images // 10):
+        for i in range(0, num_images, num_images // min(num_images, 10)):
             image = data[i, y0:y1, x0:x1]
             image[pixel_mask] = 0
             images.append(image)
