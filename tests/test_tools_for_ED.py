@@ -5,6 +5,7 @@ import numpy as np
 import pytest
 
 from nexgen.nxs_write.EDNexusWriter import ED_call_writers
+from nexgen.tools.DataWriter import build_an_eiger
 from nexgen.tools.ED_tools import (
     SinglaMaster,
     centroid_max,
@@ -102,3 +103,26 @@ def test_centroid_max_calculation():
 def test_find_beam_center_if_no_pixel_mask(dummy_singla_master_file):
     beam_center = find_beam_centre(dummy_singla_master_file.name, "")
     assert beam_center is None
+
+
+def test_find_beam_center(dummy_singla_master_file):
+    # Image and gap size of a Singla detector are the same as a Eiger 1M
+    # For the purposes of this test, call build_an_eiger
+    image_size = (1062, 1028)
+    test_mask = build_an_eiger(image_size, "eiger 1M")
+    idx0, idx1 = np.where(test_mask != 0)
+    for i, j in zip(idx0, idx1):
+        test_mask[i][j] = 1
+    with h5py.File(dummy_singla_master_file.name, "w") as fh:
+        fh["/entry/instrument/detector/detectorSpecific/pixel_mask"] = test_mask
+    test_img = np.zeros((2, *image_size), dtype=np.uint16)
+    test_img_hdf_file = tempfile.NamedTemporaryFile(suffix=".h5")
+    with h5py.File(test_img_hdf_file, "w") as img:
+        # singla specs are the same as eiger 1m so use that for simulation
+        img["entry/data/data"] = test_img
+    beam_center = find_beam_centre(
+        dummy_singla_master_file.name, test_img_hdf_file.name
+    )
+    assert type(beam_center) is tuple
+    assert beam_center[0] is not None
+    assert beam_center[1] is not None
