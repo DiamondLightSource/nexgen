@@ -218,8 +218,8 @@ def find_beam_centre(
         data_entry_key (str, optional): Key for the location of the images inside the Singla data file. Defaults to "/entry/data/data".
 
     Returns:
-        None if the pixel_mask can't be found.
-        fast, slow (Tuple[float, float]): Beam center position (fast, slow) on the detector.
+        fast, slow (Tuple[float, float]): Beam center position (fast, slow) on the detector. \
+            None if the pixel_mask can't be found.
     """
 
     with h5py.File(master, "r") as fh:
