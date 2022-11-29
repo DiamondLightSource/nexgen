@@ -44,7 +44,7 @@ def build_an_eiger(
     Generate an Eiger-like blank image.
 
     Args:
-        image_size (List | Tuple): Detector size, fefines image dimensions as (slow_axis , fast_axis).
+        image_size (List | Tuple): Detector size, defines image dimensions as (slow_axis , fast_axis).
         det_description (str): Identifies the type of Eiger detector.
         n_modules (Tuple[int, int], optional): Number of modules in the detector. Defaults to None.
 

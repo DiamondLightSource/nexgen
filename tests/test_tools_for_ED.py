@@ -5,7 +5,12 @@ import numpy as np
 import pytest
 
 from nexgen.nxs_write.EDNexusWriter import ED_call_writers
-from nexgen.tools.ED_tools import SinglaMaster, extract_from_SINGLA_master
+from nexgen.tools.ED_tools import (
+    SinglaMaster,
+    centroid_max,
+    extract_from_SINGLA_master,
+    find_beam_centre,
+)
 
 test_goniometer = {
     "axes": ["alpha", "sam_z"],
@@ -86,3 +91,14 @@ def test_get_nimages_and_triggers(dummy_singla_master_file):
         mode = master.get_trigger_mode()
     assert nimages is not None
     assert ntriggers is None and mode is None
+
+
+def test_centroid_max_calculation():
+    test_image = np.array([[0, 1, 2], [3, 4, 5]])
+    x, y = centroid_max(test_image)
+    assert (x, y) == (2.0, 1.0)
+
+
+def test_find_beam_center_if_no_pixel_mask(dummy_singla_master_file):
+    beam_center = find_beam_centre(dummy_singla_master_file.name, "")
+    assert beam_center is None
