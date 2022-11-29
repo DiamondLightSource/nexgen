@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.6.15
+
+### Added
+- Function to calculate the beam center for Electron Diffraction.
+- Add relative tests
+
 ## 0.6.14
 
 ### Added

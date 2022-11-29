@@ -14,7 +14,7 @@ import h5py
 from .. import get_iso_timestamp, get_nexus_filename, log
 from ..beamlines.ED_params import ED_coord_system
 from ..nxs_write.EDNexusWriter import ED_call_writers
-from ..tools.ED_tools import extract_from_SINGLA_master
+from ..tools.ED_tools import extract_from_SINGLA_master, find_beam_centre
 from ..tools.VDS_tools import image_vds_writer, vds_file_writer
 from . import config_parser, nexus_parser, phil2dict, version_parser
 
@@ -146,6 +146,17 @@ def write_from_SINGLA(args):
             f"Looking through Dectris master file to extract at least mask and flatfield."
         )
         detector.update(extract_from_SINGLA_master(master))
+
+        # Calculate beam centre if missing
+        if detector["beam_center"] is None:
+            detector["beam_center"] = find_beam_centre(master, datafiles[0])
+            if detector["beam_center"] is None:
+                detector["beam_center"] = (0,0)
+                logger.warning(f"Unable to calculate beam centre. It has been set to {detector['beam_center']}.")
+            else:
+                logger.info(
+                    f"Calculated beam centre to be {detector['beam_center']}."
+                )
 
     # Start writing
     logger.info("Start writing NeXus file ...")

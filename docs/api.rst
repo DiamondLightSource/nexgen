@@ -134,6 +134,12 @@ Reader for Singla detector master file
 
 .. autofunction:: nexgen.tools.ED_tools.extract_from_SINGLA_master
 
+Tools to calculate the beam center of an Electron Diffraction experiment:
+
+.. autofunction:: nexgen.tools.ED_tools.centroid_max
+
+.. autofunction:: nexgen.tools.ED_tools.find_beam_centre
+
 
 Logging configuration
 =====================
