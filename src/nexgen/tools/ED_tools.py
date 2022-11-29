@@ -155,7 +155,7 @@ def extract_from_SINGLA_master(master: Path | str) -> Dict[str, Any]:
     from a Singla master file.
 
     Args:
-        master (Path | str): Path to master file.
+        master (Path | str): Path to Singla master file.
 
     Returns:
         Dict[str, Any]: Dictionary of information relative to the detector.
@@ -192,7 +192,15 @@ def extract_from_SINGLA_master(master: Path | str) -> Dict[str, Any]:
 
 
 def centroid_max(image: ArrayLike) -> Tuple[float, float]:
-    """Find the centre of gravity of the maximum pixels"""
+    """
+    Find the centre of gravity of the maximum pixels.
+
+    Args:
+        image (ArrayLike): Pixel image.
+
+    Returns:
+        Tuple[float, float]: Centroid (x,y) position.
+    """
 
     y, x = np.where(image == np.amax(image))
     return np.mean(x), np.mean(y)
@@ -201,6 +209,18 @@ def centroid_max(image: ArrayLike) -> Tuple[float, float]:
 def find_beam_centre(
     master: Path | str, data: Path | str, data_entry_key: str = "/entry/data/data"
 ) -> Tuple[float, float]:
+    """
+    Calculate the beam center position for Electron Diffraction data collected on Singla detector.
+
+    Args:
+        master (Path | str): Path to Singla master file.
+        data (Path | str): Path to data file.
+        data_entry_key (str, optional): Key for the location of the images inside the Singla data file. Defaults to "/entry/data/data".
+
+    Returns:
+        None if the pixel_mask can't be found.
+        fast, slow (Tuple[float, float]): Beam center position (fast, slow) on the detector.
+    """
 
     with h5py.File(master, "r") as fh:
         singla = SinglaMaster(fh)
