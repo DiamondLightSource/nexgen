@@ -198,7 +198,9 @@ def centroid_max(image: ArrayLike) -> Tuple[float, float]:
     return np.mean(x), np.mean(y)
 
 
-def find_beam_centre(master: Path | str, data: Path | str) -> Tuple[float, float]:
+def find_beam_centre(
+    master: Path | str, data: Path | str, data_entry_key: str = "/entry/data/data"
+) -> Tuple[float, float]:
 
     with h5py.File(master, "r") as fh:
         singla = SinglaMaster(fh)
@@ -220,7 +222,7 @@ def find_beam_centre(master: Path | str, data: Path | str) -> Tuple[float, float
 
     images = []
     with h5py.File(data, "r") as fh:
-        data = fh["/entry/data/data"]
+        data = fh[data_entry_key]
         num_images = data.shape[0]
         for i in range(0, num_images, num_images // min(num_images, 10)):
             image = data[i, y0:y1, x0:x1]
