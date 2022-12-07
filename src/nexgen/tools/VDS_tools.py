@@ -113,7 +113,10 @@ def split_datasets(
             source_shape=(min(MAX_FRAMES_PER_DATASET, full_frames), *data_shape[1:]),
             start_index=min(MAX_FRAMES_PER_DATASET, max(int(start_idx), 0)),
         )
-        result.append(dset)
+        # if start index == 1000 then that source dataset is not used and we should
+        # not pass it on to use as a source for the VDS
+        if dset.start_index != MAX_FRAMES_PER_DATASET:
+            result.append(dset)
         start_idx -= MAX_FRAMES_PER_DATASET
         full_frames -= MAX_FRAMES_PER_DATASET
 
@@ -227,3 +230,33 @@ def vds_file_writer(
         vds.create_virtual_dataset("data", layout, fillvalue=-1)
     nxdata["data"] = h5py.ExternalLink(vds_filename.name, "data")
     vds_logger.info(f"{vds_filename} written and link added to NeXus file.")
+
+
+def clean_unused_links(
+    nxsfile: h5py.File,
+    vds_shape: Union[Tuple, List],
+    start_index: int = 0,
+):
+    """
+    Remove links to external data not used in VDS
+
+    Args:
+        nxsfile (h5py.File): Handle to NeXus file being written.
+        vds_shape (Union[Tuple, List]): Shape of the full dataset, usually defined as (num_frames, *image_size).
+        start_index(int): The start point for the source data. Defaults to 0.
+    """
+    vds_logger.info("Cleaning links unused in VDS ...")
+    # Where the VDS will go
+    nxdata = nxsfile["/entry/data"]
+    vds_length = vds_shape[0]
+    dataset_names = find_datasets_in_file(nxdata)
+    datasets = [nxdata[name] for name in dataset_names]
+    dataset_lengths = [d.shape[0] for d in datasets]
+    for i, dataset in enumerate(datasets):
+        # unlink datasets before the start of VDS
+        if sum(dataset_lengths[0 : i + 1]) < start_index:
+            del nxsfile["/entry/data"][dataset_names[i]]
+        # unlink datasets after the end of VDS
+        if sum(dataset_lengths[0:i]) > start_index + vds_length:
+            del nxsfile["/entry/data"][dataset_names[i]]
+    vds_logger.info("Links unused in VDS removed from NeXus file.")
