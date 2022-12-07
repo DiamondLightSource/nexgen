@@ -840,10 +840,10 @@ def write_NXcollection(
     if "TRISTAN" in detector["description"].upper():  # or data_type[1] == "events":
         tick = ureg.Quantity(detector["detector_tick"])
         grp.create_dataset("detector_tick", data=tick.magnitude)
-        grp["detector_tick"].attrs["units"] = format(tick.units, "~")
+        grp["detector_tick"].attrs["units"] = np.string_(format(tick.units, "~"))
         freq = ureg.Quantity(detector["detector_frequency"])
         grp.create_dataset("detector_frequency", data=freq.magnitude)
-        grp["detector_frequency"].attrs["units"] = format(freq.units, "~")
+        grp["detector_frequency"].attrs["units"] = np.string_(format(freq.units, "~"))
         grp.create_dataset(
             "timeslice_rollover_bits", data=detector["timeslice_rollover"]
         )
