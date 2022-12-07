@@ -226,7 +226,9 @@ def update_detector_axes(meta_file: h5py.File, detector: Dict):
 
     if meta.hasConfig is True:
         config = meta.read_config_dset()
-        dist = units_of_length(meta.get_detector_distance())
+        dist = units_of_length(
+            meta.get_detector_distance()
+        )  # If Dectris file is correct, this is m.
 
         detector["starts"] = []
         detector["ends"] = []

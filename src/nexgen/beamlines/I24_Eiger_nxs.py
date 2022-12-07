@@ -498,7 +498,6 @@ def write_nxs(**ssx_params):
     # Configure logging
     log.config(logfile.as_posix())
 
-    # TODO check that detector distance is in mm.
     # Add to dictionaries
     detector["starts"] = [SSX.detector_distance]
     detector["exposure_time"] = SSX.exposure_time
@@ -555,7 +554,7 @@ def write_nxs(**ssx_params):
     )
     for k in range(len(detector["axes"])):
         logger.info(
-            f"Detector axis: {detector['axes'][k]} => {detector['starts'][k]}, {detector['types'][k]} on {detector['depends'][k]}"
+            f"Detector axis: {detector['axes'][k]} => {detector['starts'][k]}{detector['units'][k]}, {detector['types'][k]} on {detector['depends'][k]}"
         )
 
     logger.info(f"Recorded beam center is: {SSX.beam_center}.")
