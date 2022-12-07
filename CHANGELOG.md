@@ -1,5 +1,12 @@
 # CHANGELOG
 
+##
+
+### Added
+- NXdetector test.
+### Fixed
+- Ensure that the detector distance is always saved in meters and the unit is correct.
+
 ## 0.6.15
 
 ### Added
