@@ -641,8 +641,10 @@ def write_NXdetector(
             )
 
     # Detector distance
-    nxdetector.create_dataset("distance", data=dist.magnitude)
-    create_attributes(nxdetector["distance"], ("units",), (format(dist.units, "~")))
+    nxdetector.create_dataset("distance", data=dist.to("m").magnitude)
+    create_attributes(
+        nxdetector["distance"], ("units",), (format(dist.to("m").units, "~"))
+    )
 
     # Check if there are any remaining datasets to be written (usually from the meta file but not always)
     others = [
