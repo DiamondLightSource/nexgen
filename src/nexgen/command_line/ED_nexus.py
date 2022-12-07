@@ -70,13 +70,18 @@ def write_from_SINGLA(args):
         for f in sorted(glob.glob(params.input.datafiles))
     ]
 
-    # Configure logger
-    logfile = datafiles[0].parent / "EDnxs.log"
-    log.config(logfile.as_posix())
-
     # Get NeXus file name
     infile = datafiles[0].parent / datafiles[0].name.replace("_data", "")
     nxsfile = get_nexus_filename(infile)
+
+    # Reset the location of the NeXus file if -o is parsed
+    if args.output:
+        newdir = Path(args.output).expanduser().resolve()
+        nxsfile = newdir / nxsfile.name
+
+    # Configure logger
+    logfile = nxsfile.parent / "EDnxs.log"
+    log.config(logfile.as_posix())
 
     logger.info("NeXus file writer for electron diffraction data from Singla.")
     logger.info(
@@ -151,12 +156,12 @@ def write_from_SINGLA(args):
         if detector["beam_center"] is None:
             detector["beam_center"] = find_beam_centre(master, datafiles[0])
             if detector["beam_center"] is None:
-                detector["beam_center"] = (0,0)
-                logger.warning(f"Unable to calculate beam centre. It has been set to {detector['beam_center']}.")
-            else:
-                logger.info(
-                    f"Calculated beam centre to be {detector['beam_center']}."
+                detector["beam_center"] = (0, 0)
+                logger.warning(
+                    f"Unable to calculate beam centre. It has been set to {detector['beam_center']}."
                 )
+            else:
+                logger.info(f"Calculated beam centre to be {detector['beam_center']}.")
 
     # Start writing
     logger.info("Start writing NeXus file ...")
@@ -215,15 +220,20 @@ subparsers = parser.add_subparsers(
 
 singla_parser = subparsers.add_parser(
     "singla",
-    description=("Trigger NeXus file writing for Single data."),
+    description=("Trigger NeXus file writing for Singla data."),
     parents=[nexus_parser, config_parser],
 )
-# singla_parser.add_argument("datafiles", type=str, nargs="*", help="Image files.")
 singla_parser.add_argument(
     "-m",
     "--master",
     type=str,
     help="HDF5 master file written by Singla detector.",
+)
+singla_parser.add_argument(
+    "-o",
+    "--output",
+    type=str,
+    help="Output directory if different from location of data files.",
 )
 singla_parser.set_defaults(func=write_from_SINGLA)
 

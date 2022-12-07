@@ -4,6 +4,11 @@
 
 ### Added
 - NXdetector test.
+- Output optional argument to the ED parser in case the NeXus file needs to be saved in a different location than the data files.
+
+### Changed
+- Chipmap set to None if the inut value from the beamline is "fullchip", indicating that the whole chip is being scanned. The reason for this change is that
+the mapping lite is not used when the fullchip option is selected on the beamline and consequently the chipmap file is not updated.
 ### Fixed
 - Ensure that the detector distance is always saved in meters and the unit is correct.
 

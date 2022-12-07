@@ -151,6 +151,15 @@ To specify a more specific name for the `/entry/instrument/name` field, the foll
 
 which will result in the instrument name being set to `DIAMOND MICROSCOPE eBic` instead of `DIAMOND eBic`.
 
+In case there is a need to save the NeXus file in a different location than the data files:
+
+.. code-block:: console
+
+    -o /path/to/new/directory
+
+
+The downside of this option is that the external links to the data will now be saved using absolute paths instead of relative.
+
 
 Copying NeXus files
 ===================
