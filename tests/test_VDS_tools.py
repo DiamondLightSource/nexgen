@@ -48,7 +48,6 @@ def test_when_get_frames_and_shape_greater_than_1000_non_zero_then_correct():
 def test_when_get_frames_and_shape_greater_than_1000_non_zero_greater_than_1000_then_correct():
     sshape = split_datasets(["test1", "test2"], (1500, 10, 10), 1200)
     assert sshape == [
-        Dataset("test1", (1000, 10, 10), 1000),
         Dataset("test2", (500, 10, 10), 200),
     ]
 
@@ -60,7 +59,6 @@ def test_when_get_frames_and_shape_much_greater_than_1000_non_zero_greater_than_
         ["test1", "test2", "test3", "test4"], (3100, 10, 10), 1100
     )
     assert returned == [
-        Dataset("test1", (1000, 10, 10), 1000),
         Dataset("test2", (1000, 10, 10), 100),
         Dataset("test3", (1000, 10, 10), 0),
         Dataset("test4", (100, 10, 10), 0),
