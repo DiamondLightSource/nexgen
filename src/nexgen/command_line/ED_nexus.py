@@ -70,13 +70,18 @@ def write_from_SINGLA(args):
         for f in sorted(glob.glob(params.input.datafiles))
     ]
 
-    # Configure logger
-    logfile = datafiles[0].parent / "EDnxs.log"
-    log.config(logfile.as_posix())
-
     # Get NeXus file name
     infile = datafiles[0].parent / datafiles[0].name.replace("_data", "")
     nxsfile = get_nexus_filename(infile)
+
+    # Reset the location of the NeXus file if -o is parsed
+    if args.output:
+        newdir = Path(args.output).expanduser().resolve()
+        nxsfile = newdir / nxsfile.name
+
+    # Configure logger
+    logfile = nxsfile.parent / "EDnxs.log"
+    log.config(logfile.as_posix())
 
     logger.info("NeXus file writer for electron diffraction data from Singla.")
     logger.info(
