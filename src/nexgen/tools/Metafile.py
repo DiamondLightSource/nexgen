@@ -132,6 +132,7 @@ class DectrisMetafile(Metafile):
         return self.__getitem__(_loc[0])[0]
 
     def get_detector_distance(self) -> float:
+        # Distance in Dectris meta file is in m.
         _loc = [obj for obj in self.walk if "detector_distance" in obj]
         if len(_loc) == 0:
             return None
