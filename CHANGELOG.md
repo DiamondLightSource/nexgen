@@ -9,6 +9,8 @@
 ### Changed
 - Chipmap set to None if the inut value from the beamline is "fullchip", indicating that the whole chip is being scanned. The reason for this change is that
 the mapping lite is not used when the fullchip option is selected on the beamline and consequently the chipmap file is not updated.
+- In VDS_tools.split_datasets(), checks if the dataset is actually used in the VDS before adding it to the list so that unused datasets are not used as sources for the VDS
+
 ### Fixed
 - Ensure that the detector distance is always saved in meters and the unit is correct.
 
