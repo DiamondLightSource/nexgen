@@ -64,9 +64,7 @@ ssx_collect.pump_status.__doc__ = "True for a pump-probe experiment, false other
 ssx_collect.pump_exp.__doc__ = "Pump exposure time, in s."
 ssx_collect.pump_delay.__doc__ = "Pump delay time, in s."
 ssx_collect.chip_info.__doc__ = "For a grid scan, dictionary containing basic chip information. At least it should contain: x/y_start, x/y number of blocks and block size, x/y number of steps and number of exposures."
-ssx_collect.chipmap.__doc__ = (
-    "Path to the chipmap file corresponding to the experiment."
-)
+ssx_collect.chipmap.__doc__ = "Path to the chipmap file corresponding to the experiment, or 'fullchip' indicating that the whole chip is being scanned."
 
 # Define coordinate frame
 coordinate_frame = "mcstas"
@@ -184,7 +182,7 @@ def fixed_target(
         filename (List[Path]):  List of paths to file.
         num_imgs (int): Total number of images passed as a beamline parameter.
         chip_info (Dict): Basic information about the chip in use and collection dynamics.
-        chipmap (Path | str): Path to the chipmap file corresponding to the current collection.
+        chipmap (Path | str): Path to the chipmap file corresponding to the current collection, or string indicating a fullchip scan.
         metafile (Path, optional):  Path to the _meta.h5 file. Defaults to None.
         timestamps (Tuple[str], optional): Start and end time of data collection, if known. See docs for accepted formats. Defaults to None.
         pump_info (Dict, optional): Details of a pump probe experiment eg. pump exposure time, pump delay, etc. Defaults to None.
@@ -216,6 +214,7 @@ def fixed_target(
     )
 
     goniometer["increments"] = [0.0, 0.0, chip.step_size[1], chip.step_size[0]]
+
     # Read chip map
     blocks = read_chip_map(
         chipmap,
@@ -491,7 +490,8 @@ def write_nxs(**ssx_params):
         ],  # ssx_params["chip_info"] if ssx_params["chip_info"] else None,
         chipmap=None
         if ssx_params["exp_type"] == "extruder"
-        else Path(ssx_params["chipmap"]).expanduser().resolve(),
+        else ssx_params["chipmap"],  # It could be a path or just a flag to fullchip
+        # else Path(ssx_params["chipmap"]).expanduser().resolve(),
     )
 
     logfile = SSX.visitpath / "I24_nxs_writer.log"
@@ -582,23 +582,37 @@ def write_nxs(**ssx_params):
             master_file, filename, int(SSX.num_imgs), metafile, timestamps, pump_info
         )
     elif SSX.exp_type == "fixed_target":
+        # Define chipmap if needed
+        chipmapfile = (
+            None
+            if SSX.chipmap == "fullchip"
+            else Path(SSX.chipmap).expanduser().resolve()
+        )
+
         fixed_target(
             master_file,
             filename,
             int(SSX.num_imgs),
             SSX.chip_info,
-            SSX.chipmap,
+            chipmapfile,
             metafile,
             timestamps,
             pump_info,
         )
     elif SSX.exp_type == "3Dgridscan":
+        # Define chipmap if needed
+        chipmapfile = (
+            None
+            if SSX.chipmap == "fullchip"
+            else Path(SSX.chipmap).expanduser().resolve()
+        )
+
         grid_scan_3D(
             master_file,
             filename,
             int(SSX.num_imgs),
             SSX.chip_info,
-            SSX.chipmap,
+            chipmapfile,
             metafile,
             timestamps,
             pump_info,
