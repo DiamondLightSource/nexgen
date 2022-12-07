@@ -220,10 +220,9 @@ subparsers = parser.add_subparsers(
 
 singla_parser = subparsers.add_parser(
     "singla",
-    description=("Trigger NeXus file writing for Single data."),
+    description=("Trigger NeXus file writing for Singla data."),
     parents=[nexus_parser, config_parser],
 )
-# singla_parser.add_argument("datafiles", type=str, nargs="*", help="Image files.")
 singla_parser.add_argument(
     "-m",
     "--master",
