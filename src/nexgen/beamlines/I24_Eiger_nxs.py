@@ -64,9 +64,7 @@ ssx_collect.pump_status.__doc__ = "True for a pump-probe experiment, false other
 ssx_collect.pump_exp.__doc__ = "Pump exposure time, in s."
 ssx_collect.pump_delay.__doc__ = "Pump delay time, in s."
 ssx_collect.chip_info.__doc__ = "For a grid scan, dictionary containing basic chip information. At least it should contain: x/y_start, x/y number of blocks and block size, x/y number of steps and number of exposures."
-ssx_collect.chipmap.__doc__ = (
-    "Path to the chipmap file corresponding to the experiment."
-)
+ssx_collect.chipmap.__doc__ = "Path to the chipmap file corresponding to the experiment, or 'fullchip' indicating that the whole chip is being scanned."
 
 # Define coordinate frame
 coordinate_frame = "mcstas"
