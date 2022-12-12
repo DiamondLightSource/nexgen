@@ -188,6 +188,7 @@ def tristan_writer(
                 beam,
                 attenuator,
                 OSC,
+                sample_depends_on=scan_axis,
             )
 
             # write_NXdatetime(nxsfile, (None, timestamps[1]))
@@ -266,6 +267,7 @@ def eiger_writer(
                 transl_scan=None,
                 metafile=TR.meta_file,
                 link_list=dset_links,
+                sample_depends_on=scan_axis,
             )
 
             if timestamps[1]:

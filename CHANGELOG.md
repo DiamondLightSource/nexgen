@@ -1,6 +1,6 @@
 # CHANGELOG
 
-##
+## 0.6.16
 
 ### Added
 - NXdetector test.
@@ -13,6 +13,7 @@ the mapping lite is not used when the fullchip option is selected on the beamlin
 
 ### Fixed
 - Ensure that the detector distance is always saved in meters and the unit is correct.
+- Fix sample_depends_on on I19-2 cli.
 
 ## 0.6.15
 

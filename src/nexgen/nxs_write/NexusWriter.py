@@ -176,6 +176,7 @@ def call_writers(
     transl_scan: Dict[str, ArrayLike] = None,
     metafile: Path | str = None,
     link_list: List = None,
+    sample_depends_on: str = None,
 ):
     """
     Call the writers for the NeXus base classes.
@@ -195,6 +196,7 @@ def call_writers(
         transl_scan (Dict[str, ArrayLike], optional): Axes defining a linear or 2D scan. Defaults to None.
         metafile (Path | str, optional): File containing the metadata. Defaults to None.
         link_list (List, optional): List of datasets that can be copied from the metafile. Defaults to None.
+        sample_depends_on (str, optional): Axis on which the sample depends on. Defaults to None.
     """
     logger = logging.getLogger("nexgen.Call")
     logger.setLevel(logging.DEBUG)
@@ -262,6 +264,7 @@ def call_writers(
         data_type,
         osc_scan,
         transl_scan,
+        sample_depends_on,
     )
 
 
