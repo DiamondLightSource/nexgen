@@ -195,8 +195,8 @@ def write_NXsample(
         data_type (Tuple[str, int]): Images or events.
         osc_scan (Dict[str, ArrayLike]): Rotation scan. If writing events, this is just a (start, end) tuple.
         transl_scan (Dict[str, ArrayLike], optional): Scan along the xy axes at sample. Defaults to None.
-        sample_depends_on (str): Axis on which the sample depends on. If absent, the depends_on field will be set to the last axis listed in the goniometer. Defaults to None.
-        sample_details (Dict[str, Any]): General information about the sample, eg. name, temperature.
+        sample_depends_on (str, optional): Axis on which the sample depends on. If absent, the depends_on field will be set to the last axis listed in the goniometer. Defaults to None.
+        sample_details (Dict[str, Any], optional): General information about the sample, eg. name, temperature.
     """
     NXclass_logger.info("Start writing NXsample and NXtransformations.")
     # Create NXsample group, unless it already exists, in which case just open it.
