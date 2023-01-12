@@ -11,10 +11,6 @@ Next Generation Nexus Generator
         :target: https://pypi.python.org/pypi/nexgen
         :alt: Supported Python versions
 
-.. image:: https://img.shields.io/lgtm/alerts/g/dials/nexgen.svg?logo=lgtm&logoWidth=18
-        :target: https://lgtm.com/projects/g/dials/nexgen/alerts/
-        :alt: Total alerts
-
 .. image:: https://readthedocs.org/projects/nexgen/badge/?version=latest
         :target: https://nexgen.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
