@@ -176,9 +176,9 @@ def image_vds_writer(
     dset_names = find_datasets_in_file(nxdata)
 
     # Hack for datasets with no maximum number of frames (eg. Singla)
-    if (
-        len(dset_names) == 1 and nxdata[dset_names[0]].shape[0] > MAX_FRAMES_PER_DATASET
-    ):  # .maxshape[0] is None
+    if len(dset_names) == 1 and full_data_shape[0] > MAX_FRAMES_PER_DATASET:
+        # nxdata[dset_names[0]].shape[0] > MAX_FRAMES_PER_DATASET
+        # .maxshape[0] is None
         datasets = [
             Dataset(
                 name=dset_names[0],
