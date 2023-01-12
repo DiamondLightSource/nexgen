@@ -175,7 +175,19 @@ def image_vds_writer(
     # entry_key = "data"
     dset_names = find_datasets_in_file(nxdata)
 
-    datasets = split_datasets(dset_names, full_data_shape, start_index)
+    # Hack for datasets with no maximum number of frames (eg. Singla)
+    if (
+        len(dset_names) == 1 and nxdata[dset_names[0]].shape[0] > MAX_FRAMES_PER_DATASET
+    ):  # .maxshape[0] is None
+        datasets = [
+            Dataset(
+                name=dset_names[0],
+                source_shape=full_data_shape,
+                start_index=start_index,
+            )
+        ]
+    else:
+        datasets = split_datasets(dset_names, full_data_shape, start_index)
 
     layout = create_virtual_layout(datasets, data_type)
 
