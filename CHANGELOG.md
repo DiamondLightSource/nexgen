@@ -1,5 +1,11 @@
 # CHANGELOG
 
+##
+
+### Fixed
+- VDS writer for datasets that have maximum number of frames set.
+- Removed lgtm alerts (obsolete as of 12/2022).
+
 ## 0.6.16
 
 ### Added
