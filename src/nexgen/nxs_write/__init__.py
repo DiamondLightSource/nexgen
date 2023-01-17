@@ -401,7 +401,7 @@ def write_compressed_copy(
             data = fh[dset_key][()]
 
     nxgroup.create_dataset(
-        dset_name, data=data, **Bitshuffle(nelems=block_size, lz4=True)
+        dset_name, data=data, **Bitshuffle(nelems=block_size, cname="lz4")  # lz4=True)
     )
     NXclass_logger.info(
         f"A compressed copy of the {dset_name} has been written into the NeXus file."

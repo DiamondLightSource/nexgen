@@ -1,5 +1,10 @@
 # CHANGELOG
 
+##
+
+### Changed
+- FIxed the hdf5plugin.Bitshuffle deprecation warning when writing a compressed mask with LZ4 filter. For the moment, hdf5plugin version pinned to 4.0.1 minimum.
+
 ## 0.6.17
 
 ### Fixed
