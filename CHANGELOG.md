@@ -4,6 +4,7 @@
 
 ### Changed
 - FIxed the hdf5plugin.Bitshuffle deprecation warning when writing a compressed mask with LZ4 filter. For the moment, hdf5plugin version pinned to 4.0.1 minimum.
+- Refactoring of the I19-2 command line interface.
 
 ## 0.6.17
 
