@@ -312,7 +312,6 @@ def eiger_writer(
         ]
 
         scan_axis = TR.scan_axis
-        scan_idx = goniometer["axes"].index(scan_axis)
 
         # Read chip map
         blocks = read_chip_map(
