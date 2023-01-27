@@ -111,6 +111,8 @@ def nexgen_writer(args):
         gonio_pos=axes_list if args.axes else None,
         det_pos=det_list if args.det_axes else None,
         outdir=args.output if args.output else None,
+        serial=args.serial,
+        chipmap=args.chipmap if args.chipmap else None,
     )
 
 
@@ -210,6 +212,19 @@ parser_nex.add_argument(
     "--output",
     type=str,
     help="Output directory for new NeXus file, if different from collection directory.",
+)
+# FIXME TEMPORARY
+parser_nex.add_argument(
+    "-s",
+    "--serial",
+    action="store_true",
+    default=False,
+    help="Running a serial experiment",
+)
+parser_nex.add_argument(
+    "--chipmap",
+    type=str,
+    help="Path to chipmap file",
 )
 parser_nex.set_defaults(func=nexgen_writer)
 
