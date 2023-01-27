@@ -273,7 +273,6 @@ def eiger_writer(
 
     # Identify scan axis and calculate scan range
     if serial is True:
-        print(goniometer)
         from ..nxs_write.NexusWriter import ScanReader
         from .SSX_chip import Chip, compute_goniometer, read_chip_map
 
