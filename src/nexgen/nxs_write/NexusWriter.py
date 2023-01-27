@@ -40,6 +40,7 @@ def ScanReader(
     data_type: str = "images",
     n_images: int | Tuple = None,
     snaked: bool = True,
+    osc_axis: str = None,
 ) -> Tuple[Dict, Dict]:
     """
     Read the information passed from the goniometer and return a definition of the scan.
@@ -62,12 +63,13 @@ def ScanReader(
     logger = logging.getLogger("nexgen.ScanReader")
     logger.setLevel(logging.DEBUG)
     # First find which axes deifne a rotation/translation scan
-    osc_axis = find_osc_axis(
-        goniometer["axes"],
-        goniometer["starts"],
-        goniometer["ends"],
-        goniometer["types"],
-    )
+    if osc_axis is None:
+        osc_axis = find_osc_axis(
+            goniometer["axes"],
+            goniometer["starts"],
+            goniometer["ends"],
+            goniometer["types"],
+        )
     osc_idx = goniometer["axes"].index(osc_axis)
     transl_axes = find_grid_scan_axes(
         goniometer["axes"],

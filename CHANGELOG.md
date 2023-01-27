@@ -1,9 +1,12 @@
 # CHANGELOG
 
-##
+## 0.6.18
+
+### Added
+- Temporary messy hotfix to have ssx experiments run on I19-2 with an Eiger detector. To be replaced by mergine with I24 script.
 
 ### Changed
-- FIxed the hdf5plugin.Bitshuffle deprecation warning when writing a compressed mask with LZ4 filter. For the moment, hdf5plugin version pinned to 4.0.1 minimum.
+- Fixed the hdf5plugin.Bitshuffle deprecation warning when writing a compressed mask with LZ4 filter. For the moment, hdf5plugin version pinned to 4.0.1 minimum.
 - Refactoring of the I19-2 command line interface.
 
 ## 0.6.17
