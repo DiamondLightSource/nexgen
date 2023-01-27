@@ -311,7 +311,7 @@ def eiger_writer(
             chip.step_size[0],
         ]
 
-        scan_axis = "phi"
+        scan_axis = TR.scan_axis
         scan_idx = goniometer["axes"].index(scan_axis)
 
         # Read chip map
@@ -332,7 +332,7 @@ def eiger_writer(
             )
 
         # Iterate over blocks to calculate scan points
-        OSC = {"phi": np.array([])}
+        OSC = {scan_axis: np.array([])}
         TRANSL = {"sam_y": np.array([]), "sam_x": np.array([])}
         for s, e in zip(start_pos.values(), end_pos.values()):
             goniometer["starts"] = s
@@ -345,8 +345,9 @@ def eiger_writer(
                     chip.num_steps[1],  # chip_info["Y_NUM_STEPS"][1],
                     chip.num_steps[0],  # chip_info["X_NUM_STEPS"][1],
                 ),
+                osc_axis=scan_axis,
             )
-            OSC["phi"] = np.append(OSC["omega"], osc["phi"])
+            OSC[scan_axis] = np.append(OSC[scan_axis], osc[scan_axis])
             TRANSL["sam_y"] = np.append(TRANSL["sam_y"], np.round(transl["sam_y"], 3))
             TRANSL["sam_x"] = np.append(TRANSL["sam_x"], np.round(transl["sam_x"], 3))
     else:
@@ -502,7 +503,7 @@ def nexus_writer(**params):
     if params["serial"] is True:
         logger.info("Running a Serial Crystallography experiment!")
         SSX = ssx(
-            chipmap=params["chipmap"] if ssx["chipmap"] else None,
+            chipmap=params["chipmap"] if params["chipmap"] else None,
             chip_info=params["chip_info"] if params["chip_info"] else CHIP_DICT,
             pump_status=params["pump_status"] if params["pump_status"] else False,
             pump_delay=params["pump_delay"] if params["pump_delay"] else None,

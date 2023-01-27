@@ -113,6 +113,10 @@ def nexgen_writer(args):
         outdir=args.output if args.output else None,
         serial=args.serial,
         chipmap=args.chipmap if args.chipmap else None,
+        chip_info=None,
+        pump_status=False,
+        pump_delay=None,
+        pump_exp=None,
     )
 
 
