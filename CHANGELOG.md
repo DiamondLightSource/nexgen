@@ -1,5 +1,10 @@
 # CHANGELOG
 
+##
+
+### Changed
+- In CopyTristanNexus, added a flag to the single_image writer to be able to correctly write a list of values for a static pump-probe collection (ie. the same phi/omega value repeated for each bin).
+
 ## 0.6.18
 
 ### Added
