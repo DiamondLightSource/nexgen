@@ -40,7 +40,7 @@ def single_image_nexus(
         tristan_nexus (Path | str): String or Path pointing to the input NeXus file with experiment metadata to be copied.
         write_mode (str, optional): String indicating writing mode for the output NeXus file.  Accepts any valid
                         h5py file opening mode. Defaults to "x".
-        pump_probe (bool, optional): Indicates if the NeXus file will be linked to a static pump-probe image stack. 
+        pump_probe (bool, optional): Indicates if the NeXus file will be linked to a static pump-probe image stack.
                         Deafults to False.
 
     Returns:
