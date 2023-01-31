@@ -25,6 +25,7 @@ def single_image_nexus(
     data_file: Path | str,
     tristan_nexus: Path | str,
     write_mode: str = "x",
+    pump_probe: bool = False,
 ) -> str:
     """
     Create a NeXus file for a single-image or a stationary pump-probe dataset.
@@ -35,10 +36,12 @@ def single_image_nexus(
     The scan_axis in the new file will therefore be one single number, equal to the "start".
 
     Args:
-        data_file (Optional[Union[Path, str]]): String or Path pointing to the HDF5 file containing the newly binned images.
-        tristan_nexus (Optional[Union[Path, str]]): String or Path pointing to the input NeXus file with experiment metadata to be copied.
+        data_file (Path | str): String or Path pointing to the HDF5 file containing the newly binned images.
+        tristan_nexus (Path | str): String or Path pointing to the input NeXus file with experiment metadata to be copied.
         write_mode (str, optional): String indicating writing mode for the output NeXus file.  Accepts any valid
                         h5py file opening mode. Defaults to "x".
+        pump_probe (bool, optional): Indicates if the NeXus file will be linked to a static pump-probe image stack. 
+                        Deafults to False.
 
     Returns:
         nxs_filename (str): The name of the output NeXus file.
@@ -77,6 +80,9 @@ def single_image_nexus(
                 # was not moved during the data collection, record the rotation axis
                 # position as a scalar.
                 ax_range = nxs_in["entry/data"][ax][()]
+            if pump_probe is True:
+                num_imgs = nxdata["data"].shape[0]
+                ax_range = np.repeat(ax_range, num_imgs)
             nxdata.create_dataset(ax, data=np.array([ax_range]))
             # Write the attributes
             for key, value in ax_attr.items():
