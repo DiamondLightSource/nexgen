@@ -1,9 +1,13 @@
 # CHANGELOG
 
-##
+## 0.6.19
 
 ### Changed
 - In CopyTristanNexus, added a flag to the single_image writer to be able to correctly write a list of values for a static pump-probe collection (ie. the same phi/omega value repeated for each bin).
+
+### Fixed
+- Start position for "up" blocks in SSX chip goniometer computation.
+- End position for "up" blocks for I24 SSX chip for scanspec hack.
 
 ## 0.6.18
 

@@ -233,11 +233,26 @@ def fixed_target(
     # Iterate over blocks to calculate scan points
     OSC = {"omega": np.array([])}
     TRANSL = {"sam_y": np.array([]), "sam_x": np.array([])}
-    for s, e in zip(start_pos.values(), end_pos.values()):
+    for _s, _e in zip(start_pos.items(), end_pos.items()):
+        # Determine wheter it's an up or down block
+        col = int(_e[0]) // 8 if int(_e[0]) % 8 != 0 else (int(_e[0]) // 8) - 1
+        # Get the values
+        s = _s[1]
+        e = _e[1]
         goniometer["starts"] = s
-        goniometer["ends"] = [
-            end - inc for end, inc in zip(e, goniometer["increments"])
-        ]  # Workaround for scanspec issue (we don't want to write the actual end of the chip)
+        # Workaround for scanspec issue (we don't want to write the actual end of the chip)
+        if col % 2 == 0:
+            goniometer["ends"] = [
+                end - inc for end, inc in zip(e, goniometer["increments"])
+            ]
+        else:
+            goniometer["ends"] = len(goniometer["axes"]) * [0.0]
+            Yidx, Xidx = (
+                goniometer["axes"].index("sam_y"),
+                goniometer["axes"].index("sam_x"),
+            )
+            goniometer["ends"][Yidx] = e[Yidx]
+            goniometer["ends"][Xidx] = e[Xidx] - goniometer["increments"][Xidx]
         osc, transl = ScanReader(
             goniometer,
             n_images=(
