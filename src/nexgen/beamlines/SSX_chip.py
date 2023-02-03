@@ -162,7 +162,7 @@ def compute_goniometer(
                 for y in range(chip.num_blocks[1] - 1, -1, -1):
                     y_end = y0 + y * chip.block_size[1]
                     x_end = x_start + chip.num_steps[0] * chip.step_size[0]
-                    y_start = y_end + chip.num_steps[1] * chip.step_size[1]
+                    y_start = y_end + (chip.num_steps[1] - 1) * chip.step_size[1]
                     starts[(x, y)] = [
                         x_start if i == idx_X else y_start if i == idx_Y else 0.0
                         for i in range(num_axes)
@@ -181,7 +181,7 @@ def compute_goniometer(
             else:
                 y_end = x0 + v[1] * chip.block_size[1]
                 x_end = x_start + chip.num_steps[0] * chip.step_size[0]
-                y_start = y_end + chip.num_steps[1] * chip.step_size[1]
+                y_start = y_end + (chip.num_steps[1] - 1) * chip.step_size[1]
             starts[k] = [
                 round(x_start, 3)
                 if i == idx_X
