@@ -206,7 +206,7 @@ def ssx_eiger_writer(
         logger.debug(
             "Detector distance value in meta file did not match with the one passed by the user.\n"
             f"Passed value: {SSX.detector_distance}; Value stored in meta file: {detector['starts'][det_z_idx]}.\n"
-            "Value will be overwritten with the passed one.\n"
+            "Value will be overwritten with the passed one."
         )
         detector["starts"][det_z_idx] = SSX.detector_distance
 
@@ -233,7 +233,7 @@ def ssx_eiger_writer(
     # Define what to do based on experiment type
     if expt_type not in ["extruder", "fixed-target", "3Dgridscan"]:
         raise ValueError(
-            "Please pass a valid experiment type."
+            "Please pass a valid experiment type.\n"
             "Accepted values: extruder, fixed-target, 3Dgridscan."
         )
 
@@ -252,6 +252,13 @@ def ssx_eiger_writer(
         )
         from .SSX_expt import run_fixed_target
 
+        # I19-2 meta file sanity check
+        logger.debug(
+            "Sanity check. There is no rotation here.\n"
+            "Setting all rotation values to same start and end for this application."
+        )
+        goniometer["ends"] = [s for s in goniometer["starts"]]
+        logger.debug(f"Starts: {goniometer['starts']}. Ends: {goniometer['ends']}")
         goniometer, OSC, TRANSL, pump_info = run_fixed_target(
             goniometer, SSX.chip_info, chipmapfile, pump_probe, osc_axis=osc_axis
         )

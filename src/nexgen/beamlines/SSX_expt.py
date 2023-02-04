@@ -115,9 +115,9 @@ def run_fixed_target(
     )
 
     # Set step size as increment for grid scan axes and set everything else to 0
-    goniometer["increments"] = len(goniometer["axes"]) * [
-        0.0
-    ]  # Temporary workaround for I19 scripts which saves an increment for phi in meta file.
+    l = len(goniometer["axes"])
+    # Temporary workaround for I19 scripts which saves an increment for phi in meta file.
+    goniometer["increments"] = l * [0.0]
     Yidx, Xidx = (
         goniometer["axes"].index("sam_y"),
         goniometer["axes"].index("sam_x"),
@@ -133,7 +133,6 @@ def run_fixed_target(
         logger.info(f"Scanning blocks: {list(blocks.keys())}.")
         start_pos, end_pos = compute_goniometer(chip, goniometer["axes"], blocks=blocks)
 
-    # TODO use values already in there if read from the meta file (ie. if gonio["starts"] not None) otherwise they get overwritten.
     # Iterate over blocks to calculate scan points
     OSC = {osc_axis: np.array([])}
     TRANSL = {"sam_y": np.array([]), "sam_x": np.array([])}
@@ -141,8 +140,20 @@ def run_fixed_target(
         # Determine wheter it's an up or down block
         col = int(_e[0]) // 8 if int(_e[0]) % 8 != 0 else (int(_e[0]) // 8) - 1
         # Get the values
-        s = _s[1]
-        e = _e[1]
+        if goniometer["starts"] is None:
+            s = _s[1]
+        else:
+            s = [
+                goniometer["starts"][i] if i not in [Xidx, Yidx] else _s[1][i]
+                for i in range(l)
+            ]
+        if goniometer["ends"] is None:
+            e = _e[1]
+        else:
+            e = [
+                goniometer["ends"][i] if i not in [Xidx, Yidx] else _e[1][i]
+                for i in range(l)
+            ]
         goniometer["starts"] = s
         # Workaround for scanspec issue (we don't want to write the actual end of the chip)
         if col % 2 == 0:
