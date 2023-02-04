@@ -9,7 +9,6 @@ from pathlib import Path
 from typing import List, Tuple
 
 import h5py
-import numpy as np
 
 from .. import get_iso_timestamp, get_nexus_filename, log
 from ..nxs_write import calculate_scan_range, find_number_of_images, find_osc_axis
@@ -63,32 +62,6 @@ tr_collect.beam_center.__doc__ = "Beam center (x,y) position, in pixels."
 tr_collect.start_time.__doc__ = "Collection start time."
 tr_collect.stop_time.__doc__ = "Collection end time."
 tr_collect.scan_axis.__doc__ = "Rotation scan axis. Must be passed for Tristan."
-
-ssx = namedtuple(
-    "ssx",
-    [
-        "chipmap",
-        "chip_info",
-        "pump_status",
-        "pump_delay",
-        "pump_repeat",
-    ],
-)
-ssx.__doc__ = """Parameters from the beamline passed for a Serial Crystallography collection on I19-2 with Eiger detector."""
-
-CHIP_DICT = {
-    "X_NUM_STEPS": [0, 20],
-    "Y_NUM_STEPS": [0, 20],
-    "X_STEP_SIZE": [0, 0.125],
-    "Y_STEP_SIZE": [0, 0.125],
-    "X_START": [0, 0],
-    "Y_START": [0, 0],
-    "Z_START": [0, 0],
-    "X_NUM_BLOCKS": [0, 8],
-    "Y_NUM_BLOCKS": [0, 8],
-    "X_BLOCK_SIZE": [0, 3.175],
-    "Y_BLOCK_SIZE": [0, 3.175],
-}
 
 
 def tristan_writer(
@@ -210,8 +183,6 @@ def eiger_writer(
     master_file: Path,
     TR: namedtuple,
     timestamps: Tuple[str, str] = (None, None),
-    serial: bool = False,
-    SSX: namedtuple = None,
 ):
     """
     A function to call the nexus writer for Eiger 2X 4M detector.
@@ -267,100 +238,22 @@ def eiger_writer(
     if detector["starts"] is None:
         raise IOError("Detector axes values couldn't be read from meta file.")
 
-    # Identify scan axis and calculate scan range
-    if serial is True:
-        from ..nxs_write.NexusWriter import ScanReader
-        from .SSX_chip import Chip, compute_goniometer, read_chip_map
-
-        chip = Chip(
-            "fastchip",
-            num_steps=[
-                SSX.chip_info["X_NUM_STEPS"][1],
-                SSX.chip_info["Y_NUM_STEPS"][1],
-            ],
-            step_size=[
-                SSX.chip_info["X_STEP_SIZE"][1],
-                SSX.chip_info["Y_STEP_SIZE"][1],
-            ],
-            num_blocks=[
-                SSX.chip_info["X_NUM_BLOCKS"][1],
-                SSX.chip_info["Y_NUM_BLOCKS"][1],
-            ],
-            block_size=[
-                SSX.chip_info["X_BLOCK_SIZE"][1],
-                SSX.chip_info["Y_BLOCK_SIZE"][1],
-            ],
-            start_pos=[
-                SSX.chip_info["X_START"][1],
-                SSX.chip_info["Y_START"][1],
-                SSX.chip_info["Z_START"][1],
-            ],
-        )
-
-        goniometer["increments"] = [
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            chip.step_size[1],
-            chip.step_size[0],
-        ]
-
-        scan_axis = TR.scan_axis
-
-        # Read chip map
-        blocks = read_chip_map(
-            SSX.chipmap,
-            chip.num_blocks[0],  # chip_info["X_NUM_BLOCKS"][1],
-            chip.num_blocks[1],  # chip_info["Y_NUM_BLOCKS"][1],
-        )
-
-        # Calculate scan start/end positions on chip
-        if list(blocks.values())[0] == "fullchip":
-            logger.info("Full chip: all the blocks will be scanned.")
-            start_pos, end_pos = compute_goniometer(chip, goniometer["axes"], full=True)
-        else:
-            logger.info(f"Scanning blocks: {list(blocks.keys())}.")
-            start_pos, end_pos = compute_goniometer(
-                chip, goniometer["axes"], blocks=blocks
-            )
-
-        # Iterate over blocks to calculate scan points
-        OSC = {scan_axis: np.array([])}
-        TRANSL = {"sam_y": np.array([]), "sam_x": np.array([])}
-        for s, e in zip(start_pos.values(), end_pos.values()):
-            goniometer["starts"] = s
-            goniometer["ends"] = [
-                end - inc for end, inc in zip(e, goniometer["increments"])
-            ]  # Workaround for scanspec issue (we don't want to write the actual end of the chip)
-            osc, transl = ScanReader(
-                goniometer,
-                n_images=(
-                    chip.num_steps[1],  # chip_info["Y_NUM_STEPS"][1],
-                    chip.num_steps[0],  # chip_info["X_NUM_STEPS"][1],
-                ),
-                osc_axis=scan_axis,
-            )
-            OSC[scan_axis] = np.append(OSC[scan_axis], osc[scan_axis])
-            TRANSL["sam_y"] = np.append(TRANSL["sam_y"], np.round(transl["sam_y"], 3))
-            TRANSL["sam_x"] = np.append(TRANSL["sam_x"], np.round(transl["sam_x"], 3))
-    else:
-        scan_axis = find_osc_axis(
-            goniometer["axes"],
-            goniometer["starts"],
-            goniometer["ends"],
-            goniometer["types"],
-        )
-        scan_idx = goniometer["axes"].index(scan_axis)
-        OSC = calculate_scan_range(
-            [scan_axis],
-            [goniometer["starts"][scan_idx]],
-            [goniometer["ends"][scan_idx]],
-            axes_increments=[goniometer["increments"][scan_idx]],
-            # n_images=n_frames,
-            rotation=True,
-        )
-        TRANSL = None
+    scan_axis = find_osc_axis(
+        goniometer["axes"],
+        goniometer["starts"],
+        goniometer["ends"],
+        goniometer["types"],
+    )
+    scan_idx = goniometer["axes"].index(scan_axis)
+    OSC = calculate_scan_range(
+        [scan_axis],
+        [goniometer["starts"][scan_idx]],
+        [goniometer["ends"][scan_idx]],
+        axes_increments=[goniometer["increments"][scan_idx]],
+        # n_images=n_frames,
+        rotation=True,
+    )
+    TRANSL = None
 
     logger.info("--- COLLECTION SUMMARY ---")
     logger.info("Source information")
@@ -371,11 +264,7 @@ def eiger_writer(
     logger.info(f"Attenuation: {attenuator['transmission']}")
 
     logger.info("Goniometer information")
-    if serial is True:
-        logger.info(f"Oscillation axis: {list(OSC.keys())[0]}.")
-        logger.info(f"Grid scan axes: {list(TRANSL.keys())}.")
-    else:
-        logger.info(f"Scan axis is: {scan_axis}")
+    logger.info(f"Scan axis is: {scan_axis}")
     for j in range(len(goniometer["axes"])):
         logger.info(
             f"Goniometer axis: {goniometer['axes'][j]} => {goniometer['starts'][j]}, {goniometer['types'][j]} on {goniometer['depends'][j]}"
@@ -422,27 +311,6 @@ def eiger_writer(
                 link_list=dset_links,
                 sample_depends_on=scan_axis,
             )
-
-            if serial:
-                logger.info("Write pump information to file.")
-                if SSX.pump_status is True:
-                    from ..nxs_write.NXclassWriters import write_NXnote
-
-                    pump_info = {
-                        "pump_status": SSX.pump_status,
-                        "pump_exposure_time": SSX.pump_exp,
-                        "pump_delay": SSX.pump_delay,
-                    }
-                    if SSX.pump_exp is None:
-                        logger.warning(
-                            "Pump exposure time has not been recorded and won't be written to file."
-                        )
-                    if SSX.pump_delay is None:
-                        logger.warning(
-                            "Pump delay has not been recorded and won't be written to file."
-                        )
-                    loc = "/entry/source/notes"
-                    write_NXnote(nxsfile, loc, pump_info)
 
             if timestamps[1]:
                 write_NXdatetime(nxsfile, (None, timestamps[1]))
@@ -492,18 +360,6 @@ def nexus_writer(**params):
     logger.info(f"Detector in use for this experiment: {TR.detector_name}.")
     logger.info(f"Current collection directory: {TR.meta_file.parent}")
 
-    # FIXME This will definitely need some refactoring in the future. only for ssx with eiger on I19-2, otherise use SSX_Tristan
-    # If ssx
-    if params["serial"] is True:
-        logger.info("Running a Serial Crystallography experiment!")
-        SSX = ssx(
-            chipmap=params["chipmap"] if params["chipmap"] else None,
-            chip_info=params["chip_info"] if params["chip_info"] else CHIP_DICT,
-            pump_status=params["pump_status"] if params["pump_status"] else False,
-            pump_delay=params["pump_delay"] if params["pump_delay"] else None,
-            pump_repeat=params["pump_exp"] if params["pump_exp"] else None,
-        )
-
     # Add some information to logger
     logger.info("Creating a NeXus file for %s ..." % TR.meta_file.name)
     # Get NeXus filename
@@ -548,8 +404,6 @@ def nexus_writer(**params):
 
     if "eiger" in TR.detector_name.lower() and params["serial"] is False:
         eiger_writer(master_file, TR, timestamps)
-    elif "eiger" in TR.detector_name.lower() and params["serial"] is True:
-        eiger_writer(master_file, TR, timestamps, True, SSX)
     elif "tristan" in TR.detector_name.lower():
         tristan_writer(
             master_file, TR, timestamps, params["gonio_pos"], params["det_pos"]

@@ -116,7 +116,7 @@ def ssx_eiger_writer(
     visitpath = Path(visitpath).expanduser().resolve()
 
     # Configure logging
-    logfile = visitpath / f"{beamline}_ssxEiger_nexus_writer.log"
+    logfile = visitpath / f"{beamline}_EigerSSX_nxs_writer.log"
     log.config(logfile.as_posix())
 
     logger.info(f"Current collection directory: {visitpath}")
