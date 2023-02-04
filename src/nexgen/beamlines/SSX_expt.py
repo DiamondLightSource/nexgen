@@ -44,6 +44,8 @@ def run_extruder(
 
     logger.debug("All axes are fixed, setting increments to 0.0 and starts == ends.")
     goniometer["increments"] = len(goniometer["axes"]) * [0.0]
+    if goniometer["starts"] is None:
+        goniometer["starts"] = len(goniometer["axes"]) * [0.0]
     goniometer["ends"] = goniometer["starts"]
 
     OSC, TRANSL = ScanReader(goniometer, n_images=int(num_imgs))
@@ -112,7 +114,10 @@ def run_fixed_target(
         chip.num_blocks[1],
     )
 
-    # Set step size as increment for grid scan axes
+    # Set step size as increment for grid scan axes and set everything else to 0
+    goniometer["increments"] = len(goniometer["axes"]) * [
+        0.0
+    ]  # Temporary workaround for I19 scripts which saves an increment for phi in meta file.
     Yidx, Xidx = (
         goniometer["axes"].index("sam_y"),
         goniometer["axes"].index("sam_x"),
@@ -128,6 +133,7 @@ def run_fixed_target(
         logger.info(f"Scanning blocks: {list(blocks.keys())}.")
         start_pos, end_pos = compute_goniometer(chip, goniometer["axes"], blocks=blocks)
 
+    # TODO use values already in there if read from the meta file (ie. if gonio["starts"] not None) otherwise they get overwritten.
     # Iterate over blocks to calculate scan points
     OSC = {osc_axis: np.array([])}
     TRANSL = {"sam_y": np.array([]), "sam_x": np.array([])}
