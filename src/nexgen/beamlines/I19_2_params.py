@@ -1,13 +1,6 @@
 """
 Define beamline parameters for I19-2, Tristan and Eiger detectors.
 """
-source = {
-    "name": "Diamond Light Source",
-    "short_name": "DLS",
-    "type": "Synchrotron X-ray Source",
-    "beamline_name": "I19-2",
-}
-
 goniometer_axes = {
     "axes": ["omega", "kappa", "phi", "sam_z", "sam_y", "sam_x"],
     "depends": [".", "omega", "kappa", "phi", "sam_z", "sam_y"],
@@ -92,17 +85,3 @@ eiger4M_params = {
     "fast_axis": [0, 1, 0],
     "slow_axis": [-1, 0, 0],
 }
-
-dset_links = [
-    [
-        "pixel_mask",
-        "pixel_mask_applied",
-        "flatfield",
-        "flatfield_applied",
-        "threshold_energy",
-        "bit_depth_readout",
-        "detector_readout_time",
-        "serial_number",
-    ],
-    ["software_version"],
-]

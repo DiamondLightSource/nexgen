@@ -14,7 +14,7 @@ from ..nxs_write.NXclassWriters import write_NXdatetime, write_NXentry, write_NX
 from .I19_2_params import source, tristan10M_params
 
 # Define a logger object and a formatter
-logger = logging.getLogger("nexgen.I19-2_ssx")
+logger = logging.getLogger("nexgen.SSX_Tristan")
 
 ssx_tr_collect = namedtuple(
     "ssx_collect",

@@ -223,7 +223,7 @@ parser_nex.add_argument(
     "-bc",
     "--beam-center",
     type=float,
-    nargs="+",
+    nargs=2,
     help="Beam center (x,y) positions.",
 )
 parser_nex.add_argument(

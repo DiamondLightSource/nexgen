@@ -24,6 +24,8 @@ except ImportError:
         return wrapper_decorator
 
 
+__all__ = ["Metafile", "DectrisMetafile", "TristanMetafile"]
+
 tristan_pattern = re.compile(r"ts_qty_module\d{2}")
 
 

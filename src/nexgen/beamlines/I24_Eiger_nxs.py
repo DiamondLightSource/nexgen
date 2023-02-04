@@ -16,7 +16,9 @@ from .. import get_iso_timestamp, get_nexus_filename, log
 from ..nxs_write.NexusWriter import ScanReader, call_writers
 from ..nxs_write.NXclassWriters import write_NXdatetime, write_NXentry, write_NXnote
 from ..tools.VDS_tools import image_vds_writer
-from .I24_Eiger_params import dset_links, eiger9M_params, goniometer_axes, source
+from . import eiger_meta_links as dset_links
+from . import source
+from .I24_Eiger_params import eiger9M_params, goniometer_axes
 from .SSX_chip import Chip, compute_goniometer, read_chip_map
 
 # Define a logger object and a formatter

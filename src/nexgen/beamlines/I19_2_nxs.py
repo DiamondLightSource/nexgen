@@ -17,13 +17,9 @@ from ..nxs_write.NexusWriter import call_writers
 from ..nxs_write.NXclassWriters import write_NXdatetime, write_NXentry
 from ..tools.MetaReader import overwrite_beam, update_detector_axes, update_goniometer
 from ..tools.VDS_tools import image_vds_writer
-from .I19_2_params import (
-    dset_links,
-    eiger4M_params,
-    goniometer_axes,
-    source,
-    tristan10M_params,
-)
+from . import eiger_meta_links as dset_links
+from . import source
+from .I19_2_params import eiger4M_params, goniometer_axes, tristan10M_params
 
 # Define a logger object
 logger = logging.getLogger("nexgen.I19-2_NeXus")

@@ -1,12 +1,6 @@
 """
 Define beamline parameters for I24 with Eiger 9M detector.
 """
-source = {
-    "name": "Diamond Light Source",
-    "short_name": "DLS",
-    "type": "Synchrotron X-ray Source",
-    "beamline_name": "I24",
-}
 
 goniometer_axes = {
     "axes": ["omega", "sam_z", "sam_y", "sam_x"],
@@ -50,17 +44,3 @@ eiger9M_params = {
     "fast_axis": [-1, 0, 0],
     "slow_axis": [0, -1, 0],
 }
-
-dset_links = [
-    [
-        "pixel_mask",
-        "pixel_mask_applied",
-        "flatfield",
-        "flatfield_applied",
-        "threshold_energy",
-        "bit_depth_readout",
-        "detector_readout_time",
-        "serial_number",
-    ],
-    ["software_version"],
-]

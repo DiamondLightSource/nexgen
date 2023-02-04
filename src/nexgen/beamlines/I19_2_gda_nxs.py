@@ -16,18 +16,13 @@ from ..nxs_write import calculate_scan_range
 from ..nxs_write.NexusWriter import call_writers
 from ..nxs_write.NXclassWriters import write_NXdatetime, write_NXentry
 from ..tools.VDS_tools import image_vds_writer
+from . import eiger_meta_links as dset_links
 from .GDAtools.ExtendedRequest import ExtendedRequestIO
 from .GDAtools.GDAjson2params import (
     read_detector_params_from_json,
     read_geometry_from_json,
 )
-from .I19_2_params import (
-    dset_links,
-    eiger4M_params,
-    goniometer_axes,
-    source,
-    tristan10M_params,
-)
+from .I19_2_params import eiger4M_params, goniometer_axes, source, tristan10M_params
 
 import h5py  # isort: skip
 
