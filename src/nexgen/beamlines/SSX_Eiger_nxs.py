@@ -229,6 +229,8 @@ def ssx_eiger_writer(
         )
         logger.info(f"Recorded pump exposure time: {pump_probe.exposure}")
         logger.info(f"Recorded pump delay time: {pump_probe.delay}")
+    else:
+        pump_probe = PumpProbe()
 
     # Define what to do based on experiment type
     if expt_type not in ["extruder", "fixed-target", "3Dgridscan"]:

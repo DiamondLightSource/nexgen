@@ -51,11 +51,7 @@ def run_extruder(
     OSC, TRANSL = ScanReader(goniometer, n_images=int(num_imgs))
     del TRANSL
 
-    pump_info = {
-        "pump_status": pump_probe.status,
-        "pump_exposure": pump_probe.exposure,
-        "pump_delay": pump_probe.delay,
-    }
+    pump_info = pump_probe.to_dict()
 
     return goniometer, OSC, pump_info
 
@@ -184,13 +180,9 @@ def run_fixed_target(
 
     logger.info(f"Each position has been collected {N} times.")
     logger.info(f"Pump repeat setting: {chip_info['PUMP_REPEAT'][1]}.")
-    pump_info = {
-        "pump_status": pump_probe.status,
-        "pump_exposure": pump_probe.exposure,
-        "pump_delay": pump_probe.delay,
-        "pump_repeat": int(chip_info["PUMP_REPEAT"][1]),
-        "n_exposures": N,
-    }
+    pump_info = pump_probe.to_dict()
+    pump_info["repeat"] = int(chip_info["PUMP_REPEAT"][1])
+    pump_info["n_exposures"] = N
 
     return goniometer, OSC, TRANSL, pump_info
 
@@ -219,3 +211,10 @@ def run_3D_grid_scan(
             pump_info: updated pump probe information
     """
     logger.info("Running a 3D grid scan experiment.")
+
+    N = int(chip_info["N_EXPOSURES"][1])
+
+    pump_info = pump_probe.to_dict()
+    pump_info["repeat"] = int(chip_info["PUMP_REPEAT"][1])
+    pump_info["n_exposures"] = N
+    return None, None, None, pump_info
