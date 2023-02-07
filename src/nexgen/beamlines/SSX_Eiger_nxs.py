@@ -63,7 +63,7 @@ def ssx_eiger_writer(
     Args:
         visitpath (Path | str): Collection directory.
         filename (str): Filename root.
-        beamline (str): Beamline name.
+        beamline (str): Beamline on which the experiment is being run.
         expt_type (str, optional): Experiment type, accepted values: extruder,
             fixed-target, 3Dgridscan. Defaults to "fixed-target".
         pump_status (bool, optional): True for pump-probe experiment. Defaults to False.
@@ -217,6 +217,7 @@ def ssx_eiger_writer(
     )
 
     # Get pump information
+    pump_probe = PumpProbe()
     if pump_status is True:
         # Exposure and delay could also be found in dictionary for grid scan
         logger.info("Pump status is True.")
@@ -229,8 +230,6 @@ def ssx_eiger_writer(
         )
         logger.info(f"Recorded pump exposure time: {pump_probe.exposure}")
         logger.info(f"Recorded pump delay time: {pump_probe.delay}")
-    else:
-        pump_probe = PumpProbe()
 
     # Define what to do based on experiment type
     if expt_type not in ["extruder", "fixed-target", "3Dgridscan"]:

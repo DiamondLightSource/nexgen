@@ -36,12 +36,10 @@ CHIP_DICT = {
 
 def eiger_collection(args):
     print(args)
-    pass
 
 
 def tristan_collection(args):
     print(args)
-    pass
 
 
 # Define a parser for the basic collection parameters
@@ -147,7 +145,7 @@ tristan_parser = subparsers.add_parser(
     parents=[collect_parser],
 )
 tristan_parser.add_argument("--chipmap", typ=str, help="Location of chipmap.")
-tristan_parser.det_defaults(func=tristan_collection)
+tristan_parser.set_defaults(func=tristan_collection)
 
 
 def main():

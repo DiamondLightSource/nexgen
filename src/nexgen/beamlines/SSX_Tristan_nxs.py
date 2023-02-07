@@ -11,7 +11,8 @@ import h5py
 from .. import get_iso_timestamp, get_nexus_filename, log
 from ..nxs_write.NexusWriter import call_writers
 from ..nxs_write.NXclassWriters import write_NXdatetime, write_NXentry, write_NXnote
-from .I19_2_params import source, tristan10M_params
+from . import source
+from .I19_2_params import tristan10M_params as detector
 
 # Define a logger object and a formatter
 logger = logging.getLogger("nexgen.SSX_Tristan")
@@ -21,7 +22,7 @@ ssx_tr_collect = namedtuple(
     [
         "visitpath",
         "filename",
-        "location",
+        "beamline",
         "beam_center",
         "detector_distance",
         "start_time",
@@ -37,79 +38,127 @@ ssx_tr_collect = namedtuple(
 ssx_tr_collect.__doc__ = (
     """Parameters that define a serial collection using a Tristan detector."""
 )
-ssx_tr_collect.visitpath.__doc__ = "Path to colection directory."
-ssx_tr_collect.filename.__doc__ = "Root of the filename."
-ssx_tr_collect.location.__doc__ = "Beamline on which the experiment is being run."
-ssx_tr_collect.beam_center.__doc__ = "Beam center position, in pixels."
-ssx_tr_collect.detector_distance.__doc__ = (
-    "Distance between sample and detector, in mm."
-)
-ssx_tr_collect.start_time.__doc__ = "Experiment start time."
-ssx_tr_collect.stop_time.__doc__ = "Experiment end time."
-ssx_tr_collect.exposure_time.__doc__ = "Exposure time, in s."
-ssx_tr_collect.transmission.__doc__ = "Attenuator transmission, in %."
-ssx_tr_collect.wavelength.__doc__ = "Wavelength of incident beam."
-ssx_tr_collect.chipmap.__doc__ = "Chipmap or block list for grid scan."
-ssx_tr_collect.chip_info.__doc__ = "For a grid scan, dictionary containing basic chip information. At least it should contain: x/y_start, x/y number of blocks and block size, x/y number of steps and number of exposures."
 
 # Define coordinate frame
 coordinate_frame = "mcstas"
 
 # Initialize dictionaries
-goniometer = {}
-detector = tristan10M_params
 module = {}
 beam = {}
 attenuator = {}
 
 
-def write_nxs(**ssx_params):
+def ssx_tristan_writer(
+    visitpath: Path | str,
+    filename: str,
+    beamline: str,
+    **ssx_params,
+):
     """
     Gather all parameters from the beamline and call the NeXus writers.
+
+    Args:
+        visitpath (Path | str): Path to colection directory.
+        filename (str): Root of the filename.
+        beamline (str): Beamline on which the experiment is being run.
+
+    Keyword Args:
+        exp_time (float): Exposure time, in s.
+        det_dist (float): Distance between sample and detector, in mm.
+        beam_center (List[float, float]): Beam center position, in pixels.
+        transmission (int): Attenuator transmission, in %.
+        wavelength (float): Wavelength of incident beam, in A.
+        flux (float): Total flux.
+        start_time (datetime): Experiment start time.
+        stop_time (datetime): Experiment end time.
+        chip_info (Dict): For a grid scan, dictionary containing basic chip information.
+            At least it should contain: x/y_start, x/y number of blocks and block size, x/y number of steps and number of exposures.
+        chipmap (Path | str): Path to the chipmap file corresponding to the experiment,
+            or 'fullchip' indicating that the whole chip is being scanned.
     """
     # Get info from the beamline
     SSX_TR = ssx_tr_collect(
-        visitpath=Path(ssx_params["visitpath"]).expanduser().resolve(),
-        filename=ssx_params["filename"],
-        location=ssx_params["location"],
-        beam_center=ssx_params["beam_center"],
+        exposure_time=ssx_params["exp_time"],
         detector_distance=ssx_params["det_dist"],
+        beam_center=ssx_params["beam_center"],
+        transmission=ssx_params["transmission"],
+        wavelength=ssx_params["wavelength"],
         start_time=ssx_params["start_time"].strftime("%Y-%m-%dT%H:%M:%S")
         if ssx_params["start_time"]
         else None,  # This should be datetiem type
         stop_time=ssx_params["stop_time"].strftime("%Y-%m-%dT%H:%M:%S")
         if ssx_params["stop_time"]
         else None,  # idem.
-        exposure_time=ssx_params["exp_time"],
-        transmission=ssx_params["transmission"],
-        wavelength=ssx_params["wavelength"],
         chipmap=ssx_params["chipmap"] if ssx_params["chipmap"] else None,
         chip_info=ssx_params["chip_info"] if ssx_params["chip_info"] else None,
     )
 
-    logfile = SSX_TR.visitpath / "TristanSSX_nxs_writer.log"
+    visitpath = Path(visitpath).expanduser().resolve()
+    filename = ssx_params["filename"]
+
+    logfile = SSX_TR.visitpath / f"{beamline}_TristanSSX_nxs_writer.log"
     # Configure logging
     log.config(logfile.as_posix())
 
     logger.info(
-        f"Start NeXus File Writer for time-resolved SSX on beamline {source['beamline_name']} at DLS."
+        f"Start NeXus File Writer for time-resolved SSX on beamline {beamline} at DLS."
     )
+
+    logger.info(f"Current collection directory: {visitpath}")
+    # Find metafile in directory and get info from it
+    try:
+        metafile = [
+            f for f in visitpath.iterdir() if filename + "_meta" in f.as_posix()
+        ][0]
+        logger.info(f"Found {metafile} in directory.")
+    except IndexError as err:
+        logger.exception(err)
+        logger.error(
+            "Missing metadata, something might be wrong with this collection."
+            "Unable to write NeXus file at this time. Please try using command line tool."
+        )
+        raise
+
+    # Add some information to logger
+    logger.info("Creating a NeXus file for %s ..." % metafile.name)
+    # Get NeXus filename
+    master_file = get_nexus_filename(metafile)
+    logger.info("NeXus file will be saved as %s" % master_file)
+
+    # Get parameters depending on beamline
+    logger.info(f"DLS Beamline: {beamline.upper()}.")
+    if "I19" in beamline.upper():
+        from .I19_2_params import goniometer_axes as goniometer
+
+        source["beamline_name"] = beamline.upper()
+        beam["flux"] = None
+    elif "I24" in beamline.upper():
+        from .I24_Eiger_params import goniometer_axes as goniometer
+
+        source["beamline_name"] = beamline.upper()
+        beam["flux"] = ssx_params["flux"] if "flux" in ssx_params.keys() else None
+    else:
+        raise ValueError(
+            "Unknown beamline for SSX collections with Tristan 10M detector."
+            "Beamlines currently enabled for the writer: I24, I19-2."
+        )
 
     # Add to dictionaries
     # Detector
     # If location is I24, two_theta is not present
     detector["starts"] = (
         [0.0, SSX_TR.detector_distance]
-        if "I19" in SSX_TR.location
+        if "I19" in beamline.upper()
         else [SSX_TR.detector_distance]
     )
-    if "I24" in SSX_TR.location:
+    if "I24" in beamline.upper():
         detector["axes"] = ["det_z"]
         detector["types"] = ["translation"]
         detector["units"] = ["mm"]
         detector["depends"] = ["."]
         detector["vectors"] = [0, 0, 1]
         detector["increments"] = [0.0]
+
     detector["exposure_time"] = SSX_TR.exposure_time
     detector["beam_center"] = SSX_TR.beam_center
 
@@ -125,16 +174,6 @@ def write_nxs(**ssx_params):
 
     # Beam
     beam["wavelength"] = SSX_TR.wavelength
-    beam["flux"] = None
-
-    # Goniometer
-    if "I19" in SSX_TR.location:
-        from .I19_2_params import goniometer_axes
-    elif "I24" in SSX_TR.location:
-        from .I24_Eiger_params import goniometer_axes
-
-    for k, v in goniometer_axes.items():
-        goniometer[k] = v
 
     l = len(goniometer["axes"])
     goniometer["starts"] = goniometer["ends"] = goniometer["increments"] = l * [0.0]
@@ -144,6 +183,20 @@ def write_nxs(**ssx_params):
     osc_range = (0.0, 0.0)
 
     OSC = {osc_axis: osc_range}
+
+    # Get timestamps in the correct format
+    timestamps = (
+        get_iso_timestamp(SSX_TR.start_time),
+        get_iso_timestamp(SSX_TR.stop_time),
+    )
+
+    logger.info("--- COLLECTION SUMMARY ---")
+    logger.info("Source information")
+    logger.info(f"Facility: {source['name']} - {source['type']}.")
+    logger.info(f"Beamline: {source['beamline_name']}")
+
+    logger.info(f"Incident beam wavelength: {beam['wavelength']}")
+    logger.info(f"Attenuation: {attenuator['transmission']}")
 
     logger.info("Goniometer information")
     for j in range(len(goniometer["axes"])):
@@ -163,27 +216,9 @@ def write_nxs(**ssx_params):
             f"Detector axis: {detector['axes'][k]} => {detector['starts'][k]}, {detector['types'][k]} on {detector['depends'][k]}"
         )
 
-    # Get timestamps in the correct format
-    timestamps = (
-        get_iso_timestamp(SSX_TR.start_time),
-        get_iso_timestamp(SSX_TR.stop_time),
-    )
-    logger.info(f"Timestamps recorded: {timestamps}")
+    logger.info(f"Recorded beam center is: {detector['beam_center']}.")
 
-    logger.info(f"Current collection directory: {SSX_TR.visitpath}")
-    # Find metafile in directory and get info from it
-    metafile = [
-        f
-        for f in SSX_TR.visitpath.iterdir()
-        if SSX_TR.filename + "_meta" in f.as_posix()
-    ][0]
-    logger.info(f"Found {metafile} in directory.")
-
-    # Add some information to logger
-    logger.info("Creating a NeXus file for %s ..." % metafile.name)
-    # Get NeXus filename
-    master_file = get_nexus_filename(metafile)
-    logger.info("NeXus file will be saved as %s" % master_file)
+    logger.info(f"Timestamps recorded: {timestamps}.")
 
     try:
         with h5py.File(master_file, "x") as nxsfile:
@@ -249,6 +284,7 @@ def write_nxs(**ssx_params):
                     "Y_NUM_BLOCKS": 8,
                     "X_BLOCK_SIZE": 3.175,
                     "Y_BLOCK_SIZE": 3.175,
+                    "N_EXPOSURES": 1,
                 }
                 chipdef = {"chip": str(chip_info)}
                 write_NXnote(nxsfile, "/entry/source/notes", chipdef)
@@ -261,23 +297,3 @@ def write_nxs(**ssx_params):
         logger.info(
             f"An error occurred and {master_file} couldn't be written correctly."
         )
-
-
-# # Example usage
-# if __name__ == "__main__":
-#     from datetime import datetime
-
-#     write_nxs(
-#         visitpath=sys.argv[1],
-#         filename=sys.argv[2],
-#         location="I19",
-#         beam_center=[1590.7, 1643.7],
-#         det_dist=0.5,
-#         start_time=datetime.now(),
-#         stop_time=None,
-#         exp_time=0.002,
-#         transmission=1.0,
-#         wavelength=0.649,
-#         chipmap=None,
-#         chip_info=None,
-#     )
