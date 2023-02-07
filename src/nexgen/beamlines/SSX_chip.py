@@ -9,6 +9,22 @@ from typing import Dict, List, Tuple
 
 # I24 chip tools
 
+CHIP_DICT_DEFAULT = {
+    "X_NUM_STEPS": [0, 20],
+    "Y_NUM_STEPS": [0, 20],
+    "X_STEP_SIZE": [0, 0.125],
+    "Y_STEP_SIZE": [0, 0.125],
+    "X_START": [0, 0],
+    "Y_START": [0, 0],
+    "Z_START": [0, 0],
+    "X_NUM_BLOCKS": [0, 8],
+    "Y_NUM_BLOCKS": [0, 8],
+    "X_BLOCK_SIZE": [0, 3.175],
+    "Y_BLOCK_SIZE": [0, 3.175],
+    "N_EXPOSURES": 1,
+    "PUMP_REPEAT": 0,
+}
+
 
 @dataclass
 class Chip:

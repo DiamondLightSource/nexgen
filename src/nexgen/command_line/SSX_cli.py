@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Tuple
 
 from .. import P, log
+from ..beamlines.SSX_chip import CHIP_DICT_DEFAULT
 from . import version_parser
 
 logger = logging.getLogger("nexgen.SSX_cli")
@@ -18,28 +19,44 @@ parser = argparse.ArgumentParser(
 )
 parser.add_argument("--debug", action="store_const", const=True)
 
-# This might be better passed as a json/yaml or whatever
-CHIP_DICT = {
-    "X_NUM_STEPS": [0, 20],
-    "Y_NUM_STEPS": [0, 20],
-    "X_STEP_SIZE": [0, 0.125],
-    "Y_STEP_SIZE": [0, 0.125],
-    "X_START": [0, 0],
-    "Y_START": [0, 0],
-    "Z_START": [0, 0],
-    "X_NUM_BLOCKS": [0, 8],
-    "Y_NUM_BLOCKS": [0, 8],
-    "X_BLOCK_SIZE": [0, 3.175],
-    "Y_BLOCK_SIZE": [0, 3.175],
-}
-
 
 def eiger_collection(args):
-    print(args)
+    logger.info("Create a NeXus file for SSX collection on Eiger.")
+    from ..beamlines.SSX_Eiger_nxs import ssx_eiger_writer
+
+    ssx_eiger_writer(
+        Path(args.visitpath).expanduser().resolve(),
+        args.filename_root,
+        args.beamline,
+        expt_type=args.expt_type,
+        pump_status=args.pump_status,
+        num_imgs=args.num_imgs,
+        exp_time=args.exp_time,
+        det_dist=args.det_dist,
+        beam_center=args.beam_center,
+        transmission=args.transmission,
+        wavelength=args.wavelength,
+        chip_info=CHIP_DICT_DEFAULT,  # TODO This might be better passed as a json/yaml or whatever
+        chipmap=args.chipmap,
+    )
 
 
 def tristan_collection(args):
-    print(args)
+    logger.info("Create a NeXus file for SSX collection on Tristan.")
+    from ..beamlines.SSX_Tristan_nxs import ssx_tristan_writer
+
+    ssx_tristan_writer(
+        Path(args.visitpath).expanduser().resolve(),
+        args.filename_root,
+        args.beamline,
+        xp_time=args.exp_time,
+        det_dist=args.det_dist,
+        beam_center=args.beam_center,
+        transmission=args.transmission,
+        wavelength=args.wavelength,
+        chip_info=CHIP_DICT_DEFAULT,  # TODO This might be better passed as a json/yaml or whatever
+        chipmap=args.chipmap,
+    )
 
 
 # Define a parser for the basic collection parameters
@@ -68,12 +85,6 @@ collect_parser.add_argument(
 )
 collect_parser.add_argument("beamline", type=str, help="Beamline name.")
 collect_parser.add_argument(
-    "-e",
-    "--exp-time",
-    type=float,
-    help="Exxposure time in s.",
-)
-collect_parser.add_argument(
     "-det",
     "--det-dist",
     type=float,
@@ -98,6 +109,7 @@ collect_parser.add_argument(
     "--beam-center",
     type=float,
     nargs=2,
+    default=[0.0, 0.0],
     help="Beam center (x,y) positions.",
 )
 collect_parser.add_argument(
@@ -129,6 +141,13 @@ eiger_parser.add_argument(
 )
 eiger_parser.add_argument("num_imgs", type=int, help="Total number of images.")
 eiger_parser.add_argument(
+    "-e",
+    "--exp-time",
+    type=float,
+    required=True,
+    help="Exposure time in s.",
+)
+eiger_parser.add_argument(
     "-p",
     "--pump-status",
     action="store_true",
@@ -143,6 +162,13 @@ tristan_parser = subparsers.add_parser(
     aliases=["tristan"],
     description=("Trigger Tristan writer."),
     parents=[collect_parser],
+)
+tristan_parser.add_argument(
+    "-e",
+    "--exp-time",
+    type=float,
+    required=True,
+    help="Total collection time in s.",
 )
 tristan_parser.add_argument("--chipmap", typ=str, help="Location of chipmap.")
 tristan_parser.set_defaults(func=tristan_collection)

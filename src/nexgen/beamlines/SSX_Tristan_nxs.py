@@ -14,22 +14,21 @@ from ..nxs_write.NXclassWriters import write_NXdatetime, write_NXentry, write_NX
 from . import source
 from .I19_2_params import tristan10M_params as detector
 
+__all__ = ["ssx_tristan_writer"]
+
 # Define a logger object and a formatter
 logger = logging.getLogger("nexgen.SSX_Tristan")
 
 ssx_tr_collect = namedtuple(
     "ssx_collect",
     [
-        "visitpath",
-        "filename",
-        "beamline",
-        "beam_center",
-        "detector_distance",
-        "start_time",
-        "stop_time",
         "exposure_time",
+        "detector_distance",
+        "beam_center",
         "transmission",
         "wavelength",
+        "start_time",
+        "stop_time",
         "chipmap",
         "chip_info",
     ],
@@ -272,20 +271,8 @@ def ssx_tristan_writer(
                     "The following values will be written as default: "
                     "x/y_num_blocks = 8 \n x/y_block_size = 3.175 \n x/y_num_steps = 20 \n x/y_step_size = 0.125"
                 )
-                chip_info = {
-                    "X_NUM_STEPS": 20,
-                    "Y_NUM_STEPS": 20,
-                    "X_STEP_SIZE": 0.125,
-                    "Y_STEP_SIZE": 0.125,
-                    "X_START": 0,
-                    "Y_START": 0,
-                    "Z_START": 0,
-                    "X_NUM_BLOCKS": 8,
-                    "Y_NUM_BLOCKS": 8,
-                    "X_BLOCK_SIZE": 3.175,
-                    "Y_BLOCK_SIZE": 3.175,
-                    "N_EXPOSURES": 1,
-                }
+                from .SSX_chip import CHIP_DICT_DEFAULT as chip_info
+
                 chipdef = {"chip": str(chip_info)}
                 write_NXnote(nxsfile, "/entry/source/notes", chipdef)
 
