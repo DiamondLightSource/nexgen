@@ -21,8 +21,8 @@ CHIP_DICT_DEFAULT = {
     "Y_NUM_BLOCKS": [0, 8],
     "X_BLOCK_SIZE": [0, 3.175],
     "Y_BLOCK_SIZE": [0, 3.175],
-    "N_EXPOSURES": 1,
-    "PUMP_REPEAT": 0,
+    "N_EXPOSURES": [0, 1],
+    "PUMP_REPEAT": [0, 0],
 }
 
 

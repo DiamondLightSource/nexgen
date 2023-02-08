@@ -221,13 +221,14 @@ def ssx_eiger_writer(
     if pump_status is True:
         # Exposure and delay could also be found in dictionary for grid scan
         logger.info("Pump status is True.")
-        pump_probe = PumpProbe(
-            status=pump_status,
-            exposure=ssx_params["pump_exp"]
-            if "pump_exp" in ssx_params.keys()
-            else None,
-            delay=ssx_params["pump_exp"] if "pump_exp" in ssx_params.keys() else None,
+        pump_probe.status = pump_status
+        pump_probe.exposure = (
+            ssx_params["pump_exp"] if "pump_exp" in ssx_params.keys() else None
         )
+        pump_probe.delay = (
+            ssx_params["pump_exp"] if "pump_exp" in ssx_params.keys() else None
+        )
+
         logger.info(f"Recorded pump exposure time: {pump_probe.exposure}")
         logger.info(f"Recorded pump delay time: {pump_probe.delay}")
 

@@ -36,6 +36,8 @@ def eiger_collection(args):
         beam_center=args.beam_center,
         transmission=args.transmission,
         wavelength=args.wavelength,
+        start_time=args.start,
+        stop_time=args.stop,
         chip_info=CHIP_DICT_DEFAULT,  # TODO This might be better passed as a json/yaml or whatever
         chipmap=args.chipmap,
     )
@@ -54,6 +56,8 @@ def tristan_collection(args):
         beam_center=args.beam_center,
         transmission=args.transmission,
         wavelength=args.wavelength,
+        start_time=args.start,
+        stop_time=args.stop,
         chip_info=CHIP_DICT_DEFAULT,  # TODO This might be better passed as a json/yaml or whatever
         chipmap=args.chipmap,
     )
@@ -154,7 +158,7 @@ eiger_parser.add_argument(
     default=False,
     help="Select pump status.",
 )
-eiger_parser.add_argument("--chipmap", typ=str, help="Location of chipmap.")
+eiger_parser.add_argument("--chipmap", type=str, help="Location of chipmap.")
 eiger_parser.set_defaults(func=eiger_collection)
 
 tristan_parser = subparsers.add_parser(
@@ -170,7 +174,7 @@ tristan_parser.add_argument(
     required=True,
     help="Total collection time in s.",
 )
-tristan_parser.add_argument("--chipmap", typ=str, help="Location of chipmap.")
+tristan_parser.add_argument("--chipmap", type=str, help="Location of chipmap.")
 tristan_parser.set_defaults(func=tristan_collection)
 
 

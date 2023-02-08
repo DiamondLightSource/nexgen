@@ -2,6 +2,7 @@ import tempfile
 
 import pytest
 
+from nexgen.beamlines import PumpProbe
 from nexgen.beamlines.SSX_chip import Chip, compute_goniometer, read_chip_map
 
 test_chip = Chip(
@@ -14,6 +15,21 @@ test_chip = Chip(
 )
 
 test_goniometer = {"axes": ["omega", "sam_y", "sam_x", "phi"]}
+
+
+def test_pump_probe():
+    pump_probe = PumpProbe()
+    pump_probe.status = True
+    pump_probe.exposure = 0.01
+    assert pump_probe.status is True
+    assert pump_probe.exposure == 0.01
+    assert pump_probe.delay is None
+
+
+def test_pump_probe_dict():
+    pump_probe = PumpProbe().to_dict()
+    assert list(pump_probe.keys()) == ["status", "exposure", "delay"]
+    assert pump_probe["status"] is False
 
 
 def test_chip_tot_blocks():
