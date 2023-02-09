@@ -24,15 +24,15 @@ From GDA ...
 .. autofunction:: nexgen.beamlines.I19_2_gda_nxs.eiger_writer
 
 
-I24
----
+Serial crystallography: Eiger writers
+-------------------------------------
 
-.. autoclass:: nexgen.beamlines.I24_Eiger_nxs.ssx_collect
-    :members:
+.. autofunction:: nexgen.beamlines.SSX_Eiger_nxs.ssx_eiger_writer
 
-.. autofunction:: nexgen.beamlines.I24_Eiger_nxs.extruder
+Serial crystallography: Tristan writers
+---------------------------------------
 
-.. autofunction:: nexgen.beamlines.I24_Eiger_nxs.fixed_target
+.. autofunction:: nexgen.beamlines.SSX_Tristan_nxs.ssx_tristan_writer
 
 
 Serial crystallography: chip tools
@@ -42,13 +42,12 @@ Serial crystallography: chip tools
     :members:
 
 
-SSX using Tristan Detector
---------------------------
+Serial crystallography: experiment types
+----------------------------------------
 
-.. autoclass:: nexgen.beamlines.SSX_Tristan_nxs.ssx_tr_collect
-    :members:
+.. autofunction:: nexgen.beamlines.SSX_expt.run_extruder
 
-.. autofunction:: nexgen.beamlines.SSX_Tristan_nxs.write_nxs
+.. autofunction:: nexgen.beamlines.SSX_expt.run_fixed_target
 
 
 GDA integration tools

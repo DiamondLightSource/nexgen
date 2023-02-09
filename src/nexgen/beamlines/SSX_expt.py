@@ -27,18 +27,18 @@ def run_extruder(
     num_imgs: int,
     pump_probe: PumpProbe,
 ) -> Tuple[Dict]:
-    """_summary_
+    """Run the goniometer computations for an extruder experiment.
 
     Args:
-        goniometer (Dict[str, List]): _description_
-        num_imgs (int): _description_
-        pump_probe (PumpProbe): _description_
+        goniometer (Dict[str, List]): Goniometer definition.
+        num_imgs (int): Total number of images.
+        pump_probe (PumpProbe): Pump probe parameters.
 
     Returns:
         Tuple[Dict]:
             goniometer: updated goniometer dictionary with actual values from the scan.
-            OSC: dictionary with oscillation scan axis values
-            pump_info: updated pump probe information
+            OSC: dictionary with oscillation scan axis values.
+            pump_info: updated pump probe information.
     """
     logger.info("Running an extruder experiment.")
 
@@ -63,21 +63,21 @@ def run_fixed_target(
     pump_probe: PumpProbe,
     osc_axis: str = "omega",
 ) -> Tuple[Dict]:
-    """_summary_
+    """Run the goniometer computations for a fixed-target experiment.
 
     Args:
-        goniometer (Dict[str, List]): _description_
-        chip_info (Dict[str, List]): _description_
-        chipmap (Path | str): _description_
-        pump_probe (PumpProbe): _description_
-        osc_axis (str, optional): _description_
+        goniometer (Dict[str, List]): Goniometer definition.
+        chip_info (Dict[str, List]): General information about the chip: number and size of blocks, size and step of each window, start positions, number of exposures.
+        chipmap (Path | str): Path to .map file. If None is passed, assumes a fullchip.
+        pump_probe (PumpProbe): Pump probe parameters.
+        osc_axis (str, optional): Oscillation axis. Defaults to omega.
 
     Returns:
         Tuple[Dict]:
             goniometer: updated goniometer dictionary with actual values from the scan.
-            OSC: dictionary with oscillation scan axis values
-            TRANSL: dictionary with grid scan values
-            pump_info: updated pump probe information
+            OSC: dictionary with oscillation scan axis values.
+            TRANSL: dictionary with grid scan values.
+            pump_info: updated pump probe information.
     """
     logger.info("Running a fixed target experiment.")
 
