@@ -1,5 +1,14 @@
 # CHANGELOG
 
+##
+
+### Added
+- Tests for SSX experiment functions
+### Changed
+- Refactoring of I24_Eiger into SSX_Eiger in order to have just one common tool to more beamlines for ssx collections.
+- Tidying up of SSX_Tristan.
+- Removed ssx from I19-2 cli.
+
 ## 0.6.19
 
 ### Changed
