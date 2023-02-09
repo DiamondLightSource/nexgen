@@ -80,7 +80,7 @@ def single_image_nexus(
                 # was not moved during the data collection, record the rotation axis
                 # position as a scalar.
                 ax_range = nxs_in["entry/data"][ax][()]
-            if pump_probe_bins:
+            if pump_probe_bins is not None:
                 ax_range = np.repeat(ax_range, pump_probe_bins)
             nxdata.create_dataset(ax, data=np.array([ax_range]))
             # Write the attributes
