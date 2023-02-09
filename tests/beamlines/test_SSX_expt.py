@@ -73,6 +73,8 @@ def test_run_fixed_target(dummy_chipmap_file):
     )
     assert list(osc.keys()) == ["omega"]
     assert list(transl.keys()) == ["sam_y", "sam_x"]
+    assert len(transl["sam_x"]) == len(transl["sam_y"])
+    assert len(transl["sam_y"]) == 400
     assert gonio["starts"] == [0.0, 0.0, 0.0, 0.0]
     ends = [e + i for e, i in zip(gonio["ends"], gonio["increments"])]
     assert ends == [0.0, 0.0, 2.5, 2.5]
@@ -81,10 +83,34 @@ def test_run_fixed_target(dummy_chipmap_file):
 
 def test_run_fixed_target_with_wrong_osc_axis(dummy_chipmap_file):
     with pytest.raises(ValueError):
-        gonio, osc, transl, info = run_fixed_target(
+        _ = run_fixed_target(
             test_goniometer,
             test_chip_dict,
             dummy_chipmap_file.name,
             test_pump,
             osc_axis="phi",
         )
+
+
+def test_run_extruder_with_non_zero_omega():
+    test_goniometer["starts"] = [90.0, 0.0, 0.0, 0.0]
+    gonio, osc, _ = run_extruder(test_goniometer, 10, test_pump)
+    assert gonio["starts"] == gonio["ends"]
+    assert gonio["starts"][0] == 90.0
+    assert_array_equal(osc["omega"], np.repeat(90.0, 10))
+
+
+def test_run_fixed_target_with_non_zero_omega(dummy_chipmap_file):
+    test_goniometer["starts"] = [180.0, 0.0, 0.0, 0.0]
+    test_goniometer["ends"][0] = 180.0
+    gonio, osc, _, _ = run_fixed_target(
+        test_goniometer,
+        test_chip_dict,
+        dummy_chipmap_file.name,
+        test_pump,
+    )
+    assert gonio["starts"] == [180.0, 0.0, 0.0, 0.0]
+    ends = [e + i for e, i in zip(gonio["ends"], gonio["increments"])]
+    assert ends == [180.0, 0.0, 2.5, 2.5]
+    assert len(osc["omega"]) == 400
+    assert_array_equal(osc["omega"], np.repeat(180.0, 400))
