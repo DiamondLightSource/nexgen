@@ -82,7 +82,9 @@ def single_image_nexus(
                 ax_range = nxs_in["entry/data"][ax][()]
             if pump_probe_bins is not None:
                 ax_range = np.repeat(ax_range, pump_probe_bins)
-            nxdata.create_dataset(ax, data=np.array([ax_range]))
+                nxdata.create_dataset(ax, data=ax_range)
+            else:
+                nxdata.create_dataset(ax, data=np.array([ax_range]))
             # Write the attributes
             for key, value in ax_attr.items():
                 nxdata[ax].attrs.create(key, value)
