@@ -1,5 +1,10 @@
 # CHANGELOG
 
+##
+
+### Fixed
+- In CopyTristanNexus, `single_image_nexus` now takes number of bins for a static pump-probe experiment as input instead of a flag.
+
 ## 0.6.19
 
 ### Changed
