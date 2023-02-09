@@ -12,6 +12,7 @@ from .. import get_iso_timestamp, get_nexus_filename, log
 from ..nxs_write.NexusWriter import call_writers
 from ..nxs_write.NXclassWriters import write_NXdatetime, write_NXentry, write_NXnote
 from . import source
+from .I19_2_params import tristan10M_module as module
 from .I19_2_params import tristan10M_params as detector
 
 __all__ = ["ssx_tristan_writer"]
@@ -42,7 +43,6 @@ ssx_tr_collect.__doc__ = (
 coordinate_frame = "mcstas"
 
 # Initialize dictionaries
-module = {}
 beam = {}
 attenuator = {}
 
@@ -160,13 +160,6 @@ def ssx_tristan_writer(
 
     detector["exposure_time"] = SSX_TR.exposure_time
     detector["beam_center"] = SSX_TR.beam_center
-
-    # Module
-    module["fast_axis"] = detector.pop("fast_axis")
-    module["slow_axis"] = detector.pop("slow_axis")
-    # goniometer, detector, module = read_params_from_json()
-    # Set value for module_offset calculation.
-    module["module_offset"] = "1"
 
     # Attenuator
     attenuator["transmission"] = SSX_TR.transmission

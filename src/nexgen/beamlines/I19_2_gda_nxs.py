@@ -22,7 +22,14 @@ from .GDAtools.GDAjson2params import (
     read_detector_params_from_json,
     read_geometry_from_json,
 )
-from .I19_2_params import eiger4M_params, goniometer_axes, source, tristan10M_params
+from .I19_2_params import (
+    eiger4M_module,
+    eiger4M_params,
+    goniometer_axes,
+    source,
+    tristan10M_module,
+    tristan10M_params,
+)
 
 import h5py  # isort: skip
 
@@ -369,10 +376,12 @@ def write_nxs(**tr_params):
     detector["beam_center"] = TR.beam_center
 
     # Module
-    module["fast_axis"] = detector.pop("fast_axis")
-    module["slow_axis"] = detector.pop("slow_axis")
-    # Set value for module_offset calculation.
-    module["module_offset"] = "1"
+    if "tristan" in TR.detector_name.lower():
+        for k, v in tristan10M_module.items():
+            module[k] = v
+    else:
+        for k, v in eiger4M_module.items():
+            module[k] = v
 
     # Beam
     beam["wavelength"] = TR.wavelength

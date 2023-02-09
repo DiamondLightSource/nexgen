@@ -153,6 +153,7 @@ def ssx_eiger_writer(
     logger.info(f"DLS Beamline: {beamline.upper()}.")
     if "I19" in beamline.upper():
         osc_axis = ssx_params["osc_axis"] if "osc_axis" in ssx_params.keys() else "phi"
+        from .I19_2_params import eiger4M_module as module
         from .I19_2_params import eiger4M_params as detector
         from .I19_2_params import goniometer_axes as goniometer
 
@@ -160,6 +161,7 @@ def ssx_eiger_writer(
         beam["flux"] = None
     elif "I24" in beamline.upper():
         osc_axis = "omega"
+        from .I24_Eiger_params import eiger9M_module as module
         from .I24_Eiger_params import eiger9M_params as detector
         from .I24_Eiger_params import goniometer_axes as goniometer
 
@@ -170,12 +172,6 @@ def ssx_eiger_writer(
             "Unknown beamline for SSX collections with Eiger detector."
             "Beamlines currently enabled for the writer: I24 (Eiger 9M), I19-2 (Eiger 4M)."
         )
-
-    # Extract module info
-    module["fast_axis"] = detector.pop("fast_axis")
-    module["slow_axis"] = detector.pop("slow_axis")
-    # Set value for module_offset calculation.
-    module["module_offset"] = "1"
 
     # Add to dictionaries
     attenuator["transmission"] = SSX.transmission

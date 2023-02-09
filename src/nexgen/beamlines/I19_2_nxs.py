@@ -18,7 +18,13 @@ from ..tools.MetaReader import overwrite_beam, update_detector_axes, update_goni
 from ..tools.VDS_tools import image_vds_writer
 from . import eiger_meta_links as dset_links
 from . import source
-from .I19_2_params import eiger4M_params, goniometer_axes, tristan10M_params
+from .I19_2_params import (
+    eiger4M_module,
+    eiger4M_params,
+    goniometer_axes,
+    tristan10M_module,
+    tristan10M_params,
+)
 
 # Define a logger object
 logger = logging.getLogger("nexgen.I19-2_NeXus")
@@ -389,18 +395,16 @@ def nexus_writer(**params):
             logger.error("Please pass the axes positions for a Tristan collection.")
         if TR.scan_axis is None:
             logger.warning("No scan axis has been specified.")
+        for k, v in tristan10M_module.items():
+            module[k] = v
     else:
         for k, v in eiger4M_params.items():
             detector[k] = v
+        for k, v in eiger4M_module.items():
+            module[k] = v
 
     detector["exposure_time"] = TR.exposure_time
     detector["beam_center"] = TR.beam_center
-
-    # Module
-    module["fast_axis"] = detector.pop("fast_axis")
-    module["slow_axis"] = detector.pop("slow_axis")
-    # Set value for module_offset calculation.
-    module["module_offset"] = "1"
 
     if "eiger" in TR.detector_name.lower() and params["serial"] is False:
         eiger_writer(master_file, TR, timestamps)

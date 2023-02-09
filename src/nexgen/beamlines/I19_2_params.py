@@ -48,11 +48,15 @@ tristan10M_params = {
     "ends": None,
     "increments": [0.0, 0.0],
     "software_version": "1.1.3",
-    "fast_axis": [-1, 0, 0],
-    "slow_axis": [0, 1, 0],
     "detector_tick": "1562.5ps",
     "detector_frequency": "6.4e+08Hz",
     "timeslice_rollover": 18,
+}
+
+tristan10M_module = {
+    "fast_axis": [-1, 0, 0],
+    "slow_axis": [0, 1, 0],
+    "module_offset": "1",
 }
 
 eiger4M_params = {
@@ -82,6 +86,10 @@ eiger4M_params = {
     "threshold_energy": "_dectris/threshold_energy",
     "software_version": "_dectris/software_version",
     "serial_number": "_dectris/detector_number",
+}
+
+eiger4M_module = {
     "fast_axis": [0, 1, 0],
     "slow_axis": [-1, 0, 0],
+    "module_offset": "1",
 }

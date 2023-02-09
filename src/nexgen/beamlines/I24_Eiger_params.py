@@ -41,6 +41,10 @@ eiger9M_params = {
     "threshold_energy": "_dectris/threshold_energy",
     "software_version": "_dectris/software_version",
     "serial_number": "_dectris/detector_number",
+}
+
+eiger9M_module = {
     "fast_axis": [-1, 0, 0],
     "slow_axis": [0, -1, 0],
+    "module_offset": "1",
 }
