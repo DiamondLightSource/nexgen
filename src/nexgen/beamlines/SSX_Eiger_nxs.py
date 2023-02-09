@@ -248,8 +248,8 @@ def ssx_eiger_writer(
     elif expt_type == "fixed-target":
         # Define chipmap if needed
         chipmapfile = (
-            None
-            if SSX.chipmap == "fullchip"
+            "fullchip"
+            if SSX.chipmap is None
             else Path(SSX.chipmap).expanduser().resolve()
         )
         from .SSX_expt import run_fixed_target
@@ -279,8 +279,8 @@ def ssx_eiger_writer(
     elif expt_type == "3Dgridscan":
         # Define chipmap if needed
         chipmapfile = (
-            None
-            if SSX.chipmap == "fullchip"
+            "fullchip"
+            if SSX.chipmap is None
             else Path(SSX.chipmap).expanduser().resolve()
         )
         from .SSX_expt import run_3D_grid_scan
