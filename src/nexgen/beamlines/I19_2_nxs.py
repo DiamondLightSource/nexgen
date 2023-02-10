@@ -183,6 +183,7 @@ def tristan_writer(
         logger.info(
             f"An error occurred and {master_file} couldn't be written correctly."
         )
+        raise
 
 
 def eiger_writer(
@@ -329,6 +330,7 @@ def eiger_writer(
         logger.info(
             f"An error occurred and {master_file} couldn't be written correctly."
         )
+        raise
 
 
 def nexus_writer(**params):

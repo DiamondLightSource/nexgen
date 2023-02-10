@@ -277,3 +277,4 @@ def ssx_tristan_writer(
         logger.info(
             f"An error occurred and {master_file} couldn't be written correctly."
         )
+        raise
