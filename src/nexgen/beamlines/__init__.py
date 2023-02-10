@@ -1,24 +1,45 @@
-"""Utilities for writing NeXus files for beamlines at Diamond Light Source."""
+"""Diamond Light Source beamline utilities."""
 
-import argparse
+from dataclasses import dataclass
+from typing import Optional
 
-gonioAx_parser = argparse.ArgumentParser(add_help=False)
-gonioAx_parser.add_argument("--axes", type=str, nargs="+", help="Axes names.")
-gonioAx_parser.add_argument(
-    "--ax-start", type=float, nargs="+", help="Axes start positions."
-)
-gonioAx_parser.add_argument(
-    "--ax-inc", type=float, nargs="+", help="Eventual axes increments."
-)
-gonioAx_parser.add_argument(
-    "--ax-end", type=float, nargs="+", help="Eventual axes ends."
-)
-gonioAx_parser.add_argument("--scan-axis", type=str, help="Identify scan axis.")
+from dataclasses_json import dataclass_json
 
-detAx_parser = argparse.ArgumentParser(add_help=False)
-detAx_parser.add_argument(
-    "--det-axes", type=str, nargs="+", help="Detector axes names."
-)
-detAx_parser.add_argument(
-    "--det-start", type=float, nargs="+", help="Detector axes start positions."
-)
+
+@dataclass
+@dataclass_json
+class PumpProbe:
+    """
+    Define pump probe parameters.
+
+    Args:
+        status (bool): Pump on/off
+        exposure (float, optional): Pump exposure time, in s.
+        delay (float, optional): Pump delay, in s.
+    """
+
+    status: bool = False
+    exposure: Optional[float] = None
+    delay: Optional[float] = None
+
+
+source = {
+    "name": "Diamond Light Source",
+    "short_name": "DLS",
+    "type": "Synchrotron X-ray Source",
+    "beamline_name": None,
+}
+
+eiger_meta_links = [
+    [
+        "pixel_mask",
+        "pixel_mask_applied",
+        "flatfield",
+        "flatfield_applied",
+        "threshold_energy",
+        "bit_depth_readout",
+        "detector_readout_time",
+        "serial_number",
+    ],
+    ["software_version"],
+]

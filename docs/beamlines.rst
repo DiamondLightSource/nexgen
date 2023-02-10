@@ -16,7 +16,7 @@ Serial crystallography
 
 - I19-2: Fixed target SSX with Tristan detector.
 - I24 serial crystallography with Eiger detector:
-    * Still shots
+    * Still shots (or extruder)
     * Fixed target
     * 3D grid scan
 
@@ -30,7 +30,7 @@ Example usage
 
     "This example calls the SSX writer for a fixed_target experiment on I24."
 
-    from nexgen.beamlines.I24_Eiger_nxs import write_nxs
+    from nexgen.beamlines.I24_Eiger_nxs import ssx_eiger_writer
     from datetime import datetime
 
     beam_x = 1590.7
@@ -56,10 +56,12 @@ Example usage
         'PUMP_REPEAT':    [32, 0],
     }
 
-    write_nxs(
-        visitpath="/path/to/dataset",
-        filename="Expt1_00",
-        exp_type="fixed_target",
+    ssx_eiger_writer(
+        "/path/to/dataset",     # visitpath
+        "Expt1_00",    # filename root
+        "I24",      # beamline
+        "fixed_target",     # experiment type
+        pump_status=True,
         num_imgs=1600,
         beam_center=[beam_x, beam_y],
         det_dist=D,
@@ -69,9 +71,8 @@ Example usage
         transmission=1.,
         wavelength=0.67019,
         flux=None,
-        pump_status="false",
         pump_exp=None,
-        pump_delay=None,
+        pump_delay=0.001,
         chip_info=chip_dict,
         chipmap="/path/to/chip.map/file",
     )
@@ -82,9 +83,9 @@ Example usage
 
 .. code-block:: python
 
-    "This example calls the SSX writer for a simple time-resolved pump-probe experiment using Tristan."
+    "This example calls the SSX writer for a simple time-resolved pump-probe experiment on a full chip using Tristan."
 
-    from nexgen.beamlines.SSX_Tristan_nxs import write_nxs
+    from nexgen.beamlines.SSX_Tristan_nxs import ssx_tristan_writer
     from datetime import datetime
 
     beam_x = 1590.7
@@ -94,19 +95,17 @@ Example usage
     t = 0.002   # Exposure time passed in s
 
     write_nxs(
-        visitpath="/path/to/dataset",
-        filename="Expt1_00",
-        location="I19",
-        beam_center=[beam_x, beam_y],
-        det_dist=D,
-        start_time=datetime.now(),
-        stop_time=None,
+        "/path/to/dataset",
+        "Expt1_00",
+        "I19-2",
         exp_time=t,
+        det_dist=D,
+        beam_center=[beam_x, beam_y],
         transmission=1.,
         wavelength=0.649,
-        pump_status=True,
-        pump_exp=3.0,
-        pump_delay=1.0,
+        start_time=datetime.now(),
+        stop_time=None,
+        chip_info=chip_dict,
         chipmap=None,
     )
 
@@ -129,3 +128,16 @@ Manually generate a NeXus file for a dataset collected on Eiger detector using t
 .. code-block:: console
 
     I19-2_nxs Expt1_00_meta.h5 eiger 0.02 -tr 100
+
+
+SSX CLI
+-------
+
+Example usage
+*************
+
+Write a NeXus file for a serial collection on Eiger detector on beamline I24 at DLS:
+
+.. code-block:: console
+
+    SSX_nexus eiger dummy_00_meta.h5 I24 fixed-target 1600 -det 500 -tr 1.0 -wl 0.649 -bc 1590.7 1643.7 -e 0.002 -p --chipmap testchip.map

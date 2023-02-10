@@ -1,13 +1,6 @@
 """
 Define beamline parameters for I19-2, Tristan and Eiger detectors.
 """
-source = {
-    "name": "Diamond Light Source",
-    "short_name": "DLS",
-    "type": "Synchrotron X-ray Source",
-    "beamline_name": "I19-2",
-}
-
 goniometer_axes = {
     "axes": ["omega", "kappa", "phi", "sam_z", "sam_y", "sam_x"],
     "depends": [".", "omega", "kappa", "phi", "sam_z", "sam_y"],
@@ -55,11 +48,15 @@ tristan10M_params = {
     "ends": None,
     "increments": [0.0, 0.0],
     "software_version": "1.1.3",
-    "fast_axis": [-1, 0, 0],
-    "slow_axis": [0, 1, 0],
     "detector_tick": "1562.5ps",
     "detector_frequency": "6.4e+08Hz",
     "timeslice_rollover": 18,
+}
+
+tristan10M_module = {
+    "fast_axis": [-1, 0, 0],
+    "slow_axis": [0, 1, 0],
+    "module_offset": "1",
 }
 
 eiger4M_params = {
@@ -89,20 +86,10 @@ eiger4M_params = {
     "threshold_energy": "_dectris/threshold_energy",
     "software_version": "_dectris/software_version",
     "serial_number": "_dectris/detector_number",
-    "fast_axis": [0, 1, 0],
-    "slow_axis": [-1, 0, 0],
 }
 
-dset_links = [
-    [
-        "pixel_mask",
-        "pixel_mask_applied",
-        "flatfield",
-        "flatfield_applied",
-        "threshold_energy",
-        "bit_depth_readout",
-        "detector_readout_time",
-        "serial_number",
-    ],
-    ["software_version"],
-]
+eiger4M_module = {
+    "fast_axis": [0, 1, 0],
+    "slow_axis": [-1, 0, 0],
+    "module_offset": "1",
+}

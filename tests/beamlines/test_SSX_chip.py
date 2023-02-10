@@ -2,6 +2,7 @@ import tempfile
 
 import pytest
 
+from nexgen.beamlines import PumpProbe
 from nexgen.beamlines.SSX_chip import Chip, compute_goniometer, read_chip_map
 
 test_chip = Chip(
@@ -14,6 +15,21 @@ test_chip = Chip(
 )
 
 test_goniometer = {"axes": ["omega", "sam_y", "sam_x", "phi"]}
+
+
+def test_pump_probe():
+    pump_probe = PumpProbe()
+    pump_probe.status = True
+    pump_probe.exposure = 0.01
+    assert pump_probe.status is True
+    assert pump_probe.exposure == 0.01
+    assert pump_probe.delay is None
+
+
+def test_pump_probe_dict():
+    pump_probe = PumpProbe().to_dict()
+    assert list(pump_probe.keys()) == ["status", "exposure", "delay"]
+    assert pump_probe["status"] is False
 
 
 def test_chip_tot_blocks():
@@ -42,9 +58,9 @@ def test_no_chip_map_passed_returns_fullchip():
 def dummy_chipmap_file():
     lines = [
         "01status    P3011       1\n",
-        "02status    P3021       1\n",
+        "02status    P3021       0\n",
         "03status    P3031       0\n",
-        "04status    P3041       0\n",
+        "04status    P3041       1\n",
     ]
     test_map_file = tempfile.NamedTemporaryFile(
         mode="w", suffix=".map", delete=False, encoding="utf-8"
@@ -59,7 +75,7 @@ def test_read_chip_map(dummy_chipmap_file):
         dummy_chipmap_file.name, test_chip.num_blocks[0], test_chip.num_blocks[1]
     )
     assert type(blocks) == dict and len(blocks) == 2
-    assert list(blocks.keys()) == ["01", "02"]
+    assert list(blocks.keys()) == ["01", "04"]
 
 
 def test_compute_goniometer_fails_if_axes_not_found():
@@ -75,12 +91,22 @@ def test_compute_goniometer_for_full_chip():
     assert starts.keys() == ends.keys()
 
 
-def test_compute_goniometer_from_chipmap(dummy_chipmap_file):
+def test_compute_goniometer_from_chipmap_for_down_block(dummy_chipmap_file):
     blocks = read_chip_map(
         dummy_chipmap_file.name, test_chip.num_blocks[0], test_chip.num_blocks[1]
     )
     starts, ends = compute_goniometer(test_chip, test_goniometer["axes"], blocks=blocks)
-    assert list(starts.keys()) == ["01", "02"]
+    assert list(starts.keys()) == ["01", "04"]
     assert starts.keys() == ends.keys()
     assert starts["01"] == [0.0, 0.0, 0.0, 0.0]
     assert ends["01"] == [0.0, 2.5, 2.5, 0.0]
+
+
+def test_compute_goniometer_from_chipmap_for_up_block(dummy_chipmap_file):
+    blocks = read_chip_map(
+        dummy_chipmap_file.name, test_chip.num_blocks[0], test_chip.num_blocks[1]
+    )
+    starts, ends = compute_goniometer(test_chip, test_goniometer["axes"], blocks=blocks)
+    assert list(starts.keys()) == ["01", "04"]
+    assert starts["04"] == [0.0, 2.375, 3.175, 0.0]
+    assert ends["04"] == [0.0, 0.0, 5.675, 0.0]
