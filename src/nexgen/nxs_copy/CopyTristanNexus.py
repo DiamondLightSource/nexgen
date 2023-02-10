@@ -192,8 +192,8 @@ def multiple_images_nexus(
 def serial_images_nexus(
     data_file: Path | str,
     tristan_nexus: Path | str,
+    nbins: int,
     write_mode: str = "x",
-    nbins: int = None,
 ) -> str:
     """
     Create a NeXus file for a serial collection.
@@ -201,9 +201,9 @@ def serial_images_nexus(
     Args:
         data_file (Path | str): String or Path pointing to the HDF5 file containing the newly binned images.
         tristan_nexus (Path | str): String or Path pointing to the input NeXus file with experiment metadata to be copied.
+        nbins (int): Number of binned images.
         write_mode (str, optional): String indicating writing mode for the output NeXus file.  Accepts any valid
                         h5py file opening mode. Defaults to "x".
-        nbins (int, optional): Number of binned images. Defaults to None.
 
     Returns:
         str: _description_
