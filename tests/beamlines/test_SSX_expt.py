@@ -100,6 +100,13 @@ def test_run_extruder_with_non_zero_omega():
     assert_array_equal(osc["omega"], np.repeat(90.0, 10))
 
 
+def test_run_extruder_with_no_goniometer_starts_set():
+    test_goniometer["starts"] = None
+    gonio, osc, _ = run_extruder(test_goniometer, 10, test_pump)
+    assert gonio["starts"] == [0.0, 0.0, 0.0, 0.0]
+    assert_array_equal(osc["omega"], np.repeat(0.0, 10))
+
+
 def test_run_fixed_target_with_non_zero_omega(dummy_chipmap_file):
     test_goniometer["starts"] = [180.0, 0.0, 0.0, 0.0]
     test_goniometer["ends"][0] = 180.0
@@ -131,3 +138,48 @@ def test_fixed_target_sanity_check_on_rotation_axis_end(dummy_chipmap_file):
     ends = [e + i for e, i in zip(gonio["ends"], gonio["increments"])]
     assert ends == [-60.0, 0.0, 2.5, 2.5]
     assert_array_equal(osc["omega"], np.repeat(-60.0, 400))
+
+
+def test_fixed_target_with_no_goniometer_start_or_end_set(dummy_chipmap_file):
+    test_goniometer["starts"] = None
+    test_goniometer["ends"] = None
+    gonio, osc, _, _ = run_fixed_target(
+        test_goniometer,
+        test_chip_dict,
+        dummy_chipmap_file.name,
+        test_pump,
+    )
+    assert gonio["starts"] == [0.0, 0.0, 0.0, 0.0]
+    assert gonio["starts"][0] == gonio["ends"][0]
+    assert_array_equal(osc["omega"], np.repeat(0.0, 400))
+
+
+def test_fixed_target_raises_error_if_no_chip_info(dummy_chipmap_file):
+    with pytest.raises(ValueError):
+        _ = run_fixed_target(
+            test_goniometer,
+            None,
+            dummy_chipmap_file.name,
+            test_pump,
+        )
+
+
+def test_fixed_target_for_multiple_exposures(dummy_chipmap_file):
+    test_goniometer["starts"] = None
+    test_goniometer["ends"] = None
+    test_chip_dict["N_EXPOSURES"] = [0, "2"]
+    gonio, osc, transl, info = run_fixed_target(
+        test_goniometer,
+        test_chip_dict,
+        dummy_chipmap_file.name,
+        test_pump,
+    )
+    assert list(osc.keys()) == ["omega"]
+    assert list(transl.keys()) == ["sam_y", "sam_x"]
+    assert len(transl["sam_x"]) == len(transl["sam_y"])
+    assert len(transl["sam_y"]) == 800
+    assert gonio["starts"] == [0.0, 0.0, 0.0, 0.0]
+    ends = [e + i for e, i in zip(gonio["ends"], gonio["increments"])]
+    assert ends == [0.0, 0.0, 2.5, 2.5]
+    assert info["n_exposures"] == 2
+    assert_array_equal(osc["omega"], np.repeat(0.0, 800))
