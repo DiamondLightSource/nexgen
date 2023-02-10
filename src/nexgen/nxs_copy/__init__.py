@@ -11,6 +11,7 @@ import numpy as np
 from numpy.typing import ArrayLike
 
 from .. import walk_nxs
+from ..beamlines import PumpProbe
 from ..beamlines.SSX_chip import Chip, compute_goniometer
 from ..nxs_write import calculate_scan_range, create_attributes
 
@@ -135,7 +136,7 @@ def convert_scan_axis(nxsample: h5py.Group, nxdata: h5py.Group, ax: str):
     nxsample[name] = nxdata[ax]
 
 
-def find_chipmap_in_tristan_nxs(
+def is_chipmap_in_tristan_nxs(
     nxobj: h5py.File | h5py.Group, loc: str = "entry/source/notes/chipmap"
 ) -> bool:
     """
@@ -157,9 +158,13 @@ def find_chipmap_in_tristan_nxs(
 
 def compute_ssx_axes(
     nxs_in: h5py.File, nbins: int, rot_ax: str, rot_val: Tuple | List | ArrayLike
-) -> Tuple[Dict, Dict, int | None]:
+) -> Tuple[Dict, Dict, Dict, int | None]:
     """
-    Computes the positions on chip corresponding to the binned images from a Tristan gri scan collection.
+    Computes the positions on chip corresponding to the binned images from a Tristan fixed target collection.
+
+    The function looks for the blocks (chipmap) and the chip_info dictionaries inside the original NeXus file and calculates the scan points from there.
+    For older versions of the SSX NeXus files, this information is not available and the scan points will be calculated based on the number of images and
+    using the default Oxford chip dimensions, starting from the upper left corned of the chip.
     If multiple windows have been binned into a single image, instead of the sam_(x,y) translation axes values, the number of windows per images will
     be returned and saved in the NeXus file.
 
@@ -170,13 +175,35 @@ def compute_ssx_axes(
         rot_val (Tuple | List | ArrayLike): Rotation axis start and stop values, as found in the original NeXus.
 
     Returns:
-        OSC, TRANSL, windows_per_bin (Tuple[Dict, Dict, int | None]): Oscillation range, Translation range, number of windows per binned image.
+        OSC, TRANSL, pump_info, windows_per_bin (Tuple[Dict, Dict, Dict, int | None]): Oscillation range, Translation range, pump_probe info, number of windows per binned image.
     """
-    # Get chipmap: use default chipmap location: /entry/source/notes/chipmap
-    blocks = eval(nxs_in["/entry/source/notes/chipmap"][()])
+    # Define pump_probe
+    pp = PumpProbe()
+    pp.status = True
+
+    # Get chipmap: use default chipmap location: /entry/source/notes/chipmap if there
+    if is_chipmap_in_tristan_nxs(nxs_in) is True:
+        blocks = eval(nxs_in["/entry/source/notes/chipmap"][()])
+        chip_info = eval(nxs_in["/entry/source/notes/chip"][()])
+        pp.exposure = chip_info["LASER_DWELL"]
+        pp.delay = chip_info["LASER_DELAY"]
+    else:
+        # Older version of these files don't have any chip information inside.
+        from ..beamlines.SSX_chip import CHIP_DICT_DEFAULT
+
+        chip_info = {k: v[1] for k, v in CHIP_DICT_DEFAULT.items()}
+        # Assume 400 imgs each block in the chip
+        n_blocks = nbins // 400
+        key = [f"%0{2}d" % bl for bl in range(1, n_blocks + 1)]
+        val = []
+        for i in range(chip_info["X_NUM_BLOCKS"]):
+            for j in range(chip_info["Y_NUM_BLOCKS"]):
+                val.append((i, j))
+        blocks = {key[i]: val[i] for i in range(len(key))}
+        pp.exposure = nxs_in["/entry/source/notes/pump_exposure_time"][()]
+        pp.delay = nxs_in["/entry/source/notes/pump_delay"][()]
 
     # Define chip
-    chip_info = eval(nxs_in["/entry/source/notes/chip"][()])
     chip = Chip(
         "fastchip",
         num_steps=[chip_info["X_NUM_STEPS"], chip_info["Y_NUM_STEPS"]],
@@ -205,7 +232,7 @@ def compute_ssx_axes(
     )
 
     # Calculate scan start/end positions on chip
-    N_EXP = 1
+    N_EXP = chip_info["N_EXPOSURES"]
     if nbins % (num_blocks * chip.tot_windows_per_block()) == 0:
         # All the windows in the selected blocks (full chip or not) have been scanned at least once.
         N_EXP = nbins // (num_blocks * chip.tot_windows_per_block())
@@ -233,10 +260,14 @@ def compute_ssx_axes(
             TRANSL = {
                 k: [val for val in v for _ in range(N_EXP)] for k, v in TRANSL.items()
             }
-        return OSC, TRANSL, None
+
+        # Update pump probe
+        pump_info = pp.to_dict()
+        pump_info["n_exposures"] = N_EXP
+        return OSC, TRANSL, pump_info, None
     else:
         # Hopefully this will not happen..
         # Do not set N_EXP, there should be no repeat here
         # Find out how many consecutive windows are binned together.
         windows_per_bin = (num_blocks * chip.tot_windows_per_block()) // nbins
-        return OSC, {}, windows_per_bin
+        return OSC, {}, pp.to_dict(), windows_per_bin

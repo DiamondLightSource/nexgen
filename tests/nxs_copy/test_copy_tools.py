@@ -4,11 +4,7 @@ import h5py
 import pytest
 from numpy.testing import assert_array_equal
 
-from nexgen.nxs_copy import (
-    find_chipmap_in_tristan_nxs,
-    h5str,
-    identify_tristan_scan_axis,
-)
+from nexgen.nxs_copy import h5str, identify_tristan_scan_axis, is_chipmap_in_tristan_nxs
 from nexgen.nxs_write import create_attributes
 from nexgen.nxs_write.NXclassWriters import write_NXentry, write_NXnote
 
@@ -50,5 +46,5 @@ def test_find_chipmap(dummy_nexus_file):
     nxentry = write_NXentry(dummy_nexus_file)
     write_NXnote(dummy_nexus_file, "/entry/source/notes", test_map)
 
-    assert find_chipmap_in_tristan_nxs(dummy_nexus_file) is True
-    assert find_chipmap_in_tristan_nxs(nxentry, loc="source/notes/chipmap") is True
+    assert is_chipmap_in_tristan_nxs(dummy_nexus_file) is True
+    assert is_chipmap_in_tristan_nxs(nxentry, loc="source/notes/chipmap") is True

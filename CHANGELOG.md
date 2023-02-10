@@ -1,13 +1,15 @@
 # CHANGELOG
 
-##
+## 0.6.20
 
 
 ### Added
+- New function in CopyTristanNexus to deal with serial crystallography data.
 - Tests for SSX experiment functions
 
 ### Changed
 - Refactoring of I24_Eiger into SSX_Eiger in order to have just one common tool to more beamlines for ssx collections.
+- Updated `compute_ssx_axes` in the copy tools to deal with older Tristan SSX datasets.
 - Tidying up of SSX_Tristan.
 - Removed ssx from I19-2 cli.
 
