@@ -191,7 +191,7 @@ def compute_ssx_axes(
         # Older version of these files don't have any chip information inside.
         from ..beamlines.SSX_chip import CHIP_DICT_DEFAULT
 
-        chip_info = {k: v[1] for k, v in CHIP_DICT_DEFAULT}
+        chip_info = {k: v[1] for k, v in CHIP_DICT_DEFAULT.items()}
         # Assume 400 imgs each block in the chip
         n_blocks = nbins // 400
         key = [f"%0{2}d" % bl for bl in range(1, n_blocks + 1)]
