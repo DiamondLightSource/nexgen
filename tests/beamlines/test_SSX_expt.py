@@ -114,3 +114,20 @@ def test_run_fixed_target_with_non_zero_omega(dummy_chipmap_file):
     assert ends == [180.0, 0.0, 2.5, 2.5]
     assert len(osc["omega"]) == 400
     assert_array_equal(osc["omega"], np.repeat(180.0, 400))
+
+
+def test_fixed_target_sanity_check_on_rotation_axis_end(dummy_chipmap_file):
+    test_goniometer["starts"] = [-60.0, 0.0, 0.0, 0.0]
+    test_goniometer["ends"] = [30.0, 0.0, 0.0, 0.0]
+
+    gonio, osc, _, _ = run_fixed_target(
+        test_goniometer,
+        test_chip_dict,
+        dummy_chipmap_file.name,
+        test_pump,
+    )
+
+    assert gonio["starts"][0] == gonio["ends"][0]
+    ends = [e + i for e, i in zip(gonio["ends"], gonio["increments"])]
+    assert ends == [-60.0, 0.0, 2.5, 2.5]
+    assert_array_equal(osc["omega"], np.repeat(-60.0, 400))

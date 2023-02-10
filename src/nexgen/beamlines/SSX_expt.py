@@ -121,6 +121,16 @@ def run_fixed_target(
     goniometer["increments"][Xidx] = chip.step_size[0]
     goniometer["increments"][Yidx] = chip.step_size[1]
 
+    # Sanity check
+    if goniometer["starts"] is not None and goniometer["starts"] != goniometer["ends"]:
+        logger.debug(
+            "Sanity check in case the meta file has a wrong omega/phi end value."
+        )
+        logger.debug(
+            "In this application there is no rotation so setting end values to the same as start."
+        )
+        goniometer["ends"] = [s for s in goniometer["starts"]]
+
     # Calculate scan start/end positions on chip
     if list(blocks.values())[0] == "fullchip":
         logger.info("Full chip: all the blocks will be scanned.")
