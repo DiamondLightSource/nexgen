@@ -10,6 +10,7 @@ import h5py
 import numpy as np
 
 from ..nxs_write import create_attributes
+from ..nxs_write.NXclassWriters import write_NXnote
 from . import (
     compute_ssx_axes,
     convert_scan_axis,
@@ -239,9 +240,12 @@ def serial_images_nexus(
             (start, stop) = nxs_in["entry/data"][ax][()]
 
             # Compute the scan points
-            rot_ax, transl_ax, windows_per_bin = compute_ssx_axes(
+            rot_ax, transl_ax, pump_info, windows_per_bin = compute_ssx_axes(
                 nxs_in, nbins, ax, (start, stop)
             )
+
+            # Write pump_info
+            write_NXnote(nxs_out, "/entry/source/notes", pump_info)
 
             nxsample = nxentry["sample"]
 
@@ -253,8 +257,6 @@ def serial_images_nexus(
 
             # Check whether multiple windows have been binned together
             if windows_per_bin is not None:
-                from ..nxs_write.NXclassWriters import write_NXnote
-
                 write_NXnote(
                     nxs_out, "/entry/data", {"windows_per_image": windows_per_bin}
                 )
