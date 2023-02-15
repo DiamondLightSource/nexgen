@@ -1,10 +1,16 @@
 import tempfile
 
 import h5py
+import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from nexgen.nxs_copy import h5str, identify_tristan_scan_axis, is_chipmap_in_tristan_nxs
+from nexgen.nxs_copy import (
+    check_and_fix_det_axis,
+    h5str,
+    identify_tristan_scan_axis,
+    is_chipmap_in_tristan_nxs,
+)
 from nexgen.nxs_write import create_attributes
 from nexgen.nxs_write.NXclassWriters import write_NXentry, write_NXnote
 
@@ -39,6 +45,27 @@ def test_identify_tristan_scan_axis(dummy_nexus_file):
     assert len(ax_attrs) > 0
     assert ax_attrs["transformation_type"] == "rotation"
     assert_array_equal(ax_attrs["vector"], [0, 0, 1])
+
+
+def test_check_and_fix_det_z(dummy_nexus_file):
+    nxentry = write_NXentry(dummy_nexus_file)
+    nxentry.create_dataset("instrument/detector/distance", data=b"150.")
+    nxdet_z_grp = nxentry.require_group(
+        "instrument/detector/transformations/detector_z"
+    )
+    det_z = nxdet_z_grp.create_dataset("det_z", data=b"150.")
+    create_attributes(det_z, ("transformation_type", "units"), ("translation", "mm"))
+
+    check_and_fix_det_axis(dummy_nexus_file)
+    fixed_det = dummy_nexus_file[
+        "/entry/instrument/detector/transformations/detector_z/det_z"
+    ]
+    assert_array_equal(fixed_det[()], np.array([150.0]))
+    assert det_z.attrs["units"] == b"mm"
+    assert det_z.attrs["transformation_type"] == b"translation"
+    fixed_dist = dummy_nexus_file["/entry/instrument/detector/distance"]
+    assert fixed_dist[()] == 0.150
+    assert fixed_dist.attrs["units"] == b"m"
 
 
 def test_find_chipmap(dummy_nexus_file):

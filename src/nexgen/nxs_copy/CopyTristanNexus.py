@@ -12,6 +12,7 @@ import numpy as np
 from ..nxs_write import create_attributes
 from ..nxs_write.NXclassWriters import write_NXnote
 from . import (
+    check_and_fix_det_axis,
     compute_ssx_axes,
     convert_scan_axis,
     get_nexus_tree,
@@ -271,5 +272,10 @@ def serial_images_nexus(
                 for key, value in ax_attr.items():
                     nxdata[ax_name].attrs.create(key, value)
                 convert_scan_axis(nxsample, nxdata, ax_name)
+
+    # Run a quick check on axes values and attributes.
+    # Some ealy serial Tristan data from March/May 2022 have det_z saved as a string
+    with h5py.File(nxs_filename, "r+") as nxs:
+        check_and_fix_det_axis(nxs)
 
     return nxs_filename.as_posix()

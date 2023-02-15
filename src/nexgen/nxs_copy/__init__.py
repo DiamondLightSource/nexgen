@@ -10,7 +10,7 @@ import h5py
 import numpy as np
 from numpy.typing import ArrayLike
 
-from .. import walk_nxs
+from .. import units_of_length, walk_nxs
 from ..beamlines import PumpProbe
 from ..beamlines.SSX_chip import Chip, compute_goniometer
 from ..nxs_write import calculate_scan_range, create_attributes
@@ -134,6 +134,32 @@ def convert_scan_axis(nxsample: h5py.Group, nxdata: h5py.Group, ax: str):
     )
     del nxsample[name]
     nxsample[name] = nxdata[ax]
+
+
+def check_and_fix_det_axis(nxs_in: h5py.File):
+    det_z_grp = nxs_in["/entry/instrument/detector/transformations/detector_z"]
+    det_z = det_z_grp["det_z"]
+    if type(det_z[()]) is bytes or type(det_z[()]) is str:
+        det_z_attrs = {}
+        for k, v in det_z.attrs.items():
+            det_z_attrs[k] = v
+        dist = float(det_z[()])
+        dist = units_of_length(str(dist) + "mm")
+
+        del nxs_in["/entry/instrument/detector/transformations/detector_z/det_z"]
+        nxdet_z = det_z_grp.create_dataset("det_z", data=np.array([dist.magnitude]))
+        for k, v in det_z_attrs.items():
+            nxdet_z.attrs.create(k, v)
+
+        del nxs_in["/entry/instrument/detector/distance"]
+        nxs_in["/entry/instrument/detector"].create_dataset(
+            "distance", data=dist.to("m").magnitude
+        )
+        nxs_in["/entry/instrument/detector/distance"].attrs.create(
+            "units", np.string_("m")
+        )
+    else:
+        return
 
 
 def is_chipmap_in_tristan_nxs(
