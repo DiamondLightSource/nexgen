@@ -1,7 +1,14 @@
 # CHANGELOG
 
-## 0.6.20
+##
 
+### Added
+- Conversion table for SSX chip from coordinates to block number
+
+### Fixed
+- Oscillation axis end positions being automatically set to 0 instead of metafile value for upwards blocks in SSX chip.
+
+## 0.6.20
 
 ### Added
 - New function in CopyTristanNexus to deal with serial crystallography data.
