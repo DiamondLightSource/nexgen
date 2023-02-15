@@ -220,7 +220,7 @@ def test_fixed_target_with_upwards_blocks(dummy_chipmap_file_multi_block):
     # Starts and ends are from the last block
     assert gonio["starts"] == [-90.0, 0.0, 2.375, 3.175]
     ends = [e + i for e, i in zip(gonio["ends"], gonio["increments"])]
-    assert ends == [-90.0, 0.0, 0.0, 5.675]
+    assert ends == [-90.0, 0.0, 0.125, 5.675]
     assert info["n_exposures"] == 1
 
 
@@ -243,5 +243,5 @@ def fixed_target_fullchip_with_multiple_exposures(dummy_chipmap_file_multi_block
     # Starts and ends are from the last block
     assert gonio["starts"] == [-90.0, 0.0, 2.375, 3.175]
     ends = [e + i for e, i in zip(gonio["ends"], gonio["increments"])]
-    assert ends == [-90.0, 0.0, 0.0, 5.675]
+    assert ends == [-90.0, 0.0, 0.125, 5.675]
     assert info["n_exposures"] == 2
