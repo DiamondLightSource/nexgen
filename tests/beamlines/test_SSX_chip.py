@@ -3,7 +3,13 @@ import tempfile
 import pytest
 
 from nexgen.beamlines import PumpProbe
-from nexgen.beamlines.SSX_chip import Chip, compute_goniometer, read_chip_map
+from nexgen.beamlines.SSX_chip import (
+    Chip,
+    compute_goniometer,
+    fullchip_blocks_conversion,
+    fullchip_conversion_table,
+    read_chip_map,
+)
 
 test_chip = Chip(
     "testchip",
@@ -41,6 +47,12 @@ def test_chip_windows():
     assert test_chip.window_size() == (2.5, 2.5)
 
 
+def test_chip_size():
+    size = test_chip.chip_size()
+    assert type(size) is tuple
+    assert size == (6.35, 6.35)
+
+
 def test_chip_types():
     assert type(test_chip.num_steps[0]) is int
     assert type(test_chip.step_size[0]) is float
@@ -52,6 +64,25 @@ def test_no_chip_map_passed_returns_fullchip():
     res = read_chip_map(None, 1, 1)
     assert type(res) is dict
     assert list(res.values())[0] == "fullchip"
+
+
+def test_fullchip_conversion_table():
+    table = fullchip_conversion_table(test_chip)
+    assert len(table) == 4
+    assert list(table.keys()) == ["01", "02", "03", "04"]
+    assert list(table.values()) == [(0, 0), (0, 1), (1, 1), (1, 0)]
+
+
+def test_fullchip_blocks_conversion():
+    test_pos = {
+        (0, 0): 4 * [0.0],
+        (0, 1): [0.0, 3.175, 0.0, 0.0],
+        (1, 1): [0.0, 5.55, 3.175, 0.0],
+        (1, 0): [0.0, 2.375, 3.175, 0.0],
+    }
+    new_test_pos = fullchip_blocks_conversion(test_pos, test_chip)
+    assert list(test_pos.values()) == list(new_test_pos.values())
+    assert list(new_test_pos.keys()) == ["01", "02", "03", "04"]
 
 
 @pytest.fixture

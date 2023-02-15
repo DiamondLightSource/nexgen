@@ -134,7 +134,11 @@ def run_fixed_target(
     # Calculate scan start/end positions on chip
     if list(blocks.values())[0] == "fullchip":
         logger.info("Full chip: all the blocks will be scanned.")
+        from .SSX_chip import fullchip_blocks_conversion
+
         start_pos, end_pos = compute_goniometer(chip, goniometer["axes"], full=True)
+        start_pos = fullchip_blocks_conversion(start_pos, chip)
+        end_pos = fullchip_blocks_conversion(end_pos, chip)
     else:
         logger.info(f"Scanning blocks: {list(blocks.keys())}.")
         start_pos, end_pos = compute_goniometer(chip, goniometer["axes"], blocks=blocks)
@@ -144,7 +148,11 @@ def run_fixed_target(
     TRANSL = {"sam_y": np.array([]), "sam_x": np.array([])}
     for _s, _e in zip(start_pos.items(), end_pos.items()):
         # Determine wheter it's an up or down block
-        col = int(_e[0]) // 8 if int(_e[0]) % 8 != 0 else (int(_e[0]) // 8) - 1
+        col = (
+            int(_e[0]) // chip.num_blocks[0]
+            if int(_e[0]) % chip.num_blocks[0] != 0
+            else (int(_e[0]) // chip.num_blocks[0]) - 1
+        )
         # Get the values
         if goniometer["starts"] is None:
             s = _s[1]
@@ -167,9 +175,16 @@ def run_fixed_target(
                 end - inc for end, inc in zip(e, goniometer["increments"])
             ]
         else:
-            goniometer["ends"] = len(goniometer["axes"]) * [0.0]
-            goniometer["ends"][Yidx] = e[Yidx]
-            goniometer["ends"][Xidx] = e[Xidx] - goniometer["increments"][Xidx]
+            goniometer["ends"] = [
+                e[i] if i != Xidx else e[i] - goniometer["increments"][i]
+                for i in range(len(e))
+            ]
+        logger.debug(
+            "Current block: \n"
+            f"Starts: {goniometer['starts']} \n"
+            f"Ends: {goniometer['ends']} \n"
+            f"Incs: {goniometer['increments']}"
+        )
         osc, transl = ScanReader(
             goniometer,
             n_images=(
