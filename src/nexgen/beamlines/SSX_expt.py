@@ -134,7 +134,11 @@ def run_fixed_target(
     # Calculate scan start/end positions on chip
     if list(blocks.values())[0] == "fullchip":
         logger.info("Full chip: all the blocks will be scanned.")
+        from .SSX_chip import fullchip_blocks_conversion
+
         start_pos, end_pos = compute_goniometer(chip, goniometer["axes"], full=True)
+        start_pos = fullchip_blocks_conversion(start_pos, chip)
+        end_pos = fullchip_blocks_conversion(end_pos, chip)
     else:
         logger.info(f"Scanning blocks: {list(blocks.keys())}.")
         start_pos, end_pos = compute_goniometer(chip, goniometer["axes"], blocks=blocks)

@@ -68,6 +68,21 @@ class Chip:
         )
 
 
+def fullchip_conversion_table(chip: Chip) -> Dict:
+    coords = []
+    table = {}
+    for i in range(chip.num_blocks[0]):
+        if i % 2 == 0:
+            for j in range(chip.num_blocks[1]):
+                coords.append((i, j))
+        else:
+            for j in range(chip.num_blocks[1] - 1, -1, -1):
+                coords.append((i, j))
+    for k, v in zip(range(1, chip.tot_blocks() + 1), coords):
+        table[f"%0{2}d" % k] = v
+    return table
+
+
 def read_chip_map(mapfile: Path | str, x_blocks: int, y_blocks: int) -> Dict:
     """
     Read the .map file for the current collection on a chip.
@@ -112,6 +127,16 @@ def read_chip_map(mapfile: Path | str, x_blocks: int, y_blocks: int) -> Dict:
             y = val - int(b)
         blocks[b] = (x, y)
     return blocks
+
+
+def fullchip_blocks_conversion(blocks: Dict[Tuple, List], chip: Chip) -> Dict:
+    new_blocks = {}
+    table = fullchip_conversion_table(chip)
+    for kt, vt in table.items():
+        for kb, vb in blocks.items():
+            if kb == vt:
+                new_blocks[kt] = vb
+    return new_blocks
 
 
 def compute_goniometer(

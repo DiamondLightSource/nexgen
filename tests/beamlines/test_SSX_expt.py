@@ -183,3 +183,65 @@ def test_fixed_target_for_multiple_exposures(dummy_chipmap_file):
     assert ends == [0.0, 0.0, 2.5, 2.5]
     assert info["n_exposures"] == 2
     assert_array_equal(osc["omega"], np.repeat(0.0, 800))
+
+
+@pytest.fixture
+def dummy_chipmap_file_multi_block():
+    lines = [
+        "01status    P3011       1\n",
+        "02status    P3021       1\n",
+        "03status    P3031       1\n",
+        "04status    P3041       1\n",
+    ]
+    test_map_file = tempfile.NamedTemporaryFile(
+        mode="w", suffix=".map", delete=False, encoding="utf-8"
+    )
+    with test_map_file as map:
+        map.writelines(lines)
+    yield test_map_file
+
+
+def test_fixed_target_with_upwards_blocks(dummy_chipmap_file_multi_block):
+    test_goniometer["starts"] = [-90.0, 0.0, 0.0, 0.0]
+    test_goniometer["increments"] = None
+    test_goniometer["ends"] = [0.0, 0.0, 0.0, 0.0]
+    test_chip_dict["N_EXPOSURES"] = [0, "1"]
+    gonio, osc, transl, info = run_fixed_target(
+        test_goniometer,
+        test_chip_dict,
+        dummy_chipmap_file_multi_block.name,
+        test_pump,
+    )
+    assert list(osc.keys()) == ["omega"]
+    assert_array_equal(osc["omega"], np.repeat(-90.0, 1600))
+    assert list(transl.keys()) == ["sam_y", "sam_x"]
+    assert len(transl["sam_x"]) == len(transl["sam_y"])
+    assert len(transl["sam_y"]) == 1600
+    # Starts and ends are from the last block
+    assert gonio["starts"] == [-90.0, 0.0, 2.375, 3.175]
+    ends = [e + i for e, i in zip(gonio["ends"], gonio["increments"])]
+    assert ends == [-90.0, 0.0, 0.0, 5.675]
+    assert info["n_exposures"] == 1
+
+
+def fixed_target_fullchip_with_multiple_exposures(dummy_chipmap_file_multi_block):
+    test_goniometer["starts"] = [-90.0, 0.0, 0.0, 0.0]
+    test_goniometer["increments"] = None
+    test_goniometer["ends"] = [0.0, 0.0, 0.0, 0.0]
+    test_chip_dict["N_EXPOSURES"] = [0, "2"]
+    gonio, osc, transl, info = run_fixed_target(
+        test_goniometer,
+        test_chip_dict,
+        dummy_chipmap_file_multi_block.name,
+        test_pump,
+    )
+    assert list(osc.keys()) == ["omega"]
+    assert_array_equal(osc["omega"], np.repeat(-90.0, 3200))
+    assert list(transl.keys()) == ["sam_y", "sam_x"]
+    assert len(transl["sam_x"]) == len(transl["sam_y"])
+    assert len(transl["sam_y"]) == 3200
+    # Starts and ends are from the last block
+    assert gonio["starts"] == [-90.0, 0.0, 2.375, 3.175]
+    ends = [e + i for e, i in zip(gonio["ends"], gonio["increments"])]
+    assert ends == [-90.0, 0.0, 0.0, 5.675]
+    assert info["n_exposures"] == 2

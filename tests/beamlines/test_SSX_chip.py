@@ -3,7 +3,12 @@ import tempfile
 import pytest
 
 from nexgen.beamlines import PumpProbe
-from nexgen.beamlines.SSX_chip import Chip, compute_goniometer, read_chip_map
+from nexgen.beamlines.SSX_chip import (
+    Chip,
+    compute_goniometer,
+    fullchip_conversion_table,
+    read_chip_map,
+)
 
 test_chip = Chip(
     "testchip",
@@ -41,6 +46,10 @@ def test_chip_windows():
     assert test_chip.window_size() == (2.5, 2.5)
 
 
+def test_chip_size():
+    pass
+
+
 def test_chip_types():
     assert type(test_chip.num_steps[0]) is int
     assert type(test_chip.step_size[0]) is float
@@ -52,6 +61,17 @@ def test_no_chip_map_passed_returns_fullchip():
     res = read_chip_map(None, 1, 1)
     assert type(res) is dict
     assert list(res.values())[0] == "fullchip"
+
+
+def test_fullchip_conversion_table():
+    table = fullchip_conversion_table(test_chip)
+    assert len(table) == 4
+    assert list(table.keys()) == ["01", "02", "03", "04"]
+    assert list(table.values()) == [(0, 0), (0, 1), (1, 1), (1, 0)]
+
+
+def test_fullchip_blocks_conversion():
+    pass
 
 
 @pytest.fixture
