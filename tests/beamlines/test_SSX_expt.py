@@ -224,7 +224,7 @@ def test_fixed_target_with_upwards_blocks(dummy_chipmap_file_multi_block):
     assert info["n_exposures"] == 1
 
 
-def fixed_target_fullchip_with_multiple_exposures(dummy_chipmap_file_multi_block):
+def test_fixed_target_fullchip_with_multiple_exposures(dummy_chipmap_file_multi_block):
     test_goniometer["starts"] = [-90.0, 0.0, 0.0, 0.0]
     test_goniometer["increments"] = None
     test_goniometer["ends"] = [0.0, 0.0, 0.0, 0.0]

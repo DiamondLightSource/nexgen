@@ -6,6 +6,7 @@ from nexgen.beamlines import PumpProbe
 from nexgen.beamlines.SSX_chip import (
     Chip,
     compute_goniometer,
+    fullchip_blocks_conversion,
     fullchip_conversion_table,
     read_chip_map,
 )
@@ -47,7 +48,9 @@ def test_chip_windows():
 
 
 def test_chip_size():
-    pass
+    size = test_chip.chip_size()
+    assert type(size) is tuple
+    assert size == (6.35, 6.35)
 
 
 def test_chip_types():
@@ -71,7 +74,15 @@ def test_fullchip_conversion_table():
 
 
 def test_fullchip_blocks_conversion():
-    pass
+    test_pos = {
+        (0, 0): 4 * [0.0],
+        (0, 1): [0.0, 3.175, 0.0, 0.0],
+        (1, 1): [0.0, 5.55, 3.175, 0.0],
+        (1, 0): [0.0, 2.375, 3.175, 0.0],
+    }
+    new_test_pos = fullchip_blocks_conversion(test_pos, test_chip)
+    assert list(test_pos.values()) == list(new_test_pos.values())
+    assert list(new_test_pos.keys()) == ["01", "02", "03", "04"]
 
 
 @pytest.fixture

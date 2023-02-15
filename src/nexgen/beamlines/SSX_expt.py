@@ -147,12 +147,6 @@ def run_fixed_target(
     OSC = {osc_axis: np.array([])}
     TRANSL = {"sam_y": np.array([]), "sam_x": np.array([])}
     for _s, _e in zip(start_pos.items(), end_pos.items()):
-        logger.debug(
-            "Current block: \n"
-            f"Starts: {goniometer['starts']} \n"
-            f"Ends: {goniometer['ends']} \n"
-            f"Incs: {goniometer['increments']}"
-        )
         # Determine wheter it's an up or down block
         col = (
             int(_e[0]) // chip.num_blocks[0]
@@ -185,6 +179,12 @@ def run_fixed_target(
                 e[i] if i != Xidx else e[i] - goniometer["increments"][i]
                 for i in range(len(e))
             ]
+        logger.debug(
+            "Current block: \n"
+            f"Starts: {goniometer['starts']} \n"
+            f"Ends: {goniometer['ends']} \n"
+            f"Incs: {goniometer['increments']}"
+        )
         osc, transl = ScanReader(
             goniometer,
             n_images=(
