@@ -143,6 +143,12 @@ def run_fixed_target(
     OSC = {osc_axis: np.array([])}
     TRANSL = {"sam_y": np.array([]), "sam_x": np.array([])}
     for _s, _e in zip(start_pos.items(), end_pos.items()):
+        logger.debug(
+            "Current block: \n"
+            f"Starts: {goniometer['starts']} \n"
+            f"Ends: {goniometer['ends']} \n"
+            f"Incs: {goniometer['increments']}"
+        )
         # Determine wheter it's an up or down block
         col = int(_e[0]) // 8 if int(_e[0]) % 8 != 0 else (int(_e[0]) // 8) - 1
         # Get the values
@@ -167,9 +173,10 @@ def run_fixed_target(
                 end - inc for end, inc in zip(e, goniometer["increments"])
             ]
         else:
-            goniometer["ends"] = len(goniometer["axes"]) * [0.0]
-            goniometer["ends"][Yidx] = e[Yidx]
-            goniometer["ends"][Xidx] = e[Xidx] - goniometer["increments"][Xidx]
+            goniometer["ends"] = [
+                e[i] if i != Xidx else e[i] - goniometer["increments"][i]
+                for i in range(len(e))
+            ]
         osc, transl = ScanReader(
             goniometer,
             n_images=(
