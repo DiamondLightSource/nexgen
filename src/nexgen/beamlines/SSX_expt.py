@@ -154,7 +154,11 @@ def run_fixed_target(
             f"Incs: {goniometer['increments']}"
         )
         # Determine wheter it's an up or down block
-        col = int(_e[0]) // 8 if int(_e[0]) % 8 != 0 else (int(_e[0]) // 8) - 1
+        col = (
+            int(_e[0]) // chip.num_blocks[0]
+            if int(_e[0]) % chip.num_blocks[0] != 0
+            else (int(_e[0]) // chip.num_blocks[0]) - 1
+        )
         # Get the values
         if goniometer["starts"] is None:
             s = _s[1]
