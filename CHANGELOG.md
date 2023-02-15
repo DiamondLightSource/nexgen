@@ -1,6 +1,6 @@
 # CHANGELOG
 
-##
+## 0.6.21
 
 ### Added
 - Conversion table for SSX chip from coordinates to block number
