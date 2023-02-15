@@ -1,9 +1,10 @@
 # CHANGELOG
 
-##
+## 0.6.21
 
 ### Added
 - Conversion table for SSX chip from coordinates to block number
+- Check and fix for older SSX Tristan datasets which have det_z/distance saved as bytes.
 
 ### Fixed
 - Oscillation axis end positions being automatically set to 0 instead of metafile value for upwards blocks in SSX chip.

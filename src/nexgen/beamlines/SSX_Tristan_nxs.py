@@ -65,7 +65,7 @@ def ssx_tristan_writer(
         exp_time (float): Exposure time, in s.
         det_dist (float): Distance between sample and detector, in mm.
         beam_center (List[float, float]): Beam center position, in pixels.
-        transmission (int): Attenuator transmission, in %.
+        transmission (float): Attenuator transmission, in %.
         wavelength (float): Wavelength of incident beam, in A.
         flux (float): Total flux.
         start_time (datetime): Experiment start time.
@@ -77,11 +77,11 @@ def ssx_tristan_writer(
     """
     # Get info from the beamline
     SSX_TR = ssx_tr_collect(
-        exposure_time=ssx_params["exp_time"],
-        detector_distance=ssx_params["det_dist"],
+        exposure_time=float(ssx_params["exp_time"]),
+        detector_distance=float(ssx_params["det_dist"]),
         beam_center=ssx_params["beam_center"],
-        transmission=ssx_params["transmission"],
-        wavelength=ssx_params["wavelength"],
+        transmission=float(ssx_params["transmission"]),
+        wavelength=float(ssx_params["wavelength"]),
         start_time=ssx_params["start_time"].strftime("%Y-%m-%dT%H:%M:%S")
         if ssx_params["start_time"]
         else None,  # This should be datetiem type
