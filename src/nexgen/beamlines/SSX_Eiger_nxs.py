@@ -73,7 +73,7 @@ def ssx_eiger_writer(
         exp_time (float): Exposure time, in s.
         det_dist (float): Distance between sample and detector, in mm.
         beam_center (List[float, float]): Beam center position, in pixels.
-        transmission (int): Attenuator transmission, in %.
+        transmission (float): Attenuator transmission, in %.
         wavelength (float): Wavelength of incident beam, in A.
         flux (float): Total flux.
         start_time (datetime): Experiment start time.
