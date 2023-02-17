@@ -6,8 +6,8 @@ from typing import Optional
 from dataclasses_json import dataclass_json
 
 
-@dataclass
 @dataclass_json
+@dataclass
 class PumpProbe:
     """
     Define pump probe parameters.

@@ -10,10 +10,11 @@ import h5py
 import numpy as np
 from numpy.typing import ArrayLike
 
-from .. import units_of_length, walk_nxs
+from .. import walk_nxs
 from ..beamlines import PumpProbe
 from ..beamlines.SSX_chip import Chip, compute_goniometer
 from ..nxs_write import calculate_scan_range, create_attributes
+from ..utils import units_of_length
 
 
 def h5str(h5_value: str | np.string_ | bytes) -> str:

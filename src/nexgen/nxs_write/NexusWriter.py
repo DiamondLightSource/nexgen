@@ -11,10 +11,11 @@ import h5py
 import numpy as np
 from numpy.typing import ArrayLike
 
-from .. import get_filename_template, reframe_arrays, units_of_time
+from .. import get_filename_template, reframe_arrays
 from ..tools.DataWriter import generate_event_files, generate_image_files
 from ..tools.MetaReader import overwrite_beam, overwrite_detector
 from ..tools.VDS_tools import image_vds_writer, vds_file_writer
+from ..utils import units_of_time
 from . import (
     calculate_scan_range,
     find_grid_scan_axes,
