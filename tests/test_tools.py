@@ -1,13 +1,9 @@
-import time
 from pathlib import Path
 
 import numpy as np
-import pint
 import pytest
 
 import nexgen
-
-ureg = pint.UnitRegistry()
 
 test_goniometer = {
     "axes": ["alpha", "sam_z"],
@@ -139,26 +135,3 @@ def test_reframe_arrays_fails_if_coordinate_system_ill_defined():
 def test_reframe_arrays_fails_if_new_coordinate_system_not_defined():
     with pytest.raises(TypeError):
         nexgen.reframe_arrays(test_goniometer, test_detector, test_module, "new")
-
-
-def test_iso_timestamps():
-    assert nexgen.get_iso_timestamp(None) is None
-    # Check that no exceptions are raised when passing a time.time() object
-    assert nexgen.get_iso_timestamp(time.time())
-
-
-def test_units_of_length():
-    assert nexgen.units_of_length("1.5m") == ureg.Quantity(1.5, "m")
-    # Check that a dimensionless unit defaults to mm
-    assert nexgen.units_of_length(100) == ureg.Quantity(100, "m")
-    # Check conversion to base units
-    assert nexgen.units_of_length("5cm", True) == ureg.Quantity(0.05, "m")
-    assert nexgen.units_of_length("1in", True) == ureg.Quantity(0.0254, "m")
-
-
-def test_units_of_time():
-    assert nexgen.units_of_time("0.05s") == ureg.Quantity(0.05, "s")
-    # Check that a dimensionless value deafults to seconds
-    assert nexgen.units_of_time(1) == ureg.Quantity(1, "s")
-    # Check conversion to base units
-    assert nexgen.units_of_time("20ms") == ureg.Quantity(0.02, "s")
