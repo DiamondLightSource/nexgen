@@ -8,9 +8,10 @@ from pathlib import Path
 
 import h5py
 
-from .. import get_iso_timestamp, get_nexus_filename, log
+from .. import log
 from ..nxs_write.NexusWriter import call_writers
 from ..nxs_write.NXclassWriters import write_NXdatetime, write_NXentry, write_NXnote
+from ..utils import get_iso_timestamp, get_nexus_filename
 from . import source
 from .I19_2_params import tristan10M_module as module
 from .I19_2_params import tristan10M_params as detector

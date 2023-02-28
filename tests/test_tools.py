@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import numpy as np
 import pytest
 
@@ -38,28 +36,6 @@ def test_coord2nxs():
     assert nexgen.coord2mcstas([1, 0, 0], R) == (1, 0, 0)
     assert nexgen.coord2mcstas([0, 1, 0], R) == (0, 0, 1)
     assert nexgen.coord2mcstas([0, 0, 1], R) == (0, -1, 0)
-
-
-def test_get_filename_template():
-    # Check filename from _master.h5 file
-    fn = nexgen.get_filename_template(Path("File_01_master.h5"))
-    assert type(fn) is str
-    assert fn == "File_01_%06d.h5"
-    assert fn % 1 == "File_01_000001.h5"
-    # Check filename from .nxs file
-    fn = nexgen.get_filename_template(Path("File_02.nxs"))
-    assert type(fn) is str
-    assert fn == "File_02_%06d.h5"
-    assert fn % 1 == "File_02_000001.h5"
-
-
-def test_get_nexus_filename():
-    # Check nexus filename from meta
-    nxs = nexgen.get_nexus_filename(Path("File_01_meta.h5"))
-    assert nxs.as_posix() == "File_01.nxs"
-    # Check nexus filename from datafile
-    nxs = nexgen.get_nexus_filename(Path("File_02_0001.h5"))
-    assert nxs.as_posix() == "File_02.nxs"
 
 
 def test_split_arrays():

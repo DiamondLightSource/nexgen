@@ -14,7 +14,7 @@ import freephil
 import h5py
 import numpy as np
 
-from .. import get_filename_template, get_iso_timestamp, get_nexus_filename, log
+from .. import log
 from ..nxs_write.NexusWriter import (  # write_nexus_demo, write_nexus
     ScanReader,
     call_writers,
@@ -23,7 +23,12 @@ from ..nxs_write.NXclassWriters import write_NXdatetime, write_NXentry, write_NX
 from ..tools.DataWriter import generate_event_files, generate_image_files
 from ..tools.MetaReader import overwrite_beam, overwrite_detector
 from ..tools.VDS_tools import image_vds_writer, vds_file_writer
-from ..utils import units_of_time
+from ..utils import (
+    get_filename_template,
+    get_iso_timestamp,
+    get_nexus_filename,
+    units_of_time,
+)
 from . import (
     add_tristan_spec,
     config_parser,

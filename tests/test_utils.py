@@ -1,4 +1,5 @@
 import time
+from pathlib import Path
 
 import pint
 import pytest
@@ -6,6 +7,28 @@ import pytest
 from nexgen import utils
 
 ureg = pint.UnitRegistry()
+
+
+def test_get_filename_template():
+    # Check filename from _master.h5 file
+    fn = utils.get_filename_template(Path("File_01_master.h5"))
+    assert type(fn) is str
+    assert fn == "File_01_%06d.h5"
+    assert fn % 1 == "File_01_000001.h5"
+    # Check filename from .nxs file
+    fn = utils.get_filename_template(Path("File_02.nxs"))
+    assert type(fn) is str
+    assert fn == "File_02_%06d.h5"
+    assert fn % 1 == "File_02_000001.h5"
+
+
+def test_get_nexus_filename():
+    # Check nexus filename from meta
+    nxs = utils.get_nexus_filename(Path("File_01_meta.h5"))
+    assert nxs.as_posix() == "File_01.nxs"
+    # Check nexus filename from datafile
+    nxs = utils.get_nexus_filename(Path("File_02_0001.h5"))
+    assert nxs.as_posix() == "File_02.nxs"
 
 
 def test_iso_timestamps():

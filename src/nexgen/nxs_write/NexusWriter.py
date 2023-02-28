@@ -9,13 +9,14 @@ from typing import Any, Dict, List, Tuple
 
 import h5py
 import numpy as np
+from freephil.common import scope_extract as ScopeExtract  # Define scope extract type
 from numpy.typing import ArrayLike
 
-from .. import get_filename_template, reframe_arrays
+from .. import reframe_arrays
 from ..tools.DataWriter import generate_event_files, generate_image_files
 from ..tools.MetaReader import overwrite_beam, overwrite_detector
 from ..tools.VDS_tools import image_vds_writer, vds_file_writer
-from ..utils import units_of_time
+from ..utils import get_filename_template, units_of_time
 from . import (
     calculate_scan_range,
     find_grid_scan_axes,
@@ -274,12 +275,12 @@ def call_writers(
 # Write NeXus directly from scope_extract
 def write_nexus_from_scope(
     nxs_file: h5py.File,
-    goniometer,
-    detector,
-    module,
-    beam,
-    attenuator,
-    source,
+    goniometer: ScopeExtract,
+    detector: ScopeExtract,
+    module: ScopeExtract,
+    beam: ScopeExtract,
+    attenuator: ScopeExtract,
+    source: ScopeExtract,
     coordinate_frame: str = "mcstas",
     datafiles: List[Path] = None,
     data_type: Tuple[str, int] = None,

@@ -9,23 +9,13 @@ __version__ = "0.6.21"
 __version_tuple__ = tuple(int(x) for x in __version__.split("."))
 
 import logging
-import re
-from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
-import h5py
 import numpy as np
 from numpy.typing import ArrayLike
 
 # Logging set up
 logging.getLogger("nexgen").addHandler(logging.NullHandler())
-
-# Define scope extract type
-# Scope = freephil.common.scope_extract
-
-# Filename pattern: filename_######.h5 or filename_meta.h5
-# P = re.compile(r"(.*)_(?:\d+)")
-P = re.compile(r"(.*)_(?:meta|\d+)")
 
 
 def imgcif2mcstas(vector: List | Tuple | ArrayLike) -> Tuple:
@@ -55,76 +45,6 @@ def coord2mcstas(vector: List | Tuple | ArrayLike, mat: ArrayLike) -> Tuple:
         Tuple: Converted coordinate values
     """
     return tuple(np.dot(mat, vector))
-
-
-def get_filename_template(input_filename: Path) -> str:
-    """
-    Get the data file name template from either the master or the meta file.
-
-    Args:
-        input_filename (Path): Path object containing the name of master or meta file.
-                            The format should be either file_master.h5, file.nxs for a master file, file_meta.h5 for a meta file.
-
-    Raises:
-        NameError: If the input file does not have the expected format.
-
-    Returns:
-        filename_template (str): String template for the name of blank data file.
-    """
-    if input_filename.suffix == ".nxs":
-        filename_root = input_filename.stem
-        filename_template = input_filename.parent / f"{filename_root}_%0{6}d.h5"
-    elif input_filename.suffix == ".h5" and "master" in input_filename.as_posix():
-        filename = input_filename.stem.replace("master", f"%0{6}d")
-        filename_template = input_filename.parent / f"{filename}.h5"
-    elif input_filename.suffix == ".h5" and "meta" in input_filename.as_posix():
-        filename = input_filename.stem.replace("meta", f"%0{6}d")
-        filename_template = input_filename.parent / f"{filename}.h5"
-    else:
-        raise NameError(
-            "Input file did not have the expected format for a master or meta file."
-        )
-    # so that filename_template.as_posix() % 1 will become filename_000001.h5
-    return filename_template.as_posix()
-
-
-def get_nexus_filename(input_filename: Path, copy: bool = False) -> Path:
-    """
-    Get the filename for the NeXus file from the stem of the input file name.
-
-    Args:
-        input_filename (Path): File name and path of either a .h5 data file or a _meta.h5 file.
-        copy (bool, optional): Avoid trying to write a new file with the same name as the old one when making a copy. Defaults to False.
-
-    Returns:
-        Path: NeXus file name (.nxs) path.
-    """
-    filename_stem = P.fullmatch(input_filename.stem)
-    if filename_stem:
-        filename = filename_stem[1]
-    else:
-        filename = input_filename.stem
-
-    if copy is True:
-        nxs_filename = input_filename.parent / f"{filename}_copy.nxs"
-    else:
-        nxs_filename = input_filename.parent / f"{filename}.nxs"
-    return nxs_filename
-
-
-def walk_nxs(nxs_obj: h5py.File | h5py.Group) -> List[str]:
-    """
-    Walk all the groups, subgroups and datasets of an object.
-
-    Args:
-        nxs_obj (h5py.File | h5py.Group): Object to walk through, could be a file or a group.
-
-    Returns:
-        obj_list (List[str]): List of objects found, as strings.
-    """
-    obj_list = []
-    nxs_obj.visit(obj_list.append)
-    return obj_list
 
 
 def split_arrays(axes_names: List, array: List) -> Dict[str, Tuple]:
