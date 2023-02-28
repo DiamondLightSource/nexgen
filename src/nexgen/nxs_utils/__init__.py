@@ -13,6 +13,9 @@ Point3D.__doc__ = """Coordinates in 3D space."""
 Facility = namedtuple("Facility", ("name", "short_name", "type", "id"))
 Facility.__doc__ = """Facility description"""
 
+# Some options for grid scans
+GridScanOptions = namedtuple("GridScanOptions", ("axes_order", "snaked"))
+
 
 @dataclass_json
 @dataclass
