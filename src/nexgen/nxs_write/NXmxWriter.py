@@ -46,7 +46,8 @@ class NXmxFileWriter:
         source: Source,
         beam: Beam,
         attenuator: Attenuator,
-        tot_num_imgs: Tuple[int] | None = None,  # If not passed can be found from scans
+        # tot_num_imgs: Tuple[int] | None = None,  # If not passed can be found from scans
+        # **scan_params,
     ):
         self.filename = Path(filename).expanduser().resolve()
         self.goniometer = goniometer
@@ -88,7 +89,25 @@ class NXmxFileWriter:
         return datafiles
 
     def _unpack_dictionaries(self) -> Tuple[Dict]:
-        pass
+        return (
+            self.goniometer._generate_goniometer_dict(),
+            self.detector._generate_detector_dict(),
+            self.detector._generate_module_dict(),
+            self.source._generate_source_dict(),
+            self.beam.to_dict(),
+            self.attenuator.to_dict(),
+        )
 
     def write(self, vds: bool = False, vds_offset: int = 0):
+        gonio, det, module, source, beam, att = self._unpack_dictionaries()
         pass
+
+    def write_for_events():
+        # Placeholder for timepix writer
+        # Here no scan, just get (start, stop) from omega/phi as osc and None as transl
+        # Then call write I guess
+        pass
+
+
+# For now, just used call writers.
+# To be removed when everything else works AND images/event functions are separated

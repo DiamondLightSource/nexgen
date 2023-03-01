@@ -114,6 +114,7 @@ def ScanReader(
     elif data_type == "events" and len(transl_axes) > 0:
         OSC = {osc_axis: (goniometer["starts"][osc_idx], goniometer["ends"][osc_idx])}
         # Overwrite TRANSL
+        # FIXME This is actually not needed.
         for k, s, e in zip(transl_axes, transl_start, transl_end):
             TRANSL[k] = (s, e)
     else:
