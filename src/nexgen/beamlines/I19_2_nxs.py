@@ -241,10 +241,10 @@ def eiger_writer(
 
     # Check that axes have been updated
     if goniometer["starts"] is None:
-        raise IOError("Goniometer axes values couldn't be read from meta file.")
+        raise OSError("Goniometer axes values couldn't be read from meta file.")
         # FOr now. If it doesn't work, more than likely meta is broken but axes can be passed.
     if detector["starts"] is None:
-        raise IOError("Detector axes values couldn't be read from meta file.")
+        raise OSError("Detector axes values couldn't be read from meta file.")
 
     scan_axis = find_osc_axis(
         goniometer["axes"],
