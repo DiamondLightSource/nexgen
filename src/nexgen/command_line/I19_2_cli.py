@@ -58,11 +58,11 @@ def nexgen_writer(args):
     from ..beamlines.I19_2_nxs import nexus_writer
 
     if args.axes and not args.ax_start:
-        raise IOError(
+        raise OSError(
             "Please pass start and increment values for each of the goniometer axes indicated."
         )
     if args.det_axes and not args.det_start:
-        raise IOError(
+        raise OSError(
             "Please pass start and increment values for each of the detector axes indicated."
         )
 
@@ -89,7 +89,7 @@ def nexgen_writer(args):
         logger.error(
             f"Wrong input file passed: {args.meta_file}. Please pass the _meta.h5 file for this dataset."
         )
-        raise IOError(
+        raise OSError(
             "The input file passed is not a _meta.h5 file. Please pass the correct file."
         )
 
