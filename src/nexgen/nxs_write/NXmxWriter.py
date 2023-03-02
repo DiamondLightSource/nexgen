@@ -178,7 +178,7 @@ class NXmxFileWriter:
                     start_index=vds_offset,
                 )
 
-    def write_for_events():
+    def write_for_events(self):
         # Placeholder for timepix writer
         # Here no scan, just get (start, stop) from omega/phi as osc and None as transl
         # Then call write I guess
