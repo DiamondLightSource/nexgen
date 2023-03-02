@@ -1,9 +1,14 @@
 # CHANGELOG
 
+##
+
+### Changed
+- Removed python3.7 support.
+
 ## 0.6.21
 
 ### Added
-- Conversion table for SSX chip from coordinates to block number
+- Conversion table for SSX chip from coordinates to block number.
 - Check and fix for older SSX Tristan datasets which have det_z/distance saved as bytes.
 
 ### Fixed
@@ -13,7 +18,7 @@
 
 ### Added
 - New function in CopyTristanNexus to deal with serial crystallography data.
-- Tests for SSX experiment functions
+- Tests for SSX experiment functions.
 
 ### Changed
 - Refactoring of I24_Eiger into SSX_Eiger in order to have just one common tool to more beamlines for ssx collections.
@@ -57,7 +62,7 @@
 ### Changed
 - Chipmap set to None if the inut value from the beamline is "fullchip", indicating that the whole chip is being scanned. The reason for this change is that
 the mapping lite is not used when the fullchip option is selected on the beamline and consequently the chipmap file is not updated.
-- In VDS_tools.split_datasets(), checks if the dataset is actually used in the VDS before adding it to the list so that unused datasets are not used as sources for the VDS
+- In VDS_tools.split_datasets(), checks if the dataset is actually used in the VDS before adding it to the list so that unused datasets are not used as sources for the VDS.
 
 ### Fixed
 - Ensure that the detector distance is always saved in meters and the unit is correct.
@@ -67,7 +72,7 @@ the mapping lite is not used when the fullchip option is selected on the beamlin
 
 ### Added
 - Function to calculate the beam center for Electron Diffraction.
-- Add relative tests
+- Add relative tests.
 
 ## 0.6.14
 
@@ -87,8 +92,8 @@ the mapping lite is not used when the fullchip option is selected on the beamlin
 ## 0.6.13
 
 ### Added
-- requirements.txt file
-- readthedocs and codecov config files
+- requirements.txt file.
+- readthedocs and codecov config files.
 
 ### Changed
 - Refactoring of split_arrays and reframe_arrays: split arrays now does just that - splitting into size-3 tuples. Everything else, in particulare the conversion from other coordinate systems, is taken care of by reframe_arrays.
