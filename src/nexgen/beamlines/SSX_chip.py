@@ -100,7 +100,7 @@ def read_chip_map(mapfile: Path | str, x_blocks: int, y_blocks: int) -> Dict:
         # Assume it's a full chip
         return {"all": "fullchip"}
 
-    with open(mapfile, "r") as f:
+    with open(mapfile) as f:
         chipmap = f.read()
 
     block_list = []
