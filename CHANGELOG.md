@@ -2,6 +2,10 @@
 
 ##
 
+### Added
+- Added python3.11 support.
+- Added type checking to pre-commit hooks.
+
 ### Changed
 - Removed python3.7 support.
 
