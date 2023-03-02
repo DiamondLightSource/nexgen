@@ -4,25 +4,10 @@ Define a Metafile object to describe the _meta.h5 file and get the necessary inf
 from __future__ import annotations
 
 import re
+from functools import cached_property
 from typing import Dict, List, Tuple
 
 import h5py
-
-try:
-    # Only for Python version >= 3.8
-    from functools import cached_property
-except ImportError:
-    # Compatibility for earlier Python versions
-    import functools
-
-    def cached_property(func):
-        @property
-        @functools.wraps(func)
-        def wrapper_decorator(*args, **kwargs):
-            return func(*args, **kwargs)
-
-        return wrapper_decorator
-
 
 __all__ = ["Metafile", "DectrisMetafile", "TristanMetafile"]
 

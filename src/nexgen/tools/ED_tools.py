@@ -3,6 +3,7 @@ Tools to extract metadata for Electron Diffraction.
 """
 from __future__ import annotations
 
+from functools import cached_property
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
@@ -10,21 +11,6 @@ import h5py
 import hdf5plugin  # noqa: F401
 import numpy as np
 from numpy.typing import ArrayLike
-
-try:
-    # Only for Python version >= 3.8
-    from functools import cached_property
-except ImportError:
-    # Compatibility for earlier Python versions
-    import functools
-
-    def cached_property(func):
-        @property
-        @functools.wraps(func)
-        def wrapper_decorator(*args, **kwargs):
-            return func(*args, **kwargs)
-
-        return wrapper_decorator
 
 
 class SinglaMaster:
