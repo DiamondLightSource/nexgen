@@ -14,7 +14,7 @@ from .. import get_filename_template, get_iso_timestamp, get_nexus_filename, log
 from ..nxs_write.NexusWriter import call_writers
 from ..nxs_write.NXclassWriters import write_NXdatetime, write_NXentry, write_NXnote
 from ..tools.MetaReader import update_detector_axes, update_goniometer
-from ..tools.VDS_tools import image_vds_writer
+from ..tools.VDS_tools import MAX_FRAMES_PER_DATASET, image_vds_writer
 from . import PumpProbe, eiger_meta_links, source
 
 __all__ = ["ssx_eiger_writer"]
@@ -136,8 +136,7 @@ def ssx_eiger_writer(
         raise
 
     # Find datafiles
-    max_imgs_per_file = 1000
-    num_files = math.ceil(SSX.num_imgs / max_imgs_per_file)
+    num_files = math.ceil(SSX.num_imgs / MAX_FRAMES_PER_DATASET)
     filename_template = get_filename_template(metafile)
     filename = [filename_template % i for i in range(1, num_files + 1)]
     logger.info(f"Number of data files to be written: {len(filename)}.")
