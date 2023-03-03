@@ -3,14 +3,14 @@ Create a NeXus file for serial crystallography datasets collected on Eiger detec
 """
 from __future__ import annotations
 
-import glob
 import logging
+import math
 from collections import namedtuple
 from pathlib import Path
 
 import h5py
 
-from .. import get_iso_timestamp, get_nexus_filename, log
+from .. import get_filename_template, get_iso_timestamp, get_nexus_filename, log
 from ..nxs_write.NexusWriter import call_writers
 from ..nxs_write.NXclassWriters import write_NXdatetime, write_NXentry, write_NXnote
 from ..tools.MetaReader import update_detector_axes, update_goniometer
@@ -135,18 +135,15 @@ def ssx_eiger_writer(
         raise
 
     # Find datafiles
-    filename_template = (
-        metafile.parent / metafile.name.replace("meta", f"{6*'[0-9]'}")
-    ).as_posix()
-    # if meta else (SSX.visitpath / SSX.filename).as_posix() + f"_{6*'[0-9]'}.h5"
-    filename = [
-        Path(f).expanduser().resolve() for f in sorted(glob.glob(filename_template))
-    ]
-    logger.info(f"Found {len(filename)} data files in directory.")
+    max_imgs_per_file = 1000
+    num_files = math.ceil(SSX.num_imgs / max_imgs_per_file)
+    filename_template = get_filename_template(metafile)
+    filename = [filename_template % i for i in range(1, num_files + 1)]
+    logger.info(f"Number of data files to be written: {len(filename)}.")
 
     logger.info("Creating a NeXus file for %s ..." % metafile.name)
     # Get NeXus filename
-    master_file = get_nexus_filename(filename[0])
+    master_file = get_nexus_filename(metafile)
     logger.info("NeXus file will be saved as %s" % master_file)
 
     # Get parameters depending on beamline
