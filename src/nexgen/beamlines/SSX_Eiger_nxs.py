@@ -54,6 +54,7 @@ def ssx_eiger_writer(
     visitpath: Path | str,
     filename: str,
     beamline: str,
+    num_imgs: int,
     expt_type: str = "fixed-target",
     pump_status: bool = False,
     **ssx_params,
@@ -64,12 +65,12 @@ def ssx_eiger_writer(
         visitpath (Path | str): Collection directory.
         filename (str): Filename root.
         beamline (str): Beamline on which the experiment is being run.
+        num_imgs (int): Total number of images collected.
         expt_type (str, optional): Experiment type, accepted values: extruder,
             fixed-target, 3Dgridscan. Defaults to "fixed-target".
         pump_status (bool, optional): True for pump-probe experiment. Defaults to False.
 
     Keyword Args:
-        num_imgs (int): Total number of images collected.
         exp_time (float): Exposure time, in s.
         det_dist (float): Distance between sample and detector, in mm.
         beam_center (List[float, float]): Beam center position, in pixels.
@@ -91,7 +92,7 @@ def ssx_eiger_writer(
         ValueError: If an invalid experiment type is passed.
     """
     SSX = ssx_collect(
-        num_imgs=int(ssx_params["num_imgs"]),
+        num_imgs=int(num_imgs),
         exposure_time=ssx_params["exp_time"],
         detector_distance=ssx_params["det_dist"]
         if "det_dist" in ssx_params.keys()
