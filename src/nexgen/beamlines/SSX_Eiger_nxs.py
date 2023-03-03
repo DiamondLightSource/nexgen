@@ -3,8 +3,8 @@ Create a NeXus file for serial crystallography datasets collected on Eiger detec
 """
 from __future__ import annotations
 
-import glob
 import logging
+import math
 from collections import namedtuple
 from pathlib import Path
 
@@ -14,8 +14,8 @@ from .. import log
 from ..nxs_write.NexusWriter import call_writers
 from ..nxs_write.NXclassWriters import write_NXdatetime, write_NXentry, write_NXnote
 from ..tools.MetaReader import update_detector_axes, update_goniometer
-from ..tools.VDS_tools import image_vds_writer
-from ..utils import get_iso_timestamp, get_nexus_filename
+from ..tools.VDS_tools import MAX_FRAMES_PER_DATASET, image_vds_writer
+from ..utils import get_filename_template, get_iso_timestamp, get_nexus_filename
 from . import PumpProbe, eiger_meta_links, source
 
 __all__ = ["ssx_eiger_writer"]
@@ -55,6 +55,7 @@ def ssx_eiger_writer(
     visitpath: Path | str,
     filename: str,
     beamline: str,
+    num_imgs: int,
     expt_type: str = "fixed-target",
     pump_status: bool = False,
     **ssx_params,
@@ -65,12 +66,12 @@ def ssx_eiger_writer(
         visitpath (Path | str): Collection directory.
         filename (str): Filename root.
         beamline (str): Beamline on which the experiment is being run.
+        num_imgs (int): Total number of images collected.
         expt_type (str, optional): Experiment type, accepted values: extruder,
             fixed-target, 3Dgridscan. Defaults to "fixed-target".
         pump_status (bool, optional): True for pump-probe experiment. Defaults to False.
 
     Keyword Args:
-        num_imgs (int): Total number of images collected.
         exp_time (float): Exposure time, in s.
         det_dist (float): Distance between sample and detector, in mm.
         beam_center (List[float, float]): Beam center position, in pixels.
@@ -92,7 +93,7 @@ def ssx_eiger_writer(
         ValueError: If an invalid experiment type is passed.
     """
     SSX = ssx_collect(
-        num_imgs=int(ssx_params["num_imgs"]),
+        num_imgs=int(num_imgs),
         exposure_time=ssx_params["exp_time"],
         detector_distance=ssx_params["det_dist"]
         if "det_dist" in ssx_params.keys()
@@ -136,18 +137,14 @@ def ssx_eiger_writer(
         raise
 
     # Find datafiles
-    filename_template = (
-        metafile.parent / metafile.name.replace("meta", f"{6*'[0-9]'}")
-    ).as_posix()
-    # if meta else (SSX.visitpath / SSX.filename).as_posix() + f"_{6*'[0-9]'}.h5"
-    filename = [
-        Path(f).expanduser().resolve() for f in sorted(glob.glob(filename_template))
-    ]
-    logger.info(f"Found {len(filename)} data files in directory.")
+    num_files = math.ceil(SSX.num_imgs / MAX_FRAMES_PER_DATASET)
+    filename_template = get_filename_template(metafile)
+    filename = [filename_template % i for i in range(1, num_files + 1)]
+    logger.info(f"Number of data files to be written: {len(filename)}.")
 
     logger.info("Creating a NeXus file for %s ..." % metafile.name)
     # Get NeXus filename
-    master_file = get_nexus_filename(filename[0])
+    master_file = get_nexus_filename(metafile)
     logger.info("NeXus file will be saved as %s" % master_file)
 
     # Get parameters depending on beamline
