@@ -1,12 +1,12 @@
 # CHANGELOG
 
-##
+## 0.6.22
 
 ### Added
 - Added python3.11 support.
-- Added type checking to pre-commit hooks.
 
 ### Changed
+- Fixed the data file list generation for SSX Eiger so that it doesn't need the files to exist yet.
 - Removed python3.7 support.
 
 ## 0.6.21
