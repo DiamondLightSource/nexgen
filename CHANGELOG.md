@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## X.X.XX
+
+### Added
+
+### Changed
+- Open metafile with ``swmr=True`` to enable reading during data collection
+
 ## 0.6.22
 
 ### Added

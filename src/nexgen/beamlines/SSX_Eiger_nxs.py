@@ -183,12 +183,12 @@ def ssx_eiger_writer(
         logger.debug("No wavelength passed, looking for it in the meta file.")
         from ..tools.Metafile import DectrisMetafile
 
-        with h5py.File(metafile, "r") as fh:
+        with h5py.File(metafile, "r", libver='latest', swmr=True) as fh:
             _wl = DectrisMetafile(fh).get_wavelength()
             beam["wavelength"] = _wl
 
     # Look for detector distance
-    with h5py.File(metafile, "r") as fh:
+    with h5py.File(metafile, "r", libver='latest', swmr=True) as fh:
         update_goniometer(fh, goniometer)
         update_detector_axes(fh, detector)
     logger.debug(
