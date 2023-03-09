@@ -6,6 +6,7 @@
 
 ### Changed
 - Open metafile with ``swmr=True`` to enable reading during data collection
+- Read metafile config items from ``/_dectris/`` rather than ``/config/`` as the former should be accessible when read in SWMR mode during data collection
 
 ## 0.6.22
 
