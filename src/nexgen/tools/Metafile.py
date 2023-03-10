@@ -56,24 +56,26 @@ class DectrisMetafile(Metafile):
 
     @cached_property
     def hasDectrisGroup(self) -> bool:
-        for k in self._handle.keys():
-            if "_dectris" in k and isinstance(self._handle[k], h5py.Group):
-                return True
-        return False
-
-    @cached_property
-    def hasConfig(self) -> bool:
-        if "config" in self._handle.keys():
+        if "_dectris" in self._handle.keys() and isinstance(
+            self._handle["_dectris"], h5py.Group
+        ):
             return True
         return False
 
-    def read_config_dset(self) -> Dict:
-        config = eval(self._handle["config"][()])
+    def read_dectris_config(self) -> Dict:
+        config = {}
+        for k, v in self._handle["_dectris"].items():
+            v = v[()]
+            if len(v) == 1:
+                v = v[0]
+                if isinstance(v, bytes):
+                    v = v.decode()
+            config[k] = v
         return config
 
     def get_number_of_images(self) -> int:
-        if self.hasConfig:
-            config = self.read_config_dset()
+        if self.hasDectrisGroup:
+            config = self.read_dectris_config()
             if config["nimages"] >= 1 and config["ntrigger"] == 1:
                 return config["nimages"]
             elif config["nimages"] == 1 and config["ntrigger"] > 1:

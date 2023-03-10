@@ -167,7 +167,7 @@ def overwrite_detector(
 
 def update_goniometer(meta_file: h5py.File, goniometer: Dict):
     """
-    Read the axes values from the config/ dataset in the meta file and update the goniometer.
+    Read the axes values from the _dectris/ grouo in the meta file and update the goniometer.
 
     Args:
         meta_file (h5py.File): Handle to Dectris-shaped meta.h5 file.
@@ -178,8 +178,8 @@ def update_goniometer(meta_file: h5py.File, goniometer: Dict):
     )
     meta = DectrisMetafile(meta_file)
 
-    if meta.hasConfig is True:
-        config = meta.read_config_dset()
+    if meta.hasDectrisGroup is True:
+        config = meta.read_dectris_config()
         num = meta.get_number_of_images()
 
         goniometer["starts"] = []
@@ -208,14 +208,14 @@ def update_goniometer(meta_file: h5py.File, goniometer: Dict):
                 overwrite_logger.info(f"Axis {ax} not in meta file, values set to 0.0.")
     else:
         overwrite_logger.warning(
-            "No config/ dataset found in meta file. Goniometer axes value couldn't be updated from here."
+            "No _dectris/ group found in meta file. Goniometer axes value couldn't be updated from here."
         )
         return
 
 
 def update_detector_axes(meta_file: h5py.File, detector: Dict):
     """
-    Read the axes values from the config/ dataset in the meta file and update the detector.
+    Read the axes values from the _dectris/ group in the meta file and update the detector.
 
     Args:
         meta_file (h5py.File): Handle to Dectris-shaped meta.h5 file.
@@ -224,8 +224,8 @@ def update_detector_axes(meta_file: h5py.File, detector: Dict):
     overwrite_logger.info("Get detector axes values from meta file for Eiger detector.")
     meta = DectrisMetafile(meta_file)
 
-    if meta.hasConfig is True:
-        config = meta.read_config_dset()
+    if meta.hasDectrisGroup is True:
+        config = meta.read_dectris_config()
         dist = units_of_length(
             meta.get_detector_distance()
         )  # If Dectris file is correct, this is m.
@@ -245,3 +245,8 @@ def update_detector_axes(meta_file: h5py.File, detector: Dict):
         overwrite_logger.info(f"Position of axis det_z: {dist.to('mm')}.")
 
         detector["ends"] = detector["starts"]
+    else:
+        overwrite_logger.warning(
+            "No _dectris/ group found in meta file. Detector axes value couldn't be updated from here."
+        )
+        return
