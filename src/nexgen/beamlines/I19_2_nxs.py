@@ -218,7 +218,7 @@ def eiger_writer(
     )
 
     # Update axes
-    with h5py.File(TR.meta_file, "r", libver='latest', swmr=True) as mh:
+    with h5py.File(TR.meta_file, "r", libver="latest", swmr=True) as mh:
         update_goniometer(mh, goniometer)
         update_detector_axes(mh, detector)
         logger.info(

@@ -846,7 +846,7 @@ def write_with_meta_cli(args):
     logger.info("Looking through _meta.h5 file for metadata.")
     # overwrite detector, overwrite beam, get list of links for nxdetector and nxcollection
 
-    with h5py.File(metafile, "r", libver='latest', swmr=True) as mf:
+    with h5py.File(metafile, "r", libver="latest", swmr=True) as mf:
         overwrite_beam(mf, detector.description, beam)
         link_list = overwrite_detector(mf, detector, ignore)
 

@@ -430,7 +430,7 @@ def write_nexus_from_scope(
         )
         do_not_link = params["ignore_meta"]
         # overwrite detector, overwrite beam, get list of links for nxdetector and nxcollection
-        with h5py.File(metafile, "r", libver='latest', swmr=True) as mf:
+        with h5py.File(metafile, "r", libver="latest", swmr=True) as mf:
             overwrite_beam(mf, detector.description, beam)
             link_list = overwrite_detector(mf, detector, do_not_link)
     else:
