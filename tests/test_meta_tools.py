@@ -3,12 +3,20 @@ import tempfile
 import h5py
 import numpy as np
 import pytest
+from numpy.testing import assert_array_equal
 
 from nexgen.tools.Metafile import DectrisMetafile, TristanMetafile
-from nexgen.tools.MetaReader import overwrite_beam
+from nexgen.tools.MetaReader import (
+    overwrite_beam,
+    update_detector_axes,
+    update_goniometer,
+)
 
 test_detector_size = (512, 1028)  # slow, fast
 test_beam = {"wavelength": 0.0}
+
+test_goniometer = {"axes": ["omega", "phi", "sam_x"]}
+test_detector = {"axes": ["two_theta", "det_z"]}
 
 
 def test_Tristan_meta_file():
@@ -31,6 +39,13 @@ def dummy_eiger_meta_file():
     test_meta_file["_dectris/wavelength"] = np.array([0.6])
     test_meta_file["_dectris/x_pixels_in_detector"] = np.array([test_detector_size[1]])
     test_meta_file["_dectris/y_pixels_in_detector"] = np.array([test_detector_size[0]])
+    test_meta_file["_dectris/phi_start"] = np.array([0.0])
+    test_meta_file["_dectris/phi_increment"] = np.array([0.1])
+    test_meta_file["_dectris/omega_start"] = np.array([90.0])
+    test_meta_file["_dectris/omega_increment"] = np.array([0.0])
+    test_meta_file["_dectris/two_theta_start"] = np.array([0.0])
+    test_meta_file["_dectris/two_theta_increment"] = np.array([0.0])
+    test_meta_file["_dectris/detector_distance"] = np.array([0.19])
     yield test_meta_file
 
 
@@ -38,13 +53,19 @@ def test_Eiger_meta_file(dummy_eiger_meta_file):
     meta = DectrisMetafile(dummy_eiger_meta_file)
     assert meta.hasDectrisGroup
     assert meta.hasMask is False and meta.hasFlatfield is False
-    assert meta.hasConfig
-    assert meta.read_config_dset() == {
+    assert meta.read_dectris_config() == {
         "nimages": 10,
         "ntrigger": 1,
         "wavelength": 0.6,
         "x_pixels_in_detector": 1028,
         "y_pixels_in_detector": 512,
+        "detector_distance": 0.19,
+        "omega_increment": 0.0,
+        "omega_start": 90.0,
+        "phi_increment": 0.1,
+        "phi_start": 0.0,
+        "two_theta_increment": 0.0,
+        "two_theta_start": 0.0,
     }
     assert meta.get_number_of_images() == 10
     assert meta.get_detector_size() == test_detector_size
@@ -53,3 +74,19 @@ def test_Eiger_meta_file(dummy_eiger_meta_file):
 def test_overwrite_beam(dummy_eiger_meta_file):
     overwrite_beam(dummy_eiger_meta_file, "Eiger", test_beam)
     assert test_beam["wavelength"] == 0.6
+
+
+def test_update_goniometer(dummy_eiger_meta_file):
+    update_goniometer(dummy_eiger_meta_file, test_goniometer)
+    assert "starts" in test_goniometer.keys()
+    assert len(test_goniometer["starts"]) == len(test_goniometer["axes"])
+    assert_array_equal(test_goniometer["starts"], [90.0, 0.0, 0.0])
+    assert_array_equal(test_goniometer["increments"], [0.0, 0.1, 0.0])
+    assert_array_equal(test_goniometer["ends"], [90.0, 1.0, 0.0])
+
+
+def test_update_detector_axes(dummy_eiger_meta_file):
+    update_detector_axes(dummy_eiger_meta_file, test_detector)
+    assert len(test_detector["starts"]) == len(test_detector["axes"])
+    assert_array_equal(test_detector["starts"], test_detector["ends"])
+    assert_array_equal(test_detector["starts"], [0.0, 190.0])
