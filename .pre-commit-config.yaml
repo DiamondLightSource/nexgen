@@ -2,14 +2,14 @@ repos:
 
 # Automatic source code formatting
 - repo: https://github.com/psf/black
-  rev: 22.3.0
+  rev: 22.10.0
   hooks:
   - id: black
     args: [--safe, --quiet]
 
 # Sort imports
 - repo: https://github.com/pycqa/isort
-  rev: 5.10.1
+  rev: 5.12.0
   hooks:
   - id: isort
     name: isort (python)
@@ -17,7 +17,7 @@ repos:
 
 # Linting
 - repo: https://github.com/pycqa/flake8
-  rev: 4.0.1
+  rev: 5.0.4
   hooks:
   - id: flake8
     additional_dependencies: ['flake8-comprehensions==3.8.0']
@@ -25,7 +25,7 @@ repos:
 
 # Other syntax checks
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v4.2.0
+  rev: v4.3.0
   hooks:
   - id: check-ast
   - id: check-yaml

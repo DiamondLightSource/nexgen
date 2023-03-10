@@ -1,14 +1,16 @@
+import tempfile
+from unittest.mock import MagicMock
+
+import h5py
+import numpy as np
+import pytest
+
 from nexgen.tools.VDS_tools import (
     Dataset,
-    split_datasets,
     create_virtual_layout,
     image_vds_writer,
+    split_datasets,
 )
-import pytest
-import numpy as np
-import tempfile
-import h5py
-from unittest.mock import MagicMock
 
 
 def test_when_get_frames_and_shape_less_than_1000_then_correct():
