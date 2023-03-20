@@ -2,6 +2,8 @@
 Object definition for goniometer
 """
 
+from __future__ import annotations
+
 from typing import Dict, List, Tuple
 
 from numpy.typing import ArrayLike
@@ -52,9 +54,7 @@ class Goniometer:
                 # Find number of scan points
                 tot_num_imgs = len(self.scan[scan_axes[0]])
                 osc_axis = identify_osc_axis(self.axes_list)
-                osc_idx = [
-                    n for n, ax in enumerate(self.axes_list) if ax.name == osc_axis
-                ][0]
+                osc_idx = self._find_axis_in_goniometer(osc_axis)
                 osc_scan = calculate_scan_points(
                     self.axes_list[osc_idx], rotation=True, tot_num_imgs=tot_num_imgs
                 )
@@ -94,6 +94,25 @@ class Goniometer:
         )
 
         return osc_scan, transl_scan
+    
+    def define_scan_axes_for_event_mode(self) -> Tuple[Dict, Dict]:
+        """Define oscillation and grid scan ranges for event-mode datasets."""
+        if self.scan:
+            scan_axis = list(self.scan.keys())
+            ax_idx = self._find_axis_in_goniometer(scan_axis[0])
+            if self.axes_list[ax_idx].transformation_type == "rotation":
+                return self.scan, None
+            else:
+                # We actually always pass a rotation here but future proofing
+                return {"omega": (0., 0.)}, self.scan
+        else:
+            osc_axis = identify_osc_axis(self.axes_list)
+            osc_idx = self.axes_list.index(osc_axis)
+            osc_scan = {osc_axis: (self.axes_list[osc_idx].start_pos, self.axes_list[osc_idx].end_pos)}
+            # Now this is a bit more complicated because for tristan we already give it (start, stop)
+            # But there will be no increment
+            # To figure out how this actually will work, I need to fix the Tristan writer
+            return osc_scan, None
 
     def _generate_goniometer_dict(self):
         goniometer = {
