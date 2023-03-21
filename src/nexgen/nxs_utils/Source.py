@@ -71,6 +71,9 @@ class Source:
             source["facility_id"] = self.facility_id
         return source
 
+    def to_dict(self):
+        return self._generate_source_dict()
+
 
 @dataclass_json
 @dataclass

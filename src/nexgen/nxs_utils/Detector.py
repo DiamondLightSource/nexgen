@@ -134,3 +134,9 @@ class Detector:
             "slow_axis": [self.slow_axis.x, self.slow_axis.y, self.slow_axis.z],
         }
         return module
+
+    def to_dict(self):
+        return self._generate_detector_dict()
+
+    def to_module_dict(self):
+        return self._generate_module_dict()

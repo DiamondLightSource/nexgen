@@ -100,10 +100,10 @@ class NXmxFileWriter:
 
     def _unpack_dictionaries(self) -> Tuple[Dict]:
         return (
-            self.goniometer._generate_goniometer_dict(),
-            self.detector._generate_detector_dict(),
-            self.detector._generate_module_dict(),
-            self.source._generate_source_dict(),
+            self.goniometer.to_dict(),
+            self.detector.to_dict(),
+            self.detector.to_module_dict(),
+            self.source.to_dict(),
         )
 
     def write(self, vds: bool = False, vds_offset: int = 0):

@@ -136,3 +136,6 @@ class Goniometer:
             "ends": [ax.end_pos for ax in self.axes_list],
         }
         return goniometer
+
+    def to_dict(self):
+        return self._generate_goniometer_dict()
