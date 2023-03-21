@@ -1,7 +1,7 @@
 from numpy.testing import assert_array_equal
 
-from nexgen.nxs_utils import Point3D
 from nexgen.nxs_utils.Axes import Axis
+from nexgen.utils import Point3D
 
 test_rot_axis = Axis("omega", ".", "rotation", Point3D(0, 0, -1), -90)
 test_transl_axis = Axis("sam_x", "omega", "translation", (1, 0, 0), 0, 0.1, 10)

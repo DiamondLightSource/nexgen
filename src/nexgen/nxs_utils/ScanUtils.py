@@ -5,6 +5,7 @@ Utilities to look for scan axes and calculate scan ranges from a list of Axis ob
 from __future__ import annotations
 
 import logging
+from collections import namedtuple
 from typing import Dict, List
 
 from numpy.typing import ArrayLike
@@ -16,6 +17,9 @@ from .Axes import Axis
 
 scan_logger = logging.getLogger("nexgen.ScanUtils")
 log.config()
+
+# Some options for grid scans
+GridScanOptions = namedtuple("GridScanOptions", ("axes_order", "snaked"))
 
 
 class ScanAxisNotFoundError(Exception):

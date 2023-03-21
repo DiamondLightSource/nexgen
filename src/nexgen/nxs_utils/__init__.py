@@ -1,20 +1,24 @@
 from __future__ import annotations
 
-from collections import namedtuple
 from dataclasses import dataclass
 
 from dataclasses_json import dataclass_json
 
-# Define coordinates
-Point3D = namedtuple("Point3D", ("x", "y", "z"))
-Point3D.__doc__ = """Coordinates in 3D space."""
+from .Axes import Axis
+from .Detector import Detector, EigerDetector, TristanDetector
+from .Goniometer import Goniometer
+from .Source import Attenuator, Beam, Source
 
-# Describe facility
-Facility = namedtuple("Facility", ("name", "short_name", "type", "id"))
-Facility.__doc__ = """Facility description"""
-
-# Some options for grid scans
-GridScanOptions = namedtuple("GridScanOptions", ("axes_order", "snaked"))
+__all__ = [
+    "Axis",
+    "Goniometer",
+    "Detector",
+    "TristanDetector",
+    "EigerDetector",
+    "Source",
+    "Beam",
+    "Attenuator",
+]
 
 
 @dataclass_json

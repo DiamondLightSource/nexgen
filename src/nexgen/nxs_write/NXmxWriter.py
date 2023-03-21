@@ -94,7 +94,7 @@ class NXmxFileWriter:
         """Get list of datafiles."""
         num_files = math.ceil(self.tot_num_imgs / max_imgs_per_file)
         template = get_filename_template(self.filename)
-        datafiles = [template % i for i in range(1, num_files + 1)]
+        datafiles = [Path(template % i) for i in range(1, num_files + 1)]
         nxmx_logger.info(f"Number of datafiles to be written: {len(datafiles)}.")
         return datafiles
 
@@ -116,7 +116,7 @@ class NXmxFileWriter:
 
         link_list = eiger_meta_links if "eiger" in det["description"].lower() else None
 
-        # TODO IMPROVE THIS THING
+        # TODO IMPROVE THIS
         with h5py.File(self.filename, "x") as nxs:
             # NXentry and NXmx definition
             write_NXentry(nxs)
@@ -126,7 +126,7 @@ class NXmxFileWriter:
                 nxs,
                 datafiles,
                 gonio,
-                "images",
+                ("images", self.tot_num_imgs),
                 osc,
                 transl,
             )

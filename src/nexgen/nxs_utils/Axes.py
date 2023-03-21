@@ -6,7 +6,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal, Tuple
 
-from . import Point3D
+from ..utils import Point3D
 
 
 # Define axes and scans

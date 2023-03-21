@@ -5,6 +5,7 @@ General utilities for nexgen
 from __future__ import annotations
 
 import re
+from collections import namedtuple
 from datetime import datetime
 from pathlib import Path
 from typing import List
@@ -20,6 +21,14 @@ __all__ = [
     "units_of_time",
     "get_iso_timestamp",
 ]
+
+# Define coordinates
+Point3D = namedtuple("Point3D", ("x", "y", "z"))
+Point3D.__doc__ = """Coordinates in 3D space."""
+
+# Describe facility
+Facility = namedtuple("Facility", ("name", "short_name", "type", "id"))
+Facility.__doc__ = """Facility description"""
 
 # Filename pattern: filename_######.h5 or filename_meta.h5
 # P = re.compile(r"(.*)_(?:\d+)")

@@ -7,7 +7,7 @@ from dataclasses import dataclass
 
 from dataclasses_json import dataclass_json
 
-from . import Facility
+from ..utils import Facility
 
 
 class Source:

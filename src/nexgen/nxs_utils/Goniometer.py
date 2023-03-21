@@ -8,9 +8,13 @@ from typing import Dict, List, Tuple
 
 from numpy.typing import ArrayLike
 
-from . import GridScanOptions
 from .Axes import Axis
-from .ScanUtils import calculate_scan_points, identify_grid_scan_axes, identify_osc_axis
+from .ScanUtils import (
+    GridScanOptions,
+    calculate_scan_points,
+    identify_grid_scan_axes,
+    identify_osc_axis,
+)
 
 
 class Goniometer:
@@ -40,8 +44,7 @@ class Goniometer:
         grid_scan_options: GridScanOptions | None = None,
         rev_rotation: bool = False,
     ) -> Tuple[Dict, Dict]:
-        """Define oscillation and grid scan ranges."""
-        # Not to be used for EVENTS! In that case just omega/phi (start, end)
+        """Define oscillation and grid scan ranges for image data collections."""
         if self.scan:
             # Look at keys to see if rotation or grid scan
             scan_axes = list(self.scan.keys())
@@ -95,8 +98,13 @@ class Goniometer:
 
         return osc_scan, transl_scan
 
-    def define_scan_axes_for_event_mode(self) -> Tuple[Dict, Dict]:
-        """Define oscillation and grid scan ranges for event-mode datasets."""
+    def define_scan_axes_for_event_mode(
+        self,
+        end_position: float | None = None,
+    ) -> Tuple[Dict, Dict]:
+        """Define oscillation and grid scan ranges for event-mode collections."""
+        # NOTE For Tristan we already give it (start, stop).
+        # To figure out how this actually will work, I need to fix the Tristan writer.
         if self.scan:
             scan_axis = list(self.scan.keys())
             ax_idx = self._find_axis_in_goniometer(scan_axis[0])
@@ -105,19 +113,16 @@ class Goniometer:
             else:
                 # We actually always pass a rotation here but future proofing
                 return {"omega": (0.0, 0.0)}, self.scan
-        else:
-            osc_axis = identify_osc_axis(self.axes_list)
-            osc_idx = self.axes_list.index(osc_axis)
-            osc_scan = {
-                osc_axis: (
-                    self.axes_list[osc_idx].start_pos,
-                    self.axes_list[osc_idx].end_pos,
-                )
-            }
-            # Now this is a bit more complicated because for tristan we already give it (start, stop)
-            # But there will be no increment
-            # To figure out how this actually will work, I need to fix the Tristan writer
-            return osc_scan, None
+
+        osc_axis = identify_osc_axis(self.axes_list)
+        osc_idx = self.axes_list.index(osc_axis)
+        osc_range = (
+            (self.axes_list[osc_idx].start_pos, end_position)
+            if end_position
+            else (self.axes_list[osc_idx].start_pos, self.axes_list[osc_idx].end_pos)
+        )
+
+        return {osc_axis: osc_range}, None
 
     def _generate_goniometer_dict(self):
         goniometer = {
@@ -125,6 +130,7 @@ class Goniometer:
             "depends": [ax.depends for ax in self.axes_list],
             "types": [ax.transformation_type for ax in self.axes_list],
             "units": [ax.units for ax in self.axes_list],
+            "vectors": [ax.vector for ax in self.axes_list],
             "starts": [ax.start_pos for ax in self.axes_list],
             "increments": [abs(ax.increment) for ax in self.axes_list],
             "ends": [ax.end_pos for ax in self.axes_list],

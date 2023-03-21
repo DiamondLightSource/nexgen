@@ -1,9 +1,13 @@
+"""
+"""
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from typing import List, Literal, Tuple, Union
 
 from dataclasses_json import dataclass_json
 
-from . import Point3D
+from ..utils import Point3D
 from .Axes import Axis
 
 __all__ = ["EigerDetector", "TristanDetector", "Detector"]
@@ -106,11 +110,12 @@ class Detector:
         detector = self.detector_params.__dict__
         detector["axes"] = [ax.name for ax in self.detector_axes]
         detector["depends"] = [ax.depends for ax in self.detector_axes]
-        detector["vector"] = [ax.vector for ax in self.detector_axes]
+        detector["vectors"] = [ax.vector for ax in self.detector_axes]
         detector["starts"] = [ax.start_pos for ax in self.detector_axes]
-        detector["units"] = [ax.unit for ax in self.detector_axes]
+        detector["units"] = [ax.units for ax in self.detector_axes]
         detector["types"] = [ax.transformation_type for ax in self.detector_axes]
         if "eiger" in self.detector_params.description.lower():
+            detector["sensor_thickness"] = self.detector_params.sensor_thickness
             detector["mode"] = "images"
             detector.update(EIGER_CONST)
         elif "tristan" in self.detector_params.description.lower():
@@ -119,7 +124,7 @@ class Detector:
         else:
             raise UnknownDetectorTypeError("Unknown detector.")
         detector["beam_center"] = self.beam_center
-        detector["exposure_time"] = self.exposure_time
+        detector["exposure_time"] = self.exp_time
         return detector
 
     def _generate_module_dict(self):
