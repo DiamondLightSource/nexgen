@@ -94,7 +94,7 @@ class Goniometer:
         )
 
         return osc_scan, transl_scan
-    
+
     def define_scan_axes_for_event_mode(self) -> Tuple[Dict, Dict]:
         """Define oscillation and grid scan ranges for event-mode datasets."""
         if self.scan:
@@ -104,11 +104,16 @@ class Goniometer:
                 return self.scan, None
             else:
                 # We actually always pass a rotation here but future proofing
-                return {"omega": (0., 0.)}, self.scan
+                return {"omega": (0.0, 0.0)}, self.scan
         else:
             osc_axis = identify_osc_axis(self.axes_list)
             osc_idx = self.axes_list.index(osc_axis)
-            osc_scan = {osc_axis: (self.axes_list[osc_idx].start_pos, self.axes_list[osc_idx].end_pos)}
+            osc_scan = {
+                osc_axis: (
+                    self.axes_list[osc_idx].start_pos,
+                    self.axes_list[osc_idx].end_pos,
+                )
+            }
             # Now this is a bit more complicated because for tristan we already give it (start, stop)
             # But there will be no increment
             # To figure out how this actually will work, I need to fix the Tristan writer
