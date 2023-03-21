@@ -129,7 +129,7 @@ class Detector:
 
     def _generate_module_dict(self):
         module = {
-            "module_offset": 1,
+            "module_offset": "1",
             "fast_axis": [self.fast_axis.x, self.fast_axis.y, self.fast_axis.z],
             "slow_axis": [self.slow_axis.x, self.slow_axis.y, self.slow_axis.z],
         }
