@@ -87,14 +87,22 @@ class Detector:
         detector_axes: List[Axis],
         beam_center: List[float],
         exposure_time: float,
-        module_vectors: List[Point3D],
+        module_vectors: List[Point3D] | List[Tuple],
     ):
+        if type(detector_params) not in [EigerDetector, TristanDetector]:
+            raise UnknownDetectorTypeError("Unknown detector.")
         self.detector_params = detector_params
         self.detector_axes = detector_axes
         self.beam_center = beam_center
         self.exp_time = exposure_time
-        self.fast_axis = module_vectors[0]
-        self.slow_axis = module_vectors[1]
+        if type(module_vectors[0]) is Point3D:
+            self.fast_axis = module_vectors[0]
+        else:
+            self.fast_axis = Point3D(*module_vectors[0])
+        if type(module_vectors[1]) is Point3D:
+            self.slow_axis = module_vectors[1]
+        else:
+            self.slow_axis = Point3D(*module_vectors[1])
 
     def __repr__(self) -> str:
         det_msg = (
