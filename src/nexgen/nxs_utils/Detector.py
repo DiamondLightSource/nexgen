@@ -1,4 +1,5 @@
 """
+Object definition for detectors.
 """
 from __future__ import annotations
 

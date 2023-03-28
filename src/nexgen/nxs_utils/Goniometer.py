@@ -1,5 +1,5 @@
 """
-Object definition for goniometer
+Object definition for goniometer.
 """
 
 from __future__ import annotations
@@ -115,7 +115,7 @@ class Goniometer:
                 return {"omega": (0.0, 0.0)}, self.scan
 
         osc_axis = identify_osc_axis(self.axes_list)
-        osc_idx = self.axes_list.index(osc_axis)
+        osc_idx = self._find_axis_in_goniometer(osc_axis)
         osc_range = (
             (self.axes_list[osc_idx].start_pos, end_position)
             if end_position

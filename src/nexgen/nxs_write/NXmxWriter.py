@@ -67,19 +67,6 @@ class NXmxFileWriter:
         self.tot_num_imgs = tot_num_imgs
         # Anything else in the future (?)
 
-    @staticmethod
-    def update_timestamps(filename: Path | str, timestamps: Tuple[str, str]):
-        """Save timestamps for start and end collection."""
-        with h5py.File(filename, "r+") as nxs:
-            write_NXdatetime(nxs, timestamps)
-        nxmx_logger.info("Start and end collection timestamp updated.")
-
-    @staticmethod
-    def add_NXnote(filename: Path | str, notes: Dict, loc: str = "/entry/notes"):
-        with h5py.File(filename, "r+") as nxs:
-            write_NXnote(nxs, loc, notes)
-        nxmx_logger.info(f"Notes saved in {loc}.")
-
     def _find_meta_file(self) -> Path:
         """Find meta.h5 file in directory."""
         metafile = [
@@ -106,6 +93,17 @@ class NXmxFileWriter:
             self.source.to_dict(),
         )
 
+    def update_timestamps(self, timestamps: Tuple[str, str]):
+        """Save timestamps for start and end collection."""
+        with h5py.File(self.filename, "r+") as nxs:
+            write_NXdatetime(nxs, timestamps)
+        nxmx_logger.info("Start and end collection timestamp updated.")
+
+    def add_NXnote(self, notes: Dict, loc: str = "/entry/notes"):
+        with h5py.File(self.filename, "r+") as nxs:
+            write_NXnote(nxs, loc, notes)
+        nxmx_logger.info(f"Notes saved in {loc}.")
+
     def write(self, vds: bool = False, vds_offset: int = 0):
         metafile = self._find_meta_file()
         datafiles = self._get_data_files_list()
@@ -116,7 +114,6 @@ class NXmxFileWriter:
 
         link_list = eiger_meta_links if "eiger" in det["description"].lower() else None
 
-        # TODO IMPROVE THIS
         with h5py.File(self.filename, "x") as nxs:
             # NXentry and NXmx definition
             write_NXentry(nxs)
