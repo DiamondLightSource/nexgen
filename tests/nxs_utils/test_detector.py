@@ -48,6 +48,13 @@ def test_detector_to_dict_raises_error_if_unknown_type():
         ).to_dict()
 
 
+def test_get_detector_description():
+    eig = Detector(
+        test_eiger, det_axes, [100, 200], 0.1, [(0, 0, 1), Point3D(0, -1, 0)]
+    )
+    assert eig.get_detector_description() == test_eiger.description
+
+
 def test_eiger_detector_to_dict():
     eig = Detector(
         test_eiger, det_axes, [100, 200], 0.1, [(0, 0, 1), Point3D(0, -1, 0)]

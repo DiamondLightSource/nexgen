@@ -77,7 +77,22 @@ class TristanDetector:
     mode: Literal["events", "images"] = "events"
 
 
-DetectorType = Union[EigerDetector, TristanDetector]
+@dataclass_json
+@dataclass
+class SinglaDetector:
+    description: str
+    image_size: List[float] | Tuple[float]
+    sensor_material: str = "Si"
+    sensor_thickness: str = "0.450mm"
+    overload: int = 199996
+    underload: int = -1
+    pixel_size: List[str | float] = field(
+        default_factory=lambda: ["0.075mm", "0.075mm"]
+    )
+    detector_type: str = "HPC"
+
+
+DetectorType = Union[EigerDetector, TristanDetector, SinglaDetector]
 
 
 class Detector:
@@ -89,7 +104,11 @@ class Detector:
         exposure_time: float,
         module_vectors: List[Point3D] | List[Tuple],
     ):
-        if type(detector_params) not in [EigerDetector, TristanDetector]:
+        if type(detector_params) not in [
+            EigerDetector,
+            TristanDetector,
+            SinglaDetector,
+        ]:
             raise UnknownDetectorTypeError("Unknown detector.")
         self.detector_params = detector_params
         self.detector_axes = detector_axes
@@ -143,6 +162,9 @@ class Detector:
             "slow_axis": [self.slow_axis.x, self.slow_axis.y, self.slow_axis.z],
         }
         return module
+
+    def get_detector_description(self) -> str:
+        return self.detector_params.description
 
     def to_dict(self):
         return self._generate_detector_dict()
