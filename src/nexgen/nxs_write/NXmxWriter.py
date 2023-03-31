@@ -137,6 +137,7 @@ class NXmxFileWriter:
         image_filename: str | None = None,
         vds: bool = False,
         vds_offset: int = 0,
+        start_time: str | None = None,
     ):
         """Write the NXmx format NeXus file.
 
@@ -149,6 +150,7 @@ class NXmxFileWriter:
                 the NeXus file name. Defaults to None.
             vds (bool, optional): Write a VDS as entry/data/data if True. Defaults to False.
             vds_offset (int, optional): Offset for the vds writer. Defaults to 0.
+            start_time (str, optional): Collection start time if already available, in the format "%Y-%m-%dT%H:%M:%SZ". Defaults to None.
         """
         metafile = self._find_meta_file()
         datafiles = (
@@ -166,6 +168,10 @@ class NXmxFileWriter:
         with h5py.File(self.filename, "x") as nxs:
             # NXentry and NXmx definition
             write_NXentry(nxs)
+
+            # Start time if known
+            if start_time:
+                write_NXdatetime(nxs, (start_time, None))
 
             # NXdata: entry/data
             write_NXdata(
