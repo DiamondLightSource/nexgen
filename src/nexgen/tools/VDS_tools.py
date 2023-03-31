@@ -11,10 +11,9 @@ from typing import Any, List, Tuple, Union
 import h5py
 import numpy as np
 
+from .. import MAX_FRAMES_PER_DATASET
+
 vds_logger = logging.getLogger("nexgen.VDSWriter")
-
-
-MAX_FRAMES_PER_DATASET = 1000
 
 
 @dataclass

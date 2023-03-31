@@ -10,7 +10,7 @@ from typing import Dict, List, Tuple
 
 import h5py
 
-from .. import reframe_arrays
+from .. import MAX_FRAMES_PER_DATASET, reframe_arrays
 from ..nxs_utils.Detector import Detector
 from ..nxs_utils.Goniometer import Goniometer
 from ..nxs_utils.Source import Attenuator, Beam, Source
@@ -60,7 +60,6 @@ class NXmxFileWriter:
         beam: Beam,
         attenuator: Attenuator,
         tot_num_imgs: int,  # | None = None,
-        # **scan_params,
     ):
         self.filename = Path(filename).expanduser().resolve()
         self.goniometer = goniometer
@@ -69,7 +68,6 @@ class NXmxFileWriter:
         self.beam = beam
         self.attenuator = attenuator
         self.tot_num_imgs = tot_num_imgs
-        # Anything else in the future (?)
 
     def _find_meta_file(self) -> Path:
         """Find meta.h5 file in directory."""
@@ -81,9 +79,20 @@ class NXmxFileWriter:
         nxmx_logger.info(f"Found {metafile} in directory.")
         return metafile
 
-    def _get_data_files_list(self, max_imgs_per_file: int = 1000) -> List[Path]:
-        """Get list of datafiles."""
-        num_files = math.ceil(self.tot_num_imgs / max_imgs_per_file)
+    def _get_data_files_list(
+        self,
+        image_filename: str | None = None,
+    ) -> List[Path]:
+        """Get list of datafiles.
+
+        Args:
+            image_filename (str | None, optional): Filename stem to use to look for image files. Needed in case it doesn't match \
+                the NeXus file name. Defaults to None.
+
+        Returns:
+            List[Path]: List of data files to link to.
+        """
+        num_files = math.ceil(self.tot_num_imgs / MAX_FRAMES_PER_DATASET)
         template = get_filename_template(self.filename)
         datafiles = [Path(template % i) for i in range(1, num_files + 1)]
         nxmx_logger.info(f"Number of datafiles to be written: {len(datafiles)}.")
@@ -121,6 +130,7 @@ class NXmxFileWriter:
     def write(
         self,
         image_datafiles: List | None = None,
+        image_filename: str | None = None,
         vds: bool = False,
         vds_offset: int = 0,
     ):
@@ -131,11 +141,17 @@ class NXmxFileWriter:
         Args:
             image_datafiles (List | None, optional): List of image data files. If not passed, the program will look for \
                 files with the stem_######.h5 in the target directory. Defaults to None.
+            image_filename (str | None, optional): Filename stem to use to look for image files. Needed in case it doesn't match \
+                the NeXus file name. Defaults to None.
             vds (bool, optional): Write a VDS as entry/data/data if True. Defaults to False.
             vds_offset (int, optional): Offset for the vds writer. Defaults to 0.
         """
         metafile = self._find_meta_file()
-        datafiles = image_datafiles if image_datafiles else self._get_data_files_list()
+        datafiles = (
+            image_datafiles
+            if image_datafiles
+            else self._get_data_files_list(image_filename)
+        )
 
         gonio, det, module, source = self._unpack_dictionaries()
 
@@ -337,7 +353,7 @@ class EDNXmxFileWriter(NXmxFileWriter):
         """
         # Get data files
         datafiles = (
-            image_datafiles if image_datafiles else super()._get_data_files_list()
+            image_datafiles if image_datafiles else super()._get_data_files_list()[0]
         )
 
         # Unpack

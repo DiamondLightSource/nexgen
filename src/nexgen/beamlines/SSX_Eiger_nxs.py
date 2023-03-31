@@ -10,11 +10,11 @@ from pathlib import Path
 
 import h5py
 
-from .. import log
+from .. import MAX_FRAMES_PER_DATASET, log
 from ..nxs_write.NexusWriter import call_writers
 from ..nxs_write.NXclassWriters import write_NXdatetime, write_NXentry, write_NXnote
 from ..tools.MetaReader import update_detector_axes, update_goniometer
-from ..tools.VDS_tools import MAX_FRAMES_PER_DATASET, image_vds_writer
+from ..tools.VDS_tools import image_vds_writer
 from ..utils import get_filename_template, get_iso_timestamp, get_nexus_filename
 from . import PumpProbe, eiger_meta_links, source
 

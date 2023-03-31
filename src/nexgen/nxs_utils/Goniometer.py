@@ -63,6 +63,8 @@ class Goniometer:
                 )
                 transl_scan = self.scan
 
+                # Overwrite start and step if needed.
+
             return osc_scan, transl_scan
 
         osc_axis = identify_osc_axis(self.axes_list)
