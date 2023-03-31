@@ -41,6 +41,9 @@ def test_define_scan_given_a_rotation_scan():
 
 
 def test_define_scan_given_a_grid_scan():
+    # FIXME For testing pusposes, reset number of images for omega
+    axes_list[0].num_steps = 0
+    axes_list[0].increment = 0
     # Whatever scan is passed overrides the gonio definition.
     scan = {
         "sam_y": np.array([0, 0, 0, 1, 1, 1]),
@@ -55,15 +58,19 @@ def test_define_scan_given_a_grid_scan():
 
 
 def test_define_scan_axes_for_event_mode_given_scan():
-    scan = {"omega": (-90, 0)}
-    osc_scan, grid_scan = Goniometer(axes_list, scan).define_scan_axes_for_event_mode()
+    scan = {"phi": (-90, 0)}
+    osc_scan, grid_scan = Goniometer(
+        [Axis("phi", ".", "rotation", (0, 0, -1), 0.0)], scan
+    ).define_scan_axes_for_event_mode()
     assert grid_scan is None
-    assert_array_equal(osc_scan["omega"], scan["omega"])
+    assert_array_equal(osc_scan["phi"], scan["phi"])
 
 
 def test_define_scan_axes_for_event_mode():
-    osc_scan, _ = Goniometer(axes_list).define_scan_axes_for_event_mode()
-    assert_array_equal(osc_scan["omega"], (0, 0))
+    osc_scan, _ = Goniometer(
+        [Axis("phi", ".", "rotation", (0, 0, -1), 0.0), *axes_list[1:]]
+    ).define_scan_axes_for_event_mode()
+    assert_array_equal(osc_scan["phi"], (0, 0))
 
 
 def test_define_scan_axes_for_event_mode_given_new_end_position():
@@ -71,3 +78,17 @@ def test_define_scan_axes_for_event_mode_given_new_end_position():
         end_position=180
     )
     assert_array_equal(osc_scan["omega"], (0, 180))
+
+
+def test_given_scan_gonio_positions_correctly_updated():
+    scan = {
+        "sam_y": np.repeat(np.arange(0, 1.0, 0.2), 2),
+        "sam_x": np.array(np.tile([1.0, 2.0], 5)),
+    }
+    _, _ = Goniometer(axes_list, scan).define_scan_from_goniometer_axes()
+    Xidx, Yidx = (3, 2)
+    assert axes_list[Xidx].start_pos != 0.0
+    assert axes_list[Xidx].start_pos == 1.0 and axes_list[Xidx].end_pos == 3.0
+    assert axes_list[Yidx].start_pos == 0.0 and axes_list[Yidx].end_pos == 1.0
+    assert axes_list[Yidx].increment == 0.2 and axes_list[Xidx].increment == 1.0
+    assert axes_list[Xidx].num_steps == 2 and axes_list[Yidx].num_steps == 5

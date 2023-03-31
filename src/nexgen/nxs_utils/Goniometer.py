@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from typing import Dict, List, Tuple
 
+import numpy as np
 from numpy.typing import ArrayLike
 
 from .Axes import Axis
@@ -39,6 +40,17 @@ class Goniometer:
             return None
         return idx[0]
 
+    def _check_and_update_goniometer_from_scan(self, scan_axes: List[str]):
+        """Check that the values entered for the goniometer match with the scan."""
+        for ax in scan_axes:
+            idx = self._find_axis_in_goniometer(ax)
+            if self.axes_list[idx].start_pos != np.min(self.scan[ax]):
+                self.axes_list[idx].start_pos = np.min(self.scan[ax])
+            u = np.unique(self.scan[ax])
+            if self.axes_list[idx].increment != round(u[1] - u[0], 3):
+                self.axes_list[idx].increment = round(u[1] - u[0], 3)
+            self.axes_list[idx].num_steps = len(u)
+
     def define_scan_from_goniometer_axes(
         self,
         grid_scan_options: GridScanOptions | None = None,
@@ -53,6 +65,8 @@ class Goniometer:
             if self.axes_list[ax_idx].transformation_type == "rotation":
                 osc_scan = self.scan
                 transl_scan = None
+
+                self._check_and_update_goniometer_from_scan(scan_axes)
             else:
                 # Find number of scan points
                 tot_num_imgs = len(self.scan[scan_axes[0]])
@@ -63,12 +77,14 @@ class Goniometer:
                 )
                 transl_scan = self.scan
 
-                # Overwrite start and step if needed.
+                self._check_and_update_goniometer_from_scan(scan_axes)
 
             return osc_scan, transl_scan
 
         osc_axis = identify_osc_axis(self.axes_list)
-        osc_idx = [n for n, ax in enumerate(self.axes_list) if ax.name == osc_axis][0]
+        osc_idx = self._find_axis_in_goniometer(
+            osc_axis
+        )  # [n for n, ax in enumerate(self.axes_list) if ax.name == osc_axis][0]
 
         transl_axes = (
             grid_scan_options.axes_order

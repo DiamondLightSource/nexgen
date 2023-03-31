@@ -130,7 +130,6 @@ def calculate_scan_points(
         Dict[str, ArrayLike]: A dictionary of ("axis_name": axis_range) key-value pairs.
     """
 
-    # TODO Figure out reverse rotation, for now given by negative increment.
     if rotation is True:
         if axis1.transformation_type != "rotation":
             raise ScanAxisError(
@@ -141,7 +140,7 @@ def calculate_scan_points(
                 "Missing number of scan points, impossible to calculate scan."
             )
 
-        n_images = axis1.num_steps if axis1.num_steps > 0 else tot_num_imgs
+        n_images = tot_num_imgs if tot_num_imgs else axis1.num_steps
         spec = Line(
             axis1.name, axis1.start_pos, axis1.end_pos - axis1.increment, n_images
         )
