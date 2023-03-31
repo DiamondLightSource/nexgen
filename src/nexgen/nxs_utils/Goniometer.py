@@ -55,6 +55,7 @@ class Goniometer:
         self,
         grid_scan_options: GridScanOptions | None = None,
         rev_rotation: bool = False,
+        update: bool = True,  # Option to set to False for ssx if needed
     ) -> Tuple[Dict, Dict]:
         """Define oscillation and grid scan ranges for image data collections."""
         if self.scan:
@@ -66,7 +67,6 @@ class Goniometer:
                 osc_scan = self.scan
                 transl_scan = None
 
-                self._check_and_update_goniometer_from_scan(scan_axes)
             else:
                 # Find number of scan points
                 tot_num_imgs = len(self.scan[scan_axes[0]])
@@ -77,6 +77,7 @@ class Goniometer:
                 )
                 transl_scan = self.scan
 
+            if update is True:
                 self._check_and_update_goniometer_from_scan(scan_axes)
 
             return osc_scan, transl_scan
