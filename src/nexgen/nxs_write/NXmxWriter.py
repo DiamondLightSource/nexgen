@@ -10,7 +10,7 @@ from typing import Dict, List, Tuple
 
 import h5py
 
-from .. import MAX_FRAMES_PER_DATASET, reframe_arrays
+from .. import MAX_FRAMES_PER_DATASET, MAX_SUFFIX_DIGITS, reframe_arrays
 from ..nxs_utils.Detector import Detector
 from ..nxs_utils.Goniometer import Goniometer
 from ..nxs_utils.Source import Attenuator, Beam, Source
@@ -96,7 +96,9 @@ class NXmxFileWriter:
         template = (
             get_filename_template(self.filename)
             if not image_filename
-            else (self.filename.parent / f"{image_filename}_%0{6}d.h5").as_posix()
+            else (
+                self.filename.parent / f"{image_filename}_%0{MAX_SUFFIX_DIGITS}d.h5"
+            ).as_posix()
         )
         datafiles = [Path(template % i) for i in range(1, num_files + 1)]
         nxmx_logger.info(f"Number of datafiles to be written: {len(datafiles)}.")

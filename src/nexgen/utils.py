@@ -13,6 +13,8 @@ from typing import List
 import h5py
 import pint
 
+from . import MAX_SUFFIX_DIGITS
+
 __all__ = [
     "get_filename_template",
     "get_nexus_filename",
@@ -51,12 +53,14 @@ def get_filename_template(input_filename: Path) -> str:
     """
     if input_filename.suffix == ".nxs":
         filename_root = input_filename.stem
-        filename_template = input_filename.parent / f"{filename_root}_%0{6}d.h5"
+        filename_template = (
+            input_filename.parent / f"{filename_root}_%0{MAX_SUFFIX_DIGITS}d.h5"
+        )
     elif input_filename.suffix == ".h5" and "master" in input_filename.as_posix():
-        filename = input_filename.stem.replace("master", f"%0{6}d")
+        filename = input_filename.stem.replace("master", f"%0{MAX_SUFFIX_DIGITS}d")
         filename_template = input_filename.parent / f"{filename}.h5"
     elif input_filename.suffix == ".h5" and "meta" in input_filename.as_posix():
-        filename = input_filename.stem.replace("meta", f"%0{6}d")
+        filename = input_filename.stem.replace("meta", f"%0{MAX_SUFFIX_DIGITS}d")
         filename_template = input_filename.parent / f"{filename}.h5"
     else:
         raise NameError(

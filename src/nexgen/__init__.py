@@ -15,6 +15,7 @@ import numpy as np
 from numpy.typing import ArrayLike
 
 MAX_FRAMES_PER_DATASET = 1000
+MAX_SUFFIX_DIGITS = 6
 
 # Logging set up
 logging.getLogger("nexgen").addHandler(logging.NullHandler())
