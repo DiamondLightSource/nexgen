@@ -96,7 +96,7 @@ class NXmxFileWriter:
         template = (
             get_filename_template(self.filename)
             if not image_filename
-            else self.filename.parent / f"{image_filename}_%0{6}d.h5"
+            else (self.filename.parent / f"{image_filename}_%0{6}d.h5").as_posix()
         )
         datafiles = [Path(template % i) for i in range(1, num_files + 1)]
         nxmx_logger.info(f"Number of datafiles to be written: {len(datafiles)}.")
