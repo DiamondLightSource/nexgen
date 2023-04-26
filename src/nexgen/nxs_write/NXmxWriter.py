@@ -14,7 +14,7 @@ from .. import MAX_FRAMES_PER_DATASET, MAX_SUFFIX_DIGITS, reframe_arrays
 from ..nxs_utils.Detector import Detector
 from ..nxs_utils.Goniometer import Goniometer
 from ..nxs_utils.Source import Attenuator, Beam, Source
-from ..tools.VDS_tools import image_vds_writer
+from ..tools.VDS_tools import clean_unused_links, image_vds_writer
 from ..utils import get_filename_template
 from .NXclassWriters import (
     write_NXcoordinate_system_set,
@@ -227,6 +227,11 @@ class NXmxFileWriter:
             # write vds
             if vds is True:
                 image_vds_writer(
+                    nxs,
+                    (self.tot_num_imgs, *self.detector.detector_params.image_size),
+                    start_index=vds_offset,
+                )
+                clean_unused_links(
                     nxs,
                     (self.tot_num_imgs, *self.detector.detector_params.image_size),
                     start_index=vds_offset,

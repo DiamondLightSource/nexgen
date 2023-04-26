@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 from numpy.typing import ArrayLike
 
+from .. import MAX_SUFFIX_DIGITS
 from ..utils import get_iso_timestamp, units_of_length, units_of_time, ureg
 from . import (
     calculate_origin,
@@ -110,7 +111,7 @@ def write_NXdata(
 
     # If mode is images, link to blank image data. Else go to events.
     if data_type[0] == "images":
-        tmp_name = f"data_%0{6}d"
+        tmp_name = f"data_%0{MAX_SUFFIX_DIGITS}d"
         if datafiles[0].parent != Path(nxsfile.filename).parent:
             # This is needed in case the new NeXus file is to be written in a different directory from the data, eg. processing/
             for n, filename in enumerate(datafiles):
