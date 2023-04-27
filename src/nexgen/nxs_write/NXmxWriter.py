@@ -14,7 +14,7 @@ from .. import MAX_FRAMES_PER_DATASET, MAX_SUFFIX_DIGITS, reframe_arrays
 from ..nxs_utils.Detector import Detector
 from ..nxs_utils.Goniometer import Goniometer
 from ..nxs_utils.Source import Attenuator, Beam, Source
-from ..tools.VDS_tools import image_vds_writer
+from ..tools.VDS_tools import clean_unused_links, image_vds_writer
 from ..utils import get_filename_template
 from .NXclassWriters import (
     write_NXcoordinate_system_set,
@@ -231,12 +231,23 @@ class NXmxFileWriter:
             vds_shape (Tuple[int,int,int], optional): Shape of the data which will be linked in the VDS. If not passed, it will be defined as \
             (tot_num_imgs - start_idx, *image_size). Defaults to None.
         """
+        if not vds_shape:
+            vds_shape = (
+                self.tot_num_imgs - vds_offset,
+                *self.detector.detector_params.image_size,
+            )
+
         with h5py.File(self.filename, "r+") as nxs:
             image_vds_writer(
                 nxs,
                 (self.tot_num_imgs, *self.detector.detector_params.image_size),
                 start_index=vds_offset,
                 vds_shape=vds_shape,
+            )
+            clean_unused_links(
+                nxs,
+                vds_shape=vds_shape,
+                start_index=vds_offset,
             )
 
 
