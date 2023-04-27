@@ -241,9 +241,6 @@ def image_vds_writer(
     nxdata.create_virtual_dataset(entry_key, layout, fillvalue=-1)
     vds_logger.info("VDS written to NeXus file.")
 
-    # Now clean up
-    clean_unused_links(nxsfile, vds_shape, start_index)
-
 
 def vds_file_writer(
     nxsfile: h5py.File,
