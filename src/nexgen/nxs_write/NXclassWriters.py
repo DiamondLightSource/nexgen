@@ -63,7 +63,7 @@ def write_NXdata(
     nxsfile: h5py.File,
     datafiles: List[Path],
     goniometer: Dict,
-    data_type: Tuple[str, int],
+    data_type: str,
     osc_scan: Dict[str, ArrayLike],
     transl_scan: Dict[str, ArrayLike] = None,
     entry_key: str = "data",
@@ -75,7 +75,7 @@ def write_NXdata(
         nxsfile (h5py.File): NeXus file handle.
         datafiles (List[Path]): List of Path objects pointing to HDF5 data files.
         goniometer (Dict): Dictionary containing all the axes information.
-        data_type (Tuple[str, int]): Images or events.
+        data_type (str): Images or events.
         osc_scan (Dict[str, ArrayLike]): Rotation scan. If writing events, this is just a (start, end) tuple.
         transl_scan (Dict[str, ArrayLike], optional): Scan along the xy axes at sample. Defaults to None.
         entry_key (str): Entry key to create the external links to the data files. Defaults to data.
@@ -110,7 +110,7 @@ def write_NXdata(
     )
 
     # If mode is images, link to blank image data. Else go to events.
-    if data_type[0] == "images":
+    if data_type == "images":
         tmp_name = f"data_%0{MAX_SUFFIX_DIGITS}d"
         if datafiles[0].parent != Path(nxsfile.filename).parent:
             # This is needed in case the new NeXus file is to be written in a different directory from the data, eg. processing/
@@ -119,7 +119,7 @@ def write_NXdata(
         else:
             for n, filename in enumerate(datafiles):
                 nxdata[tmp_name % (n + 1)] = h5py.ExternalLink(filename.name, entry_key)
-    elif data_type[0] == "events":
+    elif data_type == "events":
         if len(datafiles) == 1 and "meta" in datafiles[0].as_posix():
             meta = datafiles
         else:
@@ -181,7 +181,7 @@ def write_NXdata(
 def write_NXsample(
     nxsfile: h5py.File,
     goniometer: Dict,
-    data_type: Tuple[str, int],
+    data_type: str,
     osc_scan: Dict[str, ArrayLike],
     transl_scan: Dict[str, ArrayLike] = None,
     sample_depends_on: str = None,
@@ -193,7 +193,7 @@ def write_NXsample(
     Args:
         nxsfile (h5py.File): NeXus file handle.
         goniometer (Dict):Dictionary containing all the axes information.
-        data_type (Tuple[str, int]): Images or events.
+        data_type (str): Images or events.
         osc_scan (Dict[str, ArrayLike]): Rotation scan. If writing events, this is just a (start, end) tuple.
         transl_scan (Dict[str, ArrayLike], optional): Scan along the xy axes at sample. Defaults to None.
         sample_depends_on (str, optional): Axis on which the sample depends on. If absent, the depends_on field will be set to the last axis listed in the goniometer. Defaults to None.
@@ -267,7 +267,7 @@ def write_NXsample(
                 )
                 nxtransformations[ax] = nxsfile[nxax.name]
             # Write {axisname}_increment_set and {axis_name}_end datasets
-            if data_type[0] == "images":
+            if data_type == "images":
                 increment_set = np.repeat(goniometer["increments"][idx], len(osc_range))
                 nxsample_ax.create_dataset(
                     ax + "_increment_set",

@@ -176,7 +176,7 @@ class NXmxFileWriter:
                 nxs,
                 datafiles,
                 gonio,
-                ("images", self.tot_num_imgs),
+                "images",
                 osc,
                 transl,
             )
@@ -214,7 +214,7 @@ class NXmxFileWriter:
             write_NXsample(
                 nxs,
                 gonio,
-                ("images", self.tot_num_imgs),
+                "images",
                 osc,
                 transl,
                 sample_depends_on=None,  # TODO
@@ -260,6 +260,13 @@ class NXmxFileWriter:
                 vds_shape=vds_shape,
                 start_index=vds_offset,
             )
+
+            # If number of frames in the VDS is lower than the total, nimages in NXcollection should be overwritten to match this
+            if vds_shape[0] < self.tot_num_imgs:
+                del nxs["/entry/instrument/detector/detectorSpecific/nimages"]
+                nxs["/entry/instrument/detector/detectorSpecific"].create_dataset(
+                    "nimages", data=vds_shape[0]
+                )
 
 
 class EventNXmxFileWriter(NXmxFileWriter):
@@ -311,7 +318,7 @@ class EventNXmxFileWriter(NXmxFileWriter):
                 nxs,
                 [metafile],
                 gonio,
-                ("events", None),
+                "events",
                 osc,
             )
 
@@ -347,7 +354,7 @@ class EventNXmxFileWriter(NXmxFileWriter):
             write_NXsample(
                 nxs,
                 gonio,
-                ("events", None),
+                "events",
                 osc,
                 sample_depends_on=None,  # TODO
             )
@@ -435,7 +442,7 @@ class EDNXmxFileWriter(NXmxFileWriter):
                 nxs,
                 datafiles,
                 gonio,
-                ("images", self.tot_num_imgs),
+                "images",
                 osc,
                 entry_key=data_entry_key,
             )
@@ -471,7 +478,7 @@ class EDNXmxFileWriter(NXmxFileWriter):
             write_NXsample(
                 nxs,
                 gonio,
-                ("images", self.tot_num_imgs),
+                "images",
                 osc,
             )
 

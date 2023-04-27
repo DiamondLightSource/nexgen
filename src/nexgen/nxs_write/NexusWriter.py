@@ -228,7 +228,7 @@ def call_writers(
         nxsfile,
         datafiles,
         goniometer,
-        data_type,
+        data_type[0],
         osc_scan,
         transl_scan,
     )
@@ -266,7 +266,7 @@ def call_writers(
     write_NXsample(
         nxsfile,
         goniometer,
-        data_type,
+        data_type[0],
         osc_scan,
         transl_scan,
         sample_depends_on,
