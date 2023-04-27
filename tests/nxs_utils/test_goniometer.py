@@ -41,7 +41,7 @@ def test_define_scan_given_a_rotation_scan():
 
 
 def test_define_scan_given_a_grid_scan():
-    # FIXME For testing pusposes, reset number of images for omega
+    # For testing pusposes, reset number of images for omega
     axes_list[0].num_steps = 0
     axes_list[0].increment = 0
     # Whatever scan is passed overrides the gonio definition.
@@ -55,6 +55,25 @@ def test_define_scan_given_a_grid_scan():
     assert "sam_x" in list(grid_scan.keys()) and "sam_y" in list(grid_scan.keys())
     assert_array_equal(grid_scan["sam_y"], scan["sam_y"])
     assert_array_equal(grid_scan["sam_x"], scan["sam_x"])
+
+
+def test_get_number_of_scan_points_given_a_scan():
+    scan = {
+        "sam_y": np.array([0, 0, 0, 1, 1, 1]),
+        "sam_x": np.array([0, 1, 2, 2, 1, 0]),
+    }
+    num_frames = Goniometer(axes_list, scan).get_number_of_scan_points()
+    assert num_frames == len(scan["sam_x"])
+
+
+def test_get_number_of_scan_points():
+    num_frames = Goniometer(
+        [
+            Axis("omega", ".", "rotation", (0, 0, -1), 90.0),
+            Axis("phi", "omega", "rotation", (0, 0, -1), 0.0, 0.2, 10),
+        ],
+    ).get_number_of_scan_points()
+    assert num_frames == 10
 
 
 def test_define_scan_axes_for_event_mode_given_scan():

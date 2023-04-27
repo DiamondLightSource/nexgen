@@ -117,6 +117,18 @@ class Goniometer:
 
         return osc_scan, transl_scan
 
+    def get_number_of_scan_points(self):
+        """Get the number of scan points from the defined scan."""
+        scan = (
+            self.scan
+            if self.scan is not None
+            else self.define_scan_from_goniometer_axes()[0]
+        )
+
+        axis_name = list(scan.keys())[0]
+        scan_length = len(scan[axis_name])
+        return scan_length
+
     def define_scan_axes_for_event_mode(
         self,
         end_position: float | None = None,
