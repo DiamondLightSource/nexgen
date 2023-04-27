@@ -69,20 +69,12 @@ class NXmxFileWriter:
         self.attenuator = attenuator
         self.tot_num_imgs = tot_num_imgs
 
-    def _find_meta_file(self) -> Path:
-        """Find meta.h5 file in directory."""
-        try:
-            metafile = [
-                f
-                for f in self.filename.parent.iterdir()
-                if self.filename.stem + "_meta" in f.as_posix()
-            ][0]
-        except IndexError:
-            metafile = None
-            nxmx_logger.exception("No metafile found in directory.")
-
-        nxmx_logger.info(f"Found {metafile} in directory.")
-        return metafile
+    def _get_meta_file(self, image_filename: str = None) -> Path:
+        """Get filename_meta.h5 file in directory."""
+        if image_filename:
+            return self.filename.parent / f"{image_filename}_meta.h5"
+        else:
+            return self.filename.parent / f"{self.filename.stem}_meta.h5"
 
     def _get_data_files_list(
         self,
@@ -152,10 +144,10 @@ class NXmxFileWriter:
             image_datafiles (List | None, optional): List of image data files. If not passed, the program will look for \
                 files with the stem_######.h5 in the target directory. Defaults to None.
             image_filename (str | None, optional): Filename stem to use to look for image files. Needed in case it doesn't match \
-                the NeXus file name. Defaults to None.
+                the NeXus file name. Format: filename_runnumber. Defaults to None.
             start_time (str, optional): Collection start time if already available, in the format "%Y-%m-%dT%H:%M:%SZ". Defaults to None.
         """
-        metafile = self._find_meta_file()
+        metafile = self._get_meta_file(image_filename)
         datafiles = (
             image_datafiles
             if image_datafiles
@@ -305,7 +297,7 @@ class EventNXmxFileWriter(NXmxFileWriter):
         """
         # Get metafile
         # No data files, just link to meta
-        metafile = super()._find_meta_file()
+        metafile = super()._get_meta_file()
 
         # Unpack
         gonio, det, module, source = super()._unpack_dictionaries()
