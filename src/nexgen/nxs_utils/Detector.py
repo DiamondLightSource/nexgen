@@ -104,12 +104,6 @@ class Detector:
         exposure_time: float,
         module_vectors: List[Point3D] | List[Tuple],
     ):
-        if type(detector_params) not in [
-            EigerDetector,
-            TristanDetector,
-            SinglaDetector,
-        ]:
-            raise UnknownDetectorTypeError("Unknown detector.")
         self.detector_params = detector_params
         self.detector_axes = detector_axes
         self.beam_center = beam_center

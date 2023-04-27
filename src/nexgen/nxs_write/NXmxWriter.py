@@ -71,11 +71,16 @@ class NXmxFileWriter:
 
     def _find_meta_file(self) -> Path:
         """Find meta.h5 file in directory."""
-        metafile = [
-            f
-            for f in self.filename.parent.iterdir()
-            if self.filename.stem + "_meta" in f.as_posix()
-        ][0]
+        try:
+            metafile = [
+                f
+                for f in self.filename.parent.iterdir()
+                if self.filename.stem + "_meta" in f.as_posix()
+            ][0]
+        except IndexError:
+            metafile = None
+            nxmx_logger.exception("No metafile found in directory.")
+
         nxmx_logger.info(f"Found {metafile} in directory.")
         return metafile
 
