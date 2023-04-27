@@ -236,6 +236,17 @@ class NXmxFileWriter:
                 self.tot_num_imgs - vds_offset,
                 *self.detector.detector_params.image_size,
             )
+            if self.goniometer.get_number_of_scan_points() != vds_shape[0]:
+                vds_shape = (
+                    self.goniometer.get_number_of_scan_points(),
+                    *vds_shape[1:],
+                )
+                nxmx_logger.warning(
+                    "The number of scan points doesn't match the calculated vds_shape. \
+                    Resetting it to match the number of frames indicated by the scan."
+                )
+
+        nxmx_logger.info(f"VDS shape set to {vds_shape}.")
 
         with h5py.File(self.filename, "r+") as nxs:
             image_vds_writer(
