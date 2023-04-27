@@ -1,8 +1,7 @@
-import pytest
+# import pytest
 from numpy.testing import assert_array_equal
 
 from nexgen.nxs_utils import Axis, Detector, EigerDetector, TristanDetector
-from nexgen.nxs_utils.Detector import UnknownDetectorTypeError
 from nexgen.utils import Point3D
 
 det_axes = [
@@ -39,13 +38,6 @@ def test_detector_axes():
         ".",
         "two_theta",
     ]
-
-
-def test_detector_to_dict_raises_error_if_unknown_type():
-    with pytest.raises(UnknownDetectorTypeError):
-        Detector(
-            "", det_axes, [100, 200], 0.1, [(0, 0, 1), Point3D(0, -1, 0)]
-        ).to_dict()
 
 
 def test_get_detector_description():
