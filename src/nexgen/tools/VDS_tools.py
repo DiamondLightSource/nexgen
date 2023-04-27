@@ -127,8 +127,10 @@ def split_datasets(
         vds_logger.warning(f"VDS start index not passed as int, will attempt to cast")
 
     if vds_shape is None:
-        vds_logger.info("VDS shape not chosen, the full data shape will be used.")
-        vds_shape = data_shape
+        vds_logger.info(
+            "VDS shape not chosen, it will be calculated from the full data shape and the chosen start index."
+        )
+        vds_shape = (data_shape[0] - start_idx, *data_shape[1:])
 
     full_frames = int(data_shape[0])
     end_cut_frames = int(full_frames - vds_shape[0]) - int(start_idx)
@@ -179,7 +181,7 @@ def create_virtual_layout(datasets: List[Dataset], data_type: Any):
         )
 
         layout[dest_start:dest_end, :, :] = vsource[
-            dataset.start_index : dataset.stop_index[0], :, :
+            dataset.start_index : dataset.stop_index, :, :
         ]
         dest_start = dest_end
 
