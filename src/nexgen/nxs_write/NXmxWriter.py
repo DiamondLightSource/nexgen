@@ -14,7 +14,7 @@ from .. import MAX_FRAMES_PER_DATASET, MAX_SUFFIX_DIGITS, reframe_arrays
 from ..nxs_utils.Detector import Detector
 from ..nxs_utils.Goniometer import Goniometer
 from ..nxs_utils.Source import Attenuator, Beam, Source
-from ..tools.VDS_tools import clean_unused_links, image_vds_writer
+from ..tools.VDS_tools import image_vds_writer
 from ..utils import get_filename_template
 from .NXclassWriters import (
     write_NXcoordinate_system_set,
@@ -137,8 +137,6 @@ class NXmxFileWriter:
         self,
         image_datafiles: List | None = None,
         image_filename: str | None = None,
-        vds: bool = False,
-        vds_offset: int = 0,
         start_time: str | None = None,
     ):
         """Write the NXmx format NeXus file.
@@ -150,8 +148,6 @@ class NXmxFileWriter:
                 files with the stem_######.h5 in the target directory. Defaults to None.
             image_filename (str | None, optional): Filename stem to use to look for image files. Needed in case it doesn't match \
                 the NeXus file name. Defaults to None.
-            vds (bool, optional): Write a VDS as entry/data/data if True. Defaults to False.
-            vds_offset (int, optional): Offset for the vds writer. Defaults to 0.
             start_time (str, optional): Collection start time if already available, in the format "%Y-%m-%dT%H:%M:%SZ". Defaults to None.
         """
         metafile = self._find_meta_file()
@@ -224,18 +220,24 @@ class NXmxFileWriter:
                 sample_depends_on=None,  # TODO
             )
 
-            # write vds
-            if vds is True:
-                image_vds_writer(
-                    nxs,
-                    (self.tot_num_imgs, *self.detector.detector_params.image_size),
-                    start_index=vds_offset,
-                )
-                clean_unused_links(
-                    nxs,
-                    (self.tot_num_imgs, *self.detector.detector_params.image_size),
-                    start_index=vds_offset,
-                )
+    def write_vds(self, vds_offset: int = 0, vds_shape: Tuple[int, int, int] = None):
+        """Write a Virtual Dataset.
+
+        This method adds a VDS under /entry/data/data in the NeXus file, linking to either the full datasets or the subset defined by \
+        vds_offset (used as start index) and vds_shape.
+
+        Args:
+            vds_offset (int, optional): Start index for the vds writer. Defaults to 0.
+            vds_shape (Tuple[int,int,int], optional): Shape of the data which will be linked in the VDS. If not passed, it will be defined as \
+            (tot_num_imgs - start_idx, *image_size). Defaults to None.
+        """
+        with h5py.File(self.filename, "r+") as nxs:
+            image_vds_writer(
+                nxs,
+                (self.tot_num_imgs, *self.detector.detector_params.image_size),
+                start_index=vds_offset,
+                vds_shape=vds_shape,
+            )
 
 
 class EventNXmxFileWriter(NXmxFileWriter):
@@ -356,7 +358,12 @@ class EDNXmxFileWriter(NXmxFileWriter):
         self.ED_coord_system = ED_coord_system
         self.coord_frame = coordinate_frame
 
-    def write(self, image_datafiles: List | None = None, vds: bool = False):
+    def write(
+        self,
+        image_datafiles: List | None = None,
+        vds: bool = False,
+        data_entry_key: str = "/entry/data/data",
+    ):
         """Write a NXmx-like NeXus file for electron diffraction.
 
         This method overrides the write() method of NXmxFileWriter, from which thsi class inherits.
@@ -386,11 +393,6 @@ class EDNXmxFileWriter(NXmxFileWriter):
             module,
             self.coord_frame,
             self.ED_coord_system,
-        )
-
-        # Define entry_key if dealing with singla detector
-        data_entry_key = (
-            "/entry/data/data" if "SINGLA" in det["description"].upper() else "data"
         )
 
         with h5py.File(self.filename, "x") as nxs:
@@ -456,4 +458,5 @@ class EDNXmxFileWriter(NXmxFileWriter):
                 image_vds_writer(
                     nxs,
                     (self.tot_num_imgs, *self.detector.detector_params.image_size),
+                    entry_key=data_entry_key,
                 )

@@ -241,6 +241,9 @@ def image_vds_writer(
     nxdata.create_virtual_dataset(entry_key, layout, fillvalue=-1)
     vds_logger.info("VDS written to NeXus file.")
 
+    # Now clean up
+    clean_unused_links(nxsfile, vds_shape, start_index)
+
 
 def vds_file_writer(
     nxsfile: h5py.File,
@@ -300,7 +303,7 @@ def clean_unused_links(
 
     Args:
         nxsfile (h5py.File): Handle to NeXus file being written.
-        vds_shape (Tuple | List): Shape of the full dataset, usually defined as (num_frames, *image_size).
+        vds_shape (Tuple | List): Actual shape of the VDS dataset, usually defined as (num_frames, *image_size).
         start_index(int): The start point for the source data. Defaults to 0.
     """
     vds_logger.info("Cleaning links unused in VDS ...")
