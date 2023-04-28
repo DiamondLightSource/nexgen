@@ -6,9 +6,10 @@ from __future__ import annotations
 import logging
 import math
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 import h5py
+import numpy as np
 
 from .. import MAX_FRAMES_PER_DATASET, MAX_SUFFIX_DIGITS, reframe_arrays
 from ..nxs_utils.Detector import Detector
@@ -217,7 +218,12 @@ class NXmxFileWriter:
                 sample_depends_on=None,  # TODO
             )
 
-    def write_vds(self, vds_offset: int = 0, vds_shape: Tuple[int, int, int] = None):
+    def write_vds(
+        self,
+        vds_offset: int = 0,
+        vds_shape: Tuple[int, int, int] = None,
+        vds_dtype: Any = np.uint16,
+    ):
         """Write a Virtual Dataset.
 
         This method adds a VDS under /entry/data/data in the NeXus file, linking to either the full datasets or the subset defined by \
@@ -227,6 +233,7 @@ class NXmxFileWriter:
             vds_offset (int, optional): Start index for the vds writer. Defaults to 0.
             vds_shape (Tuple[int,int,int], optional): Shape of the data which will be linked in the VDS. If not passed, it will be defined as \
             (tot_num_imgs - start_idx, *image_size). Defaults to None.
+            vds_dtype (Any, optional): The type of the input data. Defaults to np.uint16.
         """
         if not vds_shape:
             vds_shape = (
@@ -251,6 +258,7 @@ class NXmxFileWriter:
                 (self.tot_num_imgs, *self.detector.detector_params.image_size),
                 start_index=vds_offset,
                 vds_shape=vds_shape,
+                data_type=vds_dtype,
             )
             clean_unused_links(
                 nxs,
