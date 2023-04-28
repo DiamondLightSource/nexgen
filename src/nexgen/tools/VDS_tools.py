@@ -307,6 +307,9 @@ def clean_unused_links(
     # Location of the VDS
     nxdata = nxsfile["/entry/data"]
     dataset_names = find_datasets_in_file(nxdata)
+    if len(dataset_names) == 1:
+        vds_logger.info("Only one linked file, no need to remove it.")
+        return
     datasets = [nxdata[name] for name in dataset_names]
     dataset_lengths = [d.shape[0] for d in datasets]
     if sum(dataset_lengths) == vds_shape[0]:
