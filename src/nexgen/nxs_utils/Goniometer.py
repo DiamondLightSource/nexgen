@@ -50,7 +50,7 @@ class Goniometer:
             if len(u) == 1:
                 # eg. for a scan that goes back and forth on one line.
                 self.axes_list[idx].increment == 0.0
-            if self.axes_list[idx].increment != round(u[1] - u[0], 3):
+            elif self.axes_list[idx].increment != round(u[1] - u[0], 3):
                 self.axes_list[idx].increment = round(u[1] - u[0], 3)
             self.axes_list[idx].num_steps = len(u)
 
