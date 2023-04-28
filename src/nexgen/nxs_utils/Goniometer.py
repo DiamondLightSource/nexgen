@@ -47,6 +47,9 @@ class Goniometer:
             if self.axes_list[idx].start_pos != np.min(self.scan[ax]):
                 self.axes_list[idx].start_pos = np.min(self.scan[ax])
             u = np.unique(self.scan[ax])
+            if len(u) == 1:
+                # eg. for a scan that goes back and forth on one line.
+                self.axes_list[idx].increment == 0.0
             if self.axes_list[idx].increment != round(u[1] - u[0], 3):
                 self.axes_list[idx].increment = round(u[1] - u[0], 3)
             self.axes_list[idx].num_steps = len(u)
