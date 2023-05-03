@@ -650,7 +650,7 @@ def write_NXdetector(
     # Check if there are any remaining datasets to be written (usually from the meta file but not always)
     others = [
         "threshold_energy",
-        "bit_depth_readout",
+        "bit_depth_image",
         "detector_number",
         "detector_readout_time",
         "photon_energy",
