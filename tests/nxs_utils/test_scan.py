@@ -78,7 +78,7 @@ def test_calculate_scan_points_for_rotation_scan():
     assert "chi" in rot.keys()
     assert len(rot["chi"]) == 4
     assert rot["chi"][0] == ax.start_pos
-    assert rot["chi"][-1] == ax.end_pos - ax.increment
+    assert rot["chi"][-1] == ax.end_pos
     assert_array_equal(rot["chi"], np.array([0.0, 0.5, 1.0, 1.5]))
 
 
@@ -139,6 +139,4 @@ def test_calculate_scan_points_for_non_snaked_grid_scan():
         == test_axis_list[-2].num_steps * test_axis_list[-1].num_steps
     )
     assert round(grid["sam_y"][5] - grid["sam_y"][0], 1) == 0.1
-    assert (
-        grid["sam_x"][-1] == test_axis_list[-1].end_pos - test_axis_list[-1].increment
-    )
+    assert grid["sam_x"][-1] == test_axis_list[-1].end_pos

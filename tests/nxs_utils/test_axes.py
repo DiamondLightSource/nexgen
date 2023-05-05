@@ -36,4 +36,4 @@ def test_axis_is_scan():
 
 def test_axis_end_pos():
     assert test_rot_axis.end_pos == test_rot_axis.start_pos
-    assert test_transl_axis.end_pos == 1.0
+    assert test_transl_axis.end_pos == 0.9

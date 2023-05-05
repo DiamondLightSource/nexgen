@@ -40,7 +40,8 @@ class Axis:
 
     @property
     def end_pos(self) -> float:
-        return self.start_pos + self.increment * self.num_steps
+        # Using the same system as scanspec
+        return self.start_pos + self.increment * (self.num_steps - 1)
 
     @property
     def is_scan(self) -> bool:

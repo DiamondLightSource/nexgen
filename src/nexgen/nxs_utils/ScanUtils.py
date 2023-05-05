@@ -141,9 +141,7 @@ def calculate_scan_points(
             )
 
         n_images = tot_num_imgs if tot_num_imgs else axis1.num_steps
-        spec = Line(
-            axis1.name, axis1.start_pos, axis1.end_pos - axis1.increment, n_images
-        )
+        spec = Line(axis1.name, axis1.start_pos, axis1.end_pos, n_images)
         scan_path = ScanPath(spec.calculate())
 
         return scan_path.consume().midpoints
@@ -162,31 +160,31 @@ def calculate_scan_points(
         spec = Line(
             axis1.name,
             axis1.start_pos,
-            axis1.end_pos - axis1.increment,
+            axis1.end_pos,
             axis1.num_steps,
         )
     elif axis2 and snaked is True:
         spec = Line(
             axis1.name,
             axis1.start_pos,
-            axis1.end_pos - axis1.increment,
+            axis1.end_pos,
             axis1.num_steps,
         ) * ~Line(
             axis2.name,
             axis2.start_pos,
-            axis2.end_pos - axis2.increment,
+            axis2.end_pos,
             axis2.num_steps,
         )
     else:
         spec = Line(
             axis1.name,
             axis1.start_pos,
-            axis1.end_pos - axis1.increment,
+            axis1.end_pos,
             axis1.num_steps,
         ) * Line(
             axis2.name,
             axis2.start_pos,
-            axis2.end_pos - axis2.increment,
+            axis2.end_pos,
             axis2.num_steps,
         )
     scan_path = ScanPath(spec.calculate())
