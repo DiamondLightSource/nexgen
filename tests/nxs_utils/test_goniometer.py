@@ -107,7 +107,7 @@ def test_given_scan_gonio_positions_correctly_updated():
     _, _ = Goniometer(axes_list, scan).define_scan_from_goniometer_axes()
     Xidx, Yidx = (3, 2)
     assert axes_list[Xidx].start_pos != 0.0
-    assert axes_list[Xidx].start_pos == 1.0 and axes_list[Xidx].end_pos == 3.0
-    assert axes_list[Yidx].start_pos == 0.0 and axes_list[Yidx].end_pos == 1.0
+    assert axes_list[Xidx].start_pos == 1.0 and axes_list[Xidx].end_pos == 2.0
+    assert axes_list[Yidx].start_pos == 0.0 and axes_list[Yidx].end_pos == 0.8
     assert axes_list[Yidx].increment == 0.2 and axes_list[Xidx].increment == 1.0
     assert axes_list[Xidx].num_steps == 2 and axes_list[Yidx].num_steps == 5
