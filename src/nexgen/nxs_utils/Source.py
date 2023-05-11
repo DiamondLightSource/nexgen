@@ -11,6 +11,8 @@ from ..utils import Facility
 
 
 class Source:
+    """Source definition."""
+
     def __init__(
         self,
         beamline: str,
@@ -72,12 +74,15 @@ class Source:
         return source
 
     def to_dict(self):
+        """Write source information to a dictionary."""
         return self._generate_source_dict()
 
 
 @dataclass_json
 @dataclass
 class Beam:
+    """Beam definition."""
+
     wavelength: float
     flux: float | None = None
 
@@ -85,4 +90,6 @@ class Beam:
 @dataclass_json
 @dataclass
 class Attenuator:
+    """Attenuator definition."""
+
     transmission: float

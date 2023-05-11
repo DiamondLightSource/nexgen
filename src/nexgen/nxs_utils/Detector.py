@@ -45,6 +45,8 @@ TRISTAN_CONST = {
 @dataclass_json
 @dataclass
 class EigerDetector:
+    """Define a Dectris Eiger detector."""
+
     description: str
     image_size: List[float] | Tuple[float]
     sensor_material: Literal["Si", "CdTe"]
@@ -66,6 +68,8 @@ class EigerDetector:
 @dataclass_json
 @dataclass
 class TristanDetector:
+    """Define a Tristan detector."""
+
     description: str
     image_size: List[float] | Tuple[float]
     sensor_material: str = "Si"
@@ -80,6 +84,8 @@ class TristanDetector:
 @dataclass_json
 @dataclass
 class SinglaDetector:
+    """Define a Dectris Singla detector."""
+
     description: str
     image_size: List[float] | Tuple[float]
     sensor_material: str = "Si"
@@ -96,6 +102,8 @@ DetectorType = Union[EigerDetector, TristanDetector, SinglaDetector]
 
 
 class Detector:
+    """Detector definition."""
+
     def __init__(
         self,
         detector_params: DetectorType,
@@ -161,7 +169,9 @@ class Detector:
         return self.detector_params.description
 
     def to_dict(self):
+        """Write the detector information to a dictionary."""
         return self._generate_detector_dict()
 
     def to_module_dict(self):
+        """Write the module information to a dictionary."""
         return self._generate_module_dict()

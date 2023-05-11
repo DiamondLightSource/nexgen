@@ -190,6 +190,3 @@ def calculate_scan_points(
     scan_path = ScanPath(spec.calculate())
 
     return scan_path.consume().midpoints
-
-
-# TODO Figure out how to refactor I24 chip to use this

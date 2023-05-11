@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 0.6.24
+
+### Added
+- Initial set up of new tools for refactoring:
+    - Definitions for Goniometer, Detector, Source and Axes.
+    - New writer for NXmx and NXmx-like NeXus files which will substitute the old ones.
+    - New scan utilities for calculations to work better with scanspec.
+
+### Changed
+- VDS writer can now create a dataset from just a subset of data, using starting offset and desired size.
+
 ## 0.6.23
 
 ### Changed

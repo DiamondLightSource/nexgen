@@ -19,6 +19,10 @@ from .ScanUtils import (
 
 
 class Goniometer:
+    """
+    Goniometer definition.
+    """
+
     def __init__(
         self,
         axes: List[Axis],
@@ -60,7 +64,7 @@ class Goniometer:
         rev_rotation: bool = False,
         update: bool = True,  # Option to set to False for ssx if needed
     ) -> Tuple[Dict, Dict]:
-        """Define oscillation and grid scan ranges for image data collections."""
+        """Define oscillation and/or grid scan ranges for image data collections."""
         if self.scan:
             # Look at keys to see if rotation or grid scan
             scan_axes = list(self.scan.keys())
@@ -136,7 +140,7 @@ class Goniometer:
         self,
         end_position: float | None = None,
     ) -> Tuple[Dict, Dict]:
-        """Define oscillation and grid scan ranges for event-mode collections."""
+        """Define oscillation and/or grid scan ranges for event-mode collections."""
         # NOTE For Tristan we already give it (start, stop).
         # To figure out how this actually will work, I need to fix the Tristan writer.
         if self.scan:
@@ -172,4 +176,5 @@ class Goniometer:
         return goniometer
 
     def to_dict(self):
+        """Write the goniometer information to a dictionary."""
         return self._generate_goniometer_dict()
