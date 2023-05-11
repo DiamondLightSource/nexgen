@@ -133,7 +133,7 @@ def ED_call_writers(
 
     # NXdata: /entry/data
     write_NXdata(
-        nxsfile, datafiles, goniometer, data_type, OSC, entry_key=data_entry_key
+        nxsfile, datafiles, goniometer, data_type[0], OSC, entry_key=data_entry_key
     )
 
     # NXinstrument: /entry/instrument
@@ -167,7 +167,7 @@ def ED_call_writers(
     write_NXsample(
         nxsfile,
         goniometer,
-        data_type,
+        data_type[0],
         OSC,
     )
 

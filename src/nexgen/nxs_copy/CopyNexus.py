@@ -9,8 +9,8 @@ from typing import List
 
 import h5py
 
-from .. import get_nexus_filename
 from ..nxs_write import create_attributes
+from ..utils import get_nexus_filename
 from . import get_nexus_tree
 
 copy_logger = logging.getLogger("nexgen.CopyNeXus")

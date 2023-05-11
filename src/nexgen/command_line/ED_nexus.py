@@ -11,11 +11,12 @@ from pathlib import Path
 import freephil
 import h5py
 
-from .. import get_iso_timestamp, get_nexus_filename, log
+from .. import log
 from ..beamlines.ED_params import ED_coord_system
 from ..nxs_write.EDNexusWriter import ED_call_writers
 from ..tools.ED_tools import extract_from_SINGLA_master, find_beam_centre
 from ..tools.VDS_tools import image_vds_writer, vds_file_writer
+from ..utils import get_iso_timestamp, get_nexus_filename
 from . import config_parser, nexus_parser, phil2dict, version_parser
 
 logger = logging.getLogger("nexgen.EDNeXusGenerator")

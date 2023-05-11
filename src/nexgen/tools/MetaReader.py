@@ -9,7 +9,7 @@ from typing import Any, Dict, List
 
 import h5py
 
-from .. import units_of_length
+from ..utils import units_of_length
 from .Metafile import DectrisMetafile, TristanMetafile
 
 # TODO actually define the type for scope extract and replace Any with Union
