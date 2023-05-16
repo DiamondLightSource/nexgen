@@ -24,6 +24,7 @@ EIGER_CONST = {
     "pixel_mask": "mask",
     "pixel_mask_applied": "_dectris/pixel_mask_applied",
     "bit_depth_readout": "_dectris/bit_depth_readout",
+    "bit_depth_image": "_dectris/bit_depth_image",
     "detector_readout_time": "_dectris/detector_readout_time",
     "threshold_energy": "_dectris/threshold_energy",
     "software_version": "_dectris/software_version",
