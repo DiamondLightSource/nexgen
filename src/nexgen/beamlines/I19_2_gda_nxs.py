@@ -15,9 +15,9 @@ from .. import log
 from ..nxs_write import calculate_scan_range
 from ..nxs_write.NexusWriter import call_writers
 from ..nxs_write.NXclassWriters import write_NXdatetime, write_NXentry
+from ..nxs_write.NXmxWriter import eiger_meta_links as dset_links
 from ..tools.VDS_tools import image_vds_writer
 from ..utils import get_iso_timestamp, get_nexus_filename
-from . import eiger_meta_links as dset_links
 from .GDAtools.ExtendedRequest import ExtendedRequestIO
 from .GDAtools.GDAjson2params import (
     read_detector_params_from_json,

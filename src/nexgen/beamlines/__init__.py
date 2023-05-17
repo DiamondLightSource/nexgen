@@ -29,17 +29,3 @@ source = {
     "type": "Synchrotron X-ray Source",
     "beamline_name": None,
 }
-
-eiger_meta_links = [
-    [
-        "pixel_mask",
-        "pixel_mask_applied",
-        "flatfield",
-        "flatfield_applied",
-        "threshold_energy",
-        "bit_depth_readout",
-        "detector_readout_time",
-        "serial_number",
-    ],
-    ["software_version"],
-]

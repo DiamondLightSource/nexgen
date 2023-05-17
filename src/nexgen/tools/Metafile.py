@@ -141,6 +141,12 @@ class DectrisMetafile(Metafile):
             self.__getitem__(_loc_thickness[0])[0],
         )
 
+    def get_bit_depth_image(self):
+        _loc = [obj for obj in self.walk if "bit_depth_image" in obj]
+        if len(_loc) == 0:
+            return None
+        return self.__getitem__(_loc[0])[0]
+
     def find_mask(self) -> Tuple[str, str]:
         if self.hasMask:
             mask_path = [obj for obj in self.walk if obj.lower() == "mask"]
@@ -175,6 +181,12 @@ class DectrisMetafile(Metafile):
 
     def find_bit_depth_readout(self) -> str:
         _loc = [obj for obj in self.walk if "bit_depth_readout" in obj]
+        if len(_loc) == 0:
+            return None
+        return _loc[0]
+
+    def find_bit_depth_image(self) -> str:
+        _loc = [obj for obj in self.walk if "bit_depth_image" in obj]
         if len(_loc) == 0:
             return None
         return _loc[0]
