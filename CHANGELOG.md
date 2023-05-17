@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 0.6.25
+
+
+## Added
+- Method looking up `bit_depth_image` in Eiger meta file.
+- Definition of vds dtype using information in `bit_depth_image`.
+
+## Fixed
+- Correct links in NeXus file for ssx.
+- VDS dtype for ssx.
+
 ## 0.6.24
 
 ### Added
