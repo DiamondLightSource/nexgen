@@ -14,10 +14,10 @@ from .. import log
 from ..nxs_write import calculate_scan_range, find_number_of_images, find_osc_axis
 from ..nxs_write.NexusWriter import call_writers
 from ..nxs_write.NXclassWriters import write_NXdatetime, write_NXentry
+from ..nxs_write.NXmxWriter import eiger_meta_links as dset_links
 from ..tools.MetaReader import overwrite_beam, update_detector_axes, update_goniometer
 from ..tools.VDS_tools import image_vds_writer
 from ..utils import get_iso_timestamp, get_nexus_filename
-from . import eiger_meta_links as dset_links
 from . import source
 from .I19_2_params import (
     eiger4M_module,

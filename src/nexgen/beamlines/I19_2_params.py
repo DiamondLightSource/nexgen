@@ -81,7 +81,7 @@ eiger4M_params = {
     "starts": None,
     "ends": None,
     "increments": [0.0, 0.0],
-    "bit_depth_readout": "_dectris/bit_depth_readout",
+    "bit_depth_image": "_dectris/bit_depth_image",
     "detector_readout_time": "_dectris/detector_readout_time",
     "threshold_energy": "_dectris/threshold_energy",
     "software_version": "_dectris/software_version",

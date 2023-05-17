@@ -13,10 +13,15 @@ import h5py
 from .. import MAX_FRAMES_PER_DATASET, log
 from ..nxs_write.NexusWriter import call_writers
 from ..nxs_write.NXclassWriters import write_NXdatetime, write_NXentry, write_NXnote
-from ..tools.MetaReader import update_detector_axes, update_goniometer
+from ..nxs_write.NXmxWriter import eiger_meta_links
+from ..tools.MetaReader import (
+    define_vds_data_type,
+    update_detector_axes,
+    update_goniometer,
+)
 from ..tools.VDS_tools import image_vds_writer
 from ..utils import get_filename_template, get_iso_timestamp, get_nexus_filename
-from . import PumpProbe, eiger_meta_links, source
+from . import PumpProbe, source
 
 __all__ = ["ssx_eiger_writer"]
 
@@ -192,6 +197,8 @@ def ssx_eiger_writer(
     with h5py.File(metafile, "r", libver="latest", swmr=True) as fh:
         update_goniometer(fh, goniometer)
         update_detector_axes(fh, detector)
+        vds_dtype = define_vds_data_type(fh)
+
     logger.debug(
         "Goniometer and detector axes have ben updated with values from the meta file."
     )
@@ -347,7 +354,12 @@ def ssx_eiger_writer(
 
             # Write VDS
             # TODO discuss how VDS should be saved. All in one probably not ideal for N_EXPOSURES > 1.
-            image_vds_writer(nxsfile, (int(tot_num_imgs), *detector["image_size"]))
+            logger.info(f"Start VDS writer. Data type: {vds_dtype}.")
+            image_vds_writer(
+                nxsfile,
+                (int(tot_num_imgs), *detector["image_size"]),
+                data_type=vds_dtype,
+            )
 
             if timestamps:
                 write_NXdatetime(nxsfile, timestamps)

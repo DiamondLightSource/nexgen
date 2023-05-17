@@ -8,6 +8,7 @@ import logging
 from typing import Any, Dict, List
 
 import h5py
+import numpy as np
 
 from ..utils import units_of_length
 from .Metafile import DectrisMetafile, TristanMetafile
@@ -250,3 +251,17 @@ def update_detector_axes(meta_file: h5py.File, detector: Dict):
             "No _dectris/ group found in meta file. Detector axes value couldn't be updated from here."
         )
         return
+
+
+def define_vds_data_type(meta_file: h5py.File) -> Any:
+    overwrite_logger.info("Define dtype for VDS creating from bit_depth_image.")
+    meta = DectrisMetafile(meta_file)
+
+    nbits = meta.get_bit_depth_image()
+    overwrite_logger.info(f"Found value for bit_depth_image: {nbits}.")
+    if nbits == 32:
+        return np.uint32
+    elif nbits == 8:
+        return np.uint8
+    else:
+        return np.uint16
