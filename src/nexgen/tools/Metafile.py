@@ -142,7 +142,7 @@ class DectrisMetafile(Metafile):
         )
 
     def get_bit_depth_image(self):
-        _loc = [obj for obj in self.walk if "bit_depth_readout" in obj]
+        _loc = [obj for obj in self.walk if "bit_depth_image" in obj]
         if len(_loc) == 0:
             return None
         return self.__getitem__(_loc[0])[0]

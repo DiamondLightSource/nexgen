@@ -7,6 +7,7 @@ from numpy.testing import assert_array_equal
 
 from nexgen.tools.Metafile import DectrisMetafile, TristanMetafile
 from nexgen.tools.MetaReader import (
+    define_vds_data_type,
     overwrite_beam,
     update_detector_axes,
     update_goniometer,
@@ -46,6 +47,7 @@ def dummy_eiger_meta_file():
     test_meta_file["_dectris/two_theta_start"] = np.array([0.0])
     test_meta_file["_dectris/two_theta_increment"] = np.array([0.0])
     test_meta_file["_dectris/detector_distance"] = np.array([0.19])
+    test_meta_file["_dectris/bit_depth_image"] = np.array([32])
     yield test_meta_file
 
 
@@ -66,6 +68,7 @@ def test_Eiger_meta_file(dummy_eiger_meta_file):
         "phi_start": 0.0,
         "two_theta_increment": 0.0,
         "two_theta_start": 0.0,
+        "bit_depth_image": 32,
     }
     assert meta.get_number_of_images() == 10
     assert meta.get_detector_size() == test_detector_size
@@ -90,3 +93,9 @@ def test_update_detector_axes(dummy_eiger_meta_file):
     assert len(test_detector["starts"]) == len(test_detector["axes"])
     assert_array_equal(test_detector["starts"], test_detector["ends"])
     assert_array_equal(test_detector["starts"], [0.0, 190.0])
+
+
+def test_define_vds_shape(dummy_eiger_meta_file):
+    vds_shape = define_vds_data_type(dummy_eiger_meta_file)
+    assert vds_shape is not None
+    assert vds_shape == np.uint32
