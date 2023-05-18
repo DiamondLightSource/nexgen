@@ -1,7 +1,11 @@
 # CHANGELOG
 
-## 0.6.25
+## 0.6.26
 
+# Fixed
+- Temporary fix to have `bit_depth_readout` link to the correct value in Eiger meta file.
+
+## 0.6.25
 
 ## Added
 - Method looking up `bit_depth_image` in Eiger meta file.

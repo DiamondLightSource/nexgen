@@ -23,7 +23,7 @@ EIGER_CONST = {
     "flatfield_applied": "_dectris/flatfield_correction_applied",
     "pixel_mask": "mask",
     "pixel_mask_applied": "_dectris/pixel_mask_applied",
-    "bit_depth_readout": "_dectris/bit_depth_readout",
+    "bit_depth_readout": "_dectris/bit_depth_image",  # Gorilla to be consistent with NeXus format (and make DIALS work)
     "bit_depth_image": "_dectris/bit_depth_image",
     "detector_readout_time": "_dectris/detector_readout_time",
     "threshold_energy": "_dectris/threshold_energy",

@@ -41,6 +41,7 @@ eiger_meta_links = [
         "flatfield",
         "flatfield_applied",
         "threshold_energy",
+        "bit_depth_readout",
         "bit_depth_image",
         "detector_readout_time",
         "serial_number",
