@@ -34,6 +34,13 @@ def test_axis_is_scan():
     assert test_transl_axis.is_scan is True
 
 
+def test_axis_start_pos():
+    assert test_rot_axis.start_pos != 0.0
+    assert test_rot_axis.start_pos == -90.0
+    test_rot_axis_2 = Axis("phi", ".", "rotation", Point3D(0, 0, -1))
+    assert test_rot_axis_2.start_pos == 0.0
+
+
 def test_axis_end_pos():
     assert test_rot_axis.end_pos == test_rot_axis.start_pos
     assert test_transl_axis.end_pos == 0.9

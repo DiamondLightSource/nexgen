@@ -20,7 +20,7 @@ class Axis:
     depends: str
     transformation_type: Literal["translation", "rotation"]
     vector: Point3D | Tuple[float, float, float]
-    start_pos: float
+    start_pos: float = 0.0
     increment: float = 0.0
     num_steps: int = 0
     offset: Point3D | Tuple[float, float, float] = (0.0, 0.0, 0.0)
