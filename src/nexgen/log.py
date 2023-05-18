@@ -1,9 +1,10 @@
 """
 Logging configuration.
 """
-
 import logging
 import logging.config
+
+import nexgen
 
 logging_config = {
     "version": 1,
@@ -43,6 +44,7 @@ def config(logfile: str = None, write_mode: str = "a"):
         write_mode (str, optional): String indicating writing mode for the output .log file. Defaults to "a".
     """
     nexgen_logger = logging.getLogger("nexgen")
+    nexgen_logger.info(f"Using nexgen {nexgen.__version__}")
     if logfile:
         fileFormatter = logging.Formatter(
             "%(asctime)s - %(name)s - %(levelname)s || %(message)s",
