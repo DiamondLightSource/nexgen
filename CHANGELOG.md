@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.6.27
+
+# Changed
+- VDS clean up of unused links in NXmxFileWriter is now optional and set to False by default. It should only be set to True if positive that all the files have already been written.
+
 ## 0.6.26
 
 # Fixed
