@@ -224,17 +224,20 @@ class NXmxFileWriter:
         vds_offset: int = 0,
         vds_shape: Tuple[int, int, int] = None,
         vds_dtype: Any = np.uint16,
+        clean_up: bool = False,
     ):
         """Write a Virtual Dataset.
 
         This method adds a VDS under /entry/data/data in the NeXus file, linking to either the full datasets or the subset defined by \
         vds_offset (used as start index) and vds_shape.
+        WARNING. Only use clean up if the data collection is finished and all the files have already been written.
 
         Args:
             vds_offset (int, optional): Start index for the vds writer. Defaults to 0.
             vds_shape (Tuple[int,int,int], optional): Shape of the data which will be linked in the VDS. If not passed, it will be defined as \
             (tot_num_imgs - start_idx, *image_size). Defaults to None.
             vds_dtype (Any, optional): The type of the input data. Defaults to np.uint16.
+            clean_up(bool, optional): Clean up unused links in vds. Defaults to False.
         """
         if not vds_shape:
             vds_shape = (
@@ -261,11 +264,12 @@ class NXmxFileWriter:
                 vds_shape=vds_shape,
                 data_type=vds_dtype,
             )
-            clean_unused_links(
-                nxs,
-                vds_shape=vds_shape,
-                start_index=vds_offset,
-            )
+            if clean_up is True:
+                clean_unused_links(
+                    nxs,
+                    vds_shape=vds_shape,
+                    start_index=vds_offset,
+                )
 
             # If number of frames in the VDS is lower than the total, nimages in NXcollection should be overwritten to match this
             if vds_shape[0] < self.tot_num_imgs:
