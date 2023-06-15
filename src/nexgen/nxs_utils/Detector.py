@@ -108,8 +108,8 @@ class JungfrauDetector:
     image_size: List[float] | Tuple[float]
     sensor_material: str = "Si"
     sensor_thickness: str = "0.450mm"
-    overload: int
-    underload: int
+    overload: int = 0
+    underload: int = 0
     pixel_size: List[str | float] = field(
         default_factory=lambda: ["0.075mm", "0.075mm"]
     )
