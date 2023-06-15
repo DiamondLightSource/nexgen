@@ -101,7 +101,7 @@ class SinglaDetector:
 
 @dataclass_json
 @dataclass
-class JungrfrauDetector:
+class JungfrauDetector:
     """Define a Dectris Jungfrau detector."""
 
     description: str
@@ -116,7 +116,7 @@ class JungrfrauDetector:
     detector_type: str = "Pixel"
 
 
-DetectorType = Union[EigerDetector, TristanDetector, SinglaDetector, JungrfrauDetector]
+DetectorType = Union[EigerDetector, TristanDetector, SinglaDetector, JungfrauDetector]
 
 
 class Detector:
