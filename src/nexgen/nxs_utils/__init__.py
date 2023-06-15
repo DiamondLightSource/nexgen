@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from dataclasses_json import dataclass_json
 
 from .Axes import Axis
-from .Detector import Detector, EigerDetector, TristanDetector
+from .Detector import Detector, EigerDetector, TristanDetector, JungfrauDetector
 from .Goniometer import Goniometer
 from .Source import Attenuator, Beam, Source
 
@@ -15,6 +15,7 @@ __all__ = [
     "Detector",
     "TristanDetector",
     "EigerDetector",
+    "JungfrauDetector",
     "Source",
     "Beam",
     "Attenuator",
