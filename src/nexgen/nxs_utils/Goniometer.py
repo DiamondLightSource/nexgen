@@ -30,6 +30,8 @@ class Goniometer:
     ):
         self.axes_list = axes
         self.scan = scan
+        if self.scan:
+            self._check_and_update_goniometer_from_scan(list(self.scan.keys()))
 
     def __repr__(self) -> str:
         msg = ""
