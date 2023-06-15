@@ -99,7 +99,24 @@ class SinglaDetector:
     detector_type: str = "HPC"
 
 
-DetectorType = Union[EigerDetector, TristanDetector, SinglaDetector]
+@dataclass_json
+@dataclass
+class JungrfrauDetector:
+    """Define a Dectris Jungfrau detector."""
+
+    description: str
+    image_size: List[float] | Tuple[float]
+    sensor_material: str = "Si"
+    sensor_thickness: str = "0.450mm"
+    overload: int
+    underload: int
+    pixel_size: List[str | float] = field(
+        default_factory=lambda: ["0.075mm", "0.075mm"]
+    )
+    detector_type: str = "Pixel"
+
+
+DetectorType = Union[EigerDetector, TristanDetector, SinglaDetector, JungrfrauDetector]
 
 
 class Detector:
