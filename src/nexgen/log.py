@@ -26,7 +26,7 @@ logging_config = {
     "loggers": {
         "nexgen": {
             "handlers": ["console"],
-            "level": "DEBUG",
+            "level": "INFO",
             "propagate": True,
         }
     },
