@@ -5,13 +5,23 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
+from nexgen.nxs_utils import Axis
 from nexgen.tools.Metafile import DectrisMetafile, TristanMetafile
 from nexgen.tools.MetaReader import (
     define_vds_data_type,
     overwrite_beam,
+    update_axes_from_meta,
     update_detector_axes,
     update_goniometer,
 )
+
+axes_list = [
+    Axis("omega", ".", "rotation", (0, 0, -1)),
+    Axis("sam_z", "omega", "translation", (0, 0, 1)),
+    Axis("sam_y", "sam_z", "translation", (0, 1, 0)),
+    Axis("sam_x", "sam_y", "translation", (1, 0, 0)),
+    Axis("phi", "sam_x", "rotation", (0, 0, 1)),
+]
 
 test_detector_size = (512, 1028)  # slow, fast
 test_beam = {"wavelength": 0.0}
@@ -96,6 +106,17 @@ def test_update_detector_axes(dummy_eiger_meta_file):
 
 
 def test_define_vds_shape(dummy_eiger_meta_file):
-    vds_shape = define_vds_data_type(dummy_eiger_meta_file)
+    meta = DectrisMetafile(dummy_eiger_meta_file)
+    vds_shape = define_vds_data_type(meta)
     assert vds_shape is not None
     assert vds_shape == np.uint32
+
+
+def test_update_axes_from_meta(dummy_eiger_meta_file):
+    meta = DectrisMetafile(dummy_eiger_meta_file)
+    assert axes_list[0].start_pos == 0.0  # omega
+    assert axes_list[-1].start_pos == 0.0  # phi
+    update_axes_from_meta(meta, axes_list, osc_axis="phi")
+    assert axes_list[0].start_pos == 90.0  # omega
+    assert axes_list[-1].start_pos == 0.0  # phi
+    assert axes_list[-1].num_steps == 10
