@@ -40,7 +40,7 @@ def run_extruder(
             OSC: dictionary with oscillation scan axis values.
             pump_info: updated pump probe information.
     """
-    logger.info("Running an extruder experiment.")
+    logger.debug("Running an extruder experiment.")
 
     logger.debug("All axes are fixed, setting increments to 0.0 and starts == ends.")
     goniometer["increments"] = len(goniometer["axes"]) * [0.0]
@@ -52,6 +52,7 @@ def run_extruder(
     del TRANSL
 
     pump_info = pump_probe.to_dict()
+    pump_info.pop("pump_repeat")
 
     return goniometer, OSC, pump_info
 

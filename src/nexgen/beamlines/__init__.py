@@ -21,6 +21,11 @@ class PumpProbe:
     status: bool = False
     exposure: Optional[float] = None
     delay: Optional[float] = None
+    pump_repeat: Optional[str] = "0"
+
+    def __post_init__(self):
+        if self.exposure:
+            self.status = True
 
 
 source = {
