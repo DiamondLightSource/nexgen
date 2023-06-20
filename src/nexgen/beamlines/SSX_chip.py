@@ -69,6 +69,14 @@ class Chip:
 
 
 def fullchip_conversion_table(chip: Chip) -> Dict:
+    """Associate block coordinates to block number for a full chip.
+
+    Args:
+        chip (Chip): General description of the chip.
+
+    Returns:
+        Dict: Conversion table, keys are block numbers, values are coordinates.
+    """
     coords = []
     table = {}
     for i in range(chip.num_blocks[0]):

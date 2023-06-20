@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import logging
 from collections import namedtuple
+from enum import IntEnum
 from typing import Dict, List
 
 from numpy.typing import ArrayLike
@@ -20,6 +21,11 @@ log.config()
 
 # Some options for grid scans
 GridScanOptions = namedtuple("GridScanOptions", ("axes_order", "snaked"))
+
+
+class ScanDirection(IntEnum):
+    POSITIVE = 1
+    NEGATIVE = -1
 
 
 class ScanAxisNotFoundError(Exception):

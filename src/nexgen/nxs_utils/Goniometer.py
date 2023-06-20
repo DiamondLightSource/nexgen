@@ -12,6 +12,7 @@ from numpy.typing import ArrayLike
 from .Axes import Axis
 from .ScanUtils import (
     GridScanOptions,
+    ScanDirection,
     calculate_scan_points,
     identify_grid_scan_axes,
     identify_osc_axis,
@@ -61,7 +62,7 @@ class Goniometer:
     def define_scan_from_goniometer_axes(
         self,
         grid_scan_options: GridScanOptions | None = None,
-        rev_rotation: bool = False,
+        scan_direction: ScanDirection = ScanDirection.POSITIVE,
         update: bool = True,  # Option to set to False for ssx if needed
     ) -> Tuple[Dict, Dict]:
         """Define oscillation and/or grid scan ranges for image data collections."""
@@ -90,9 +91,7 @@ class Goniometer:
             return osc_scan, transl_scan
 
         osc_axis = identify_osc_axis(self.axes_list)
-        osc_idx = self._find_axis_in_goniometer(
-            osc_axis
-        )  # [n for n, ax in enumerate(self.axes_list) if ax.name == osc_axis][0]
+        osc_idx = self._find_axis_in_goniometer(osc_axis)
 
         transl_axes = (
             grid_scan_options.axes_order
@@ -101,13 +100,19 @@ class Goniometer:
         )
 
         if len(transl_axes) == 0:
-            if rev_rotation is True:
-                self.axes_list[osc_idx].increment = -self.axes_list[osc_idx].increment
+            # Take care of rotations in both directions
+            # TODO it would be much much better if axes were passed correctly already.
+            self.axes_list[osc_idx].increment = (
+                self.axes_list[osc_idx].increment * scan_direction.value
+            )
             osc_scan = calculate_scan_points(self.axes_list[osc_idx], rotation=True)
             return osc_scan, None
 
         transl_idx = [self._find_axis_in_goniometer(ax) for ax in transl_axes]
         if len(transl_axes) == 1:
+            self.axes_list[transl_idx[0]].increment = (
+                self.axes_list[transl_idx[0]].increment * scan_direction
+            )
             transl_scan = calculate_scan_points(self.axes_list[transl_idx[0]])
         else:
             snaked = True if not grid_scan_options else grid_scan_options.snaked
