@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 
 from .Axes import Axis
 from .Detector import Detector, EigerDetector, TristanDetector
@@ -21,9 +21,8 @@ __all__ = [
 ]
 
 
-@dataclass_json
 @dataclass
-class Sample:
+class Sample(DataClassJsonMixin):
     name: str | None = None
     depends_on: str | None = None
     temperature: str | None = None

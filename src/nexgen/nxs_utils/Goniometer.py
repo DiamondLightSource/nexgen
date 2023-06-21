@@ -40,13 +40,6 @@ class Goniometer:
             msg += f"{ax.name}: {ax.start_pos} => {ax.transformation_type} on {ax.depends} \n\t"
         return f"Goniometer axes: \n\t{msg}"
 
-    def _find_axis_in_goniometer(self, val: str) -> int:
-        """Find the index of the axis matching the input string."""
-        idx = [n for n, ax in enumerate(self.axes_list) if ax.name == val]
-        if len(idx) == 0:
-            return None
-        return idx[0]
-
     def _check_and_update_goniometer_from_scan(self, scan_axes: List[str]):
         """Check that the values entered for the goniometer match with the scan."""
         for ax in scan_axes:
@@ -60,6 +53,26 @@ class Goniometer:
             elif self.axes_list[idx].increment != round(u[1] - u[0], 3):
                 self.axes_list[idx].increment = round(u[1] - u[0], 3)
             self.axes_list[idx].num_steps = len(u)
+
+    def _find_axis_in_goniometer(self, val: str) -> int:
+        """Find the index of the axis matching the input string."""
+        idx = [n for n, ax in enumerate(self.axes_list) if ax.name == val]
+        if len(idx) == 0:
+            return None
+        return idx[0]
+
+    def _generate_goniometer_dict(self):
+        goniometer = {
+            "axes": [ax.name for ax in self.axes_list],
+            "depends": [ax.depends for ax in self.axes_list],
+            "types": [ax.transformation_type for ax in self.axes_list],
+            "units": [ax.units for ax in self.axes_list],
+            "vectors": [ax.vector for ax in self.axes_list],
+            "starts": [ax.start_pos for ax in self.axes_list],
+            "increments": [abs(ax.increment) for ax in self.axes_list],
+            "ends": [ax.end_pos for ax in self.axes_list],
+        }
+        return goniometer
 
     def define_scan_from_goniometer_axes(
         self,
@@ -131,18 +144,6 @@ class Goniometer:
 
         return osc_scan, transl_scan
 
-    def get_number_of_scan_points(self):
-        """Get the number of scan points from the defined scan."""
-        scan = (
-            self.scan
-            if self.scan is not None
-            else self.define_scan_from_goniometer_axes()[0]
-        )
-
-        axis_name = list(scan.keys())[0]
-        scan_length = len(scan[axis_name])
-        return scan_length
-
     def define_scan_axes_for_event_mode(
         self,
         end_position: float | None = None,
@@ -169,18 +170,17 @@ class Goniometer:
 
         return {osc_axis: osc_range}, None
 
-    def _generate_goniometer_dict(self):
-        goniometer = {
-            "axes": [ax.name for ax in self.axes_list],
-            "depends": [ax.depends for ax in self.axes_list],
-            "types": [ax.transformation_type for ax in self.axes_list],
-            "units": [ax.units for ax in self.axes_list],
-            "vectors": [ax.vector for ax in self.axes_list],
-            "starts": [ax.start_pos for ax in self.axes_list],
-            "increments": [abs(ax.increment) for ax in self.axes_list],
-            "ends": [ax.end_pos for ax in self.axes_list],
-        }
-        return goniometer
+    def get_number_of_scan_points(self):
+        """Get the number of scan points from the defined scan."""
+        scan = (
+            self.scan
+            if self.scan is not None
+            else self.define_scan_from_goniometer_axes()[0]
+        )
+
+        axis_name = list(scan.keys())[0]
+        scan_length = len(scan[axis_name])
+        return scan_length
 
     def to_dict(self):
         """Write the goniometer information to a dictionary."""

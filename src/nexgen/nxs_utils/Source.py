@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 
 from ..utils import Facility
 
@@ -78,18 +78,16 @@ class Source:
         return self._generate_source_dict()
 
 
-@dataclass_json
 @dataclass
-class Beam:
+class Beam(DataClassJsonMixin):
     """Beam definition."""
 
     wavelength: float
     flux: float | None = None
 
 
-@dataclass_json
 @dataclass
-class Attenuator:
+class Attenuator(DataClassJsonMixin):
     """Attenuator definition."""
 
     transmission: float

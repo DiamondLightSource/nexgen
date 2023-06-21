@@ -6,7 +6,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import List, Literal, Tuple, Union
 
-from dataclasses_json import dataclass_json
+from dataclasses_json import DataClassJsonMixin
 
 from ..utils import Point3D
 from .Axes import Axis
@@ -43,9 +43,8 @@ TRISTAN_CONST = {
 }
 
 
-@dataclass_json
 @dataclass
-class EigerDetector:
+class EigerDetector(DataClassJsonMixin):
     """Define a Dectris Eiger detector."""
 
     description: str
@@ -66,9 +65,8 @@ class EigerDetector:
             return "0.750mm"
 
 
-@dataclass_json
 @dataclass
-class TristanDetector:
+class TristanDetector(DataClassJsonMixin):
     """Define a Tristan detector."""
 
     description: str
@@ -82,9 +80,8 @@ class TristanDetector:
     mode: Literal["events", "images"] = "events"
 
 
-@dataclass_json
 @dataclass
-class SinglaDetector:
+class SinglaDetector(DataClassJsonMixin):
     """Define a Dectris Singla detector."""
 
     description: str
