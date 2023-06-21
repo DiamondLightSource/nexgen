@@ -61,7 +61,7 @@ def run_extruder(
         "Getting 'oscillation scan': roation axis not moving, same value for each image as."
     )
     SCAN = calculate_scan_points(
-        goniometer_axes[osc_axis], rotation=True, tot_num_imgs=num_imgs
+        goniometer_axes[osc_idx], rotation=True, tot_num_imgs=num_imgs
     )
 
     pump_info = pump_probe.to_dict()

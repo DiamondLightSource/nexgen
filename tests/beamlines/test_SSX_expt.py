@@ -6,6 +6,14 @@ from numpy.testing import assert_array_equal
 
 from nexgen.beamlines import PumpProbe
 from nexgen.beamlines.SSX_expt import run_extruder, run_fixed_target
+from nexgen.nxs_utils import Axis
+
+axes_list = [
+    Axis("omega", ".", "rotation", (0, 0, -1)),
+    Axis("sam_z", "omega", "translation", (0, 0, 1)),
+    Axis("sam_y", "sam_z", "translation", (0, 1, 0)),
+    Axis("sam_x", "sam_y", "translation", (1, 0, 0)),
+]
 
 test_goniometer = {
     "axes": ["omega", "sam_z", "sam_y", "sam_x"],
@@ -38,14 +46,23 @@ test_chip_dict = {
 
 
 def test_run_extruder():
-    gonio, osc, info = run_extruder(test_goniometer, 10, test_pump)
-    l = len(gonio["axes"])
-    assert gonio["starts"] == l * [0.0]
-    assert gonio["ends"] == l * [0.0]
+    gonio, osc, info = run_extruder(axes_list, 10, test_pump, "omega")
+    idx = [n for n, ax in enumerate(axes_list) if ax.name == "omega"][0]
+    assert gonio[idx].start_pos == 0.0
+    assert gonio[idx].increment == 0.0
+    assert gonio[idx].num_steps == 10
     assert list(osc.keys()) == ["omega"]
     assert_array_equal(osc["omega"], np.zeros(10))
     assert type(info) is dict
     assert info["exposure"] == 0.1 and info["delay"] is None
+
+
+def test_run_extruder_with_non_zero_omega():
+    axes_list[0].start_pos = 90.0
+    gonio, osc, _ = run_extruder(axes_list, 10, test_pump)
+    assert gonio[0].start_pos == 90.0
+    assert gonio[0].increment == 0.0
+    assert_array_equal(osc["omega"], np.repeat(90.0, 10))
 
 
 @pytest.fixture
@@ -90,21 +107,6 @@ def test_run_fixed_target_with_wrong_osc_axis(dummy_chipmap_file):
             test_pump,
             osc_axis="phi",
         )
-
-
-def test_run_extruder_with_non_zero_omega():
-    test_goniometer["starts"] = [90.0, 0.0, 0.0, 0.0]
-    gonio, osc, _ = run_extruder(test_goniometer, 10, test_pump)
-    assert gonio["starts"] == gonio["ends"]
-    assert gonio["starts"][0] == 90.0
-    assert_array_equal(osc["omega"], np.repeat(90.0, 10))
-
-
-def test_run_extruder_with_no_goniometer_starts_set():
-    test_goniometer["starts"] = None
-    gonio, osc, _ = run_extruder(test_goniometer, 10, test_pump)
-    assert gonio["starts"] == [0.0, 0.0, 0.0, 0.0]
-    assert_array_equal(osc["omega"], np.repeat(0.0, 10))
 
 
 def test_run_fixed_target_with_non_zero_omega(dummy_chipmap_file):
