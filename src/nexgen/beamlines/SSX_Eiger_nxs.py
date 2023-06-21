@@ -229,7 +229,16 @@ def ssx_eiger_writer(
         "Goniometer and detector axes have ben updated with values from the meta file."
     )
 
-    # TODO add check on det_z vs SSX.det_dist here
+    # Sanity check on det_z vs SSX.det_dist
+    logger.debug("Sanity check on detector distance.")
+    det_z_idx = [n for n, ax in enumerate(det_axes) if ax.name == "det_z"]
+    if SSX.detector_distance and SSX.detector_distance != det_axes[det_z_idx].start_pos:
+        logger.debug(
+            "Detector distance value in meta file did not match with the one passed by the user.\n"
+            f"Passed value: {SSX.detector_distance}; Value stored in meta file: {det_axes[det_z_idx].start_pos}.\n"
+            "Value will be overwritten with the passed one."
+        )
+        det_axes[det_z_idx].start_pos = SSX.detector_distance
 
     # Define detector
     detector = Detector(
