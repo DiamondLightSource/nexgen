@@ -180,6 +180,8 @@ def ssx_eiger_writer(
 
         logger.info(f"Recorded pump exposure time: {pump_probe.exposure}")
         logger.info(f"Recorded pump delay time: {pump_probe.delay}")
+        if expt_type == "fixed-target":
+            pump_probe.pump_repeat = int(SSX.chip_info["PUMP_REPEAT"][1])
 
     # Get timestamps in the correct format
     timestamps = (
@@ -272,7 +274,7 @@ def ssx_eiger_writer(
 
     # TODO
     # Define goniometer - only after expt call
-    goniometer = Goniometer(gonio_axes)
+    goniometer = Goniometer(gonio_axes, SCAN)
 
     # Log a bunch of stuff
     logger.info("--- COLLECTION SUMMARY ---")

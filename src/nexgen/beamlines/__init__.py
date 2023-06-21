@@ -20,7 +20,7 @@ class PumpProbe(DataClassJsonMixin):
     status: bool = False
     exposure: Optional[float] = None
     delay: Optional[float] = None
-    pump_repeat: Optional[str] = "0"
+    pump_repeat: Optional[int] = 0
 
     def __post_init__(self):
         if self.exposure:

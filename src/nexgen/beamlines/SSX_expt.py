@@ -221,7 +221,6 @@ def run_fixed_target(
     logger.info(f"Each position has been collected {N} times.")
     logger.info(f"Pump repeat setting: {chip_info['PUMP_REPEAT'][1]}.")
     pump_info = pump_probe.to_dict()
-    pump_info["repeat"] = int(chip_info["PUMP_REPEAT"][1])
     pump_info["n_exposures"] = N
 
     return goniometer, OSC, TRANSL, pump_info
