@@ -12,6 +12,8 @@ from typing import Dict, List, Tuple
 
 import numpy as np
 
+from ..nxs_utils import Axis
+from ..nxs_utils.ScanUtils import calculate_scan_points
 from ..nxs_write.NexusWriter import ScanReader
 from . import PumpProbe
 from .SSX_chip import Chip, compute_goniometer, read_chip_map
@@ -23,38 +25,50 @@ logger = logging.getLogger("nexgen.SSX.run_expt")
 
 
 def run_extruder(
-    goniometer: Dict[str, List],
+    goniometer_axes: List[Axis],
     num_imgs: int,
     pump_probe: PumpProbe,
-) -> Tuple[Dict]:
+    osc_axis: str = "omega",
+) -> Tuple[List, Dict, Dict]:
     """Run the goniometer computations for an extruder experiment.
 
     Args:
-        goniometer (Dict[str, List]): Goniometer definition.
+        goniometer_axes (List[Axis]): List of goniometer axes for current beamline.
         num_imgs (int): Total number of images.
         pump_probe (PumpProbe): Pump probe parameters.
+        osc_axis: Defines which axis is considered the "moving" one. Defaults to omega.
 
     Returns:
-        Tuple[Dict]:
-            goniometer: updated goniometer dictionary with actual values from the scan.
-            OSC: dictionary with oscillation scan axis values.
+        Tuple[List, Dict, Dict]:
+            goniometer_axes: updated goniometer_axes list with actual values from the scan.
+            SCAN: dictionary with oscillation scan axis values.
             pump_info: updated pump probe information.
     """
     logger.debug("Running an extruder experiment.")
 
     logger.debug("All axes are fixed, setting increments to 0.0 and starts == ends.")
-    goniometer["increments"] = len(goniometer["axes"]) * [0.0]
-    if goniometer["starts"] is None:
-        goniometer["starts"] = len(goniometer["axes"]) * [0.0]
-    goniometer["ends"] = goniometer["starts"]
+    for ax in goniometer_axes:
+        # Sanity check that no increment is greater than 0.0
+        if ax.transformation_type == "rotation":
+            ax.increment = 0.0
 
-    OSC, TRANSL = ScanReader(goniometer, n_images=int(num_imgs))
-    del TRANSL
+    # Identify the "oscillation axis"
+    osc_idx = [n for n, ax in enumerate(goniometer_axes) if ax.name == osc_axis][0]
+    goniometer_axes[osc_idx].num_steps = num_imgs
+
+    # Calculate scan
+    logger.debug(
+        "Getting 'oscillation scan': roation axis not moving, same value for each image as."
+    )
+    SCAN = calculate_scan_points(
+        goniometer_axes[osc_axis], rotation=True, tot_num_imgs=num_imgs
+    )
 
     pump_info = pump_probe.to_dict()
+    logger.debug("Removing pump_repeat from pump probe necessary information.")
     pump_info.pop("pump_repeat")
 
-    return goniometer, OSC, pump_info
+    return goniometer_axes, SCAN, pump_info
 
 
 def run_fixed_target(

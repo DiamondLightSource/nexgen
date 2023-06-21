@@ -242,22 +242,23 @@ def ssx_eiger_writer(
 
     # TODO
     if expt_type == "extruder":
-        print("ext")
-        OSC = {}
-        TRANSL = None
-        pump_info = pump_probe.to_dict()  # to be returned by run func
+        from .SSX_expt import run_extruder
+
+        gonio_axes, SCAN, pump_info = run_extruder(
+            gonio_axes,
+            SSX.num_imgs,
+            pump_probe,
+        )
     elif expt_type == "fixed-target":
         print("ft")
-        OSC = {}
-        TRANSL = {}
+        SCAN = {}  # transl here
         pump_info = pump_probe.to_dict()
     else:
         print("3D")
-        OSC = {}
-        TRANSL = {}
+        SCAN = {}  # tboth here here
         pump_info = pump_probe.to_dict()
 
-    # TODO sanity check overwriting num_imaeges
+    # TODO sanity check overwriting num_images
     tot_num_imgs = SSX.num_imgs
 
     # TODO
@@ -278,9 +279,9 @@ def ssx_eiger_writer(
         logger.info(
             f"Goniometer axis: {ax.name} => {ax.transformation_type} on {ax.depends}"
         )
-    logger.info(f"Oscillation axis: {list(OSC.keys())[0]}.")
+    logger.info(f"Oscillation axis: {osc_axis}.")
     if expt_type != "extruder":
-        logger.info(f"Grid scan axes: {list(TRANSL.keys())}.")
+        logger.info(f"Grid scan axes: {list(SCAN.keys())}.")
 
     logger.info("Detector information")
     logger.info(f"{detector.detector_params.description}")
