@@ -11,8 +11,6 @@ from dataclasses_json import DataClassJsonMixin
 from ..utils import Point3D
 from .Axes import Axis
 
-__all__ = ["EigerDetector", "TristanDetector", "Detector"]
-
 
 class UnknownDetectorTypeError(Exception):
     pass

@@ -1,28 +1,20 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-
-from dataclasses_json import DataClassJsonMixin
-
 from .Axes import Axis
-from .Detector import Detector, EigerDetector, TristanDetector
+from .Detector import Detector, EigerDetector, SinglaDetector, TristanDetector
 from .Goniometer import Goniometer
+from .Sample import Sample
 from .Source import Attenuator, Beam, Source
 
 __all__ = [
     "Axis",
     "Goniometer",
     "Detector",
+    "SinglaDetector",
     "TristanDetector",
     "EigerDetector",
     "Source",
     "Beam",
     "Attenuator",
+    "Sample",
 ]
-
-
-@dataclass
-class Sample(DataClassJsonMixin):
-    name: str | None = None
-    depends_on: str | None = None
-    temperature: str | None = None

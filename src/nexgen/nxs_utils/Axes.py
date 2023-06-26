@@ -4,9 +4,15 @@ Utilities for axes definition
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Literal, Tuple
+from enum import Enum
+from typing import Tuple
 
 from ..utils import Point3D
+
+
+class TransformationType(Enum):
+    ROTATION = "rotation"
+    TRANSLATION = "translation"
 
 
 # Define axes and scans
@@ -18,7 +24,7 @@ class Axis:
 
     name: str
     depends: str
-    transformation_type: Literal["translation", "rotation"]
+    transformation_type: TransformationType
     vector: Point3D | Tuple[float, float, float]
     start_pos: float = 0.0
     increment: float = 0.0
@@ -30,6 +36,7 @@ class Axis:
             self.vector = (self.vector.x, self.vector.y, self.vector.z)
         if type(self.offset) is Point3D:
             self.offset = (self.offset.x, self.offset.y, self.offset.z)
+        self.transformation_type = self.transformation_type.value
 
     @property
     def units(self) -> str:
