@@ -251,26 +251,40 @@ def ssx_eiger_writer(
         [axes_params.fast_axis, axes_params.slow_axis],
     )
 
-    # TODO
+    tot_num_imgs = SSX.num_imgs
+
+    # Run experiment type
     if expt_type == "extruder":
         from .SSX_expt import run_extruder
 
         gonio_axes, SCAN, pump_info = run_extruder(
             gonio_axes,
-            SSX.num_imgs,
+            tot_num_imgs,
             pump_probe,
         )
     elif expt_type == "fixed-target":
-        print("ft")
+        # Define chipmap if needed
+        chipmapfile = (
+            "fullchip"
+            if SSX.chipmap is None
+            else Path(SSX.chipmap).expanduser().resolve()
+        )
+        print("ft", chipmapfile)
         SCAN = {}  # transl here
         pump_info = pump_probe.to_dict()
+        # Sanity check that things make sense
+        if SSX.num_imgs != len(SCAN["sam_x"]):
+            logger.warning(
+                f"The total number of scan points is {len(SCAN['sam_x'])}, which does not match the total number of images passed as input {SSX.num_imgs}."
+            )
+            logger.warning(
+                "Reset SSX.num_imgs to number of scan points for vds creation."
+            )
+            tot_num_imgs = len(SCAN["sam_x"])
     else:
         print("3D")
         SCAN = {}  # tboth here here
         pump_info = pump_probe.to_dict()
-
-    # TODO sanity check overwriting num_images
-    tot_num_imgs = SSX.num_imgs
 
     # TODO
     # Define goniometer - only after expt call

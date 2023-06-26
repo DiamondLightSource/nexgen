@@ -62,6 +62,10 @@ class EigerDetector(DataClassJsonMixin):
         else:
             return "0.750mm"
 
+    @property
+    def hasMeta(self) -> bool:
+        return True
+
 
 @dataclass
 class TristanDetector(DataClassJsonMixin):
@@ -76,6 +80,10 @@ class TristanDetector(DataClassJsonMixin):
     )
     detector_type: str = "Pixel"
     mode: Literal["events", "images"] = "events"
+
+    @property
+    def hasMeta(self) -> bool:
+        return True
 
 
 @dataclass
@@ -92,6 +100,10 @@ class SinglaDetector(DataClassJsonMixin):
         default_factory=lambda: ["0.075mm", "0.075mm"]
     )
     detector_type: str = "HPC"
+
+    @property
+    def hasMeta(self) -> bool:
+        return False
 
 
 DetectorType = Union[EigerDetector, TristanDetector, SinglaDetector]

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .Axes import Axis
+from .Axes import Axis, TransformationType
 from .Detector import Detector, EigerDetector, SinglaDetector, TristanDetector
 from .Goniometer import Goniometer
 from .Sample import Sample
@@ -17,4 +17,5 @@ __all__ = [
     "Beam",
     "Attenuator",
     "Sample",
+    "TransformationType",
 ]
