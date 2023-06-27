@@ -11,7 +11,7 @@ import numpy as np
 from numpy.typing import ArrayLike
 
 from ..beamlines import PumpProbe
-from ..beamlines.SSX_chip import Chip, compute_goniometer
+from ..beamlines.SSX_chip import Chip, compute_goniometer_old
 from ..nxs_write import calculate_scan_range, create_attributes
 from ..utils import units_of_length, walk_nxs
 
@@ -262,7 +262,7 @@ def compute_ssx_axes(
     if nbins % (num_blocks * chip.tot_windows_per_block()) == 0:
         # All the windows in the selected blocks (full chip or not) have been scanned at least once.
         N_EXP = nbins // (num_blocks * chip.tot_windows_per_block())
-        start_pos, end_pos = compute_goniometer(chip, axes_list, blocks=blocks)
+        start_pos, end_pos = compute_goniometer_old(chip, axes_list, blocks=blocks)
         num = (chip.num_steps[1], chip.num_steps[0])
         # Translation values
         TRANSL = {"sam_y": np.array([]), "sam_x": np.array([])}

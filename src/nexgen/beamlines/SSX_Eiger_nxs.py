@@ -261,17 +261,26 @@ def ssx_eiger_writer(
             gonio_axes,
             tot_num_imgs,
             pump_probe,
+            osc_axis,
         )
     elif expt_type == "fixed-target":
+        from .SSX_expt import run_fixed_target
+
         # Define chipmap if needed
         chipmapfile = (
             "fullchip"
             if SSX.chipmap is None
             else Path(SSX.chipmap).expanduser().resolve()
         )
-        print("ft", chipmapfile)
-        SCAN = {}  # transl here
-        pump_info = pump_probe.to_dict()
+
+        SCAN, pump_info = run_fixed_target(
+            gonio_axes,
+            SSX.chip_info,
+            chipmapfile,
+            pump_probe,
+            ["sam_y", "sam_x"],
+        )
+
         # Sanity check that things make sense
         if SSX.num_imgs != len(SCAN["sam_x"]):
             logger.warning(
@@ -286,8 +295,7 @@ def ssx_eiger_writer(
         SCAN = {}  # tboth here here
         pump_info = pump_probe.to_dict()
 
-    # TODO
-    # Define goniometer - only after expt call
+    # Define goniometer only once the full scan has been calculated.
     goniometer = Goniometer(gonio_axes, SCAN)
 
     # Log a bunch of stuff
