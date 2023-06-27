@@ -1,7 +1,6 @@
 import pytest
 
-from nexgen.nxs_utils.Source import Attenuator, Beam, Source
-from nexgen.utils import Facility
+from nexgen.nxs_utils.Source import Attenuator, Beam, Facility, Source
 
 test_beam = Beam(0.6)
 
@@ -9,7 +8,7 @@ test_beamline_source = Source("I03")
 
 test_ed_source = Source(
     "m12",
-    Facility("Diamond Light Source", "DLS", None, "DIAMOND MICROSCOPE"),
+    Facility("Diamond Light Source", "DLS", "Electron Source", "DIAMOND MICROSCOPE"),
     probe="electrons",
 )
 
@@ -53,7 +52,7 @@ def test_dource_to_dict():
 
 def test_source_for_ed():
     assert test_ed_source.beamline == "m12"
-    assert test_ed_source.facility_type is None
+    assert test_ed_source.facility_type == "Electron Source"
     assert test_ed_source.probe == "electrons"
 
     assert test_ed_source.set_instrument_name() == "DIAMOND MICROSCOPE m12"

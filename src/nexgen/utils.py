@@ -28,10 +28,6 @@ __all__ = [
 Point3D = namedtuple("Point3D", ("x", "y", "z"))
 Point3D.__doc__ = """Coordinates in 3D space."""
 
-# Describe facility
-Facility = namedtuple("Facility", ("name", "short_name", "type", "id"))
-Facility.__doc__ = """Facility description"""
-
 # Filename pattern: filename_######.h5 or filename_meta.h5
 # P = re.compile(r"(.*)_(?:\d+)")
 P = re.compile(r"(.*)_(?:meta|\d+)")
