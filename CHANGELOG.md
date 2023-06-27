@@ -6,8 +6,7 @@
 - Jungfrau detector definition.
 
 ### Changed
-- Goniometer updated right away if a scan is passed.
-
+- Goniometer updated at definition if a scan is passed.
 
 ## 0.6.27
 
@@ -16,16 +15,16 @@
 
 ## 0.6.26
 
-# Fixed
+### Fixed
 - Temporary fix to have `bit_depth_readout` link to the correct value in Eiger meta file.
 
 ## 0.6.25
 
-## Added
+### Added
 - Method looking up `bit_depth_image` in Eiger meta file.
 - Definition of vds dtype using information in `bit_depth_image`.
 
-## Fixed
+### Fixed
 - Correct links in NeXus file for ssx.
 - VDS dtype for ssx.
 
