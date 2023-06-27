@@ -11,8 +11,6 @@ from dataclasses_json import dataclass_json
 from ..utils import Point3D
 from .Axes import Axis
 
-__all__ = ["EigerDetector", "TristanDetector", "Detector"]
-
 
 class UnknownDetectorTypeError(Exception):
     pass
@@ -46,6 +44,14 @@ JUNGFRAU_CONST = {
     "flatfield": "None",
     "flatfield_applied": False,
     "pixel_mask": "Applied after processing",
+    "pixel_mask_applied": False,
+    "software_version": "0.0.0",
+}
+
+SINGLA_CONST = {
+    "flatfield": None,
+    "flatfield_applied": False,
+    "pixel_mask": None,
     "pixel_mask_applied": False,
     "software_version": "0.0.0",
 }
@@ -170,6 +176,7 @@ class Detector:
         detector["starts"] = [ax.start_pos for ax in self.detector_axes]
         detector["units"] = [ax.units for ax in self.detector_axes]
         detector["types"] = [ax.transformation_type for ax in self.detector_axes]
+        # TODO improve this
         if "eiger" in self.detector_params.description.lower():
             detector["sensor_thickness"] = self.detector_params.sensor_thickness
             detector["mode"] = "images"
@@ -181,6 +188,10 @@ class Detector:
             detector["sensor_thickness"] = self.detector_params.sensor_thickness
             detector["mode"] = "images"
             detector.update(JUNGFRAU_CONST)
+        elif "singla" in self.detector_params.description.lower():
+            detector["sensor_thickness"] = self.detector_params.sensor_thickness
+            detector["mode"] = "images"
+            detector.update(SINGLA_CONST)
         else:
             raise UnknownDetectorTypeError("Unknown detector.")
         detector["beam_center"] = self.beam_center
