@@ -6,6 +6,7 @@ from nexgen.nxs_utils import (
     Detector,
     EigerDetector,
     JungfrauDetector,
+    SinglaDetector,
     TristanDetector,
 )
 from nexgen.utils import Point3D
@@ -18,6 +19,7 @@ det_axes = [
 test_eiger = EigerDetector("Eiger2 1M", (1028, 1062), "Si", 10000, -1)
 test_tristan = TristanDetector("Tristan 1M", (515, 2069))
 test_jungfrau = JungfrauDetector("Jungfrau 1M", (1066, 1030))
+test_singla = SinglaDetector("Singla 1M", (1062, 1028))
 
 
 def test_eiger_detector():
@@ -38,6 +40,12 @@ def test_jungfrau_detector():
     assert test_jungfrau.description == "Jungfrau 1M"
     assert test_jungfrau.sensor_material == "Si"
     assert test_jungfrau.sensor_thickness == "0.320mm"
+
+
+def test_singla_detector():
+    assert test_singla.description == "Singla 1M"
+    assert test_singla.sensor_thickness == "0.450mm"
+    assert test_singla.detector_type == "HPC"
 
 
 def test_detector_axes():

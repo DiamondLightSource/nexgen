@@ -57,7 +57,7 @@ module = {
 source = {
     "name": "Diamond Light Source",
     "short_name": "DLS",
-    "type": "Electron Microscope",
+    "type": "Electron Source",
     "beamline_name": "eBIC",
     "probe": "electron",
 }

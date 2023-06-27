@@ -1,11 +1,12 @@
 # CHANGELOG
 
-## 0.#.#
+## 0.6.28
 
 ### Added
 - Jungfrau detector definition.
 
 ### Changed
+- Source type for ED now set to `Electron Source`.
 - Goniometer updated at definition if a scan is passed.
 
 ## 0.6.27
