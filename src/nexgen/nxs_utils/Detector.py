@@ -4,7 +4,7 @@ Object definition for detectors.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import List, Literal, Tuple, Union
+from typing import Dict, List, Literal, Tuple, Union
 
 from dataclasses_json import DataClassJsonMixin
 
@@ -41,9 +41,9 @@ TRISTAN_CONST = {
 }
 
 JUNGFRAU_CONST = {
-    "flatfield": "None",
+    "flatfield": None,
     "flatfield_applied": False,
-    "pixel_mask": "Applied after processing",
+    "pixel_mask": None,
     "pixel_mask_applied": False,
     "software_version": "0.0.0",
 }
@@ -79,6 +79,10 @@ class EigerDetector(DataClassJsonMixin):
             return "0.750mm"
 
     @property
+    def constants(self) -> Dict:
+        return EIGER_CONST
+
+    @property
     def hasMeta(self) -> bool:
         return True
 
@@ -96,6 +100,10 @@ class TristanDetector(DataClassJsonMixin):
     )
     detector_type: str = "Pixel"
     mode: Literal["events", "images"] = "events"
+
+    @property
+    def constants(self) -> Dict:
+        return TRISTAN_CONST
 
     @property
     def hasMeta(self) -> bool:
@@ -118,6 +126,10 @@ class SinglaDetector(DataClassJsonMixin):
     detector_type: str = "HPC"
 
     @property
+    def constants(self) -> Dict:
+        return SINGLA_CONST
+
+    @property
     def hasMeta(self) -> bool:
         return False
 
@@ -136,6 +148,14 @@ class JungfrauDetector(DataClassJsonMixin):
         default_factory=lambda: ["0.075mm", "0.075mm"]
     )
     detector_type: str = "Pixel"
+
+    @property
+    def constants(self) -> Dict:
+        return JUNGFRAU_CONST
+
+    @property
+    def hasMeta(self) -> bool:
+        return False
 
 
 DetectorType = Union[EigerDetector, TristanDetector, SinglaDetector, JungfrauDetector]
@@ -184,24 +204,13 @@ class Detector:
         detector["starts"] = [ax.start_pos for ax in self.detector_axes]
         detector["units"] = [ax.units for ax in self.detector_axes]
         detector["types"] = [ax.transformation_type for ax in self.detector_axes]
-        # TODO improve this
-        if "eiger" in self.detector_params.description.lower():
-            detector["sensor_thickness"] = self.detector_params.sensor_thickness
-            detector["mode"] = "images"
-            detector.update(EIGER_CONST)
-        elif "tristan" in self.detector_params.description.lower():
+        if "tristan" not in self.detector_params.description.lower():
             # Mode is already in params
-            detector.update(TRISTAN_CONST)
-        elif "jungfrau" in self.detector_params.description.lower():
-            detector["sensor_thickness"] = self.detector_params.sensor_thickness
             detector["mode"] = "images"
-            detector.update(JUNGFRAU_CONST)
-        elif "singla" in self.detector_params.description.lower():
+        if "eiger" in self.detector_params.description.lower():
+            # In this case sensor thickess is a property, and depends on material
             detector["sensor_thickness"] = self.detector_params.sensor_thickness
-            detector["mode"] = "images"
-            detector.update(SINGLA_CONST)
-        else:
-            raise UnknownDetectorTypeError("Unknown detector.")
+        detector.update(self.detector_params.constants)
         detector["beam_center"] = self.beam_center
         detector["exposure_time"] = self.exp_time
         return detector

@@ -73,8 +73,9 @@ class NXmxFileWriter:
         self.tot_num_imgs = tot_num_imgs
 
     def _get_meta_file(self, image_filename: str = None) -> Path | None:
-        """Get filename_meta.h5 file in directory."""
-        if "jungfrau" in self.detector.get_detector_description().lower():
+        """Get filename_meta.h5 file in directory if it's supposed to exist."""
+        if self.detector.detector_params.hasMeta is False:
+            nxmx_logger.debug("No meta file for this collection.")
             return None
         if image_filename:
             return self.filename.parent / f"{image_filename}_meta.h5"
@@ -103,7 +104,7 @@ class NXmxFileWriter:
             ).as_posix()
         )
         datafiles = [Path(template % i) for i in range(1, num_files + 1)]
-        nxmx_logger.info(f"Number of datafiles to be written: {len(datafiles)}.")
+        nxmx_logger.debug(f"Number of datafiles to be written: {len(datafiles)}.")
         return datafiles
 
     def _unpack_dictionaries(self) -> Tuple[Dict]:
@@ -153,6 +154,9 @@ class NXmxFileWriter:
             start_time (str, optional): Collection start time if already available, in the format "%Y-%m-%dT%H:%M:%SZ". Defaults to None.
         """
         metafile = self._get_meta_file(image_filename)
+        if metafile:
+            nxmx_logger.debug(f"Metafile name: {metafile.as_posix()}.")
+
         datafiles = (
             image_datafiles
             if image_datafiles

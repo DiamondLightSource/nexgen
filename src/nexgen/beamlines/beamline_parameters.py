@@ -33,6 +33,18 @@ I24Eiger = BeamlineAxes(
     slow_axis=Point3D(0, -1, 0),
 )
 
+I24Jungfrau = BeamlineAxes(
+    gonio=[
+        Axis("omega", ".", TransformationType.ROTATION, (0, 1, 0)),
+        Axis("sam_z", "omega", TransformationType.TRANSLATION, (0, 0, 1)),
+        Axis("sam_y", "sam_z", TransformationType.TRANSLATION, (0, 1, 0)),
+        Axis("sam_x", "sam_y", TransformationType.TRANSLATION, (1, 0, 0)),
+    ],
+    det_axes=[Axis("det_z", ".", TransformationType.TRANSLATION, (0, 0, 1))],
+    fast_axis=Point3D(-1, 0, 0),
+    slow_axis=Point3D(0, -1, 0),
+)
+
 # I19-2
 I19_2_gonio = [
     Axis("omega", ".", TransformationType.ROTATION, (-1, 0, 0)),

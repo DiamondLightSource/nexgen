@@ -7,13 +7,14 @@ from nexgen.nxs_utils import (
     EigerDetector,
     JungfrauDetector,
     SinglaDetector,
+    TransformationType,
     TristanDetector,
 )
 from nexgen.utils import Point3D
 
 det_axes = [
-    Axis("two_theta", ".", "rotation", Point3D(1, 0, 0), 0.0),
-    Axis("det_z", "two_theta", "translation", Point3D(0, 0, 1), 500.0),
+    Axis("two_theta", ".", TransformationType.ROTATION, Point3D(1, 0, 0), 0.0),
+    Axis("det_z", "two_theta", TransformationType.TRANSLATION, Point3D(0, 0, 1), 500.0),
 ]
 
 test_eiger = EigerDetector("Eiger2 1M", (1028, 1062), "Si", 10000, -1)
@@ -27,6 +28,7 @@ def test_eiger_detector():
     assert test_eiger.sensor_material == "Si"
     assert test_eiger.sensor_thickness == "0.450mm"
     assert test_eiger.pixel_size == ["0.075mm", "0.075mm"]
+    assert test_eiger.hasMeta is True
 
 
 def test_tristan_detector():
@@ -34,18 +36,22 @@ def test_tristan_detector():
     assert test_tristan.sensor_material == "Si"
     assert test_tristan.sensor_thickness == "0.5mm"
     assert test_tristan.mode == "events"
+    assert test_eiger.hasMeta is True
 
 
 def test_jungfrau_detector():
     assert test_jungfrau.description == "Jungfrau 1M"
     assert test_jungfrau.sensor_material == "Si"
     assert test_jungfrau.sensor_thickness == "0.320mm"
+    assert test_jungfrau.hasMeta is False
+    assert type(test_jungfrau.constants) is dict
 
 
 def test_singla_detector():
     assert test_singla.description == "Singla 1M"
     assert test_singla.sensor_thickness == "0.450mm"
     assert test_singla.detector_type == "HPC"
+    assert test_singla.hasMeta is False
 
 
 def test_detector_axes():
@@ -74,6 +80,8 @@ def test_eiger_detector_to_dict():
     ).to_dict()
     assert "pixel_mask" in list(eig.keys())
     assert "threshold_energy" in list(eig.keys())
+    assert "sensor_thickness" in list(eig.keys())
+    assert "mode" in list(eig.keys()) and eig["mode"] == "images"
 
 
 def tristan_detector_to_dict():
@@ -81,6 +89,16 @@ def tristan_detector_to_dict():
         test_tristan, det_axes, [100, 200], 0.1, [(0, 0, 1), Point3D(0, -1, 0)]
     ).to_dict()
     assert "timeslice_rollover" in list(trist.keys())
+    assert "sensor_thickness" in list(trist.keys())
+    assert "mode" in list(trist.keys()) and trist["mode"] == "events"
+
+
+def test_jungfrau_detector_to_dict():
+    jf = Detector(
+        test_jungfrau, det_axes, [100, 200], 0.1, [(0, 0, 1), Point3D(0, -1, 0)]
+    ).to_dict()
+    assert "mode" in list(jf.keys()) and jf["mode"] == "images"
+    assert_array_equal(jf["beam_center"], [100, 200])
 
 
 def test_detector_to_module_dict():
