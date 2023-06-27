@@ -49,6 +49,7 @@ eiger_meta_links = [
     ["software_version"],
 ]
 
+
 # New Writer goes here
 class NXmxFileWriter:
     """A class to generate NXmx format NeXus files."""
@@ -71,8 +72,10 @@ class NXmxFileWriter:
         self.attenuator = attenuator
         self.tot_num_imgs = tot_num_imgs
 
-    def _get_meta_file(self, image_filename: str = None) -> Path:
+    def _get_meta_file(self, image_filename: str = None) -> Path | None:
         """Get filename_meta.h5 file in directory."""
+        if "jungfrau" in self.detector.get_detector_description().lower():
+            return None
         if image_filename:
             return self.filename.parent / f"{image_filename}_meta.h5"
         else:
