@@ -98,7 +98,7 @@ class SinglaDetector:
     description: str
     image_size: List[float] | Tuple[float]
     sensor_material: str = "Si"
-    sensor_thickness: str = "0.320mm"
+    sensor_thickness: str = "0.450mm"
     overload: int = 199996
     underload: int = -1
     pixel_size: List[str | float] = field(
@@ -115,9 +115,9 @@ class JungfrauDetector:
     description: str
     image_size: List[float] | Tuple[float]
     sensor_material: str = "Si"
-    sensor_thickness: str = "0.450mm"
-    overload: int = 0
-    underload: int = 0
+    sensor_thickness: str = "0.320mm"
+    overload: int = 1000000
+    underload: int = -10
     pixel_size: List[str | float] = field(
         default_factory=lambda: ["0.075mm", "0.075mm"]
     )
