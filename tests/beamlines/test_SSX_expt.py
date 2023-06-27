@@ -6,23 +6,14 @@ from numpy.testing import assert_array_equal
 
 from nexgen.beamlines import PumpProbe
 from nexgen.beamlines.SSX_expt import run_extruder, run_fixed_target
-from nexgen.nxs_utils import Axis
+from nexgen.nxs_utils import Axis, TransformationType
 
 axes_list = [
-    Axis("omega", ".", "rotation", (0, 0, -1)),
-    Axis("sam_z", "omega", "translation", (0, 0, 1)),
-    Axis("sam_y", "sam_z", "translation", (0, 1, 0)),
-    Axis("sam_x", "sam_y", "translation", (1, 0, 0)),
+    Axis("omega", ".", TransformationType.ROTATION, (0, 0, -1)),
+    Axis("sam_z", "omega", TransformationType.TRANSLATION, (0, 0, 1)),
+    Axis("sam_y", "sam_z", TransformationType.TRANSLATION, (0, 1, 0)),
+    Axis("sam_x", "sam_y", TransformationType.TRANSLATION, (1, 0, 0)),
 ]
-
-test_goniometer = {
-    "axes": ["omega", "sam_z", "sam_y", "sam_x"],
-    "depends": [".", "omega", "sam_z", "sam_y"],
-    "types": ["rotation", "translation", "translation", "translation"],
-    "starts": [0.0, 0.0, 0.0, 0.0],
-    "ends": [0.0, 0.0, 2.0, 2.0],
-    "increments": [0.0, 0.0, 0.2, 0.2],
-}
 
 test_pump = PumpProbe()
 test_pump.status = True
@@ -82,109 +73,62 @@ def dummy_chipmap_file():
 
 
 def test_run_fixed_target(dummy_chipmap_file):
-    gonio, osc, transl, info = run_fixed_target(
-        test_goniometer,
+    transl, info = run_fixed_target(
+        axes_list,
         test_chip_dict,
         dummy_chipmap_file.name,
         test_pump,
     )
-    assert list(osc.keys()) == ["omega"]
     assert list(transl.keys()) == ["sam_y", "sam_x"]
     assert len(transl["sam_x"]) == len(transl["sam_y"])
     assert len(transl["sam_y"]) == 400
-    assert gonio["starts"] == [0.0, 0.0, 0.0, 0.0]
-    ends = [e + i for e, i in zip(gonio["ends"], gonio["increments"])]
-    assert ends == [0.0, 0.0, 2.5, 2.5]
     assert info["n_exposures"] == 1
 
 
-def test_run_fixed_target_with_wrong_osc_axis(dummy_chipmap_file):
+def test_run_fixed_target_with_wrong_axis_in_list(dummy_chipmap_file):
     with pytest.raises(ValueError):
         _ = run_fixed_target(
-            test_goniometer,
+            axes_list,
             test_chip_dict,
             dummy_chipmap_file.name,
             test_pump,
-            osc_axis="phi",
+            scan_axes=["phi", "sam_x"],
         )
 
 
-def test_run_fixed_target_with_non_zero_omega(dummy_chipmap_file):
-    test_goniometer["starts"] = [180.0, 0.0, 0.0, 0.0]
-    test_goniometer["ends"][0] = 180.0
-    gonio, osc, _, _ = run_fixed_target(
-        test_goniometer,
-        test_chip_dict,
-        dummy_chipmap_file.name,
-        test_pump,
-    )
-    assert gonio["starts"] == [180.0, 0.0, 0.0, 0.0]
-    ends = [e + i for e, i in zip(gonio["ends"], gonio["increments"])]
-    assert ends == [180.0, 0.0, 2.5, 2.5]
-    assert len(osc["omega"]) == 400
-    assert_array_equal(osc["omega"], np.repeat(180.0, 400))
-
-
-def test_fixed_target_sanity_check_on_rotation_axis_end(dummy_chipmap_file):
-    test_goniometer["starts"] = [-60.0, 0.0, 0.0, 0.0]
-    test_goniometer["ends"] = [30.0, 0.0, 0.0, 0.0]
-
-    gonio, osc, _, _ = run_fixed_target(
-        test_goniometer,
-        test_chip_dict,
-        dummy_chipmap_file.name,
-        test_pump,
-    )
-
-    assert gonio["starts"][0] == gonio["ends"][0]
-    ends = [e + i for e, i in zip(gonio["ends"], gonio["increments"])]
-    assert ends == [-60.0, 0.0, 2.5, 2.5]
-    assert_array_equal(osc["omega"], np.repeat(-60.0, 400))
-
-
-def test_fixed_target_with_no_goniometer_start_or_end_set(dummy_chipmap_file):
-    test_goniometer["starts"] = None
-    test_goniometer["ends"] = None
-    gonio, osc, _, _ = run_fixed_target(
-        test_goniometer,
-        test_chip_dict,
-        dummy_chipmap_file.name,
-        test_pump,
-    )
-    assert gonio["starts"] == [0.0, 0.0, 0.0, 0.0]
-    assert gonio["starts"][0] == gonio["ends"][0]
-    assert_array_equal(osc["omega"], np.repeat(0.0, 400))
+def test_run_fixed_target_with_missing_scan_axis(dummy_chipmap_file):
+    with pytest.raises(IndexError):
+        _ = run_fixed_target(
+            axes_list,
+            test_chip_dict,
+            dummy_chipmap_file.name,
+            test_pump,
+            scan_axes=["sam_z"],
+        )
 
 
 def test_fixed_target_raises_error_if_no_chip_info(dummy_chipmap_file):
     with pytest.raises(ValueError):
         _ = run_fixed_target(
-            test_goniometer,
-            None,
+            axes_list,
+            {},
             dummy_chipmap_file.name,
             test_pump,
         )
 
 
 def test_fixed_target_for_multiple_exposures(dummy_chipmap_file):
-    test_goniometer["starts"] = None
-    test_goniometer["ends"] = None
     test_chip_dict["N_EXPOSURES"] = [0, "2"]
-    gonio, osc, transl, info = run_fixed_target(
-        test_goniometer,
+    transl, info = run_fixed_target(
+        axes_list,
         test_chip_dict,
         dummy_chipmap_file.name,
         test_pump,
     )
-    assert list(osc.keys()) == ["omega"]
     assert list(transl.keys()) == ["sam_y", "sam_x"]
     assert len(transl["sam_x"]) == len(transl["sam_y"])
     assert len(transl["sam_y"]) == 800
-    assert gonio["starts"] == [0.0, 0.0, 0.0, 0.0]
-    ends = [e + i for e, i in zip(gonio["ends"], gonio["increments"])]
-    assert ends == [0.0, 0.0, 2.5, 2.5]
     assert info["n_exposures"] == 2
-    assert_array_equal(osc["omega"], np.repeat(0.0, 800))
 
 
 @pytest.fixture
@@ -204,46 +148,28 @@ def dummy_chipmap_file_multi_block():
 
 
 def test_fixed_target_with_upwards_blocks(dummy_chipmap_file_multi_block):
-    test_goniometer["starts"] = [-90.0, 0.0, 0.0, 0.0]
-    test_goniometer["increments"] = None
-    test_goniometer["ends"] = [0.0, 0.0, 0.0, 0.0]
     test_chip_dict["N_EXPOSURES"] = [0, "1"]
-    gonio, osc, transl, info = run_fixed_target(
-        test_goniometer,
+    transl, info = run_fixed_target(
+        axes_list,
         test_chip_dict,
         dummy_chipmap_file_multi_block.name,
         test_pump,
     )
-    assert list(osc.keys()) == ["omega"]
-    assert_array_equal(osc["omega"], np.repeat(-90.0, 1600))
     assert list(transl.keys()) == ["sam_y", "sam_x"]
     assert len(transl["sam_x"]) == len(transl["sam_y"])
     assert len(transl["sam_y"]) == 1600
-    # Starts and ends are from the last block
-    assert gonio["starts"] == [-90.0, 0.0, 2.375, 3.175]
-    ends = [e + i for e, i in zip(gonio["ends"], gonio["increments"])]
-    assert ends == [-90.0, 0.0, 0.125, 5.675]
     assert info["n_exposures"] == 1
 
 
 def test_fixed_target_fullchip_with_multiple_exposures(dummy_chipmap_file_multi_block):
-    test_goniometer["starts"] = [-90.0, 0.0, 0.0, 0.0]
-    test_goniometer["increments"] = None
-    test_goniometer["ends"] = [0.0, 0.0, 0.0, 0.0]
     test_chip_dict["N_EXPOSURES"] = [0, "2"]
-    gonio, osc, transl, info = run_fixed_target(
-        test_goniometer,
+    transl, info = run_fixed_target(
+        axes_list,
         test_chip_dict,
         dummy_chipmap_file_multi_block.name,
         test_pump,
     )
-    assert list(osc.keys()) == ["omega"]
-    assert_array_equal(osc["omega"], np.repeat(-90.0, 3200))
     assert list(transl.keys()) == ["sam_y", "sam_x"]
     assert len(transl["sam_x"]) == len(transl["sam_y"])
     assert len(transl["sam_y"]) == 3200
-    # Starts and ends are from the last block
-    assert gonio["starts"] == [-90.0, 0.0, 2.375, 3.175]
-    ends = [e + i for e, i in zip(gonio["ends"], gonio["increments"])]
-    assert ends == [-90.0, 0.0, 0.125, 5.675]
     assert info["n_exposures"] == 2
