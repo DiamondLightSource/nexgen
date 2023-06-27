@@ -98,7 +98,7 @@ class SinglaDetector:
     description: str
     image_size: List[float] | Tuple[float]
     sensor_material: str = "Si"
-    sensor_thickness: str = "0.450mm"
+    sensor_thickness: str = "0.320mm"
     overload: int = 199996
     underload: int = -1
     pixel_size: List[str | float] = field(

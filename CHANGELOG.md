@@ -3,7 +3,7 @@
 ## 0.#.#
 
 ### Added
-- JungFrau detector
+- Jungfrau detector definition.
 
 ### Changed
 - Goniometer updated right away if a scan is passed.
