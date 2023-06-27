@@ -11,8 +11,10 @@ import numpy as np
 from numpy.typing import ArrayLike
 
 from ..beamlines import PumpProbe
-from ..beamlines.SSX_chip import Chip, compute_goniometer_old
-from ..nxs_write import calculate_scan_range, create_attributes
+from ..beamlines.SSX_chip import Chip, compute_goniometer
+from ..nxs_utils import Axis, TransformationType
+from ..nxs_utils.ScanUtils import calculate_scan_points
+from ..nxs_write import create_attributes
 from ..utils import units_of_length, walk_nxs
 
 
@@ -243,15 +245,15 @@ def compute_ssx_axes(
         ],
     )
 
-    # Get axis list
-    axes_list = [k for k in nxs_in["/entry/sample/transformations"].keys()]
-    x_idx = axes_list.index("sam_x")
-    y_idx = axes_list.index("sam_y")
-
     # Rotation values
-    OSC = calculate_scan_range(
-        [rot_ax], [rot_val[0]], [rot_val[1]], n_images=nbins, rotation=True
+    osc_ax = Axis(
+        rot_ax,
+        "",
+        TransformationType.ROTATION,
+        (0, 0, 0),
+        start_pos=rot_val[0],
     )
+    OSC = calculate_scan_points(osc_ax, rotation=True, tot_num_imgs=nbins)
 
     num_blocks = (
         chip.tot_blocks() if list(blocks.values())[0] == "fullchip" else len(blocks)
@@ -262,22 +264,23 @@ def compute_ssx_axes(
     if nbins % (num_blocks * chip.tot_windows_per_block()) == 0:
         # All the windows in the selected blocks (full chip or not) have been scanned at least once.
         N_EXP = nbins // (num_blocks * chip.tot_windows_per_block())
-        start_pos, end_pos = compute_goniometer_old(chip, axes_list, blocks=blocks)
-        num = (chip.num_steps[1], chip.num_steps[0])
+
+        axis1 = Axis("sam_y", "", TransformationType.TRANSLATION, (0, 0, 0))
+        axis2 = Axis("sam_x", "", TransformationType.TRANSLATION, (0, 0, 0))
+        start_pos = compute_goniometer(chip, blocks=blocks, ax1="sam_y", ax2="sam_x")
+
         # Translation values
         TRANSL = {"sam_y": np.array([]), "sam_x": np.array([])}
-        for s, e in zip(start_pos.values(), end_pos.values()):
-            starts = [
-                s[y_idx],
-                s[x_idx],
-            ]  # because I can't be sure they will be in the right order!
-            ends = [
-                e[y_idx] - chip.step_size[1],
-                e[x_idx] - chip.step_size[0],
-            ]  # because scanspec
-            transl = calculate_scan_range(
-                ["sam_y", "sam_x"], starts, ends, n_images=num
-            )
+        for k, v in start_pos.items():
+            axis1.start_pos = v[axis1.name]
+            axis1.increment = chip.step_size[1] * v["direction"]
+            axis1.num_steps = chip.num_steps[1]
+            axis2.start_pos = v[axis2.name]
+            axis2.increment = chip.step_size[0]
+            axis2.num_steps = chip.num_steps[0]
+
+            transl = calculate_scan_points(axis1, axis2)
+
             TRANSL["sam_y"] = np.append(TRANSL["sam_y"], np.round(transl["sam_y"], 3))
             TRANSL["sam_x"] = np.append(TRANSL["sam_x"], np.round(transl["sam_x"], 3))
 
