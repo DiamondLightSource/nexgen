@@ -516,7 +516,7 @@ def write_NXdetector(
             nxdetector["flatfield"] = h5py.ExternalLink(flatfield.name, "/")
         elif detector["flatfield"] is None:
             NXclass_logger.warning(
-                "No copy of the flatfield has been found, eithere as a file or dataset."
+                "No copy of the flatfield has been found, either as a file or dataset."
             )
         else:
             nxdetector.create_dataset(

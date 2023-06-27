@@ -48,8 +48,6 @@ JUNGFRAU_CONST = {
     "pixel_mask": "Applied after processing",
     "pixel_mask_applied": False,
     "software_version": "0.0.0",
-    "detector_tick": "Unknown",
-    "detector_frequency": "Unknown",
 }
 
 
