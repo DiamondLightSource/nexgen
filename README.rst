@@ -23,6 +23,9 @@ Next Generation Nexus Generator
         :target: https://github.com/ambv/black
         :alt: Code style: black
 
+.. image:: https://zenodo.org/badge/333456026.svg
+        :target: https://zenodo.org/badge/latestdoi/333456026
+
 
 * Free software: BSD license
 * Documentation: https://nexgen.readthedocs.io.
