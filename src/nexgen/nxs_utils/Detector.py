@@ -40,6 +40,22 @@ TRISTAN_CONST = {
     "timeslice_rollover": 18,
 }
 
+JUNGFRAU_CONST = {
+    "flatfield": "None",
+    "flatfield_applied": False,
+    "pixel_mask": "Applied after processing",
+    "pixel_mask_applied": False,
+    "software_version": "0.0.0",
+}
+
+SINGLA_CONST = {
+    "flatfield": None,
+    "flatfield_applied": False,
+    "pixel_mask": None,
+    "pixel_mask_applied": False,
+    "software_version": "0.0.0",
+}
+
 
 @dataclass
 class EigerDetector(DataClassJsonMixin):
@@ -106,7 +122,23 @@ class SinglaDetector(DataClassJsonMixin):
         return False
 
 
-DetectorType = Union[EigerDetector, TristanDetector, SinglaDetector]
+@dataclass
+class JungfrauDetector(DataClassJsonMixin):
+    """Define a Dectris Jungfrau detector."""
+
+    description: str
+    image_size: List[float] | Tuple[float]
+    sensor_material: str = "Si"
+    sensor_thickness: str = "0.320mm"
+    overload: int = 1000000
+    underload: int = -10
+    pixel_size: List[str | float] = field(
+        default_factory=lambda: ["0.075mm", "0.075mm"]
+    )
+    detector_type: str = "Pixel"
+
+
+DetectorType = Union[EigerDetector, TristanDetector, SinglaDetector, JungfrauDetector]
 
 
 class Detector:
@@ -152,6 +184,7 @@ class Detector:
         detector["starts"] = [ax.start_pos for ax in self.detector_axes]
         detector["units"] = [ax.units for ax in self.detector_axes]
         detector["types"] = [ax.transformation_type for ax in self.detector_axes]
+        # TODO improve this
         if "eiger" in self.detector_params.description.lower():
             detector["sensor_thickness"] = self.detector_params.sensor_thickness
             detector["mode"] = "images"
@@ -159,6 +192,14 @@ class Detector:
         elif "tristan" in self.detector_params.description.lower():
             # Mode is already in params
             detector.update(TRISTAN_CONST)
+        elif "jungfrau" in self.detector_params.description.lower():
+            detector["sensor_thickness"] = self.detector_params.sensor_thickness
+            detector["mode"] = "images"
+            detector.update(JUNGFRAU_CONST)
+        elif "singla" in self.detector_params.description.lower():
+            detector["sensor_thickness"] = self.detector_params.sensor_thickness
+            detector["mode"] = "images"
+            detector.update(SINGLA_CONST)
         else:
             raise UnknownDetectorTypeError("Unknown detector.")
         detector["beam_center"] = self.beam_center

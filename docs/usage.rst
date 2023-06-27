@@ -137,10 +137,14 @@ The instrument name and source are defined by the values parsed from source, whi
     source = {
         "name": "Diamond Light Source",
         "short_name": "DLS",
-        "type": "Electron Microscope",
+        "type": "Electron Source",
         "beamline_name": "eBic",
         "probe": "electron",
     }
+
+
+.. note::
+    As of version `0.6.28`, the source type to go in the NXSource base class has been updated to `Electron Source`.
 
 
 To specify a more specific name for the `/entry/instrument/name` field, the following command can be added to the command line:

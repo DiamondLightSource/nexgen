@@ -3,11 +3,14 @@ Object definition for Source, Beam and Attenuator
 """
 from __future__ import annotations
 
+from collections import namedtuple
 from dataclasses import dataclass
 
 from dataclasses_json import DataClassJsonMixin
 
-from ..utils import Facility
+# Describe facility
+Facility = namedtuple("Facility", ("name", "short_name", "type", "id"))
+Facility.__doc__ = """Facility description"""
 
 
 class Source:

@@ -1,22 +1,31 @@
 # CHANGELOG
 
+## 0.6.28
+
+### Added
+- Jungfrau detector definition.
+
+### Changed
+- Source type for ED now set to `Electron Source`.
+- Goniometer updated at definition if a scan is passed.
+
 ## 0.6.27
 
-# Changed
+### Changed
 - VDS clean up of unused links in NXmxFileWriter is now optional and set to False by default. It should only be set to True if positive that all the files have already been written.
 
 ## 0.6.26
 
-# Fixed
+### Fixed
 - Temporary fix to have `bit_depth_readout` link to the correct value in Eiger meta file.
 
 ## 0.6.25
 
-## Added
+### Added
 - Method looking up `bit_depth_image` in Eiger meta file.
 - Definition of vds dtype using information in `bit_depth_image`.
 
-## Fixed
+### Fixed
 - Correct links in NeXus file for ssx.
 - VDS dtype for ssx.
 
