@@ -194,7 +194,7 @@ def run_fixed_target(
 
 
 def run_3D_grid_scan(
-    goniometer: Dict[str, List],
+    goniometer_axes: List[Axis],
     chip_info: Dict[str, List],
     chipmap: Path | str,
     pump_probe: PumpProbe,
@@ -203,7 +203,7 @@ def run_3D_grid_scan(
     """_summary_
 
     Args:
-        goniometer (Dict[str, List]): _description_
+        goniometer_axes (List[Axis]): _description_
         chip_info (Dict[str, List]): _description_
         chipmap (Path | str): _description_
         pump_probe (PumpProbe): _description_
@@ -211,7 +211,6 @@ def run_3D_grid_scan(
 
     Returns:
         Tuple[Dict]:
-            goniometer: updated goniometer dictionary with actual values from the scan.
             OSC: dictionary with oscillation scan axis values
             TRANSL: dictionary with grid scan values
             pump_info: updated pump probe information
@@ -223,4 +222,4 @@ def run_3D_grid_scan(
     pump_info = pump_probe.to_dict()
     pump_info["repeat"] = int(chip_info["PUMP_REPEAT"][1])
     pump_info["n_exposures"] = N
-    return None, None, None, pump_info
+    return None, None, pump_info
