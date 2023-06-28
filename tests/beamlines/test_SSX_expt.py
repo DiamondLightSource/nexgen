@@ -16,8 +16,8 @@ axes_list = [
 ]
 
 test_pump = PumpProbe()
-test_pump.status = True
-test_pump.exposure = 0.1
+test_pump.pump_status = True
+test_pump.pump_exposure = 0.1
 
 test_chip_dict = {
     "X_NUM_STEPS": [0, 20],
@@ -45,7 +45,7 @@ def test_run_extruder():
     assert list(osc.keys()) == ["omega"]
     assert_array_equal(osc["omega"], np.zeros(10))
     assert type(info) is dict
-    assert info["exposure"] == 0.1 and info["delay"] is None
+    assert info["pump_exposure"] == 0.1 and info["pump_delay"] is None
 
 
 def test_run_extruder_with_non_zero_omega():

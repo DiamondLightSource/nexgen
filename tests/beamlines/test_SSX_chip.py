@@ -25,17 +25,27 @@ test_goniometer = {"axes": ["omega", "sam_y", "sam_x", "phi"]}
 
 def test_pump_probe():
     pump_probe = PumpProbe()
-    pump_probe.status = True
-    pump_probe.exposure = 0.01
-    assert pump_probe.status is True
-    assert pump_probe.exposure == 0.01
-    assert pump_probe.delay is None
+    pump_probe.pump_status = True
+    pump_probe.pump_exposure = 0.01
+    assert pump_probe.pump_status is True
+    assert pump_probe.pump_exposure == 0.01
+    assert pump_probe.pump_delay is None
 
 
 def test_pump_probe_dict():
     pump_probe = PumpProbe().to_dict()
-    assert list(pump_probe.keys()) == ["status", "exposure", "delay", "pump_repeat"]
-    assert pump_probe["status"] is False
+    assert list(pump_probe.keys()) == [
+        "pump_status",
+        "pump_exposure",
+        "pump_delay",
+        "pump_repeat",
+    ]
+    assert pump_probe["pump_status"] is False
+
+
+def test_pump_status_set_to_true_if_exposure_is_passed():
+    pump_probe = PumpProbe(pump_exposure=0.1)
+    assert pump_probe.pump_status is True
 
 
 def test_chip_tot_blocks():

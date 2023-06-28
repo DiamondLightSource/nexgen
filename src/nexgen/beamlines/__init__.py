@@ -17,14 +17,14 @@ class PumpProbe(DataClassJsonMixin):
         delay (float, optional): Pump delay, in s.
     """
 
-    status: bool = False
-    exposure: Optional[float] = None
-    delay: Optional[float] = None
+    pump_status: bool = False
+    pump_exposure: Optional[float] = None
+    pump_delay: Optional[float] = None
     pump_repeat: Optional[int] = 0
 
     def __post_init__(self):
-        if self.exposure:
-            self.status = True
+        if self.pump_exposure:
+            self.pump_status = True
 
 
 source = {

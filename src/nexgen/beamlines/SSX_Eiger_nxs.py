@@ -16,6 +16,7 @@ import h5py
 from .. import log
 from ..nxs_utils import Attenuator, Beam, Detector, EigerDetector, Goniometer, Source
 from ..nxs_write.NXmxWriter import NXmxFileWriter
+from ..tools.Metafile import DectrisMetafile
 from ..tools.MetaReader import define_vds_data_type, update_axes_from_meta
 from ..utils import get_iso_timestamp
 from . import PumpProbe
@@ -170,16 +171,16 @@ def ssx_eiger_writer(
     if pump_status is True:
         # Exposure and delay could also be found in dictionary for grid scan
         logger.info("Pump status is True.")
-        pump_probe.status = pump_status
-        pump_probe.exposure = (
+        pump_probe.pump_status = pump_status
+        pump_probe.pump_exposure = (
             ssx_params["pump_exp"] if "pump_exp" in ssx_params.keys() else None
         )
-        pump_probe.delay = (
+        pump_probe.pump_delay = (
             ssx_params["pump_exp"] if "pump_exp" in ssx_params.keys() else None
         )
 
-        logger.info(f"Recorded pump exposure time: {pump_probe.exposure}")
-        logger.info(f"Recorded pump delay time: {pump_probe.delay}")
+        logger.info(f"Recorded pump exposure time: {pump_probe.pump_exposure}")
+        logger.info(f"Recorded pump delay time: {pump_probe.pump_delay}")
         if expt_type == "fixed-target":
             pump_probe.pump_repeat = int(SSX.chip_info["PUMP_REPEAT"][1])
 
@@ -209,7 +210,6 @@ def ssx_eiger_writer(
     wl = SSX.wavelength
     if not wl:
         logger.debug("No wavelength passed, looking for it in the meta file.")
-        from ..tools.Metafile import DectrisMetafile
 
         with h5py.File(metafile, "r", libver="latest", swmr=True) as fh:
             wl = DectrisMetafile(fh).get_wavelength()
@@ -233,7 +233,7 @@ def ssx_eiger_writer(
 
     # Sanity check on det_z vs SSX.det_dist
     logger.debug("Sanity check on detector distance.")
-    det_z_idx = [n for n, ax in enumerate(det_axes) if ax.name == "det_z"]
+    det_z_idx = [n for n, ax in enumerate(det_axes) if ax.name == "det_z"][0]
     if SSX.detector_distance and SSX.detector_distance != det_axes[det_z_idx].start_pos:
         logger.debug(
             "Detector distance value in meta file did not match with the one passed by the user.\n"
@@ -348,10 +348,11 @@ def ssx_eiger_writer(
         NXmx_Writer.write(start_time=timestamps[0])
         if pump_status is True:
             logger.info("Write pump information to file.")
-            NXmx_Writer.update_timestamps(
+            NXmx_Writer.add_NXnote(
                 notes=pump_info,
                 loc="/entry/source/notes",
             )
+        NXmx_Writer.update_timestamps((None, timestamps[1]))
         NXmx_Writer.write_vds(
             vds_shape=(tot_num_imgs, *detector.detector_params.image_size),
             vds_dtype=vds_dtype,
