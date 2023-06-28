@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from nexgen.nxs_utils import Axis
+from nexgen.nxs_utils import Axis, TransformationType
 from nexgen.tools.Metafile import DectrisMetafile, TristanMetafile
 from nexgen.tools.MetaReader import (
     define_vds_data_type,
@@ -16,11 +16,11 @@ from nexgen.tools.MetaReader import (
 )
 
 axes_list = [
-    Axis("omega", ".", "rotation", (0, 0, -1)),
-    Axis("sam_z", "omega", "translation", (0, 0, 1)),
-    Axis("sam_y", "sam_z", "translation", (0, 1, 0)),
-    Axis("sam_x", "sam_y", "translation", (1, 0, 0)),
-    Axis("phi", "sam_x", "rotation", (0, 0, 1)),
+    Axis("omega", ".", TransformationType.ROTATION, (0, 0, -1)),
+    Axis("sam_z", "omega", TransformationType.TRANSLATION, (0, 0, 1)),
+    Axis("sam_y", "sam_z", TransformationType.TRANSLATION, (0, 1, 0)),
+    Axis("sam_x", "sam_y", TransformationType.TRANSLATION, (1, 0, 0)),
+    Axis("phi", "sam_x", TransformationType.ROTATION, (0, 0, 1)),
 ]
 
 test_detector_size = (512, 1028)  # slow, fast
