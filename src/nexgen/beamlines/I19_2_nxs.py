@@ -25,6 +25,11 @@ from ..tools.Metafile import DectrisMetafile
 from ..tools.MetaReader import define_vds_data_type, update_axes_from_meta
 from ..utils import get_iso_timestamp, get_nexus_filename
 
+
+class ExperimentTypeError(Exception):
+    pass
+
+
 # Define a logger object
 logger = logging.getLogger("nexgen.I19-2_NeXus")
 
@@ -339,11 +344,13 @@ def nexus_writer(**params):
             from meta_file directory.
         serial (bool): Specify whether it's a serial crystallography dataset.
         det_dist (float): Distance between sample and detector, in mm.
-        chip_info (Dict): For a grid scan, dictionary containing basic chip information.
-            At least it should contain: x/y_start, x/y number of blocks and block size, x/y number of steps and number of exposures.
-        chipmap (Path | str): Path to the chipmap file corresponding to the experiment,
-            or 'fullchip' indicating that the whole chip is being scanned.
     """
+    if params["serial"] and params["serial"] is True:
+        raise ExperimentTypeError(
+            "This is writer is not enabled for ssx collections."
+            "Pleas look into SSX_Eiger or SSX_Tristan for this functionality."
+        )
+
     TR = tr_collect(
         meta_file=Path(params["meta_file"]).expanduser().resolve(),
         detector_name=params["detector_name"],
@@ -396,7 +403,7 @@ def nexus_writer(**params):
                 "No scan axis has been specified. Phi will be set as default."
             )
 
-    if "eiger" in TR.detector_name.lower() and params["serial"] is False:
+    if "eiger" in TR.detector_name.lower():
         eiger_writer(master_file, TR, timestamps)
     elif "tristan" in TR.detector_name.lower():
         tristan_writer(
