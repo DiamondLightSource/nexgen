@@ -34,13 +34,6 @@ ssx_tr_collect.__doc__ = (
     """Parameters that define a serial collection using a Tristan detector."""
 )
 
-# Define coordinate frame
-coordinate_frame = "mcstas"
-
-# Initialize dictionaries
-beam = {}
-attenuator = {}
-
 
 def ssx_tristan_writer(
     visitpath: Path | str,
