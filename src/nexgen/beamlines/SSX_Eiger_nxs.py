@@ -21,8 +21,6 @@ from ..tools.MetaReader import define_vds_data_type, update_axes_from_meta
 from ..utils import get_iso_timestamp
 from . import PumpProbe
 
-__all__ = ["ssx_eiger_writer"]
-
 # Define logger
 logger = logging.getLogger("nexgen.SSX_Eiger")
 
@@ -121,10 +119,10 @@ def ssx_eiger_writer(
     logfile = visitpath / f"{beamline}_EigerSSX_nxs_writer.log"
     log.config(logfile.as_posix())
 
-    logger.info(f"Current collection directory: {visitpath}")
+    logger.info(f"Current collection directory: {visitpath.as_posix()}")
     # Get NeXus filename
     master_file = visitpath / f"{filename}.nxs"
-    logger.info("NeXus file will be saved as %s" % master_file)
+    logger.info("NeXus file will be saved as %s" % master_file.as_posix())
 
     # Get parameters depending on beamline
     logger.info(f"DLS Beamline: {beamline.upper()}.")

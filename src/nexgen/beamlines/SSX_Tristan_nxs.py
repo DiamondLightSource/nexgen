@@ -1,6 +1,7 @@
 """
 Create a NeXus file for serial crystallography datasets collected on Tristan10M detector either on I19-2 or I24 beamlines.
 """
+from __future__ import annotations
 
 import logging
 from collections import namedtuple
@@ -15,8 +16,6 @@ from ..utils import get_iso_timestamp, get_nexus_filename
 from . import source
 from .I19_2_params import tristan10M_module as module
 from .I19_2_params import tristan10M_params as detector
-
-__all__ = ["ssx_tristan_writer"]
 
 # Define a logger object and a formatter
 logger = logging.getLogger("nexgen.SSX_Tristan")
@@ -111,13 +110,11 @@ def ssx_tristan_writer(
             f for f in visitpath.iterdir() if filename + "_meta" in f.as_posix()
         ][0]
         logger.info(f"Found {metafile} in directory.")
-    except IndexError as err:
-        logger.exception(err)
-        logger.error(
-            "Missing metadata, something might be wrong with this collection."
-            "Unable to write NeXus file at this time. Please try using command line tool."
+    except IndexError:
+        logger.warning(
+            "Missing metadata file at this time, something might be wrong with this collection."
+            f"The hard link to {filename}_meta.h5 will most likely be broken."
         )
-        raise
 
     # Add some information to logger
     logger.info("Creating a NeXus file for %s ..." % metafile.name)
@@ -261,7 +258,7 @@ def ssx_tristan_writer(
                 write_NXnote(nxsfile, "/entry/source/notes/", chipdef)
             else:
                 logger.warning(
-                    f"Dictionary containing chip info was not passed to the writer."
+                    "Dictionary containing chip info was not passed to the writer."
                     "The following values will be written as default: "
                     "x/y_num_blocks = 8 \n x/y_block_size = 3.175 \n x/y_num_steps = 20 \n x/y_step_size = 0.125"
                 )
