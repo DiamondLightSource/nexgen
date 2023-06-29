@@ -308,7 +308,7 @@ def ssx_eiger_writer(
     logger.info("Goniometer information")
     for ax in gonio_axes:
         logger.info(
-            f"Goniometer axis: {ax.name} => {ax.transformation_type} on {ax.depends}"
+            f"Goniometer axis: {ax.name} => {ax.start_pos}, {ax.transformation_type} on {ax.depends}"
         )
     logger.info(f"Oscillation axis: {osc_axis}.")
     if expt_type != "extruder":
