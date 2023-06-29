@@ -215,6 +215,7 @@ def ssx_tristan_writer(
             goniometer,
             detector,
             source,
+            beam,
             attenuator,
         )
         EventFileWriter.write()
