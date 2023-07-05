@@ -1,16 +1,17 @@
 """
 IO tool to gather beamline and collection information from xml file.
 """
+from __future__ import annotations
 
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import Dict, Tuple, Union
+from typing import Dict, Tuple
 
 
 class ExtendedRequestIO:
     """Define an ExtendedRequest object which in GDA gathers all the information regarding beamline and collection into an xml file."""
 
-    def __init__(self, xmlfile: Union[Path, str]):
+    def __init__(self, xmlfile: Path | str):
         self.tree = ET.parse(xmlfile)
         self.root = self.tree.getroot()
 
