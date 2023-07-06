@@ -15,7 +15,7 @@ from nexgen.utils import Point3D
 class JSONParamsIO:
     def __init__(self, json_file: Path | str):
         self.json_file = json_file
-        self.params = self._read_file(self.json_file)
+        self.params = self._read_file()
 
     def _read_file(self) -> Dict:
         with open(self.json_file, "r") as fh:

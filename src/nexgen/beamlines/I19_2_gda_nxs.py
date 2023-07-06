@@ -162,10 +162,14 @@ def read_det_position_from_xml(
     Returns:
         List[float]: Detector axes positions in the order [2theta, det_z]
     """
-    if "eiger" in det_description.lower():
+    if "tristan" in det_description.lower():
         return [0.0, ecr.getSampleDetectorDistance()]
-    elif "tristan" in det_description.lower():
+    elif "eiger" in det_description.lower():
         return [ecr.getTwoTheta(), ecr.getSampleDetectorDistance()]
+    logger.warning(
+        "Unrecognized detector description. Setting two_theta to 0.0 to be safe."
+    )
+    return [0.0, ecr.getSampleDetectorDistance()]
 
 
 def tristan_writer(
