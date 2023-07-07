@@ -10,8 +10,7 @@ from typing import Any, Dict, List, Tuple
 import h5py
 
 from .. import reframe_arrays
-from . import find_number_of_images
-from .NexusWriter import ScanReader
+from . import calculate_scan_range, find_number_of_images
 from .NXclassWriters import (
     write_NXcoordinate_system_set,
     write_NXdata,
@@ -114,9 +113,17 @@ def ED_call_writers(
     data_type = ("images", n_images)
 
     # Calculate scan
-    OSC, _ = ScanReader(
-        goniometer, n_images=n_images
-    )  # No grid scan, can be added if needed at later time
+    scan_idx = [n for n, t in goniometer["types"] if t == "rotation"][
+        0
+    ]  # Temporary hack since only 1 rot axis FIXME
+    OSC = calculate_scan_range(
+        [goniometer["axes"][scan_idx]],
+        [goniometer["starts"][scan_idx]],
+        [goniometer["ends"][scan_idx]],
+        n_images=n_images,
+        rotation=True,
+    )
+    # No grid scan, can be added if needed at later time
     logger.info(f"Rotation scan axis: {list(OSC.keys())[0]}.")
     logger.info(
         f"Scan from {list(OSC.values())[0][0]} to {list(OSC.values())[0][-1]}.\n"
