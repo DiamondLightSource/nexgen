@@ -78,7 +78,7 @@ def tristan_writer(
         det_pos (List[namedtuple], optional): List of (axis_name, start) values for the detector, passed from command line. Defaults to None.
     """
     source = Source("I19-2")
-    from .beamline_parameters import I19_2Tristan as axes_params
+    from .beamline_utils import I19_2Tristan as axes_params
 
     # Define Tristan params
     tristan_params = TristanDetector("Tristan 10M", (3043, 4183))
@@ -195,7 +195,7 @@ def eiger_writer(
         IOError: If the axes positions can't be read from the metafile (missing config or broken links).
     """
     source = Source("I19-2")
-    from .beamline_parameters import I19_2Eiger as axes_params
+    from .beamline_utils import I19_2Eiger as axes_params
 
     # Define Eiger 4M params
     eiger_params = EigerDetector(

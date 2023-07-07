@@ -2,7 +2,7 @@ import tempfile
 
 import pytest
 
-from nexgen.beamlines import PumpProbe
+from nexgen.beamlines.beamline_utils import PumpProbe
 from nexgen.beamlines.SSX_chip import (
     Chip,
     compute_goniometer,

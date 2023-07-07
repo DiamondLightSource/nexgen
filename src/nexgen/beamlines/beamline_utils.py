@@ -1,13 +1,37 @@
 """
-Define and store basic beamline parameters.
+Define and store basic beamline utilities.
 """
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional
+
+from dataclasses_json import DataClassJsonMixin
 
 from nexgen.nxs_utils import Axis, TransformationType
 from nexgen.utils import Point3D
+
+
+@dataclass
+class PumpProbe(DataClassJsonMixin):
+    """
+    Define pump probe parameters.
+
+    Args:
+        pump_status (bool): Pump on/off
+        pump_exposure (float, optional): Pump exposure time, in s.
+        pump_delay (float, optional): Pump delay, in s.
+        pump_repeat (int, optional): Repeat mode.
+    """
+
+    pump_status: bool = False
+    pump_exposure: Optional[float] = None
+    pump_delay: Optional[float] = None
+    pump_repeat: Optional[int] = 0
+
+    def __post_init__(self):
+        if self.pump_exposure:
+            self.pump_status = True
 
 
 @dataclass

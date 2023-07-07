@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from nexgen.beamlines import PumpProbe
+from nexgen.beamlines.beamline_utils import PumpProbe
 from nexgen.beamlines.SSX_expt import run_extruder, run_fixed_target
 from nexgen.nxs_utils import Axis, TransformationType
 

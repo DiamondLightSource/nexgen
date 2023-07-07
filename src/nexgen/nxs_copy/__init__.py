@@ -10,7 +10,7 @@ import h5py
 import numpy as np
 from numpy.typing import ArrayLike
 
-from ..beamlines import PumpProbe
+from ..beamlines.beamline_utils import PumpProbe
 from ..beamlines.SSX_chip import Chip, compute_goniometer
 from ..nxs_utils import Axis, TransformationType
 from ..nxs_utils.ScanUtils import calculate_scan_points

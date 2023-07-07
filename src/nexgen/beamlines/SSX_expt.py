@@ -14,7 +14,7 @@ import numpy as np
 
 from ..nxs_utils import Axis, TransformationType
 from ..nxs_utils.ScanUtils import calculate_scan_points
-from . import PumpProbe
+from .beamline_utils import PumpProbe
 from .SSX_chip import (
     Chip,
     compute_goniometer,

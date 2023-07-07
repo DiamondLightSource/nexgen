@@ -19,7 +19,7 @@ from ..nxs_write.NXmxWriter import NXmxFileWriter
 from ..tools.Metafile import DectrisMetafile
 from ..tools.MetaReader import define_vds_data_type, update_axes_from_meta
 from ..utils import get_iso_timestamp
-from . import PumpProbe
+from .beamline_utils import PumpProbe
 
 # Define logger
 logger = logging.getLogger("nexgen.SSX_Eiger")
@@ -129,7 +129,7 @@ def ssx_eiger_writer(
     if "I19" in beamline.upper():
         source = Source("I19-2")
         osc_axis = ssx_params["osc_axis"] if "osc_axis" in ssx_params.keys() else "phi"
-        from .beamline_parameters import I19_2Eiger as axes_params
+        from .beamline_utils import I19_2Eiger as axes_params
 
         eiger_params = EigerDetector(
             "Eiger 2X 4M",
@@ -141,7 +141,7 @@ def ssx_eiger_writer(
     elif "I24" in beamline.upper():
         source = Source("I24")
         osc_axis = "omega"
-        from .beamline_parameters import I24Eiger as axes_params
+        from .beamline_utils import I24Eiger as axes_params
 
         eiger_params = EigerDetector(
             "Eiger 2X 9M",

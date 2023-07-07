@@ -25,7 +25,7 @@ from ..nxs_utils.Detector import DetectorType, UnknownDetectorTypeError
 from ..nxs_utils.ScanUtils import calculate_scan_points
 from ..nxs_write.NXmxWriter import EventNXmxFileWriter, NXmxFileWriter
 from ..utils import get_iso_timestamp, get_nexus_filename
-from .beamline_parameters import BeamlineAxes
+from .beamline_utils import BeamlineAxes
 from .GDAtools.ExtendedRequest import (
     ExtendedRequestIO,
     read_det_position_from_xml,
