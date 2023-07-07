@@ -1,0 +1,27 @@
+{
+    "sample_omega": {
+        "depends_on": ".",
+        "ds_name": "omega",
+        "vector": [-1, 0, 0],
+        "location": "sample",
+        "units": "deg",
+        "type": "rotation"
+    },
+    "geometry": "mcstas",
+    "sample_x": {
+        "depends_on": "omega",
+        "ds_name": "sam_x",
+        "vector": [1, 0, 0],
+        "location": "sample",
+        "units": "mm",
+        "type": "translation"
+    },
+    "detector_z": {
+        "depends_on": ".",
+        "ds_name": "det_z",
+        "vector": [0, 0, 1],
+        "location": "detector",
+        "units": "mm",
+        "type": "translation"
+    }
+}

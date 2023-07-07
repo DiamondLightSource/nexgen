@@ -58,7 +58,7 @@ class JSONParamsIO:
                     else TransformationType.TRANSLATION
                 )
                 axes_list.append(
-                    Axis(v["ds_name"], v["depends_on", ax_type, tuple(v["vector"])])
+                    Axis(v["ds_name"], v["depends_on"], ax_type, tuple(v["vector"]))
                 )
         return axes_list
 
@@ -116,6 +116,14 @@ class JSONParamsIO:
         """Read detector fast and slow axes from the GDA-supplied json file."""
         det_name = "eiger" if "eiger" in det_type.lower() else "tristan"
         det_params = self.params[det_name]
-        fast_axis = Point3D(**det_params["fast_dir"])
-        slow_axis = Point3D(**det_params["slow_dir"])
+        fast_axis = Point3D(
+            x=det_params["fast_dir"][0],
+            y=det_params["fast_dir"][1],
+            z=det_params["fast_dir"][2],
+        )
+        slow_axis = Point3D(
+            x=det_params["slow_dir"][0],
+            y=det_params["slow_dir"][1],
+            z=det_params["slow_dir"][2],
+        )
         return fast_axis, slow_axis
