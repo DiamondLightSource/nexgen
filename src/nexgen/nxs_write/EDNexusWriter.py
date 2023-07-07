@@ -113,9 +113,8 @@ def ED_call_writers(
     data_type = ("images", n_images)
 
     # Calculate scan
-    scan_idx = [n for n, t in goniometer["types"] if t == "rotation"][
-        0
-    ]  # Temporary hack since only 1 rot axis FIXME
+    scan_idx = [n for n, t in goniometer["types"] if t == "rotation"][0]
+    # Temporary hack since only 1 rot axis FIXME
     OSC = calculate_scan_range(
         [goniometer["axes"][scan_idx]],
         [goniometer["starts"][scan_idx]],
