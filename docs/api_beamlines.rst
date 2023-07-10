@@ -2,6 +2,16 @@
 Beamlines API
 =============
 
+General utilities
+-----------------
+
+.. autoclass:: nexgen.beamlines.beamline_utils.BeamlineAxes
+    :members:
+
+
+.. autoclass:: nexgen.beamlines.beamline_utils.PumpProbe
+    :members:
+
 I19-2
 -----
 

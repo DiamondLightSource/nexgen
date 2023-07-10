@@ -7,29 +7,103 @@ API
     :show-inheritance:
 
 
+Defining the various parts of a nexus file
+==========================================
+
+Axes
+----
+
+.. automodule:: nexgen.nxs_utils.axes
+
+
+Scans
+-----
+
+.. automodule:: nexgen.nxs_utils.ScanUtils
+
+
+Goniometer
+----------
+
+.. automodule:: nexgen.nxs_utils.Goniometer
+
+
+Detector
+--------
+
+.. automodule:: nexgen.nxs_utils.Detector
+
+
+Source
+------
+
+.. automodule:: nexgen.nxs_utils.Source
+
+
+Sample
+------
+
+.. automodule:: nexgen.nxs_utils.Sample
+
+
+
 Writing tools
 =============
 
 NXmx writers
 ------------
 
+For a standard NXmx data collection
+
+.. autoclass:: nexgen.nxs_write.NXmxWriter.NXmxFileWriter
+    :members:
+
+
+For an event-mode data collection using a Tristan detector
+
+.. autoclass:: nexgen.nxs_write.NXmxWriter.EventNXmxFileWriter
+
+
+For an Electron Diffraction collection using NXmx-like format nexus files
+
+.. autoclass:: nexgen.nxs_write.NXmxWriter.EDNXmxFileWriter
+
+
+
+All the NXclass writers available can be found in:
+
 .. automodule:: nexgen.nxs_write.NXclassWriters
     :members:
 
-For a standard NXmx data collection, the NXclass writers can be called using the ``call_writers`` function, with the exception of ``write_NXentry``, ``write_NXdatetime`` and ``write_NXnote``.
 
-.. autofunction:: nexgen.nxs_write.NexusWriter.call_writers
+Old tools
+---------
 
-If using phil scopes instead of dictionaries to store the goniometer/detector/beamline/... information, the following function has been added:
+.. note:: The following tools will soon be deprecated.
 
-.. autofunction:: nexgen.nxs_write.NexusWriter.write_nexus_from_scope
+Older tools can stiil be used with the same functionality. The NXclass writers can be called using the ``call_writers`` function,
+with the exception of ``write_NXentry``, ``write_NXdatetime`` and ``write_NXnote``.
+
+.. autofunction:: nexgen.command_line.cli_utils.call_writers
 
 
-When dealing with an Electron Diffraction dataset, there may also be a need to convert the vectors to mcstas from another coordinate system convention, as well as save the relevant information about the new coordinate system into a NXcoordinate_system_set base class.
+To identify the scan axes and calculate the scan range:
+
+.. autofunction:: nexgen.command_line.cli_utils.ScanReader
+
+
+When dealing with an Electron Diffraction dataset, there may also be a need to convert the vectors to mcstas from another coordinate system convention,
+as well as save the relevant information about the new coordinate system into a NXcoordinate_system_set base class.
 The ``ED_call_writers`` function from the ``nxs_write.EDNexusWriter`` takes care of these computations.
 
 .. automodule:: nexgen.nxs_write.EDNexusWriter
     :members:
+
+
+Finally, if using phil scopes instead of dictionaries to store the goniometer/detector/beamline/... information, the following function has been added:
+
+.. autofunction:: nexgen.command_line.cli_utils.write_nexus_from_scope
+
 
 Writing blank datasets
 ----------------------
@@ -93,12 +167,6 @@ Utilities
     :members:
 
 
-Identify the scan axes and calculate the scan range
----------------------------------------------------
-
-.. autofunction:: nexgen.nxs_write.NexusWriter.ScanReader
-
-
 HDF5 metafile reader
 --------------------
 
@@ -111,16 +179,13 @@ Metafile definition:
 
 When operating a Dectris detector, the goniometer and detector axes values are usually stored in the `config/` dataset.
 
-.. autofunction:: nexgen.tools.MetaReader.update_goniometer
-
-.. autofunction:: nexgen.tools.MetaReader.update_detector_axes
+.. autofunction:: nexgen.tools.MetaReader.update_axes_from_meta
 
 
-A couple of functions are available for reading the information stored in the metafile and copying it across to the new NeXus file by overwriting the existing values unless otherwise specified:
+If there's a need to write a VDS dataset from data collected on a Dectris detector, it might be useful to first find out the
+data type using the information stored in the `meta` file.
 
-.. autofunction:: nexgen.tools.MetaReader.overwrite_beam
-
-.. autofunction:: nexgen.tools.MetaReader.overwrite_detector
+.. autofunction:: nexgen.tools.MetaReader.define_vds_data_type
 
 
 Reader for Singla detector master file
