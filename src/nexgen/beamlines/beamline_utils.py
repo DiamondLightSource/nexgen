@@ -4,7 +4,7 @@ Define and store basic beamline utilities.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from dataclasses_json import DataClassJsonMixin
 
@@ -40,8 +40,14 @@ class BeamlineAxes:
 
     gonio: List[Axis]
     det_axes: List[Axis]
-    fast_axis: Point3D
-    slow_axis: Point3D
+    fast_axis: Point3D | Tuple[float, float, float]
+    slow_axis: Point3D | Tuple[float, float, float]
+
+    def __post_init__(self):
+        if not isinstance(self.fast_axis, Point3D):
+            self.fast_axis = Point3D(*self.fast_axis)
+        if not isinstance(self.slow_axis, Point3D):
+            self.slow_axis = Point3D(*self.slow_axis)
 
 
 # I24

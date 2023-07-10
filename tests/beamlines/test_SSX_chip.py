@@ -1,8 +1,3 @@
-import tempfile
-
-import pytest
-
-from nexgen.beamlines.beamline_utils import PumpProbe
 from nexgen.beamlines.SSX_chip import (
     Chip,
     compute_goniometer,
@@ -21,31 +16,6 @@ test_chip = Chip(
 )
 
 test_goniometer = {"axes": ["omega", "sam_y", "sam_x", "phi"]}
-
-
-def test_pump_probe():
-    pump_probe = PumpProbe()
-    pump_probe.pump_status = True
-    pump_probe.pump_exposure = 0.01
-    assert pump_probe.pump_status is True
-    assert pump_probe.pump_exposure == 0.01
-    assert pump_probe.pump_delay is None
-
-
-def test_pump_probe_dict():
-    pump_probe = PumpProbe().to_dict()
-    assert list(pump_probe.keys()) == [
-        "pump_status",
-        "pump_exposure",
-        "pump_delay",
-        "pump_repeat",
-    ]
-    assert pump_probe["pump_status"] is False
-
-
-def test_pump_status_set_to_true_if_exposure_is_passed():
-    pump_probe = PumpProbe(pump_exposure=0.1)
-    assert pump_probe.pump_status is True
 
 
 def test_chip_tot_blocks():
@@ -93,22 +63,6 @@ def test_fullchip_blocks_conversion():
     new_test_pos = fullchip_blocks_conversion(test_pos, test_chip)
     assert list(test_pos.values()) == list(new_test_pos.values())
     assert list(new_test_pos.keys()) == ["01", "02", "03", "04"]
-
-
-@pytest.fixture
-def dummy_chipmap_file():
-    lines = [
-        "01status    P3011       1\n",
-        "02status    P3021       0\n",
-        "03status    P3031       0\n",
-        "04status    P3041       1\n",
-    ]
-    test_map_file = tempfile.NamedTemporaryFile(
-        mode="w", suffix=".map", delete=False, encoding="utf-8"
-    )
-    with test_map_file as map:
-        map.writelines(lines)
-    yield test_map_file
 
 
 def test_read_chip_map(dummy_chipmap_file):

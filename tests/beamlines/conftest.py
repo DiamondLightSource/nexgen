@@ -3,6 +3,63 @@ import tempfile
 
 import pytest
 
+from nexgen.nxs_utils import Axis, TransformationType
+
+axes_list = [
+    Axis("omega", ".", TransformationType.ROTATION, (0, 0, -1)),
+    Axis("sam_z", "omega", TransformationType.TRANSLATION, (0, 0, 1)),
+    Axis("sam_y", "sam_z", TransformationType.TRANSLATION, (0, 1, 0)),
+    Axis("sam_x", "sam_y", TransformationType.TRANSLATION, (1, 0, 0)),
+]
+
+
+@pytest.fixture
+def dummy_chipmap_file():
+    lines = [
+        "01status    P3011       1\n",
+        "02status    P3021       0\n",
+        "03status    P3031       0\n",
+        "04status    P3041       1\n",
+    ]
+    test_map_file = tempfile.NamedTemporaryFile(
+        mode="w", suffix=".map", delete=False, encoding="utf-8"
+    )
+    with test_map_file as map:
+        map.writelines(lines)
+    yield test_map_file
+
+
+@pytest.fixture
+def dummy_chipmap_file_single_block():
+    lines = [
+        "01status    P3011       1\n",
+        "02status    P3021       0\n",
+        "03status    P3031       0\n",
+        "04status    P3041       0\n",
+    ]
+    test_map_file = tempfile.NamedTemporaryFile(
+        mode="w", suffix=".map", delete=False, encoding="utf-8"
+    )
+    with test_map_file as map:
+        map.writelines(lines)
+    yield test_map_file
+
+
+@pytest.fixture
+def dummy_chipmap_file_multi_block():
+    lines = [
+        "01status    P3011       1\n",
+        "02status    P3021       1\n",
+        "03status    P3031       1\n",
+        "04status    P3041       1\n",
+    ]
+    test_map_file = tempfile.NamedTemporaryFile(
+        mode="w", suffix=".map", delete=False, encoding="utf-8"
+    )
+    with test_map_file as map:
+        map.writelines(lines)
+    yield test_map_file
+
 
 @pytest.fixture
 def dummy_xml_file():
