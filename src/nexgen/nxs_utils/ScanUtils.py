@@ -21,6 +21,9 @@ log.config()
 
 # Some options for grid scans
 GridScanOptions = namedtuple("GridScanOptions", ("axes_order", "snaked"))
+GridScanOptions.__doc__ = "Options for defining a grid scan"
+GridScanOptions.axes_order.__doc__ = "List of axes in order of (fast, slow)."
+GridScanOptions.snaked.__doc__ = "Boolean to say whether it's a snaked scan."
 
 
 class ScanDirection(IntEnum):
