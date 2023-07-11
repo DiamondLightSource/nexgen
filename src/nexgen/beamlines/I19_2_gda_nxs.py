@@ -25,7 +25,7 @@ from ..nxs_utils.Detector import DetectorType, UnknownDetectorTypeError
 from ..nxs_utils.ScanUtils import calculate_scan_points
 from ..nxs_write.NXmxWriter import EventNXmxFileWriter, NXmxFileWriter
 from ..utils import get_iso_timestamp, get_nexus_filename
-from .beamline_utils import BeamlineAxes
+from .beamline_utils import BeamlineAxes, collection_summary_log
 from .GDAtools.ExtendedRequest import (
     ExtendedRequestIO,
     read_det_position_from_xml,
@@ -69,41 +69,6 @@ tr_collect.geometry_json.__doc__ = (
 tr_collect.detector_json.__doc__ = (
     "Path to GDA-generated JSON file describing the detector."
 )
-
-
-def log_collection_summary(
-    gonio_axes, osc_axis, detector, attenuator, beam, source, timestamps
-):
-    # TODO improve logging
-    logger.info("--- COLLECTION SUMMARY ---")
-    logger.info("Source information")
-    logger.info(f"Facility: {source.name} - {source.facility_type}.")
-    logger.info(f"Beamline: {source.beamline}")
-
-    logger.info(f"Incident beam wavelength: {beam.wavelength}")
-    logger.info(f"Attenuation: {attenuator.transmission}")
-
-    logger.info("Goniometer information")
-    logger.info(f"Scan axis is: {osc_axis}")
-    for ax in gonio_axes:
-        logger.info(
-            f"Goniometer axis: {ax.name} => {ax.start_pos}, {ax.transformation_type} on {ax.depends}"
-        )
-    logger.info("Detector information")
-    logger.info(f"{detector.detector_params.description}")
-    logger.info(
-        f"Sensor made of {detector.detector_params.sensor_material} x {detector.detector_params.sensor_thickness}"
-    )
-    logger.info(
-        f"Detector is a {detector.detector_params.image_size[::-1]} array of {detector.detector_params.pixel_size} pixels"
-    )
-    for ax in detector.det_axes:
-        logger.info(
-            f"Detector axis: {ax.name} => {ax.start_pos}, {ax.transformation_type} on {ax.depends}"
-        )
-
-    logger.info(f"Recorded beam center is: {detector.beam_center}.")
-    logger.info(f"Timestamps recorded: {timestamps}")
 
 
 def tristan_writer(
@@ -164,9 +129,10 @@ def tristan_writer(
         gonio_axes[idx].start_pos = v[0]
     goniometer = Goniometer(gonio_axes, OSC)
 
-    log_collection_summary(
+    collection_summary_log(
+        logger,
         gonio_axes,
-        scan_axis,
+        [scan_axis],
         detector,
         attenuator,
         beam,
@@ -259,9 +225,10 @@ def eiger_writer(
 
     goniometer = Goniometer(gonio_axes, OSC)
 
-    log_collection_summary(
+    collection_summary_log(
+        logger,
         gonio_axes,
-        scan_axis,
+        [scan_axis],
         detector,
         attenuator,
         beam,

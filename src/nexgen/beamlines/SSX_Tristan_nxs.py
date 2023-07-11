@@ -11,6 +11,7 @@ from .. import log
 from ..nxs_utils import Attenuator, Beam, Detector, Goniometer, Source, TristanDetector
 from ..nxs_write.NXmxWriter import EventNXmxFileWriter
 from ..utils import Point3D, get_iso_timestamp
+from .beamline_utils import collection_summary_log
 
 # Define a logger object and a formatter
 logger = logging.getLogger("nexgen.SSX_Tristan")
@@ -172,35 +173,16 @@ def ssx_tristan_writer(
         get_iso_timestamp(SSX_TR.stop_time),
     )
 
-    logger.info("--- COLLECTION SUMMARY ---")
-    logger.info("Source information")
-    logger.info(f"Facility: {source.name} - {source.facility_type}.")
-    logger.info(f"Beamline: {source.beamline}")
-
-    logger.info(f"Incident beam wavelength: {beam.wavelength}")
-    logger.info(f"Attenuation: {attenuator.transmission}")
-
-    logger.info("Goniometer information")
-    for ax in gonio_axes:
-        logger.info(
-            f"Goniometer axis: {ax.name} => {ax.start_pos}, {ax.transformation_type} on {ax.depends}"
-        )
-    logger.info("Detector information")
-    logger.info(f"{detector.detector_params.description}")
-    logger.info(
-        f"Sensor made of {detector.detector_params.sensor_material} x {detector.detector_params.sensor_thickness}"
+    collection_summary_log(
+        logger,
+        gonio_axes,
+        ["sam_y", "sam_x"],
+        detector,
+        attenuator,
+        beam,
+        source,
+        timestamps,
     )
-    logger.info(
-        f"Detector is a {detector.detector_params.image_size[::-1]} array of {detector.detector_params.pixel_size} pixels"
-    )
-    for ax in det_axes:
-        logger.info(
-            f"Detector axis: {ax.name} => {ax.start_pos}, {ax.transformation_type} on {ax.depends}"
-        )
-
-    logger.info(f"Recorded beam center is: {detector.beam_center}.")
-
-    logger.info(f"Timestamps recorded: {timestamps}.")
 
     try:
         EventFileWriter = EventNXmxFileWriter(
