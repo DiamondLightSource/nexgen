@@ -2,19 +2,8 @@
 API
 ===
 
-.. automodule:: nexgen
-    :members:
-    :show-inheritance:
-
-
 Defining the various parts of a nexus file
 ==========================================
-
-.. automodule:: nexgen.nxs_utils
-    :members:
-    :show-inheritance:
-    :inherited-members:
-    :imported-members:
 
 Axes
 ----
@@ -22,12 +11,12 @@ Axes
 .. automodule:: nexgen.nxs_utils.Axes
 
 
-.. autoclass:: nexgen.nxs_utils.TransformationType
+.. autoclass:: nexgen.nxs_utils.Axes.TransformationType
     :members:
     :imported-members:
 
 
-.. autoclass:: nexgen.nxs_utils.Axis
+.. autoclass:: nexgen.nxs_utils.Axes.Axis
     :members:
     :imported-members:
 
@@ -37,7 +26,6 @@ Scans
 
 .. automodule:: nexgen.nxs_utils.ScanUtils
     :members:
-    :show-inheritance:
 
 
 Goniometer
@@ -191,6 +179,11 @@ Utilities
 
 .. automodule:: nexgen
     :members:
+
+
+.. automodule:: nexgen.utils
+    :members:
+
 
 **Writing tools**
 
