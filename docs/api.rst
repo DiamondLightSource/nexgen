@@ -9,23 +9,24 @@ Axes
 ----
 
 .. automodule:: nexgen.nxs_utils.Axes
-
-
-.. autoclass:: nexgen.nxs_utils.Axes.TransformationType
     :members:
-    :imported-members:
-
-
-.. autoclass:: nexgen.nxs_utils.Axes.Axis
-    :members:
-    :imported-members:
 
 
 Scans
 -----
 
 .. automodule:: nexgen.nxs_utils.ScanUtils
+    :members: identify_osc_axis, identify_grid_scan_axes, calculate_scan_points
+
+
+.. autoclass:: nexgen.nxs_utils.ScanUtils.GridScanOptions
     :members:
+
+
+.. autoexception:: nexgen.nxs_utils.ScanUtils.ScanAxisNotFoundError
+
+
+.. autoexception:: nexgen.nxs_utils.ScanUtils.ScanAxisError
 
 
 Goniometer
