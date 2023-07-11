@@ -19,7 +19,7 @@ from ..nxs_write.NXmxWriter import NXmxFileWriter
 from ..tools.Metafile import DectrisMetafile
 from ..tools.MetaReader import define_vds_data_type, update_axes_from_meta
 from ..utils import get_iso_timestamp
-from .beamline_utils import PumpProbe
+from .beamline_utils import PumpProbe, collection_summary_log
 
 # Define logger
 logger = logging.getLogger("nexgen.SSX_Eiger")
@@ -297,40 +297,16 @@ def ssx_eiger_writer(
     goniometer = Goniometer(gonio_axes, SCAN)
 
     # Log a bunch of stuff
-    logger.info("--- COLLECTION SUMMARY ---")
-    logger.info("Source information")
-    logger.info(f"Facility: {source.name} - {source.facility_type}.")
-    logger.info(f"Beamline: {source.beamline}")
-
-    logger.info(f"Incident beam wavelength: {beam.wavelength}")
-    logger.info(f"Attenuation: {attenuator.transmission}")
-
-    logger.info("Goniometer information")
-    for ax in gonio_axes:
-        logger.info(
-            f"Goniometer axis: {ax.name} => {ax.start_pos}, {ax.transformation_type} on {ax.depends}"
-        )
-    logger.info(f"Oscillation axis: {osc_axis}.")
-    if expt_type != "extruder":
-        logger.info(f"Grid scan axes: {list(SCAN.keys())}.")
-
-    logger.info("Detector information")
-    logger.info(f"{detector.detector_params.description}")
-    logger.info(
-        f"Sensor made of {detector.detector_params.sensor_material} x {detector.detector_params.sensor_thickness}"
+    collection_summary_log(
+        logger,
+        gonio_axes,
+        list(SCAN.keys()),
+        detector,
+        attenuator,
+        beam,
+        source,
+        timestamps,
     )
-    logger.info(
-        f"Detector is a {detector.detector_params.image_size[::-1]} array of {detector.detector_params.pixel_size} pixels"
-    )
-    for ax in detector.detector_axes:
-        logger.info(
-            f"Detector axis: {ax.name} => {ax.start_pos}, {ax.transformation_type} on {ax.depends}"
-        )
-
-    logger.info(f"Recorded beam center is: {detector.beam_center}.")
-    logger.info(f"Exposure time: {detector.exp_time} s.")
-
-    logger.info(f"Timestamps recorded: {timestamps}")
 
     # Get to the actual writing
     try:

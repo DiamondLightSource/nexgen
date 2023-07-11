@@ -24,6 +24,7 @@ from ..nxs_write.NXmxWriter import EventNXmxFileWriter, NXmxFileWriter
 from ..tools.Metafile import DectrisMetafile
 from ..tools.MetaReader import define_vds_data_type, update_axes_from_meta
 from ..utils import get_iso_timestamp, get_nexus_filename
+from .beamline_utils import collection_summary_log
 
 
 class ExperimentTypeError(Exception):
@@ -125,36 +126,16 @@ def tristan_writer(
     attenuator = Attenuator(TR.transmission)
     beam = Beam(TR.wavelength)
 
-    logger.info("--- COLLECTION SUMMARY ---")
-    logger.info("Source information")
-    logger.info(f"Facility: {source.name} - {source.facility_type}.")
-    logger.info(f"Beamline: {source.beamline}")
-
-    logger.info(f"Incident beam wavelength: {beam.wavelength}")
-    logger.info(f"Attenuation: {attenuator.transmission}")
-
-    logger.info("Goniometer information")
-    logger.info(f"Scan axis is: {scan_axis}")
-    for ax in gonio_axes:
-        logger.info(
-            f"Goniometer axis: {ax.name} => {ax.start_pos}, {ax.transformation_type} on {ax.depends}"
-        )
-    logger.info("Detector information")
-    logger.info(f"{detector.detector_params.description}")
-    logger.info(
-        f"Sensor made of {detector.detector_params.sensor_material} x {detector.detector_params.sensor_thickness}"
+    collection_summary_log(
+        logger,
+        gonio_axes,
+        [scan_axis],
+        detector,
+        attenuator,
+        beam,
+        source,
+        timestamps,
     )
-    logger.info(
-        f"Detector is a {detector.detector_params.image_size[::-1]} array of {detector.detector_params.pixel_size} pixels"
-    )
-    for ax in detector.detector_axes:
-        logger.info(
-            f"Detector axis: {ax.name} => {ax.start_pos}, {ax.transformation_type} on {ax.depends}"
-        )
-
-    logger.info(f"Recorded beam center is: {detector.beam_center}.")
-
-    logger.info(f"Timestamps recorded: {timestamps}")
 
     # Write
     try:
@@ -264,37 +245,16 @@ def eiger_writer(
     # Define Goniometer
     goniometer = Goniometer(gonio_axes, OSC)
 
-    logger.info("--- COLLECTION SUMMARY ---")
-    logger.info("Source information")
-    logger.info(f"Facility: {source.name} - {source.facility_type}.")
-    logger.info(f"Beamline: {source.beamline}")
-
-    logger.info(f"Incident beam wavelength: {beam.wavelength}")
-    logger.info(f"Attenuation: {attenuator.transmission}")
-
-    logger.info("Goniometer information")
-    logger.info(f"Scan axis is: {scan_axis}")
-    for ax in gonio_axes:
-        logger.info(
-            f"Goniometer axis: {ax.name} => {ax.start_pos}, {ax.transformation_type} on {ax.depends}"
-        )
-    logger.info("Detector information")
-    logger.info(f"{detector.detector_params.description}")
-    logger.info(
-        f"Sensor made of {detector.detector_params.sensor_material} x {detector.detector_params.sensor_thickness}"
+    collection_summary_log(
+        logger,
+        gonio_axes,
+        [scan_axis],
+        detector,
+        attenuator,
+        beam,
+        source,
+        timestamps,
     )
-    logger.info(
-        f"Detector is a {detector.detector_params.image_size[::-1]} array of {detector.detector_params.pixel_size} pixels"
-    )
-    for ax in detector.detector_axes:
-        logger.info(
-            f"Detector axis: {ax.name} => {ax.start_pos}, {ax.transformation_type} on {ax.depends}"
-        )
-
-    logger.info(f"Recorded beam center is: {detector.beam_center}.")
-    logger.info(f"Exposure time: {detector.exp_time} s.")
-
-    logger.info(f"Timestamps recorded: {timestamps}")
 
     # Write
     try:

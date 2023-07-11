@@ -6,6 +6,9 @@ import logging.config
 
 import nexgen
 
+# Logging set up
+logging.getLogger("nexgen").addHandler(logging.NullHandler())
+
 logging_config = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -35,13 +38,15 @@ logging_config = {
 logging.config.dictConfig(logging_config)
 
 
-def config(logfile: str = None, write_mode: str = "a"):
+def config(logfile: str = None, write_mode: str = "a", delayed: bool = False):
     """
     Configure the logging.
 
     Args:
         logfile (str, optional): If passed, create a file handler for the logger to write to file the log output. Defaults to None.
         write_mode (str, optional): String indicating writing mode for the output .log file. Defaults to "a".
+        delayed (bool, optional): Setting for the FileHandler delay option. If true, then file opening is deferred until the first call\
+            to `emit`.Defaults to False.
     """
     nexgen_logger = logging.getLogger("nexgen")
     nexgen_logger.info(f"Using nexgen {nexgen.__version__}")
@@ -50,7 +55,9 @@ def config(logfile: str = None, write_mode: str = "a"):
             "%(asctime)s - %(name)s - %(levelname)s || %(message)s",
             datefmt="%d-%m-%Y %I:%M:%S",
         )
-        FH = logging.FileHandler(logfile, mode=write_mode, encoding="utf-8")
+        FH = logging.FileHandler(
+            logfile, mode=write_mode, encoding="utf-8", delay=delayed
+        )
         FH.setLevel(logging.DEBUG)
         FH.setFormatter(fileFormatter)
         nexgen_logger.addHandler(FH)
