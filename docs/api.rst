@@ -14,36 +14,48 @@ Axes
 ----
 
 .. automodule:: nexgen.nxs_utils.axes
+    :members:
+    :show-inheritance:
 
 
 Scans
 -----
 
 .. automodule:: nexgen.nxs_utils.ScanUtils
+    :members:
+    :show-inheritance:
 
 
 Goniometer
 ----------
 
 .. automodule:: nexgen.nxs_utils.Goniometer
+    :members:
+    :show-inheritance:
 
 
 Detector
 --------
 
 .. automodule:: nexgen.nxs_utils.Detector
+    :members:
+    :show-inheritance:
 
 
 Source
 ------
 
 .. automodule:: nexgen.nxs_utils.Source
+    :members:
+    :show-inheritance:
 
 
 Sample
 ------
 
 .. automodule:: nexgen.nxs_utils.Sample
+    :members:
+    :show-inheritance:
 
 
 
@@ -57,18 +69,24 @@ For a standard NXmx data collection
 
 .. autoclass:: nexgen.nxs_write.NXmxWriter.NXmxFileWriter
     :members:
+    :show-inheritance:
 
 
 For an event-mode data collection using a Tristan detector
 
 .. autoclass:: nexgen.nxs_write.NXmxWriter.EventNXmxFileWriter
+    :show-inheritance:
 
 
 For an Electron Diffraction collection using NXmx-like format nexus files
 
 .. autoclass:: nexgen.nxs_write.NXmxWriter.EDNXmxFileWriter
+    :show-inheritance:
 
 
+
+NXclass writers
+---------------
 
 All the NXclass writers available can be found in:
 
