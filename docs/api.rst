@@ -34,7 +34,6 @@ Goniometer
 
 .. automodule:: nexgen.nxs_utils.Goniometer
     :members:
-    :imported-members:
 
 
 Detector
@@ -44,7 +43,6 @@ Detector
     :members:
     :inherited-members:
     :show-inheritance:
-    :imported-members:
 
 
 Source
@@ -52,7 +50,6 @@ Source
 
 .. automodule:: nexgen.nxs_utils.Source
     :members:
-    :imported-members:
 
 
 Sample
@@ -60,7 +57,6 @@ Sample
 
 .. automodule:: nexgen.nxs_utils.Sample
     :members:
-    :imported-members:
 
 
 
