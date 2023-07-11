@@ -13,9 +13,9 @@ Defining the various parts of a nexus file
 Axes
 ----
 
-.. automodule:: nexgen.nxs_utils.axes
+.. automodule:: nexgen.nxs_utils.Axes
     :members:
-    :show-inheritance:
+    :imported-members:
 
 
 Scans
@@ -23,7 +23,7 @@ Scans
 
 .. automodule:: nexgen.nxs_utils.ScanUtils
     :members:
-    :show-inheritance:
+    :imported-members:
 
 
 Goniometer
@@ -31,7 +31,7 @@ Goniometer
 
 .. automodule:: nexgen.nxs_utils.Goniometer
     :members:
-    :show-inheritance:
+    :imported-members:
 
 
 Detector
@@ -39,7 +39,9 @@ Detector
 
 .. automodule:: nexgen.nxs_utils.Detector
     :members:
+    :inherited-members:
     :show-inheritance:
+    :imported-members:
 
 
 Source
@@ -47,7 +49,7 @@ Source
 
 .. automodule:: nexgen.nxs_utils.Source
     :members:
-    :show-inheritance:
+    :imported-members:
 
 
 Sample
@@ -55,7 +57,7 @@ Sample
 
 .. automodule:: nexgen.nxs_utils.Sample
     :members:
-    :show-inheritance:
+    :imported-members:
 
 
 
@@ -75,13 +77,15 @@ For a standard NXmx data collection
 For an event-mode data collection using a Tristan detector
 
 .. autoclass:: nexgen.nxs_write.NXmxWriter.EventNXmxFileWriter
-    :show-inheritance:
+    :members:
+    :inherited-members:
 
 
 For an Electron Diffraction collection using NXmx-like format nexus files
 
 .. autoclass:: nexgen.nxs_write.NXmxWriter.EDNXmxFileWriter
-    :show-inheritance:
+    :members:
+    :inherited-members:
 
 
 

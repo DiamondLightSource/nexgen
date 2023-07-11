@@ -66,12 +66,12 @@ GDA integration tools
 Read geometry and detector parameters from GDA-generated JSON files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. autofunction:: nexgen.beamlines.GDAtools.GDAjson2params.read_geometry_from_json
+.. automodule:: nexgen.beamlines.GDAtools.GDAjson2params
+    :members:
 
-.. autofunction:: nexgen.beamlines.GDAtools.GDAjson2params.read_detector_params_from_json
 
 Gather beamline and collection information from GDA-generated xml file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. autoclass:: nexgen.tools.ExtendedRequest.ExtendedRequestIO
+.. automodule:: nexgen.beamlines.GDAtools.ExtendedRequest
     :members:
