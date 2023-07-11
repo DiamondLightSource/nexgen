@@ -14,14 +14,16 @@ Axes
 ----
 
 .. automodule:: nexgen.nxs_utils.Axes
+
+
+.. autoclass:: nexgen.nxs_utils.TransformationType
+    :members:
     :imported-members:
 
 
-.. autoclass:: nexgen.nxs_utils.Axes.TransformationType
-
-
-.. autoclass:: nexgen.nxs_utils.Axes.Axis
+.. autoclass:: nexgen.nxs_utils.Axis
     :members:
+    :imported-members:
 
 
 Scans
