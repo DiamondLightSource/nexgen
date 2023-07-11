@@ -10,6 +10,7 @@ Axes
 
 .. automodule:: nexgen.nxs_utils.Axes
     :members:
+    :show-inheritance:
 
 
 Scans
@@ -50,6 +51,7 @@ Source
 
 .. automodule:: nexgen.nxs_utils.Source
     :members:
+    :show-inheritance:
 
 
 Sample
@@ -57,6 +59,7 @@ Sample
 
 .. automodule:: nexgen.nxs_utils.Sample
     :members:
+    :show-inheritance:
 
 
 
@@ -77,13 +80,14 @@ For an event-mode data collection using a Tristan detector
 
 .. autoclass:: nexgen.nxs_write.NXmxWriter.EventNXmxFileWriter
     :members:
-    :inherited-members:
+    :show-inheritance:
 
 
 For an Electron Diffraction collection using NXmx-like format nexus files
 
 .. autoclass:: nexgen.nxs_write.NXmxWriter.EDNXmxFileWriter
     :members:
+    :show-inheritance:
     :inherited-members:
 
 
