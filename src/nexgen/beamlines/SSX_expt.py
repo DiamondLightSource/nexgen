@@ -12,9 +12,15 @@ from typing import Dict, List, Tuple
 
 import numpy as np
 
-from ..nxs_write.NexusWriter import ScanReader
-from . import PumpProbe
-from .SSX_chip import Chip, compute_goniometer, read_chip_map
+from ..nxs_utils import Axis, TransformationType
+from ..nxs_utils.ScanUtils import calculate_scan_points
+from .beamline_utils import PumpProbe
+from .SSX_chip import (
+    Chip,
+    compute_goniometer,
+    fullchip_blocks_conversion,
+    read_chip_map,
+)
 
 __all__ = ["run_extruder", "run_fixed_target", "run_3D_grid_scan"]
 
@@ -23,66 +29,91 @@ logger = logging.getLogger("nexgen.SSX.run_expt")
 
 
 def run_extruder(
-    goniometer: Dict[str, List],
+    goniometer_axes: List[Axis],
     num_imgs: int,
     pump_probe: PumpProbe,
-) -> Tuple[Dict]:
+    osc_axis: str = "omega",
+) -> Tuple[List, Dict, Dict]:
     """Run the goniometer computations for an extruder experiment.
 
     Args:
-        goniometer (Dict[str, List]): Goniometer definition.
+        goniometer_axes (List[Axis]): List of goniometer axes for current beamline.
         num_imgs (int): Total number of images.
         pump_probe (PumpProbe): Pump probe parameters.
+        osc_axis: Defines which axis is considered the "moving" one. Defaults to omega.
 
     Returns:
-        Tuple[Dict]:
-            goniometer: updated goniometer dictionary with actual values from the scan.
-            OSC: dictionary with oscillation scan axis values.
+        Tuple[List, Dict, Dict]:
+            goniometer_axes: updated goniometer_axes list with actual values from the scan.
+            SCAN: dictionary with oscillation scan axis values.
             pump_info: updated pump probe information.
     """
-    logger.info("Running an extruder experiment.")
+    logger.debug("Running an extruder experiment.")
 
     logger.debug("All axes are fixed, setting increments to 0.0 and starts == ends.")
-    goniometer["increments"] = len(goniometer["axes"]) * [0.0]
-    if goniometer["starts"] is None:
-        goniometer["starts"] = len(goniometer["axes"]) * [0.0]
-    goniometer["ends"] = goniometer["starts"]
+    for ax in goniometer_axes:
+        # Sanity check that no increment is greater than 0.0
+        if ax.transformation_type == "rotation":
+            ax.increment = 0.0
 
-    OSC, TRANSL = ScanReader(goniometer, n_images=int(num_imgs))
-    del TRANSL
+    # Identify the "oscillation axis"
+    osc_idx = [n for n, ax in enumerate(goniometer_axes) if ax.name == osc_axis][0]
+    goniometer_axes[osc_idx].num_steps = num_imgs
+
+    # Calculate scan
+    logger.debug(
+        "Getting 'oscillation scan': roation axis not moving, same value for each image as."
+    )
+    SCAN = calculate_scan_points(
+        goniometer_axes[osc_idx], rotation=True, tot_num_imgs=num_imgs
+    )
 
     pump_info = pump_probe.to_dict()
+    logger.debug("Removing pump_repeat from pump probe necessary information.")
+    pump_info.pop("pump_repeat")
 
-    return goniometer, OSC, pump_info
+    return goniometer_axes, SCAN, pump_info
 
 
 def run_fixed_target(
-    goniometer: Dict[str, List],
+    goniometer_axes: List[Axis],
     chip_info: Dict[str, List],
     chipmap: Path | str,
     pump_probe: PumpProbe,
-    osc_axis: str = "omega",
-) -> Tuple[Dict]:
+    scan_axes: List[str, str] = ["sam_y", "sam_x"],
+) -> Tuple[Dict, Dict]:
     """Run the goniometer computations for a fixed-target experiment.
 
     Args:
-        goniometer (Dict[str, List]): Goniometer definition.
-        chip_info (Dict[str, List]): General information about the chip: number and size of blocks, size and step of each window, start positions, number of exposures.
+        goniometer_axes (List[Axis]): List of goniometer axes for current beamline.
+        chip_info (Dict[str, List]): General information about the chip: number and size of blocks, \
+            size and step of each window, start positions, number of exposures.
         chipmap (Path | str): Path to .map file. If None is passed, assumes a fullchip.
         pump_probe (PumpProbe): Pump probe parameters.
-        osc_axis (str, optional): Oscillation axis. Defaults to omega.
+        scan_axes (List[str, str], optional): List of scan axes, in order slow,fast. \
+            Defaults to ["sam_y", "sam_x"].
+
+    Raises:
+        ValueError: If one or both of the axes names passed as input are not part of the goniometer axes.
+        ValueError:if chip_info hasn't been passed or is an empty dictionary.
 
     Returns:
-        Tuple[Dict]:
-            goniometer: updated goniometer dictionary with actual values from the scan.
-            OSC: dictionary with oscillation scan axis values.
-            TRANSL: dictionary with grid scan values.
-            pump_info: updated pump probe information.
+        Tuple[Dict, Dict]:
+            SCAN: Dictionary with grid scan values.
+            pump_info: Updated pump probe information.
     """
     logger.info("Running a fixed target experiment.")
 
-    # Check that the chip dict has been passed, raise error is not
-    if chip_info is None:
+    # Check that the axes for the scan make sense
+    check_list = [n for n, ax in enumerate(goniometer_axes) if ax.name in scan_axes]
+    if len(check_list) < len(scan_axes):
+        raise ValueError(
+            "Axis not found in the list of goniometer axes. Please check your input."
+            f"Goniometer axes: {goniometer_axes}. Looking for {scan_axes}."
+        )
+
+    # Check that the chip dict has been passed, raise error if not
+    if not chip_info:
         logger.error("No chip_dict found.")
         raise ValueError(
             "No information about the FT chip has been passed. \
@@ -110,110 +141,60 @@ def run_fixed_target(
         chip.num_blocks[1],
     )
 
-    # Set step size as increment for grid scan axes and set everything else to 0
-    l = len(goniometer["axes"])
-    # Temporary workaround for I19 scripts which saves an increment for phi in meta file.
-    goniometer["increments"] = l * [0.0]
-    Yidx, Xidx = (
-        goniometer["axes"].index("sam_y"),
-        goniometer["axes"].index("sam_x"),
-    )
-    goniometer["increments"][Xidx] = chip.step_size[0]
-    goniometer["increments"][Yidx] = chip.step_size[1]
+    # Workaround for eg. I19 Eiger which saves an increment for phi/omega in meta file.
+    for ax in goniometer_axes:
+        if ax.transformation_type == "rotation":
+            ax.increment = 0.0
 
-    # Sanity check
-    if goniometer["starts"] is not None and goniometer["starts"] != goniometer["ends"]:
-        logger.debug(
-            "Sanity check in case the meta file has a wrong omega/phi end value."
-        )
-        logger.debug(
-            "In this application there is no rotation so setting end values to the same as start."
-        )
-        goniometer["ends"] = [s for s in goniometer["starts"]]
-
-    # Calculate scan start/end positions on chip
+    # Calculate scan start positions on chip
     if list(blocks.values())[0] == "fullchip":
         logger.info("Full chip: all the blocks will be scanned.")
-        from .SSX_chip import fullchip_blocks_conversion
-
-        start_pos, end_pos = compute_goniometer(chip, goniometer["axes"], full=True)
-        start_pos = fullchip_blocks_conversion(start_pos, chip)
-        end_pos = fullchip_blocks_conversion(end_pos, chip)
+        starts = compute_goniometer(chip, full=True, ax1=scan_axes[0], ax2=scan_axes[1])
+        starts = fullchip_blocks_conversion(starts, chip)
     else:
         logger.info(f"Scanning blocks: {list(blocks.keys())}.")
-        start_pos, end_pos = compute_goniometer(chip, goniometer["axes"], blocks=blocks)
+        starts = compute_goniometer(chip, blocks, ax1=scan_axes[0], ax2=scan_axes[1])
+
+    # Create two temporary axes to be used for scan calculations
+    axis1 = Axis(scan_axes[0], "", TransformationType.TRANSLATION, (0, 0, 0))
+    axis2 = Axis(scan_axes[1], "", TransformationType.TRANSLATION, (0, 0, 0))
 
     # Iterate over blocks to calculate scan points
-    OSC = {osc_axis: np.array([])}
-    TRANSL = {"sam_y": np.array([]), "sam_x": np.array([])}
-    for _s, _e in zip(start_pos.items(), end_pos.items()):
-        # Determine wheter it's an up or down block
-        col = (
-            int(_e[0]) // chip.num_blocks[0]
-            if int(_e[0]) % chip.num_blocks[0] != 0
-            else (int(_e[0]) // chip.num_blocks[0]) - 1
-        )
-        # Get the values
-        if goniometer["starts"] is None:
-            s = _s[1]
-        else:
-            s = [
-                goniometer["starts"][i] if i not in [Xidx, Yidx] else _s[1][i]
-                for i in range(l)
-            ]
-        if goniometer["ends"] is None:
-            e = _e[1]
-        else:
-            e = [
-                goniometer["ends"][i] if i not in [Xidx, Yidx] else _e[1][i]
-                for i in range(l)
-            ]
-        goniometer["starts"] = s
-        # Workaround for scanspec issue (we don't want to write the actual end of the chip)
-        if col % 2 == 0:
-            goniometer["ends"] = [
-                end - inc for end, inc in zip(e, goniometer["increments"])
-            ]
-        else:
-            goniometer["ends"] = [
-                e[i] if i != Xidx else e[i] - goniometer["increments"][i]
-                for i in range(len(e))
-            ]
-        logger.debug(
-            "Current block: \n"
-            f"Starts: {goniometer['starts']} \n"
-            f"Ends: {goniometer['ends']} \n"
-            f"Incs: {goniometer['increments']}"
-        )
-        osc, transl = ScanReader(
-            goniometer,
-            n_images=(
-                chip.num_steps[1],
-                chip.num_steps[0],
-            ),
-            osc_axis=osc_axis,
-        )
-        OSC[osc_axis] = np.append(OSC[osc_axis], osc[osc_axis])
-        TRANSL["sam_y"] = np.append(TRANSL["sam_y"], np.round(transl["sam_y"], 3))
-        TRANSL["sam_x"] = np.append(TRANSL["sam_x"], np.round(transl["sam_x"], 3))
+    SCAN = {axis1.name: np.array([]), axis2.name: np.array([])}
+    for k, v in starts.items():
+        axis1.start_pos = v[axis1.name]
+        axis1.increment = chip.step_size[1] * v["direction"]
+        axis1.num_steps = chip.num_steps[1]
+        axis2.start_pos = v[axis2.name]
+        axis2.increment = chip.step_size[0]
+        axis2.num_steps = chip.num_steps[0]
 
+        logger.debug(
+            f"Current block: {k}\n"
+            f"{axis1.name} start: {v[axis1.name]} \n"
+            f"{axis2.name} start: {v[axis2.name]} \n"
+            f"Scan direction: {v['direction']} \n"
+        )
+
+        _scan = calculate_scan_points(axis1, axis2)
+        SCAN[axis1.name] = np.append(SCAN[axis1.name], np.round(_scan[axis1.name], 3))
+        SCAN[axis2.name] = np.append(SCAN[axis2.name], np.round(_scan[axis2.name], 3))
+
+    # Check the number of exposures per window
     N = int(chip_info["N_EXPOSURES"][1])
     if N > 1:
         # Repeat each position N times
-        OSC = {k: [val for val in v for _ in range(N)] for k, v in OSC.items()}
-        TRANSL = {k: [val for val in v for _ in range(N)] for k, v in TRANSL.items()}
-
+        SCAN = {k: [val for val in v for _ in range(N)] for k, v in SCAN.items()}
     logger.info(f"Each position has been collected {N} times.")
     logger.info(f"Pump repeat setting: {chip_info['PUMP_REPEAT'][1]}.")
     pump_info = pump_probe.to_dict()
-    pump_info["repeat"] = int(chip_info["PUMP_REPEAT"][1])
     pump_info["n_exposures"] = N
 
-    return goniometer, OSC, TRANSL, pump_info
+    return SCAN, pump_info
 
 
 def run_3D_grid_scan(
-    goniometer: Dict[str, List],
+    goniometer_axes: List[Axis],
     chip_info: Dict[str, List],
     chipmap: Path | str,
     pump_probe: PumpProbe,
@@ -222,7 +203,7 @@ def run_3D_grid_scan(
     """_summary_
 
     Args:
-        goniometer (Dict[str, List]): _description_
+        goniometer_axes (List[Axis]): _description_
         chip_info (Dict[str, List]): _description_
         chipmap (Path | str): _description_
         pump_probe (PumpProbe): _description_
@@ -230,7 +211,6 @@ def run_3D_grid_scan(
 
     Returns:
         Tuple[Dict]:
-            goniometer: updated goniometer dictionary with actual values from the scan.
             OSC: dictionary with oscillation scan axis values
             TRANSL: dictionary with grid scan values
             pump_info: updated pump probe information
@@ -242,4 +222,4 @@ def run_3D_grid_scan(
     pump_info = pump_probe.to_dict()
     pump_info["repeat"] = int(chip_info["PUMP_REPEAT"][1])
     pump_info["n_exposures"] = N
-    return None, None, None, pump_info
+    return None, None, pump_info

@@ -2,7 +2,6 @@
 Create a NeXus file for time-resolved collections on I19-2.
 """
 
-import glob
 import logging
 from collections import namedtuple
 from pathlib import Path
@@ -11,38 +10,28 @@ from typing import List, Tuple
 import h5py
 
 from .. import log
-from ..nxs_write import calculate_scan_range, find_number_of_images, find_osc_axis
-from ..nxs_write.NexusWriter import call_writers
-from ..nxs_write.NXclassWriters import write_NXdatetime, write_NXentry
-from ..nxs_write.NXmxWriter import eiger_meta_links as dset_links
-from ..tools.MetaReader import overwrite_beam, update_detector_axes, update_goniometer
-from ..tools.VDS_tools import image_vds_writer
-from ..utils import get_iso_timestamp, get_nexus_filename
-from . import source
-from .I19_2_params import (
-    eiger4M_module,
-    eiger4M_params,
-    goniometer_axes,
-    tristan10M_module,
-    tristan10M_params,
+from ..nxs_utils import (
+    Attenuator,
+    Beam,
+    Detector,
+    EigerDetector,
+    Goniometer,
+    Source,
+    TristanDetector,
 )
+from ..nxs_utils.ScanUtils import calculate_scan_points, identify_osc_axis
+from ..nxs_write.NXmxWriter import EventNXmxFileWriter, NXmxFileWriter
+from ..tools.Metafile import DectrisMetafile
+from ..tools.MetaReader import define_vds_data_type, update_axes_from_meta
+from ..utils import get_iso_timestamp, get_nexus_filename
+
+
+class ExperimentTypeError(Exception):
+    pass
+
 
 # Define a logger object
 logger = logging.getLogger("nexgen.I19-2_NeXus")
-
-# Tristan mask and flatfield files
-maskfile = "Tristan10M_mask_with_spec.h5"
-flatfieldfile = "Tristan10M_flat_field_coeff_with_Mo_17.479keV.h5"
-
-# Define coordinate frame
-coordinate_frame = "mcstas"
-
-# Initialize dictionaries
-goniometer = {}
-detector = {}
-module = {}
-beam = {"flux": None}
-attenuator = {}
 
 tr_collect = namedtuple(
     "tr_collect",
@@ -88,97 +77,98 @@ def tristan_writer(
         axes_pos (List[namedtuple], optional): List of (axis_name, start, end) values for the goniometer, passed from command line. Defaults to None.
         det_pos (List[namedtuple], optional): List of (axis_name, start) values for the detector, passed from command line. Defaults to None.
     """
-    # Add tristan mask and flatfield files
-    detector["pixel_mask"] = "Tristan10M_mask_with_spec.h5"
-    detector["flatfield"] = "Tristan10M_flat_field_coeff_with_Mo_17.479keV.h5"
+    source = Source("I19-2")
+    from .beamline_utils import I19_2Tristan as axes_params
+
+    # Define Tristan params
+    tristan_params = TristanDetector("Tristan 10M", (3043, 4183))
+
+    # Define Goniometer axes
+    gonio_axes = axes_params.gonio
+    # Define Detector
+    det_axes = axes_params.det_axes
 
     # Update axes
     # Goniometer
-    l = len(goniometer["axes"])
-    goniometer["starts"] = l * [0.0]
-    goniometer["increments"] = l * [0.0]
-    goniometer["ends"] = l * [0.0]
+    end_pos = None
     for ax in axes_pos:
-        idx = goniometer["axes"].index(ax.id)
-        goniometer["starts"][idx] = ax.start
-        goniometer["ends"][idx] = ax.end
+        idx = [n for n, ax in gonio_axes if ax.name == ax.id][0]
+        gonio_axes[idx].start_pos = ax.start
+        if ax.start != ax.end:
+            end_pos = ax.end
 
     # Detector
-    detector["starts"] = detector["ends"] = len(detector["axes"]) * [0.0]
     for dax in det_pos:
-        idx = detector["axes"].index(dax.id)
-        detector["starts"][idx] = dax.start
+        idx = [n for n, ax in det_axes if ax.name == dax.id][0]
+        det_axes[idx].start_pos = dax.start
 
     # Identify scan axis and calculate scan range
-    if TR.scan_axis is None:
-        scan_axis = find_osc_axis(
-            goniometer["axes"],
-            goniometer["starts"],
-            goniometer["ends"],
-            goniometer["types"],
-        )
-    else:
-        scan_axis = TR.scan_axis
-    scan_idx = goniometer["axes"].index(scan_axis)
-    OSC = {scan_axis: (goniometer["starts"][scan_idx], goniometer["ends"][scan_idx])}
+    scan_axis = TR.scan_axis if TR.scan_axis else "phi"
+    scan_idx = [n for n, ax in gonio_axes if ax.name == scan_axis][0]
+    if not end_pos:
+        end_pos = gonio_axes[scan_idx].end_pos
+    OSC = {scan_axis: (gonio_axes[scan_idx].start_pos, end_pos)}
+
+    # Define Detector
+    detector = Detector(
+        tristan_params,
+        det_axes,
+        TR.beam_center,
+        TR.exposure_time,
+        [axes_params.fast_axis, axes_params.slow_axis],
+    )
+
+    # Define Goniometer
+    goniometer = Goniometer(gonio_axes, OSC)
+
+    # Define beam and attenuator
+    attenuator = Attenuator(TR.transmission)
+    beam = Beam(TR.wavelength)
 
     logger.info("--- COLLECTION SUMMARY ---")
     logger.info("Source information")
-    logger.info(f"Facility: {source['name']} - {source['type']}.")
-    logger.info(f"Beamline: {source['beamline_name']}")
+    logger.info(f"Facility: {source.name} - {source.facility_type}.")
+    logger.info(f"Beamline: {source.beamline}")
 
-    logger.info(f"Incident beam wavelength: {beam['wavelength']}")
-    logger.info(f"Attenuation: {attenuator['transmission']}")
+    logger.info(f"Incident beam wavelength: {beam.wavelength}")
+    logger.info(f"Attenuation: {attenuator.transmission}")
 
     logger.info("Goniometer information")
     logger.info(f"Scan axis is: {scan_axis}")
-    for j in range(len(goniometer["axes"])):
+    for ax in gonio_axes:
         logger.info(
-            f"Goniometer axis: {goniometer['axes'][j]} => {goniometer['starts'][j]}, {goniometer['types'][j]} on {goniometer['depends'][j]}"
+            f"Goniometer axis: {ax.name} => {ax.start_pos}, {ax.transformation_type} on {ax.depends}"
         )
     logger.info("Detector information")
-    logger.info(f"{detector['description']}")
+    logger.info(f"{detector.detector_params.description}")
     logger.info(
-        f"Sensor made of {detector['sensor_material']} x {detector['sensor_thickness']}"
+        f"Sensor made of {detector.detector_params.sensor_material} x {detector.detector_params.sensor_thickness}"
     )
     logger.info(
-        f"Detector is a {detector['image_size'][::-1]} array of {detector['pixel_size']} pixels"
+        f"Detector is a {detector.detector_params.image_size[::-1]} array of {detector.detector_params.pixel_size} pixels"
     )
-    for k in range(len(detector["axes"])):
+    for ax in detector.detector_axes:
         logger.info(
-            f"Detector axis: {detector['axes'][k]} => {detector['starts'][k]}, {detector['types'][k]} on {detector['depends'][k]}"
+            f"Detector axis: {ax.name} => {ax.start_pos}, {ax.transformation_type} on {ax.depends}"
         )
 
-    logger.info(f"Recorded beam center is: {detector['beam_center']}.")
+    logger.info(f"Recorded beam center is: {detector.beam_center}.")
 
     logger.info(f"Timestamps recorded: {timestamps}")
 
     # Write
     try:
-        with h5py.File(master_file, "x") as nxsfile:
-            write_NXentry(nxsfile)
-
-            if timestamps[0]:
-                write_NXdatetime(nxsfile, (timestamps[0], None))
-
-            call_writers(
-                nxsfile,
-                [TR.meta_file],
-                coordinate_frame,
-                (detector["mode"], None),
-                goniometer,
-                detector,
-                module,
-                source,
-                beam,
-                attenuator,
-                OSC,
-                sample_depends_on=scan_axis,
-            )
-
-            if timestamps[1]:
-                write_NXdatetime(nxsfile, (None, timestamps[1]))
-            logger.info(f"The file {master_file} was written correctly.")
+        EventFileWriter = EventNXmxFileWriter(
+            master_file,
+            goniometer,
+            detector,
+            source,
+            beam,
+            attenuator,
+        )
+        EventFileWriter.write()
+        EventFileWriter.update_timestamps(timestamps)
+        logger.info(f"The file {master_file} was written correctly.")
     except Exception as err:
         logger.exception(err)
         logger.info(
@@ -193,7 +183,7 @@ def eiger_writer(
     timestamps: Tuple[str, str] = (None, None),
 ):
     """
-    A function to call the nexus writer for Eiger 2X 4M detector.
+    A function to call the NXmx nexus file writer for Eiger 2X 4M detector.
     It requires the informatin contained inside the meta file to work correctly.
 
     Args:
@@ -204,128 +194,126 @@ def eiger_writer(
     Raises:
         IOError: If the axes positions can't be read from the metafile (missing config or broken links).
     """
-    # Find datafiles
-    logger.info("Looking for data files ...")
-    filename_template = (
-        TR.meta_file.parent / TR.meta_file.name.replace("meta", f"{6*'[0-9]'}")
-    ).as_posix()
-    filenames = [
-        Path(f).expanduser().resolve() for f in sorted(glob.glob(filename_template))
-    ]
-    # Calculate total number of images
-    n_frames = find_number_of_images(filenames)
-    logger.info(
-        f"Found {len(filenames)} files in directory, containing {n_frames} images."
+    source = Source("I19-2")
+    from .beamline_utils import I19_2Eiger as axes_params
+
+    # Define Eiger 4M params
+    eiger_params = EigerDetector(
+        "Eiger 2X 4M",
+        (2162, 2068),
+        "CdTe",
+        50649,
+        -1,
     )
+
+    # Read some parameters
+    transmission = TR.transmission if TR.transmission else None
+    wl = TR.wavelength
+    beam_center = TR.beam_center
+
+    # Define Goniometer axes
+    gonio_axes = axes_params.gonio
+    # Define Detector
+    det_axes = axes_params.det_axes
 
     # Update axes
     with h5py.File(TR.meta_file, "r", libver="latest", swmr=True) as mh:
-        update_goniometer(mh, goniometer)
-        update_detector_axes(mh, detector)
+        meta = DectrisMetafile(mh)
+        n_frames = meta.get_number_of_images()
+        logger.info(f"Number of images found in meta file: {n_frames}.")
+        vds_dtype = define_vds_data_type(meta)
+        update_axes_from_meta(meta, gonio_axes)
+        update_axes_from_meta(meta, det_axes)
+
         logger.info(
             "Goniometer and detector axes positions have been updated with values from the meta file."
         )
-        if beam["wavelength"] is None:
+        if TR.wavelength is None:
             logger.info(
                 "Wavelength has't been passed by user. Looking for it in the meta file."
             )
-            overwrite_beam(mh, TR.detector_name, beam)
-        if detector["beam_center"] is None:
+            wl = meta.get_wavelength()
+        if TR.beam_center is None:
             logger.info(
                 "Beam center position has't been passed by user. Looking for it in the meta file."
             )
-            from ..tools.Metafile import DectrisMetafile
+            beam_center = meta.get_beam_center()
 
-            meta = DectrisMetafile(mh)
-            detector["beam_center"] = meta.get_beam_center()
-
-    # Check that axes have been updated
-    if goniometer["starts"] is None:
-        raise OSError("Goniometer axes values couldn't be read from meta file.")
-        # FOr now. If it doesn't work, more than likely meta is broken but axes can be passed.
-    if detector["starts"] is None:
-        raise OSError("Detector axes values couldn't be read from meta file.")
-
-    scan_axis = find_osc_axis(
-        goniometer["axes"],
-        goniometer["starts"],
-        goniometer["ends"],
-        goniometer["types"],
-    )
-    scan_idx = goniometer["axes"].index(scan_axis)
-    OSC = calculate_scan_range(
-        [scan_axis],
-        [goniometer["starts"][scan_idx]],
-        [goniometer["ends"][scan_idx]],
-        axes_increments=[goniometer["increments"][scan_idx]],
-        # n_images=n_frames,
+    scan_axis = identify_osc_axis(gonio_axes)
+    scan_idx = [n for n, ax in gonio_axes if ax.name == scan_axis][0]
+    gonio_axes[scan_idx].num_steps = n_frames
+    OSC = calculate_scan_points(
+        gonio_axes[scan_idx],
         rotation=True,
+        tot_num_imgs=n_frames,
     )
-    TRANSL = None
+
+    # Define beam and attenuator
+    attenuator = Attenuator(transmission)
+    beam = Beam(wl)
+
+    # Define Detector
+    detector = Detector(
+        eiger_params,
+        det_axes,
+        beam_center,
+        TR.exposure_time,
+        [axes_params.fast_axis, axes_params.slow_axis],
+    )
+
+    # Define Goniometer
+    goniometer = Goniometer(gonio_axes, OSC)
 
     logger.info("--- COLLECTION SUMMARY ---")
     logger.info("Source information")
-    logger.info(f"Facility: {source['name']} - {source['type']}.")
-    logger.info(f"Beamline: {source['beamline_name']}")
+    logger.info(f"Facility: {source.name} - {source.facility_type}.")
+    logger.info(f"Beamline: {source.beamline}")
 
-    logger.info(f"Incident beam wavelength: {beam['wavelength']}")
-    logger.info(f"Attenuation: {attenuator['transmission']}")
+    logger.info(f"Incident beam wavelength: {beam.wavelength}")
+    logger.info(f"Attenuation: {attenuator.transmission}")
 
     logger.info("Goniometer information")
     logger.info(f"Scan axis is: {scan_axis}")
-    for j in range(len(goniometer["axes"])):
+    for ax in gonio_axes:
         logger.info(
-            f"Goniometer axis: {goniometer['axes'][j]} => {goniometer['starts'][j]}, {goniometer['types'][j]} on {goniometer['depends'][j]}"
+            f"Goniometer axis: {ax.name} => {ax.start_pos}, {ax.transformation_type} on {ax.depends}"
         )
     logger.info("Detector information")
-    logger.info(f"{detector['description']}")
+    logger.info(f"{detector.detector_params.description}")
     logger.info(
-        f"Sensor made of {detector['sensor_material']} x {detector['sensor_thickness']}"
+        f"Sensor made of {detector.detector_params.sensor_material} x {detector.detector_params.sensor_thickness}"
     )
     logger.info(
-        f"Detector is a {detector['image_size'][::-1]} array of {detector['pixel_size']} pixels"
+        f"Detector is a {detector.detector_params.image_size[::-1]} array of {detector.detector_params.pixel_size} pixels"
     )
-    for k in range(len(detector["axes"])):
+    for ax in detector.detector_axes:
         logger.info(
-            f"Detector axis: {detector['axes'][k]} => {detector['starts'][k]}, {detector['types'][k]} on {detector['depends'][k]}"
+            f"Detector axis: {ax.name} => {ax.start_pos}, {ax.transformation_type} on {ax.depends}"
         )
 
-    logger.info(f"Recorded beam center is: {detector['beam_center']}.")
+    logger.info(f"Recorded beam center is: {detector.beam_center}.")
+    logger.info(f"Exposure time: {detector.exp_time} s.")
 
     logger.info(f"Timestamps recorded: {timestamps}")
 
     # Write
     try:
-        with h5py.File(master_file, "x") as nxsfile:
-            write_NXentry(nxsfile)
-
-            if timestamps[0]:
-                write_NXdatetime(nxsfile, (timestamps[0], None))
-
-            call_writers(
-                nxsfile,
-                filenames,
-                coordinate_frame,
-                (detector["mode"], n_frames),
-                goniometer,
-                detector,
-                module,
-                source,
-                beam,
-                attenuator,
-                OSC,
-                transl_scan=TRANSL,
-                metafile=TR.meta_file,
-                link_list=dset_links,
-                sample_depends_on=scan_axis,
-            )
-
-            if timestamps[1]:
-                write_NXdatetime(nxsfile, (None, timestamps[1]))
-
-            # Write VDS
-            image_vds_writer(nxsfile, (int(n_frames), *detector["image_size"]))
-            logger.info(f"The file {master_file} was written correctly.")
+        NXmx_writer = NXmxFileWriter(
+            master_file,
+            goniometer,
+            detector,
+            source,
+            beam,
+            attenuator,
+            n_frames,
+        )
+        NXmx_writer.write(start_time=timestamps[0])
+        NXmx_writer.write_vds(
+            vds_shape=(n_frames, *detector.detector_params.image_size),
+            vds_dtype=vds_dtype,
+        )
+        NXmx_writer.update_timestamps((None, timestamps[1]))
+        logger.info(f"The file {master_file} was written correctly.")
     except Exception as err:
         logger.exception(err)
         logger.info(
@@ -337,7 +325,32 @@ def eiger_writer(
 def nexus_writer(**params):
     """
     Gather all parameters from the beamline and call the NeXus writers.
+
+    Keyword Args:
+        meta_file (Path | str): Path to _meta.h5 file.
+        detector_name (str): Detector in use.
+        exposure_time (float): Exposure time, in s.
+        transmission (float): Attenuator transmission, in %.
+        wavelength (float): Wavelength of incident beam, in A.
+        beam_center (List[float, float]): Beam center position, in pixels.
+        start_time (datetime): Experiment start time.
+        stop_time (datetime): Experiment end time.
+        scan_axis (str): Name of the oscillation axis.
+        gonio_pos (List[namedtuple(str, float, float)]): Name, start and end positions \
+            of the goniometer axes.
+        det_pos (List[namedtuple(str, float, float)]): Name, start and end positions \
+            of detector axes.
+        outdir (str): Directory where to save the file. Only specify if different \
+            from meta_file directory.
+        serial (bool): Specify whether it's a serial crystallography dataset.
+        det_dist (float): Distance between sample and detector, in mm.
     """
+    if params["serial"] and params["serial"] is True:
+        raise ExperimentTypeError(
+            "This is writer is not enabled for ssx collections."
+            "Pleas look into SSX_Eiger or SSX_Tristan for this functionality."
+        )
+
     TR = tr_collect(
         meta_file=Path(params["meta_file"]).expanduser().resolve(),
         detector_name=params["detector_name"],
@@ -382,34 +395,15 @@ def nexus_writer(**params):
         get_iso_timestamp(TR.stop_time),
     )
 
-    # logger.info("Load goniometer from I19-2.")
-    for k, v in goniometer_axes.items():
-        goniometer[k] = v
-
-    # Fill in a few dictionaries
-    attenuator["transmission"] = TR.transmission if TR.transmission else None
-
-    beam["wavelength"] = TR.wavelength
-
     if "tristan" in TR.detector_name.lower():
-        for k, v in tristan10M_params.items():
-            detector[k] = v
         if params["gonio_pos"] is None or params["det_pos"] is None:
             logger.error("Please pass the axes positions for a Tristan collection.")
         if TR.scan_axis is None:
-            logger.warning("No scan axis has been specified.")
-        for k, v in tristan10M_module.items():
-            module[k] = v
-    else:
-        for k, v in eiger4M_params.items():
-            detector[k] = v
-        for k, v in eiger4M_module.items():
-            module[k] = v
+            logger.warning(
+                "No scan axis has been specified. Phi will be set as default."
+            )
 
-    detector["exposure_time"] = TR.exposure_time
-    detector["beam_center"] = TR.beam_center
-
-    if "eiger" in TR.detector_name.lower() and params["serial"] is False:
+    if "eiger" in TR.detector_name.lower():
         eiger_writer(master_file, TR, timestamps)
     elif "tristan" in TR.detector_name.lower():
         tristan_writer(

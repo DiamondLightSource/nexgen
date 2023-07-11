@@ -2,6 +2,16 @@
 Beamlines API
 =============
 
+General utilities
+-----------------
+
+.. autoclass:: nexgen.beamlines.beamline_utils.BeamlineAxes
+    :members:
+
+
+.. autoclass:: nexgen.beamlines.beamline_utils.PumpProbe
+    :members:
+
 I19-2
 -----
 
@@ -56,12 +66,15 @@ GDA integration tools
 Read geometry and detector parameters from GDA-generated JSON files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. autofunction:: nexgen.beamlines.GDAtools.GDAjson2params.read_geometry_from_json
+.. automodule:: nexgen.beamlines.GDAtools.GDAjson2params
 
-.. autofunction:: nexgen.beamlines.GDAtools.GDAjson2params.read_detector_params_from_json
+
+.. autoclass:: nexgen.beamlines.GDAtools.GDAjson2params.JSONParamsIO
+    :members:
+
 
 Gather beamline and collection information from GDA-generated xml file
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. autoclass:: nexgen.tools.ExtendedRequest.ExtendedRequestIO
+.. automodule:: nexgen.beamlines.GDAtools.ExtendedRequest
     :members:

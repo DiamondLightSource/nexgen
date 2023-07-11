@@ -5,137 +5,128 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Dict, Tuple
+from typing import Dict, List, Tuple
+
+from nexgen.nxs_utils import Axis, EigerDetector, TransformationType, TristanDetector
+from nexgen.nxs_utils.Detector import DetectorType, UnknownDetectorTypeError
+from nexgen.utils import Point3D
 
 
-def read_geometry_from_json(
-    axes_geometry: Path | str,
-) -> Tuple[Dict, Dict]:
-    """
-    A function to read the axes information from the GDA-supplied json file.
+class JSONParamsIO:
+    """Read JSON file and exctract parameters."""
 
-    Args:
-        axes_geometry (Union[Path, str]): JSON file containing the description of the axes and their location.
+    def __init__(self, json_file: Path | str):
+        self.json_file = json_file
+        self.params = self._read_file()
 
-    Returns:
-        Tuple[Dict, Dict]: Returns the updated dictionaries describing goniometer and detector.
-    """
-    goniometer = {}
-    detector = {}
+    def _read_file(self) -> Dict:
+        with open(self.json_file, "r") as fh:
+            params = json.load(fh)
+        return params
 
-    # Load information from JSON file
-    with open(axes_geometry) as f:
-        geom = json.load(f)
+    def _find_axis_depends_on(self, dep_val: str) -> str:
+        depends = dep_val.split("_")[1] if "_" in dep_val else dep_val
+        if depends in ["x", "y", "z"]:
+            depends = f"sam_{depends}"
+        return depends
 
-    coordinate_frame = geom["geometry"]
-    print(coordinate_frame)
+    def get_coordinate_frame(self) -> str:
+        """Get the coordinate frame from geometry json file."""
+        return self.params["geometry"]
 
-    # Set up the dictionaries (in theory they are empty even when passed)
-    goniometer["axes"] = []
-    goniometer["depends"] = []
-    goniometer["vectors"] = []
-    goniometer["units"] = []
-    goniometer["types"] = []
-
-    detector["axes"] = []
-    detector["depends"] = []
-    detector["vectors"] = []
-    detector["units"] = []
-    detector["types"] = []
-
-    for v in geom.values():
-        if type(v) is dict:
-            if v["location"] == "sample":
-                goniometer["axes"].append(v["ds_name"])
-                goniometer["depends"].append(
-                    v["depends_on"].split("_")[1]
-                    if "_" in v["depends_on"]
-                    else v["depends_on"]
+    def get_goniometer_axes_from_file(self) -> List[Axis]:
+        """Read the axes information from the GDA-supplied json file."""
+        axes_list = []
+        for v in self.params.values():
+            if type(v) is dict and v["location"] == "sample":
+                ax_depends = self._find_axis_depends_on(v["depends_on"])
+                ax_type = (
+                    TransformationType.ROTATION
+                    if v["type"] == "rotation"
+                    else TransformationType.TRANSLATION
                 )
-                goniometer["types"].append(v["type"])
-                goniometer["units"].append(v["units"])
-                [goniometer["vectors"].append(i) for i in v["vector"]]
-            elif v["location"] == "detector":
-                detector["axes"].append(v["ds_name"])
-                detector["depends"].append(v["depends_on"])
-                detector["types"].append(v["type"])
-                detector["units"].append(v["units"])
-                [detector["vectors"].append(i) for i in v["vector"]]
+                axes_list.append(
+                    Axis(v["ds_name"], ax_depends, ax_type, tuple(v["vector"]))
+                )
+        return axes_list
 
-    for j in range(len(goniometer["depends"])):
-        if goniometer["depends"][j] in ["x", "y", "z"]:
-            goniometer["depends"][j] = "sam_" + goniometer["depends"][j]
-    goniometer["offsets"] = len(goniometer["axes"]) * [0, 0, 0]
+    def get_detector_axes_from_file(self) -> List[Axis]:
+        """Read the detector axes information from the GDA-supplied json file."""
+        axes_list = []
+        for v in self.params.values():
+            if type(v) is dict and v["location"] == "detector":
+                ax_type = (
+                    TransformationType.ROTATION
+                    if v["type"] == "rotation"
+                    else TransformationType.TRANSLATION
+                )
+                axes_list.append(
+                    Axis(v["ds_name"], v["depends_on"], ax_type, tuple(v["vector"]))
+                )
+        return axes_list
 
-    return goniometer, detector
+    def get_detector_params_from_file(self) -> DetectorType:
+        """Read the detector parameters from the GDA-supplied json file."""
+        if "tristan" in self.params.keys():
+            tristan_params = self.params["tristan"]
+            material = (
+                "Si"
+                if tristan_params["sensor_material"] == "Silicon"
+                else tristan_params["sensor_material"]
+            )
+            thickness = (
+                str(tristan_params["sensor_thickness"])
+                + tristan_params["sensor_thickness_units"]
+            )
+            pix = [
+                str(i) + tristan_params["pixel_size_units"]
+                for i in tristan_params["pixel_size_sf"][::-1]
+            ]
+            det_params = TristanDetector(
+                description=tristan_params["description"],
+                image_size=tristan_params["data_size_sf"][::-1],
+                sensor_material=material,
+                sensor_thickness=thickness,
+                pixel_size=pix,
+                detector_type=tristan_params["detector_type"],
+            )
+        elif "eiger" in self.params.keys():
+            eiger_params = self.params["eiger"]
+            material = eiger_params["sensor_material"]
+            pix = [
+                str(i) + eiger_params["pixel_size_units"]
+                for i in eiger_params["pixel_size"]
+            ]
+            if material == "Silicon":
+                material = "Si"
+            det_params = EigerDetector(
+                description=eiger_params["description"],
+                image_size=eiger_params["size"],
+                sensor_material=material,
+                overload=50649,
+                underload=-1,
+                pixel_size=pix,
+            )
+        else:
+            raise UnknownDetectorTypeError("Unknown detector in GDA JSON file.")
 
+        return det_params
 
-def read_detector_params_from_json(
-    detector_params: Path | str,
-) -> Dict:
-    """
-    A function to read the detector parameters from the GDA-supplied json file.
-
-    Args:
-        detector_params (Union[Path, str]):  JSON file containing the definition of detector parameters.
-
-    Returns:
-        Dict: Updated detector dictionary
-    """
-    detector = {}
-
-    # Load information from JSON file
-    with open(detector_params) as f:
-        det = json.load(f)
-
-    if "tristan" in det.keys():
-        detector["mode"] = "events"
-        detector["description"] = det["tristan"]["description"]
-        detector["image_size"] = det["tristan"]["data_size_sf"][::-1]
-        detector["detector_type"] = det["tristan"]["detector_type"]
-        detector["sensor_material"] = (
-            "Si"
-            if det["tristan"]["sensor_material"] == "Silicon"
-            else det["tristan"]["sensor_material"]
+    def get_fast_and_slow_direction_vectors_from_file(
+        self,
+        det_type: str,
+    ) -> Tuple[Point3D, Point3D]:
+        """Read detector fast and slow axes from the GDA-supplied json file."""
+        det_name = "eiger" if "eiger" in det_type.lower() else "tristan"
+        det_params = self.params[det_name]
+        fast_axis = Point3D(
+            x=det_params["fast_dir"][0],
+            y=det_params["fast_dir"][1],
+            z=det_params["fast_dir"][2],
         )
-        detector["sensor_thickness"] = (
-            str(det["tristan"]["sensor_thickness"])
-            + det["tristan"]["sensor_thickness_units"]
+        slow_axis = Point3D(
+            x=det_params["slow_dir"][0],
+            y=det_params["slow_dir"][1],
+            z=det_params["slow_dir"][2],
         )
-        detector["pixel_size"] = [
-            str(i) + det["tristan"]["pixel_size_units"]
-            for i in det["tristan"]["pixel_size_sf"][::-1]
-        ]
-        detector["fast_axis"] = det["tristan"]["fast_dir"]
-        detector["slow_axis"] = det["tristan"]["slow_dir"]
-        detector["flatfield_applied"] = False
-        detector["pixel_mask_applied"] = False
-        # ... and the tristan specifics
-        spec = det["detector_specific"]
-        detector["software_version"] = spec["software_version"]
-        detector["detector_tick"] = (
-            str(spec["detector_tick"]) + spec["detector_tick_units"]
-        )
-        detector["detector_frequency"] = (
-            str(spec["detector_frequency"]) + spec["detector_frequency_units"]
-        )
-        detector["timeslice_rollover"] = spec["timeslice_rollover_bits"]
-    elif "eiger" in det.keys():
-        detector["mode"] = "images"
-        detector["description"] = det["eiger"]["description"]
-        detector["detector_type"] = det["eiger"]["type"]
-        detector["image_size"] = det["eiger"]["size"]
-        detector["sensor_material"] = det["eiger"]["sensor_material"]
-        detector["sensor_thickness"] = (
-            str(det["eiger"]["thickness"]) + det["eiger"]["thickness_units"]
-        )
-        detector["pixel_size"] = [
-            str(i) + det["eiger"]["pixel_Size_units"]
-            for i in det["eiger"]["pixel_size"]
-        ]
-        detector["fast_axis"] = det["eiger"]["fast_dir"]
-        detector["slow_axis"] = det["eiger"]["slow_dir"]
-    else:
-        print("which detector is this then?")
-
-    return detector
+        return fast_axis, slow_axis

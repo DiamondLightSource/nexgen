@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from nexgen.nxs_utils.Axes import Axis
+from nexgen.nxs_utils.Axes import Axis, TransformationType
 from nexgen.nxs_utils.ScanUtils import (
     ScanAxisError,
     ScanAxisNotFoundError,
@@ -12,25 +12,27 @@ from nexgen.nxs_utils.ScanUtils import (
 )
 
 test_axis_list = [
-    Axis("omega", ".", "rotation", (0, 0, -1), -90),
-    Axis("phi", "omega", "rotation", (0, 0, -1), 180),
-    Axis("sam_y", "phi", "translation", (0, 1, 0), 0, 0.1, 10),
-    Axis("sam_x", "sam_y", "translation", (1, 0, 0), 0, 0.2, 5),
+    Axis("omega", ".", TransformationType.ROTATION, (0, 0, -1), -90),
+    Axis("phi", "omega", TransformationType.ROTATION, (0, 0, -1), 180),
+    Axis("sam_y", "phi", TransformationType.TRANSLATION, (0, 1, 0), 0, 0.1, 10),
+    Axis("sam_x", "sam_y", TransformationType.TRANSLATION, (1, 0, 0), 0, 0.2, 5),
 ]
 
 
 def test_identify_osc_axis():
     osc_axis = identify_osc_axis(
         [
-            Axis("chi", ".", "rotation", (0, 0, -1), -90, 0.1, 100),
-            Axis("phi", "chi", "rotation", (0, 0, -1), 180),
+            Axis("chi", ".", TransformationType.ROTATION, (0, 0, -1), -90, 0.1, 100),
+            Axis("phi", "chi", TransformationType.ROTATION, (0, 0, -1), 180),
         ]
     )
     assert osc_axis == "chi"
 
 
 def test_identify_osc_axis_with_just_one_rotation_axis():
-    osc_axis = identify_osc_axis([Axis("phi", "omega", "rotation", (0, 0, -1), 180)])
+    osc_axis = identify_osc_axis(
+        [Axis("phi", "omega", TransformationType.ROTATION, (0, 0, -1), 180)]
+    )
     assert osc_axis == "phi"
 
 
@@ -47,7 +49,7 @@ def test_identify_grid_scan_axis():
 
 def test_identify_grid_scan_axis_returns_empty_list_if_no_scan():
     grid_axes = identify_grid_scan_axes(
-        [Axis("sam_z", "phi", "translation", (0, 0, 1), 0)],
+        [Axis("sam_z", "phi", TransformationType.TRANSLATION, (0, 0, 1), 0)],
     )
     assert grid_axes == []
 
@@ -56,8 +58,12 @@ def test_osc_axis_search_fails_for_multiple_moving_axes():
     with pytest.raises(ScanAxisNotFoundError):
         identify_osc_axis(
             [
-                Axis("chi", ".", "rotation", (0, 0, -1), -90, 0.1, 100),
-                Axis("phi", "chi", "rotation", (0, 0, -1), 180, 0.5, 50),
+                Axis(
+                    "chi", ".", TransformationType.ROTATION, (0, 0, -1), -90, 0.1, 100
+                ),
+                Axis(
+                    "phi", "chi", TransformationType.ROTATION, (0, 0, -1), 180, 0.5, 50
+                ),
             ]
         )
 
@@ -73,7 +79,7 @@ def test_grid_axis_search_fails_for_no_axes():
 
 
 def test_calculate_scan_points_for_rotation_scan():
-    ax = Axis("chi", ".", "rotation", (0, 0, -1), 0.0, 0.5, 4)
+    ax = Axis("chi", ".", TransformationType.ROTATION, (0, 0, -1), 0.0, 0.5, 4)
     rot = calculate_scan_points(ax, rotation=True)
     assert "chi" in rot.keys()
     assert len(rot["chi"]) == 4
@@ -83,7 +89,7 @@ def test_calculate_scan_points_for_rotation_scan():
 
 
 def test_calculate_scan_points_for_reverse_rotation():
-    ax = Axis("phi", ".", "rotation", (0, 0, -1), 0.0, -0.2, 5)
+    ax = Axis("phi", ".", TransformationType.ROTATION, (0, 0, -1), 0.0, -0.2, 5)
     rev = calculate_scan_points(ax, rotation=True)
     assert rev[ax.name][0] == 0.0
     assert round(rev[ax.name][-1], 1) == -0.8

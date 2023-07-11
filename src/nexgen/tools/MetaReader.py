@@ -5,12 +5,14 @@ Tools to get the information stored inside the _meta.h5 file and overwrite the p
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List
+from typing import Dict, List
 
 import h5py
 import numpy as np
+from numpy.typing import DTypeLike
 
-from ..utils import units_of_length
+from ..nxs_utils import Axis
+from ..utils import ScopeExtract, units_of_length
 from .Metafile import DectrisMetafile, TristanMetafile
 
 # TODO actually define the type for scope extract and replace Any with Union
@@ -18,7 +20,7 @@ overwrite_logger = logging.getLogger("nexgen.MetaReader")
 overwrite_logger.setLevel(logging.DEBUG)
 
 
-def overwrite_beam(meta_file: h5py.File, name: str, beam: Dict | Any):
+def overwrite_beam(meta_file: h5py.File, name: str, beam: Dict | ScopeExtract):
     """
     Looks for the wavelength value in the _meta.h5 file.
     If found, it overwrites the value that was parsed from the command line.
@@ -52,7 +54,7 @@ def overwrite_beam(meta_file: h5py.File, name: str, beam: Dict | Any):
 
 
 def overwrite_detector(
-    meta_file: h5py.File, detector: Dict | Any, ignore: List = None
+    meta_file: h5py.File, detector: Dict | ScopeExtract, ignore: List = None
 ) -> List:
     """
     Looks through the _meta.h5 file for informtion relating to NXdetector.
@@ -253,11 +255,19 @@ def update_detector_axes(meta_file: h5py.File, detector: Dict):
         return
 
 
-def define_vds_data_type(meta_file: h5py.File) -> Any:
-    overwrite_logger.info("Define dtype for VDS creating from bit_depth_image.")
-    meta = DectrisMetafile(meta_file)
+def define_vds_data_type(meta_file: DectrisMetafile) -> DTypeLike:
+    """Define the data type for the VDS from the bit_depth defined in the meta file.
 
-    nbits = meta.get_bit_depth_image()
+    Args:
+        meta_file (DectrisMetafile): Handle to Dectris-shaped meta.h5 file.
+
+    Returns:
+        DTypeLike: Data type as np.uint##.
+    """
+    overwrite_logger.info("Define dtype for VDS creating from bit_depth_image.")
+    # meta = DectrisMetafile(meta_file)
+
+    nbits = meta_file.get_bit_depth_image()
     overwrite_logger.info(f"Found value for bit_depth_image: {nbits}.")
     if nbits == 32:
         return np.uint32
@@ -265,3 +275,37 @@ def define_vds_data_type(meta_file: h5py.File) -> Any:
         return np.uint8
     else:
         return np.uint16
+
+
+def update_axes_from_meta(
+    meta_file: DectrisMetafile, axes_list: List[Axis], osc_axis: str | None = None
+):
+    """Update goniometer or detector axes values from those stores in the _dectris group.
+
+    Args:
+        meta_file (DectrisMetafile): Handle to Dectris-shaped meta.h5 file.
+        axes_list (List[Axis]): List of axes to look up and eventually update.
+        osc_axis (str | None, optional): If passed, the number of images corresponding to the osc_axis \
+            will be updated too. Defaults to None.
+    """
+    overwrite_logger.info("Updating axes list with values saved to _dectris group.")
+    if meta_file.hasDectrisGroup is False:
+        overwrite_logger.warning(
+            "No Dectris group in meta file. No values will be updated."
+        )
+        return
+
+    config = meta_file.read_dectris_config()
+    num = meta_file.get_number_of_images()
+
+    for ax in axes_list:
+        if f"{ax.name}_start" in config.keys():
+            ax.start_pos = config[f"{ax.name}_start"]
+            overwrite_logger.info(f"Start value for axis {ax.name}: {ax.start_pos}.")
+            if f"{ax.name}_increment" in config.keys():
+                ax.increment = config[f"{ax.name}_increment"]
+                overwrite_logger.info(
+                    f"Increment value for axis {ax.name}: {ax.increment}."
+                )
+        if osc_axis and ax.name == osc_axis:
+            ax.num_steps = num

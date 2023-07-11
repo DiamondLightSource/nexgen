@@ -1,10 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-
-from dataclasses_json import dataclass_json
-
-from .Axes import Axis
+from .Axes import Axis, TransformationType
 from .Detector import (
     Detector,
     EigerDetector,
@@ -13,12 +9,14 @@ from .Detector import (
     TristanDetector,
 )
 from .Goniometer import Goniometer
+from .Sample import Sample
 from .Source import Attenuator, Beam, Source
 
 __all__ = [
     "Axis",
     "Goniometer",
     "Detector",
+    "SinglaDetector",
     "TristanDetector",
     "EigerDetector",
     "JungfrauDetector",
@@ -26,12 +24,6 @@ __all__ = [
     "Source",
     "Beam",
     "Attenuator",
+    "Sample",
+    "TransformationType",
 ]
-
-
-@dataclass_json
-@dataclass
-class Sample:
-    name: str | None = None
-    depends_on: str | None = None
-    temperature: str | None = None

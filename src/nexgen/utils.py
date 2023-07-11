@@ -12,6 +12,7 @@ from typing import List
 
 import h5py
 import pint
+from freephil.common import scope_extract as ScopeExtract  # Define scope extract type
 
 from . import MAX_SUFFIX_DIGITS
 
@@ -22,6 +23,7 @@ __all__ = [
     "units_of_length",
     "units_of_time",
     "get_iso_timestamp",
+    "ScopeExtract",
 ]
 
 # Define coordinates

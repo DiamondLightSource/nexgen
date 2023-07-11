@@ -1,10 +1,12 @@
 from numpy.testing import assert_array_equal
 
-from nexgen.nxs_utils.Axes import Axis
+from nexgen.nxs_utils.Axes import Axis, TransformationType
 from nexgen.utils import Point3D
 
-test_rot_axis = Axis("omega", ".", "rotation", Point3D(0, 0, -1), -90)
-test_transl_axis = Axis("sam_x", "omega", "translation", (1, 0, 0), 0, 0.1, 10)
+test_rot_axis = Axis("omega", ".", TransformationType.ROTATION, Point3D(0, 0, -1), -90)
+test_transl_axis = Axis(
+    "sam_x", "omega", TransformationType.TRANSLATION, (1, 0, 0), 0, 0.1, 10
+)
 
 
 def test_axes():
@@ -32,6 +34,13 @@ def test_axis_with_Point3D_vector_input():
 def test_axis_is_scan():
     assert test_rot_axis.is_scan is False
     assert test_transl_axis.is_scan is True
+
+
+def test_axis_start_pos():
+    assert test_rot_axis.start_pos != 0.0
+    assert test_rot_axis.start_pos == -90.0
+    test_rot_axis_2 = Axis("phi", ".", TransformationType.ROTATION, Point3D(0, 0, -1))
+    assert test_rot_axis_2.start_pos == 0.0
 
 
 def test_axis_end_pos():

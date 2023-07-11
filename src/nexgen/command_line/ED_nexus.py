@@ -1,6 +1,7 @@
 """
 Command line tool to generate NXmx-like NeXus files for Electron Diffraction.
 """
+from __future__ import annotations
 
 import argparse
 import glob

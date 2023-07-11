@@ -3,13 +3,13 @@ import numpy as np
 # import pytest
 from numpy.testing import assert_array_equal
 
-from nexgen.nxs_utils import Axis, Goniometer
+from nexgen.nxs_utils import Axis, Goniometer, TransformationType
 
 axes_list = [
-    Axis("omega", ".", "rotation", (0, 0, -1), 0.0),
-    Axis("sam_z", "omega", "translation", (0, 0, 1), 0.0),
-    Axis("sam_y", "sam_z", "translation", (0, 1, 0), 0.0, 0.1, 10),
-    Axis("sam_x", "sam_y", "translation", (1, 0, 0), 0.0, 0.1, 10),
+    Axis("omega", ".", TransformationType.ROTATION, (0, 0, -1), 0.0),
+    Axis("sam_z", "omega", TransformationType.TRANSLATION, (0, 0, 1), 0.0),
+    Axis("sam_y", "sam_z", TransformationType.TRANSLATION, (0, 1, 0), 0.0, 0.1, 10),
+    Axis("sam_x", "sam_y", TransformationType.TRANSLATION, (1, 0, 0), 0.0, 0.1, 10),
 ]
 
 
@@ -69,8 +69,8 @@ def test_get_number_of_scan_points_given_a_scan():
 def test_get_number_of_scan_points():
     num_frames = Goniometer(
         [
-            Axis("omega", ".", "rotation", (0, 0, -1), 90.0),
-            Axis("phi", "omega", "rotation", (0, 0, -1), 0.0, 0.2, 10),
+            Axis("omega", ".", TransformationType.ROTATION, (0, 0, -1), 90.0),
+            Axis("phi", "omega", TransformationType.ROTATION, (0, 0, -1), 0.0, 0.2, 10),
         ],
     ).get_number_of_scan_points()
     assert num_frames == 10
@@ -79,7 +79,7 @@ def test_get_number_of_scan_points():
 def test_define_scan_axes_for_event_mode_given_scan():
     scan = {"phi": (-90, 0)}
     osc_scan, grid_scan = Goniometer(
-        [Axis("phi", ".", "rotation", (0, 0, -1), 0.0)], scan
+        [Axis("phi", ".", TransformationType.ROTATION, (0, 0, -1), 0.0)], scan
     ).define_scan_axes_for_event_mode()
     assert grid_scan is None
     assert_array_equal(osc_scan["phi"], scan["phi"])
@@ -87,7 +87,7 @@ def test_define_scan_axes_for_event_mode_given_scan():
 
 def test_define_scan_axes_for_event_mode():
     osc_scan, _ = Goniometer(
-        [Axis("phi", ".", "rotation", (0, 0, -1), 0.0), *axes_list[1:]]
+        [Axis("phi", ".", TransformationType.ROTATION, (0, 0, -1), 0.0), *axes_list[1:]]
     ).define_scan_axes_for_event_mode()
     assert_array_equal(osc_scan["phi"], (0, 0))
 

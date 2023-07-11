@@ -13,17 +13,13 @@ from freephil.common import scope_extract as ScopeExtract  # Define scope extrac
 from numpy.typing import ArrayLike
 
 from .. import reframe_arrays
-from ..tools.DataWriter import generate_event_files, generate_image_files
-from ..tools.MetaReader import overwrite_beam, overwrite_detector
-from ..tools.VDS_tools import image_vds_writer, vds_file_writer
-from ..utils import get_filename_template, units_of_time
-from . import (
+from ..nxs_write import (
     calculate_scan_range,
     find_grid_scan_axes,
     find_number_of_images,
     find_osc_axis,
 )
-from .NXclassWriters import (
+from ..nxs_write.NXclassWriters import (
     write_NXdata,
     write_NXdatetime,
     write_NXdetector,
@@ -34,6 +30,10 @@ from .NXclassWriters import (
     write_NXsample,
     write_NXsource,
 )
+from ..tools.DataWriter import generate_event_files, generate_image_files
+from ..tools.MetaReader import overwrite_beam, overwrite_detector
+from ..tools.VDS_tools import image_vds_writer, vds_file_writer
+from ..utils import get_filename_template, units_of_time
 
 
 # Define the scan.

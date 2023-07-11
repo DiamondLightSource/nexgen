@@ -1,5 +1,16 @@
 # CHANGELOG
 
+
+## 0.#.#
+
+### Changed
+- Refactoring of serial writer
+- Refactoring of I19 writers
+
+### Fixed
+- Read params from GDA-generated JSON files
+- Update and fix documentation
+
 ## 0.6.28
 
 ### Added

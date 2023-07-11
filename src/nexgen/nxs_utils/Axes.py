@@ -4,9 +4,20 @@ Utilities for axes definition
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Literal, Tuple
+from enum import Enum
+from typing import Tuple
 
 from ..utils import Point3D
+
+
+class TransformationType(Enum):  # StrEnum only from Python 3.11
+    """Define axis transformation type
+    - ROTATION
+    - TRANSLATION
+    """
+
+    ROTATION = "rotation"
+    TRANSLATION = "translation"
 
 
 # Define axes and scans
@@ -14,13 +25,28 @@ from ..utils import Point3D
 class Axis:
     """
     Define an axis object for goniometer or detector.
+
+    Attributes:
+        name (str): Axis name.
+        depends (str): Name of the axis it depends on.
+        transformation_type (TransformationType): Rotation or translation.
+        vector (Point3D | Tuple): Axis vector.
+        start_pos (float, optional): Start position of axis. Defaults to 0.0.
+        increment (float, optional): Scan step size if the axis moves. Defaults to 0.0.
+        num_steps (int, optional): Number of scan points. Defaults to 0.0.
+        offset (Point3D | Tuple, optional): Axis offset. Defaults to (0.0, 0.0, 0.0).
+
+    Properties:
+        units (str): Defined depending on transformation type: deg or mm.
+        end_pos (float): Last point recorded in a scan colletion. Calculated from start_pos, increment and num_steps, 1-indexed.
+        is_scan (bool): Whether axis is a scan axis.
     """
 
     name: str
     depends: str
-    transformation_type: Literal["translation", "rotation"]
+    transformation_type: TransformationType
     vector: Point3D | Tuple[float, float, float]
-    start_pos: float
+    start_pos: float = 0.0
     increment: float = 0.0
     num_steps: int = 0
     offset: Point3D | Tuple[float, float, float] = (0.0, 0.0, 0.0)
@@ -30,6 +56,7 @@ class Axis:
             self.vector = (self.vector.x, self.vector.y, self.vector.z)
         if type(self.offset) is Point3D:
             self.offset = (self.offset.x, self.offset.y, self.offset.z)
+        self.transformation_type = self.transformation_type.value
 
     @property
     def units(self) -> str:
