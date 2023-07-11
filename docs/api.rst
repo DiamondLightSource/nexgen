@@ -10,6 +10,12 @@ API
 Defining the various parts of a nexus file
 ==========================================
 
+.. automodule:: nexgen.nxs_utils
+    :members:
+    :show-inheritance:
+    :inherited-members:
+    :imported-members:
+
 Axes
 ----
 
