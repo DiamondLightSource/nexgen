@@ -11,6 +11,11 @@ from ..utils import Point3D
 
 
 class TransformationType(Enum):  # StrEnum only from Python 3.11
+    """Define axis transformation type
+    - ROTATION
+    - TRANSLATION
+    """
+
     ROTATION = "rotation"
     TRANSLATION = "translation"
 
@@ -20,6 +25,21 @@ class TransformationType(Enum):  # StrEnum only from Python 3.11
 class Axis:
     """
     Define an axis object for goniometer or detector.
+
+    Attributes:
+        name (str): Axis name.
+        depends (str): Name of the axis it depends on.
+        transformation_type (TransformationType): Rotation or translation.
+        vector (Point3D | Tuple): Axis vector.
+        start_pos (float, optional): Start position of axis. Defaults to 0.0.
+        increment (float, optional): Scan step size if the axis moves. Defaults to 0.0.
+        num_steps (int, optional): Number of scan points. Defaults to 0.0.
+        offset (Point3D | Tuple, optional): Axis offset. Defaults to (0.0, 0.0, 0.0).
+
+    Properties:
+        units (str): Defined depending on transformation type: deg or mm.
+        end_pos (float): Last point recorded in a scan colletion. Calculated from start_pos, increment and num_steps, 1-indexed.
+        is_scan (bool): Whether axis is a scan axis.
     """
 
     name: str

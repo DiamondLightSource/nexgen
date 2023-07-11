@@ -184,6 +184,7 @@ Utilities
 
 .. automodule:: nexgen.utils
     :members:
+    .. autoclass:: nexgen.utils.Point3D
 
 
 **Writing tools**
