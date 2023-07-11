@@ -14,8 +14,14 @@ Axes
 ----
 
 .. automodule:: nexgen.nxs_utils.Axes
-    :members:
     :imported-members:
+
+
+.. autoclass:: nexgen.nxs_utils.Axes.TransformationType
+
+
+.. autoclass:: nexgen.nxs_utils.Axes.Axis
+    :members:
 
 
 Scans
@@ -23,7 +29,7 @@ Scans
 
 .. automodule:: nexgen.nxs_utils.ScanUtils
     :members:
-    :imported-members:
+    :show-inheritance:
 
 
 Goniometer

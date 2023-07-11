@@ -67,6 +67,9 @@ Read geometry and detector parameters from GDA-generated JSON files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: nexgen.beamlines.GDAtools.GDAjson2params
+
+
+.. autoclass:: nexgen.beamlines.GDAtools.GDAjson2params.JSONParamsIO
     :members:
 
 

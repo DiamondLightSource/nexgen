@@ -13,6 +13,8 @@ from nexgen.utils import Point3D
 
 
 class JSONParamsIO:
+    """Read JSON file and exctract parameters."""
+
     def __init__(self, json_file: Path | str):
         self.json_file = json_file
         self.params = self._read_file()
@@ -29,6 +31,7 @@ class JSONParamsIO:
         return depends
 
     def get_coordinate_frame(self) -> str:
+        """Get the coordinate frame from geometry json file."""
         return self.params["geometry"]
 
     def get_goniometer_axes_from_file(self) -> List[Axis]:
