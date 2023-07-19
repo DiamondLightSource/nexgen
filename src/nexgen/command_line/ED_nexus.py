@@ -150,7 +150,7 @@ def write_from_SINGLA(args):
     if args.master:
         master = Path(args.master).expanduser().resolve()
         logger.info(
-            f"Looking through Dectris master file to extract at least mask and flatfield."
+            "Looking through Dectris master file to extract at least mask and flatfield."
         )
         detector.update(extract_from_SINGLA_master(master))
 
