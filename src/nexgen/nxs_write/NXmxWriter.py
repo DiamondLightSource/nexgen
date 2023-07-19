@@ -11,7 +11,7 @@ from typing import Any, Dict, List, Tuple
 import h5py
 import numpy as np
 
-from .. import MAX_FRAMES_PER_DATASET, MAX_SUFFIX_DIGITS, reframe_arrays
+from .. import MAX_FRAMES_PER_DATASET, MAX_SUFFIX_DIGITS, coord2mcstas
 from ..nxs_utils.Detector import Detector
 from ..nxs_utils.Goniometer import Goniometer
 from ..nxs_utils.Source import Attenuator, Beam, Source
@@ -391,7 +391,7 @@ class EDNXmxFileWriter(NXmxFileWriter):
         attenuator: Attenuator,
         tot_num_imgs: int,
         ED_coord_system: Dict,
-        coordinate_frame: str = "mcstas",
+        convert_to_mcstas: bool = False,
     ):
         super().__init__(
             filename,
@@ -403,7 +403,24 @@ class EDNXmxFileWriter(NXmxFileWriter):
             tot_num_imgs,
         )
         self.ED_coord_system = ED_coord_system
-        self.coord_frame = coordinate_frame
+        self.convert_cs = convert_to_mcstas
+
+    def _check_coordinate_frame(self):
+        if self.convert_cs is True:
+            mat = np.array(
+                [
+                    self.ED_coord_system["x"][-1],
+                    self.ED_coord_system["y"][-1],
+                    self.ED_coord_system["z"][-1],
+                ]
+            )
+            # TODO: Need to redefine ED as {"x": Axis()} or something
+            for ax in self.goniometer.axes_list:
+                ax.vector = coord2mcstas(ax.vector, mat)
+            for ax in self.detector.detector_axes:
+                ax.vector = coord2mcstas(ax.vector, mat)
+            self.detector.fast_axis = coord2mcstas(self.detector.fast_axis, mat)
+            self.detector.slow_axis = coord2mcstas(self.detector.slow_axis, mat)
 
     def write(
         self,
@@ -433,14 +450,8 @@ class EDNXmxFileWriter(NXmxFileWriter):
         # Scans
         osc, _ = self.goniometer.define_scan_from_goniometer_axes()
 
-        # Deal with vecotrs/offsets/whatever
-        reframe_arrays(
-            gonio,
-            det,
-            module,
-            self.coord_frame,
-            self.ED_coord_system,
-        )
+        # Deal with vecotrs/offsets/whatever if needed
+        self._check_coordinate_frame()
 
         with h5py.File(self.filename, "x") as nxs:
             # NXentry and NXmx definition
