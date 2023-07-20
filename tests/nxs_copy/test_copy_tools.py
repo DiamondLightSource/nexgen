@@ -11,8 +11,8 @@ from nexgen.nxs_copy import (
     identify_tristan_scan_axis,
     is_chipmap_in_tristan_nxs,
 )
-from nexgen.nxs_write import create_attributes
 from nexgen.nxs_write.NXclassWriters import write_NXentry, write_NXnote
+from nexgen.nxs_write.write_utils import create_attributes
 
 test_chipmap = {"01": (0, 0)}
 

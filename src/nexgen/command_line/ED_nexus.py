@@ -25,8 +25,8 @@ from ..nxs_utils import (
     TransformationType,
 )
 from ..nxs_utils.ScanUtils import calculate_scan_points, identify_osc_axis
-from ..nxs_write import find_number_of_images
 from ..nxs_write.NXmxWriter import EDNXmxFileWriter
+from ..nxs_write.write_utils import find_number_of_images
 from ..tools.ED_tools import extract_from_SINGLA_master, find_beam_centre
 from ..utils import get_iso_timestamp, get_nexus_filename
 from . import config_parser, nexus_parser, version_parser

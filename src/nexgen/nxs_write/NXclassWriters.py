@@ -13,7 +13,12 @@ from numpy.typing import ArrayLike
 
 from .. import MAX_SUFFIX_DIGITS
 from ..utils import get_iso_timestamp, units_of_length, units_of_time, ureg
-from . import calculate_origin, create_attributes, set_dependency, write_compressed_copy
+from .write_utils import (
+    calculate_origin,
+    create_attributes,
+    set_dependency,
+    write_compressed_copy,
+)
 
 # from hdf5plugin import Bitshuffle   # noqa: F401
 

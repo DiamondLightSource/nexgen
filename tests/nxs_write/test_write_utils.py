@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from nexgen.nxs_write import (
+from nexgen.nxs_write.write_utils import (
     calculate_origin,
     find_number_of_images,
     set_dependency,

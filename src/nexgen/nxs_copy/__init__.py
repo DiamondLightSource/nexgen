@@ -14,7 +14,7 @@ from ..beamlines.beamline_utils import PumpProbe
 from ..beamlines.SSX_chip import Chip, compute_goniometer
 from ..nxs_utils import Axis, TransformationType
 from ..nxs_utils.ScanUtils import calculate_scan_points
-from ..nxs_write import create_attributes
+from ..nxs_write.write_utils import create_attributes
 from ..utils import units_of_length, walk_nxs
 
 

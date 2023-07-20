@@ -215,7 +215,7 @@ def write_NXmx_cli(args):
             with h5py.File(datafiles[0], "r") as f:
                 num_images = f["data"].shape[0]
         else:
-            from ..nxs_write import find_number_of_images
+            from ..nxs_write.write_utils import find_number_of_images
 
             num_images = find_number_of_images(datafiles)
         data_type = ("images", num_images)
@@ -718,7 +718,7 @@ def write_with_meta_cli(args):
             with h5py.File(datafiles[0], "r") as f:
                 num_images = f["data"].shape[0]
         else:
-            from ..nxs_write import find_number_of_images
+            from ..nxs_write.write_utils import find_number_of_images
 
             num_images = find_number_of_images(datafiles)
         data_type = ("images", num_images)

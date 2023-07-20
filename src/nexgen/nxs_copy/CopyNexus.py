@@ -9,7 +9,7 @@ from typing import List
 
 import h5py
 
-from ..nxs_write import create_attributes
+from ..nxs_write.write_utils import create_attributes
 from ..utils import get_nexus_filename
 from . import get_nexus_tree
 

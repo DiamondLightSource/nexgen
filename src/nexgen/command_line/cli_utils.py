@@ -15,7 +15,6 @@ from scanspec.core import Path as ScanPath
 from scanspec.specs import Line
 
 from .. import reframe_arrays
-from ..nxs_write import find_number_of_images
 from ..nxs_write.NXclassWriters import (
     write_NXdata,
     write_NXdatetime,
@@ -27,6 +26,7 @@ from ..nxs_write.NXclassWriters import (
     write_NXsample,
     write_NXsource,
 )
+from ..nxs_write.write_utils import find_number_of_images
 from ..tools.DataWriter import generate_event_files, generate_image_files
 from ..tools.MetaReader import overwrite_beam, overwrite_detector
 from ..tools.VDS_tools import image_vds_writer, vds_file_writer
