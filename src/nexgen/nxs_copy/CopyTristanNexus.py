@@ -11,7 +11,7 @@ import numpy as np
 
 from ..nxs_write.NXclassWriters import write_NXnote
 from ..nxs_write.write_utils import create_attributes
-from . import (
+from .copy_utils import (
     check_and_fix_det_axis,
     compute_ssx_axes,
     convert_scan_axis,

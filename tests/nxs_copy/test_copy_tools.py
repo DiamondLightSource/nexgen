@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from nexgen.nxs_copy import (
+from nexgen.nxs_copy.copy_utils import (
     check_and_fix_det_axis,
     h5str,
     identify_tristan_scan_axis,

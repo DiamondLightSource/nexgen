@@ -11,7 +11,7 @@ import h5py
 
 from ..nxs_write.write_utils import create_attributes
 from ..utils import get_nexus_filename
-from . import get_nexus_tree
+from .copy_utils import get_nexus_tree
 
 copy_logger = logging.getLogger("nexgen.CopyNeXus")
 
