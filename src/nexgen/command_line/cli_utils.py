@@ -14,7 +14,7 @@ from numpy.typing import ArrayLike
 from scanspec.core import Path as ScanPath
 from scanspec.specs import Line
 
-from .. import reframe_arrays
+from .. import coord2mcstas, imgcif2mcstas, split_arrays
 from ..nxs_write.NXclassWriters import (
     write_NXdata,
     write_NXdatetime,
@@ -31,6 +31,97 @@ from ..tools.DataWriter import generate_event_files, generate_image_files
 from ..tools.MetaReader import overwrite_beam, overwrite_detector
 from ..tools.VDS_tools import image_vds_writer, vds_file_writer
 from ..utils import get_filename_template, units_of_time
+
+
+def reframe_arrays(
+    goniometer: Dict[str, Any],
+    detector: Dict[str, Any],
+    module: Dict[str, Any],
+    coordinate_frame: str = "mcstas",
+    new_coord_system: Dict[str, Any] = None,
+):
+    """
+    Split a list of offset/vector values into arrays. If the coordinate frame is not mcstas, \
+    convert the arrays using the base vectors of the new coordinate system.
+
+    Args:
+        goniometer (Dict[str, Any]): Goniometer geometry description.
+        detector (Dict[str, Any]): Detector specific parameters and its axes.
+        module (Dict[str, Any]): Geometry and description of detector module.
+        coordinate_frame (str, optional): Coordinate system being used. If "imgcif", there's no need to pass a \
+            new coordinate system definition, as the conversion is already included in nexgen. Defaults to "mcstas".
+        new_coord_system (Dict[str, Any], optional): Definition of the current coordinate system. \
+            It should at least contain a string defining the convention, origin and axes information as a tuple of (depends_on, type, units, vector). \
+            e.g. for X axis: {"x": (".", "translation", "mm", [1,0,0])}. \
+            Defaults to None.
+
+    Raises:
+        ValueError: When the input coordinate system name and the coordinate system convention for the vectors doesn't match.
+    """
+    # If the arrays of vectors/offsets are not yet split, start by doing that
+    goniometer["vectors"] = list(
+        split_arrays(goniometer["axes"], goniometer["vectors"]).values()
+    )
+    goniometer["offsets"] = list(
+        split_arrays(goniometer["axes"], goniometer["offsets"]).values()
+    )
+
+    detector["vectors"] = list(
+        split_arrays(detector["axes"], detector["vectors"]).values()
+    )
+
+    if "offsets" in module.keys():
+        module["offsets"] = list(
+            split_arrays(["fast_axis", "slow_axis"], module["offsets"]).values()
+        )
+
+    # Now proceed with conversion if needed
+    if coordinate_frame.lower() != "mcstas":
+        if coordinate_frame.lower() == "imgcif":
+            # Goniometer
+            goniometer["vectors"] = [imgcif2mcstas(v) for v in goniometer["vectors"]]
+            goniometer["offsets"] = [imgcif2mcstas(v) for v in goniometer["offsets"]]
+
+            # Detector
+            detector["vectors"] = [imgcif2mcstas(v) for v in detector["vectors"]]
+
+            # Module
+            module["fast_axis"] = imgcif2mcstas(module["fast_axis"])
+            module["slow_axis"] = imgcif2mcstas(module["slow_axis"])
+            if "offsets" in module.keys():
+                module["offsets"] = [imgcif2mcstas(off) for off in module["offsets"]]
+        else:
+            if coordinate_frame != new_coord_system["convention"]:
+                raise ValueError(
+                    "The input coordinate frame value doesn't match the current cordinate system convention."
+                    "Impossible to convert to mcstas."
+                )
+            mat = np.array(
+                [
+                    new_coord_system["x"][-1],
+                    new_coord_system["y"][-1],
+                    new_coord_system["z"][-1],
+                ]
+            )
+
+            # Goniometer
+            goniometer["vectors"] = [
+                coord2mcstas(v, mat) for v in goniometer["vectors"]
+            ]
+            goniometer["offsets"] = [
+                coord2mcstas(v, mat) for v in goniometer["offsets"]
+            ]
+
+            # Detector
+            detector["vectors"] = [coord2mcstas(v, mat) for v in detector["vectors"]]
+
+            # Module
+            module["fast_axis"] = coord2mcstas(module["fast_axis"], mat)
+            module["slow_axis"] = coord2mcstas(module["slow_axis"], mat)
+            if "offsets" in module.keys():
+                module["offsets"] = [
+                    coord2mcstas(off, mat) for off in module["offsets"]
+                ]
 
 
 def find_osc_axis(

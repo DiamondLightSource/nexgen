@@ -1,9 +1,11 @@
 import numpy as np
+import pytest
 
 from nexgen.command_line.cli_utils import (
     calculate_scan_range,
     find_grid_scan_axes,
     find_osc_axis,
+    reframe_arrays,
 )
 
 test_goniometer = {
@@ -16,6 +18,26 @@ test_goniometer = {
     "starts": [0.0, 0.0, 0.0, 0.0],
     "ends": [0.0, 0.0, 2.0, 2.0],
     "increments": [0.0, 0.0, 0.2, 0.2],
+}
+
+test_goniometer_small = {
+    "axes": ["alpha", "sam_z"],
+    "vectors": [1, 0, 0, 0, 0, 1],
+    "offsets": [(0, 0, 0), (0, 0, 0)],
+}
+
+test_detector = {"axes": ["det_z"], "vectors": [0, 0, 1]}
+test_module = {
+    "fast_axis": [1, 0, 0],
+    "slow_axis": [0, 1, 0],
+}
+
+test_new_coords = {
+    "convention": "rotate",
+    "origin": (0, 0, 0),
+    "x": (".", "", "", [1, 0, 0]),
+    "y": (".", "", "", [0, -1, 0]),
+    "z": (".", "", "", [0, 0, -1]),
 }
 
 
@@ -156,3 +178,59 @@ def test_calc_scan_range():
     assert len(grid["sam_x"]) == 100
     assert round(grid["sam_x"][1] - grid["sam_x"][0], 1) == 0.2
     assert round(grid["sam_y"][10] - grid["sam_y"][0], 1) == 0.2
+
+
+def test_reframe_arrays_without_coordinate_conversion():
+    reframe_arrays(
+        test_goniometer_small,
+        test_detector,
+        test_module,
+    )
+    assert test_goniometer_small["vectors"] == [(1, 0, 0), (0, 0, 1)]
+    assert test_detector["vectors"] == [(0, 0, 1)]
+
+
+def test_reframe_arrays_from_imgcif():
+    reframe_arrays(
+        test_goniometer_small,
+        test_detector,
+        test_module,
+        "imgcif",
+    )
+    assert test_goniometer_small["vectors"] == [(-1, 0, 0), (0, 0, -1)]
+    assert test_detector["vectors"] == [(0, 0, -1)]
+    assert test_module["fast_axis"] == (-1, 0, 0)
+    assert test_module["slow_axis"] == (0, 1, 0)
+
+
+def test_reframe_arrays_from_another_coordinate_system():
+    test_goniometer_small["vectors"] = [1, 0, 0, 0, 0, 1]
+    test_detector["vectors"] = [0, 0, 1]
+    test_module["fast_axis"] = [1, 0, 0]
+    test_module["slow_axis"] = [0, 1, 0]
+    test_module["offsets"] = [0, 0, 0, 0, 0, 0]
+    reframe_arrays(
+        test_goniometer_small,
+        test_detector,
+        test_module,
+        "rotate",
+        test_new_coords,
+    )
+
+    assert test_goniometer_small["vectors"] == [(1, 0, 0), (0, 0, -1)]
+    assert test_detector["vectors"] == [(0, 0, -1)]
+    assert test_module["fast_axis"] == (1, 0, 0)
+    assert test_module["slow_axis"] == (0, -1, 0)
+    assert test_module["offsets"] == [(0, 0, 0), (0, 0, 0)]
+
+
+def test_reframe_arrays_fails_if_coordinate_system_ill_defined():
+    with pytest.raises(ValueError):
+        reframe_arrays(
+            test_goniometer_small, test_detector, test_module, "", test_new_coords
+        )
+
+
+def test_reframe_arrays_fails_if_new_coordinate_system_not_defined():
+    with pytest.raises(TypeError):
+        reframe_arrays(test_goniometer_small, test_detector, test_module, "new")
