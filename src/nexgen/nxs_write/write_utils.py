@@ -4,6 +4,7 @@ Utilities for writing new NeXus format files.
 
 from __future__ import annotations
 
+import logging
 import math
 from pathlib import Path
 from typing import List, Tuple
@@ -13,11 +14,7 @@ import numpy as np
 from hdf5plugin import Bitshuffle
 from numpy.typing import ArrayLike
 
-# from h5py import AttributeManager
-
-
 import h5py  # isort: skip
-from h5py import AttributeManager  # isort: skip
 
 
 def create_attributes(nxs_obj: h5py.Group | h5py.Dataset, names: Tuple, values: Tuple):
@@ -33,7 +30,7 @@ def create_attributes(nxs_obj: h5py.Group | h5py.Dataset, names: Tuple, values: 
         if type(v) is str:
             # If a string, convert to numpy.string_
             v = np.string_(v)
-        AttributeManager.create(nxs_obj, name=n, data=v)
+        h5py.AttributeManager.create(nxs_obj, name=n, data=v)
 
 
 def set_dependency(dep_info: str, path: str = None):
@@ -146,7 +143,8 @@ def write_compressed_copy(
     Raises:
         ValueError: If both a dataset and a filename have been passed to the function.
     """
-    from .NXclassWriters import NXclass_logger
+    NXclass_logger = logging.getLogger("nexgen.NXclass_writers")
+    NXclass_logger.setLevel(logging.DEBUG)
 
     if data is not None and filename is not None:
         raise ValueError(
