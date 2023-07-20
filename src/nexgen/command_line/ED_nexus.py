@@ -167,19 +167,19 @@ def write_from_SINGLA(args):
             "Looking through Dectris master file to extract at least mask and flatfield."
         )
         det_info = extract_from_SINGLA_master(master)
+        det_params.constants.update(det_info)
 
         # Calculate beam centre if missing
         if params.detector.beam_center is None:
             beam_center = find_beam_centre(master, datafiles[0])
+            logger.info(f"Calculated beam centre to be {beam_center}.")
             if beam_center is None:
                 beam_center = (0, 0)
                 logger.warning(
                     f"Unable to calculate beam centre. It has been set to {beam_center}."
                 )
-            else:
-                beam_center = params.detector.beam_center
-                logger.info(f"Calculated beam centre to be {beam_center}.")
-        det_params.constants.update(det_info)
+    else:
+        beam_center = params.detector.beam_center
 
     # Detector/ module axes
     det_axes = []

@@ -96,7 +96,7 @@ def get_nexus_tree(
     else:
         # Copy everything
         nxs_in.copy("entry", nxs_out)
-        return
+        return None
 
 
 def identify_tristan_scan_axis(nxs_in: h5py.File) -> Tuple[str | None, Dict[str, Any]]:
