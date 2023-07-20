@@ -179,12 +179,12 @@ Utilities
 
 **Writing tools**
 
-.. automodule:: nexgen.nxs_write
+.. automodule:: nexgen.nxs_write.write_utils
     :members:
 
 **Copying tools**
 
-.. automodule:: nexgen.nxs_copy
+.. automodule:: nexgen.nxs_copy.copy_utils
     :members:
 
 
