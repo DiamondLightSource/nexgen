@@ -462,7 +462,7 @@ class EDNXmxFileWriter(NXmxFileWriter):
         self._check_coordinate_frame()
 
         # Get the instrument name
-        instrument_name = Source.set_instrument_name()
+        instrument_name = self.source.set_instrument_name()
 
         with h5py.File(self.filename, "x") as nxs:
             # NXentry and NXmx definition
