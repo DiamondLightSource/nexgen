@@ -6,6 +6,7 @@ from nexgen.command_line.cli_utils import (
     find_grid_scan_axes,
     find_osc_axis,
     reframe_arrays,
+    split_arrays,
 )
 
 test_goniometer = {
@@ -234,3 +235,18 @@ def test_reframe_arrays_fails_if_coordinate_system_ill_defined():
 def test_reframe_arrays_fails_if_new_coordinate_system_not_defined():
     with pytest.raises(TypeError):
         reframe_arrays(test_goniometer_small, test_detector, test_module, "new")
+
+
+def test_split_arrays():
+    assert split_arrays(["phi"], [1, 0, 0]) == {"phi": (1, 0, 0)}
+    two_axes = split_arrays(["omega", "phi"], [1, 0, 0, 0, 1, 0])
+    assert two_axes["omega"] == (1, 0, 0) and two_axes["phi"] == (0, 1, 0)
+    assert (
+        len(split_arrays(["omega", "phi", "chi"], [(1, 0, 0), (0, 1, 0), (0, 0, 1)]))
+        == 3
+    )
+
+
+def test_split_arrays_fails_if_wrong_size_arrays():
+    with pytest.raises(ValueError):
+        split_arrays(["omega", "phi"], [1, 0, 0, 1])

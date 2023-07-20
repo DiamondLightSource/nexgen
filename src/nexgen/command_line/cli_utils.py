@@ -14,7 +14,6 @@ from numpy.typing import ArrayLike
 from scanspec.core import Path as ScanPath
 from scanspec.specs import Line
 
-from .. import coord2mcstas, imgcif2mcstas, split_arrays
 from ..nxs_write.NXclassWriters import (
     write_NXdata,
     write_NXdatetime,
@@ -30,7 +29,39 @@ from ..nxs_write.write_utils import find_number_of_images
 from ..tools.DataWriter import generate_event_files, generate_image_files
 from ..tools.MetaReader import overwrite_beam, overwrite_detector
 from ..tools.VDS_tools import image_vds_writer, vds_file_writer
-from ..utils import get_filename_template, units_of_time
+from ..utils import coord2mcstas, get_filename_template, imgcif2mcstas, units_of_time
+
+
+def split_arrays(axes_names: List, array: List) -> Dict[str, Tuple]:
+    """Split a list of values into arrays.
+
+    This function splits up the list of values passed as input (eg. phil parameters, dictionary) \
+    for vector, offset for all existing axes.
+
+    Args:
+        axes_names (List): Axes names.
+        array (List): Array of values to be split up. It must be
+
+    Raises:
+        ValueError: When each axes doesn't have a corresponding array of size 3.
+
+    Returns:
+        array_dict (Dict[str, Tuple]): Dictionary of arrays corresponding to each axis. Keys are axes names.
+    """
+    array_dict = {}
+    if len(axes_names) == len(array):
+        array_dict = {ax: tuple(v) for ax, v in zip(axes_names, array)}
+        return array_dict
+    elif len(array) == 3 * len(axes_names):
+        for j in range(len(axes_names)):
+            a = array[3 * j : 3 * j + 3]
+            array_dict[axes_names[j]] = tuple(a)
+        return array_dict
+    else:
+        raise ValueError(
+            f"Number of axes {len(axes_names)} doesn't match the lenght of the array list {len(array)}."
+            "Please check again and make sure that all axes have a matching array of size 3."
+        )
 
 
 def reframe_arrays(

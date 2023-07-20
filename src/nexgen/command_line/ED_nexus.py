@@ -147,7 +147,7 @@ def write_from_SINGLA(args):
         ED_coord_system["origin"] = tuple(params.coord_system.origin)
 
     if params.coord_system.vectors:
-        from .. import split_arrays
+        from .cli_utils import split_arrays
 
         # Note: setting to coordinate frame to avoid any conversions. FIXME
         vectors = split_arrays(["x", "y", "z"], params.coord_system.vectors)
