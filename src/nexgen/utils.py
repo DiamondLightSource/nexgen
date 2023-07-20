@@ -16,8 +16,6 @@ import pint
 from freephil.common import scope_extract as ScopeExtract  # Define scope extract type
 from numpy.typing import ArrayLike
 
-from . import MAX_SUFFIX_DIGITS
-
 __all__ = [
     "get_filename_template",
     "get_nexus_filename",
@@ -27,6 +25,9 @@ __all__ = [
     "get_iso_timestamp",
     "ScopeExtract",
 ]
+
+MAX_FRAMES_PER_DATASET = 1000
+MAX_SUFFIX_DIGITS = 6
 
 # Define coordinates
 Point3D = namedtuple("Point3D", ("x", "y", "z"))

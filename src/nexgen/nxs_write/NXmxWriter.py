@@ -11,12 +11,16 @@ from typing import Any, Dict, List, Tuple
 import h5py
 import numpy as np
 
-from .. import MAX_FRAMES_PER_DATASET, MAX_SUFFIX_DIGITS, coord2mcstas
 from ..nxs_utils.Detector import Detector
 from ..nxs_utils.Goniometer import Goniometer
 from ..nxs_utils.Source import Attenuator, Beam, Source
 from ..tools.VDS_tools import clean_unused_links, image_vds_writer, vds_file_writer
-from ..utils import get_filename_template
+from ..utils import (
+    MAX_FRAMES_PER_DATASET,
+    MAX_SUFFIX_DIGITS,
+    coord2mcstas,
+    get_filename_template,
+)
 from .NXclassWriters import (
     write_NXcoordinate_system_set,
     write_NXdata,

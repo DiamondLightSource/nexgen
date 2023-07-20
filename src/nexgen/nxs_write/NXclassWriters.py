@@ -11,8 +11,13 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 from numpy.typing import ArrayLike
 
-from .. import MAX_SUFFIX_DIGITS
-from ..utils import get_iso_timestamp, units_of_length, units_of_time, ureg
+from ..utils import (
+    MAX_SUFFIX_DIGITS,
+    get_iso_timestamp,
+    units_of_length,
+    units_of_time,
+    ureg,
+)
 from .write_utils import (
     calculate_origin,
     create_attributes,
