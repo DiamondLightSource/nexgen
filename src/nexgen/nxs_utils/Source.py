@@ -61,7 +61,7 @@ class Source:
         ):
             return f"{facility_id} {self.beamline}"
         else:
-            return self.name
+            return f"{facility_id} BEAMLINE {self.beamline}"
 
     def _generate_source_dict(self):
         source = {

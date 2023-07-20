@@ -40,7 +40,7 @@ def test_source():
     assert test_beamline_source.name == "Diamond Light Source"
     assert test_beamline_source.probe is None
 
-    assert test_beamline_source.set_instrument_name() == test_beamline_source.name
+    assert test_beamline_source.set_instrument_name() == "DIAMOND BEAMLINE I03"
 
 
 def test_dource_to_dict():
