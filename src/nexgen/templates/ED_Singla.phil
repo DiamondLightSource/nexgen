@@ -15,6 +15,7 @@ source {
   short_name = DLS
   type = Electron Source
   beamline_name = eBIC
+  facility_id = DIAMOND MICROSCOPE
   probe = electron
 }
 beam {

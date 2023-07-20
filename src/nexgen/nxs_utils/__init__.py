@@ -10,7 +10,7 @@ from .Detector import (
 )
 from .Goniometer import Goniometer
 from .Sample import Sample
-from .Source import Attenuator, Beam, Source
+from .Source import Attenuator, Beam, Facility, Source
 
 __all__ = [
     "Axis",
@@ -26,4 +26,5 @@ __all__ = [
     "Attenuator",
     "Sample",
     "TransformationType",
+    "Facility",
 ]

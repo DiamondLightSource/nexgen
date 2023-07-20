@@ -15,7 +15,7 @@ from .. import MAX_FRAMES_PER_DATASET, MAX_SUFFIX_DIGITS, coord2mcstas
 from ..nxs_utils.Detector import Detector
 from ..nxs_utils.Goniometer import Goniometer
 from ..nxs_utils.Source import Attenuator, Beam, Source
-from ..tools.VDS_tools import clean_unused_links, image_vds_writer
+from ..tools.VDS_tools import clean_unused_links, image_vds_writer, vds_file_writer
 from ..utils import get_filename_template
 from .NXclassWriters import (
     write_NXcoordinate_system_set,
@@ -390,7 +390,7 @@ class EDNXmxFileWriter(NXmxFileWriter):
         beam: Beam,
         attenuator: Attenuator,
         tot_num_imgs: int,
-        ED_coord_system: Dict,
+        ED_coord_system: Dict[str, Tuple],
         convert_to_mcstas: bool = False,
     ):
         super().__init__(
@@ -425,7 +425,6 @@ class EDNXmxFileWriter(NXmxFileWriter):
     def write(
         self,
         image_datafiles: List | None = None,
-        vds: bool = False,
         data_entry_key: str = "/entry/data/data",
     ):
         """Write a NXmx-like NeXus file for electron diffraction.
@@ -437,7 +436,7 @@ class EDNXmxFileWriter(NXmxFileWriter):
         Args:
             image_datafiles (List | None, optional): List of image data files. If not passed, the program will look for \
                 files with the stem_######.h5 in the target directory. Defaults to None.
-            vds (bool, optional): Write a VDS as entry/data/data if True. Defaults to False.
+            data_entry_key (str, optional): Dataset entry key in datafiles. Defaults to entry/data/data.
         """
         # Get data files
         datafiles = (
@@ -515,10 +514,32 @@ class EDNXmxFileWriter(NXmxFileWriter):
                 osc,
             )
 
-            # write vds
-            if vds is True:
+    def write_vds(
+        self,
+        vds_dtype: Any = np.uint16,
+        writer_type: str = "dataset",
+        data_entry_key: str = "/entry/data/data",
+        datafiles: List[Path] | None = None,
+    ):
+
+        with h5py.File(self.filename, "r+") as nxs:
+            if writer_type == "dataset":
                 image_vds_writer(
                     nxs,
                     (self.tot_num_imgs, *self.detector.detector_params.image_size),
+                    data_type=vds_dtype,
                     entry_key=data_entry_key,
+                )
+            else:
+                if not datafiles:
+                    nxmx_logger.warning(
+                        "No datafile list passed, vds file won't be written."
+                    )
+                    return
+                vds_file_writer(
+                    nxs,
+                    datafiles,
+                    (self.tot_num_imgs, *self.detector.detector_params.image_size),
+                    vds_dtype,
+                    data_entry_key,
                 )
