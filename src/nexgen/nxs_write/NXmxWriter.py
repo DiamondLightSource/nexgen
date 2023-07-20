@@ -453,6 +453,9 @@ class EDNXmxFileWriter(NXmxFileWriter):
         # Deal with vecotrs/offsets/whatever if needed
         self._check_coordinate_frame()
 
+        # Get the instrument name
+        instrument_name = Source.set_instrument_name()
+
         with h5py.File(self.filename, "x") as nxs:
             # NXentry and NXmx definition
             write_NXentry(nxs)
@@ -482,6 +485,7 @@ class EDNXmxFileWriter(NXmxFileWriter):
                 self.beam.to_dict(),
                 self.attenuator.to_dict(),
                 source,
+                instrument_name=instrument_name,
             )
 
             # NXdetector: entry/instrument/detector

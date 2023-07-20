@@ -13,13 +13,7 @@ from numpy.typing import ArrayLike
 
 from .. import MAX_SUFFIX_DIGITS
 from ..utils import get_iso_timestamp, units_of_length, units_of_time, ureg
-from . import (
-    calculate_origin,
-    create_attributes,
-    set_dependency,
-    set_instrument_name,
-    write_compressed_copy,
-)
+from . import calculate_origin, create_attributes, set_dependency, write_compressed_copy
 
 # from hdf5plugin import Bitshuffle   # noqa: F401
 
@@ -334,7 +328,13 @@ def write_NXsample(
 
 
 # NXinstrument
-def write_NXinstrument(nxsfile: h5py.File, beam: Dict, attenuator: Dict, source: Dict):
+def write_NXinstrument(
+    nxsfile: h5py.File,
+    beam: Dict,
+    attenuator: Dict,
+    source: Dict,
+    instrument_name: str | None = None,
+):
     """
     Write NXinstrument group at /entry/instrument.
 
@@ -343,6 +343,8 @@ def write_NXinstrument(nxsfile: h5py.File, beam: Dict, attenuator: Dict, source:
         beam (Dict):Dictionary with beam information, mainly wavelength and flux.
         attenuator (Dict): Dictionary containing transmission.
         source (Dict): Dictionary containing the facility information.
+        instrument_name (str, optional): A string with the name of the instrument used. \
+            If not passed, it will be set to 'DIAMOND BEAMLINE Ixx'. Defaults to None.
     """
     NXclass_logger.info("Start writing NXinstrument.")
     # Create NXinstrument group, unless it already exists, in which case just open it.
@@ -355,7 +357,11 @@ def write_NXinstrument(nxsfile: h5py.File, beam: Dict, attenuator: Dict, source:
 
     # Write /name field and relative attribute
     NXclass_logger.info(f"{source['short_name']} {source['beamline_name']}")
-    name_str = set_instrument_name(source)
+    name_str = (
+        instrument_name
+        if instrument_name
+        else f"DIAMOND BEAMLINE {source['beamline_name']}"
+    )
     nxinstrument.create_dataset("name", data=np.string_(name_str))
     create_attributes(
         nxinstrument["name"],
