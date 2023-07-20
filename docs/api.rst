@@ -5,6 +5,9 @@ API
 Defining the various parts of a nexus file
 ==========================================
 
+.. autoclass:: nexgen.utils.Point3D
+
+
 Axes
 ----
 
@@ -174,7 +177,6 @@ Utilities
 
 .. automodule:: nexgen.utils
     :members:
-    .. autoclass:: nexgen.utils.Point3D
 
 
 **Writing tools**
