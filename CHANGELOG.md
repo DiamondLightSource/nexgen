@@ -6,10 +6,12 @@
 ### Changed
 - Refactoring of serial writer.
 - Refactoring of I19 writers.
+- Refactoring of ED writer.
 - Unified logging for beamline tools.
 
 ### Fixed
 - Read params from GDA-generated JSON files.
+- Tidy up/clear up obsolete methods.
 - Update and fix documentation.
 
 ## 0.6.28
