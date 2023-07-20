@@ -379,7 +379,12 @@ class EventNXmxFileWriter(NXmxFileWriter):
 
 
 class EDNXmxFileWriter(NXmxFileWriter):
-    """A class to generate NXmx-like NeXus files for electron diffraction."""
+    """A class to generate NXmx-like NeXus files for electron diffraction.
+
+    Requires an additional argument:
+        ED_coord_system (Dict[str, Any]): Definition of the current coordinate frame for ED. \
+            It should at least contain the convention, origin and base vectors.
+    """
 
     def __init__(
         self,
@@ -521,7 +526,18 @@ class EDNXmxFileWriter(NXmxFileWriter):
         data_entry_key: str = "/entry/data/data",
         datafiles: List[Path] | None = None,
     ):
+        """Write a vds for electron diffraction.
 
+        This method overrides the write_vds() method of NXmxFileWriter, from which thsi class inherits.
+        In particular, if required it will write an external vds file instead of a dataset.
+
+        Args:
+            vds_dtype (Any, optional): The type of the input data. Defaults to np.uint16.
+            writer_type (str, optional): Type of vds required. Defaults to "dataset".
+            data_entry_key (str, optional): Dataset entry key in datafiles. Defaults to "/entry/data/data".
+            datafiles ((List | None, optional): List of image data files. If not passed, the program will look for \
+                files with the stem_######.h5 in the target directory. Defaults to None.
+        """
         with h5py.File(self.filename, "r+") as nxs:
             if writer_type == "dataset":
                 image_vds_writer(
