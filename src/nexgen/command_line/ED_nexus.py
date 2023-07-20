@@ -179,7 +179,7 @@ def write_from_SINGLA(args):
             else:
                 beam_center = params.detector.beam_center
                 logger.info(f"Calculated beam centre to be {beam_center}.")
-    det_params.constants.update(det_info)
+        det_params.constants.update(det_info)
 
     # Detector/ module axes
     det_axes = []
