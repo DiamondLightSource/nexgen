@@ -3,6 +3,7 @@ import pytest
 
 from nexgen.nxs_write.write_utils import (
     calculate_origin,
+    create_attributes,
     find_number_of_images,
     set_dependency,
     write_compressed_copy,
@@ -21,6 +22,14 @@ test_goniometer = {
 }
 
 test_module = {"fast_axis": [1, 0, 0], "slow_axis": [0, 1, 0]}
+
+
+def test_create_attributes(dummy_nexus_file):
+    nxentry = dummy_nexus_file.require_group("/entry/")
+    create_attributes(nxentry, ("NX_class", "version"), ("NXentry", "0.0"))
+
+    assert dummy_nexus_file["/entry/"].attrs["NX_class"] == b"NXentry"
+    assert dummy_nexus_file["/entry/"].attrs["version"] == b"0.0"
 
 
 def test_set_dependency():
