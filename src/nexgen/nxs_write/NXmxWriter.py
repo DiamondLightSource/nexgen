@@ -145,6 +145,7 @@ class NXmxFileWriter:
         image_datafiles: List | None = None,
         image_filename: str | None = None,
         start_time: str | None = None,
+        write_mode: str = "x",
     ):
         """Write the NXmx format NeXus file.
 
@@ -155,7 +156,10 @@ class NXmxFileWriter:
                 files with the stem_######.h5 in the target directory. Defaults to None.
             image_filename (str | None, optional): Filename stem to use to look for image files. Needed in case it doesn't match \
                 the NeXus file name. Format: filename_runnumber. Defaults to None.
-            start_time (str, optional): Collection start time if already available, in the format "%Y-%m-%dT%H:%M:%SZ". Defaults to None.
+            start_time (str, optional): Collection start time if already available, in the format "%Y-%m-%dT%H:%M:%SZ". \
+                Defaults to None.
+            write_mode (str, optional): String indicating writing mode for the output NeXus file. Accepts any valid \
+                h5py file opening mode. Defaults to "x".
         """
         metafile = self._get_meta_file(image_filename)
         if metafile:
@@ -173,7 +177,7 @@ class NXmxFileWriter:
 
         link_list = eiger_meta_links if "eiger" in det["description"].lower() else None
 
-        with h5py.File(self.filename, "x") as nxs:
+        with h5py.File(self.filename, write_mode) as nxs:
             # NXentry and NXmx definition
             write_NXentry(nxs)
 
@@ -197,6 +201,7 @@ class NXmxFileWriter:
                 self.beam.to_dict(),
                 self.attenuator.to_dict(),
                 source,
+                self.source.set_instrument_name(),
             )
 
             # NXdetector: entry/instrument/detector
@@ -315,10 +320,17 @@ class EventNXmxFileWriter(NXmxFileWriter):
         )
         self.end_pos = axis_end_position
 
-    def write(self):
+    def write(
+        self,
+        write_mode: str = "x",
+    ):
         """Write a NXmx-like NeXus file for event mode data collections.
 
         This method overrides the write() method of NXmxFileWriter, from which thsi class inherits.
+
+        Args:
+            write_mode (str, optional): String indicating writing mode for the output NeXus file. Accepts any valid \
+                h5py file opening mode. Defaults to "x".
         """
         # Get metafile
         # No data files, just link to meta
@@ -331,7 +343,7 @@ class EventNXmxFileWriter(NXmxFileWriter):
         # Here no scan, just get (start, stop) from omega/phi as osc and None as transl
         osc, _ = self.goniometer.define_scan_axes_for_event_mode(self.end_pos)
 
-        with h5py.File(self.filename, "x") as nxs:
+        with h5py.File(self.filename, write_mode) as nxs:
             # NXentry and NXmx definition
             write_NXentry(nxs)
 
@@ -350,6 +362,7 @@ class EventNXmxFileWriter(NXmxFileWriter):
                 self.beam.to_dict(),
                 self.attenuator.to_dict(),
                 source,
+                self.source.set_instrument_name(),
             )
 
             # NXdetector: entry/instrument/detector
@@ -438,6 +451,7 @@ class EDNXmxFileWriter(NXmxFileWriter):
         self,
         image_datafiles: List | None = None,
         data_entry_key: str = "/entry/data/data",
+        write_mode: str = "x",
     ):
         """Write a NXmx-like NeXus file for electron diffraction.
 
@@ -449,6 +463,8 @@ class EDNXmxFileWriter(NXmxFileWriter):
             image_datafiles (List | None, optional): List of image data files. If not passed, the program will look for \
                 files with the stem_######.h5 in the target directory. Defaults to None.
             data_entry_key (str, optional): Dataset entry key in datafiles. Defaults to entry/data/data.
+            write_mode (str, optional): String indicating writing mode for the output NeXus file. Accepts any valid \
+                h5py file opening mode. Defaults to "x".
         """
         # Get data files
         datafiles = (
@@ -471,7 +487,7 @@ class EDNXmxFileWriter(NXmxFileWriter):
         # NXcoordinate_system_set: /entry/coordinate_system_set
         base_vectors = {k: self.ED_coord_system.get(k) for k in ["x", "y", "z"]}
 
-        with h5py.File(self.filename, "x") as nxs:
+        with h5py.File(self.filename, write_mode) as nxs:
             # NXentry and NXmx definition
             write_NXentry(nxs)
 
