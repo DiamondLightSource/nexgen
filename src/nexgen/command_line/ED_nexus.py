@@ -179,7 +179,9 @@ def write_from_SINGLA(args):
                     f"Unable to calculate beam centre. It has been set to {beam_center}."
                 )
     else:
-        beam_center = params.detector.beam_center
+        beam_center = (
+            params.detector.beam_center if params.detector.beam_center else (0, 0)
+        )
 
     # Detector/ module axes
     det_axes = []
@@ -207,6 +209,7 @@ def write_from_SINGLA(args):
         params.detector.exposure_time,
         [fast_axis, slow_axis],
     )
+    logger.info(detector.__repr__())
 
     # Define Goniometer
     # Get gonio axes
@@ -248,6 +251,7 @@ def write_from_SINGLA(args):
     )
 
     goniometer = Goniometer(gonio_axes, OSC)
+    logger.info(goniometer.__repr__())
 
     # Start writing
     logger.info("Start writing NeXus file ...")

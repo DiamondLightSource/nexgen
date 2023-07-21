@@ -416,6 +416,9 @@ class EDNXmxFileWriter(NXmxFileWriter):
 
     def _check_coordinate_frame(self):
         if self.convert_cs is True:
+            nxmx_logger.warning(
+                "All the vector/offset axis coordinates will be converted to mcstas."
+            )
             mat = np.array(
                 [
                     self.ED_coord_system["x"][-1],
@@ -463,13 +466,15 @@ class EDNXmxFileWriter(NXmxFileWriter):
 
         # Get the instrument name
         instrument_name = self.source.set_instrument_name()
+        nxmx_logger.info(f"Instrument name will be set as {instrument_name}.")
+
+        # NXcoordinate_system_set: /entry/coordinate_system_set
+        base_vectors = {k: self.ED_coord_system.get(k) for k in ["x", "y", "z"]}
 
         with h5py.File(self.filename, "x") as nxs:
             # NXentry and NXmx definition
             write_NXentry(nxs)
 
-            # NXcoordinate_system_set: /entry/coordinate_system_set
-            base_vectors = {k: self.ED_coord_system.get(k) for k in ["x", "y", "z"]}
             write_NXcoordinate_system_set(
                 nxs,
                 self.ED_coord_system["convention"],
@@ -544,6 +549,9 @@ class EDNXmxFileWriter(NXmxFileWriter):
         """
         with h5py.File(self.filename, "r+") as nxs:
             if writer_type == "dataset":
+                nxmx_logger.info(
+                    "Writing vds dataset as /entry/data/data in nexus file."
+                )
                 image_vds_writer(
                     nxs,
                     (self.tot_num_imgs, *self.detector.detector_params.image_size),
@@ -556,6 +564,9 @@ class EDNXmxFileWriter(NXmxFileWriter):
                         "No datafile list passed, vds file won't be written."
                     )
                     return
+                nxmx_logger.info(
+                    "Writing external vds file with link in /entry/data/data in nexus file."
+                )
                 vds_file_writer(
                     nxs,
                     datafiles,
