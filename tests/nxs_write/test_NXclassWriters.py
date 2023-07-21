@@ -1,9 +1,7 @@
-import tempfile
 from datetime import datetime
 from pathlib import Path
 from unittest.mock import MagicMock
 
-import h5py
 import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
@@ -63,13 +61,6 @@ test_eiger = {
     "starts": [500],
     "exposure_time": 0.01,
 }
-
-
-@pytest.fixture
-def dummy_nexus_file():
-    test_hdf_file = tempfile.TemporaryFile()
-    test_nexus_file = h5py.File(test_hdf_file, "w")
-    yield test_nexus_file
 
 
 def test_given_no_data_files_when_write_NXdata_then_assert_error():

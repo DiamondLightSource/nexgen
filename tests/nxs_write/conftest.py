@@ -3,8 +3,6 @@ import tempfile
 import h5py
 import pytest
 
-# from unittest.mock import MagicMock
-
 
 @pytest.fixture
 def dummy_nexus_file():
