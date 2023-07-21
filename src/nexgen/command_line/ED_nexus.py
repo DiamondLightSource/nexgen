@@ -220,7 +220,7 @@ def write_from_SINGLA(args):
         _vec = params.goniometer.vectors[3 * n : 3 * n + 3]
         _axis = Axis(
             ax,
-            params.goniometer.depends,
+            params.goniometer.depends[n],
             _tr,
             _vec,
             start_pos=params.goniometer.starts[n],
