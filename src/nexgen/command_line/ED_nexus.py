@@ -234,7 +234,7 @@ def write_from_SINGLA(args):
 
     # Find scan
     scan_axis = identify_osc_axis(gonio_axes)
-    scan_idx = [n for n, ax in gonio_axes if ax.name == scan_axis][0]
+    scan_idx = [n for n, ax in enumerate(gonio_axes) if ax.name == scan_axis][0]
     gonio_axes[scan_idx].num_steps = n_images
     OSC = calculate_scan_points(
         gonio_axes[scan_idx],
