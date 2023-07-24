@@ -5,6 +5,9 @@ API
 Defining the various parts of a nexus file
 ==========================================
 
+.. autoclass:: nexgen.utils.Point3D
+
+
 Axes
 ----
 
@@ -83,7 +86,9 @@ For an event-mode data collection using a Tristan detector
     :show-inheritance:
 
 
-For an Electron Diffraction collection using NXmx-like format nexus files
+For an Electron Diffraction collection using NXmx-like format nexus files.
+When dealing with an Electron Diffraction dataset, there may also be a need to convert the vectors to mcstas from another coordinate system convention,
+as well as save the relevant information about the new coordinate system into a NXcoordinate_system_set base class. This writer takes care of these issues.
 
 .. autoclass:: nexgen.nxs_write.NXmxWriter.EDNXmxFileWriter
     :members:
@@ -115,14 +120,6 @@ with the exception of ``write_NXentry``, ``write_NXdatetime`` and ``write_NXnote
 To identify the scan axes and calculate the scan range:
 
 .. autofunction:: nexgen.command_line.cli_utils.ScanReader
-
-
-When dealing with an Electron Diffraction dataset, there may also be a need to convert the vectors to mcstas from another coordinate system convention,
-as well as save the relevant information about the new coordinate system into a NXcoordinate_system_set base class.
-The ``ED_call_writers`` function from the ``nxs_write.EDNexusWriter`` takes care of these computations.
-
-.. automodule:: nexgen.nxs_write.EDNexusWriter
-    :members:
 
 
 Finally, if using phil scopes instead of dictionaries to store the goniometer/detector/beamline/... information, the following function has been added:
@@ -178,23 +175,18 @@ Copying tools
 Utilities
 =========
 
-.. automodule:: nexgen
-    :members:
-
-
 .. automodule:: nexgen.utils
     :members:
-    .. autoclass:: nexgen.utils.Point3D
 
 
 **Writing tools**
 
-.. automodule:: nexgen.nxs_write
+.. automodule:: nexgen.nxs_write.write_utils
     :members:
 
 **Copying tools**
 
-.. automodule:: nexgen.nxs_copy
+.. automodule:: nexgen.nxs_copy.copy_utils
     :members:
 
 

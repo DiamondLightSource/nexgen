@@ -4,7 +4,6 @@ import h5py
 import numpy as np
 import pytest
 
-from nexgen.nxs_write.EDNexusWriter import ED_call_writers
 from nexgen.tools.DataWriter import build_an_eiger
 from nexgen.tools.ED_tools import (
     SinglaMaster,
@@ -34,18 +33,6 @@ test_new_coords = {
 }
 
 test_flatfield = np.array([[0, 0, 0], [0, 0, 0]])
-
-
-def test_ED_call_fails_if_missing_required_argument():
-    with pytest.raises(TypeError):
-        ED_call_writers("", [], test_goniometer, test_detector, test_module)
-
-
-def test_ED_call_fails_if_empty_dictionary_passed():
-    with pytest.raises(KeyError):
-        ED_call_writers(
-            "", [], test_goniometer, test_detector, {}, {}, {}, test_new_coords
-        )
 
 
 @pytest.fixture

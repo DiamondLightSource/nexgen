@@ -1,12 +1,28 @@
 import time
 from pathlib import Path
 
+import numpy as np
 import pint
 import pytest
 
 from nexgen import utils
 
 ureg = pint.UnitRegistry()
+
+
+def test_cif2nxs():
+    assert utils.imgcif2mcstas([0, 0, 0]) == (0, 0, 0)
+    assert utils.imgcif2mcstas([1, 0, 0]) == (-1, 0, 0)
+    assert utils.imgcif2mcstas([0, 1, 0]) == (0, 1, 0)
+    assert utils.imgcif2mcstas([0, 0, 1]) == (0, 0, -1)
+
+
+def test_coord2nxs():
+    R = np.array([[1, 0, 0], [0, 0, -1], [0, 1, 0]])
+    assert utils.coord2mcstas([0, 0, 0], R) == (0, 0, 0)
+    assert utils.coord2mcstas([1, 0, 0], R) == (1, 0, 0)
+    assert utils.coord2mcstas([0, 1, 0], R) == (0, 0, 1)
+    assert utils.coord2mcstas([0, 0, 1], R) == (0, -1, 0)
 
 
 def test_get_filename_template():

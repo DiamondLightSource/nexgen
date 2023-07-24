@@ -10,15 +10,26 @@ import sys
 from pathlib import Path
 
 import freephil
-import h5py
 
 from .. import log
 from ..beamlines.ED_params import ED_coord_system
-from ..nxs_write.EDNexusWriter import ED_call_writers
+from ..nxs_utils import (
+    Attenuator,
+    Axis,
+    Beam,
+    Detector,
+    Facility,
+    Goniometer,
+    SinglaDetector,
+    Source,
+    TransformationType,
+)
+from ..nxs_utils.ScanUtils import calculate_scan_points, identify_osc_axis
+from ..nxs_write.NXmxWriter import EDNXmxFileWriter
+from ..nxs_write.write_utils import find_number_of_images
 from ..tools.ED_tools import extract_from_SINGLA_master, find_beam_centre
-from ..tools.VDS_tools import image_vds_writer, vds_file_writer
 from ..utils import get_iso_timestamp, get_nexus_filename
-from . import config_parser, nexus_parser, phil2dict, version_parser
+from . import config_parser, nexus_parser, version_parser
 
 logger = logging.getLogger("nexgen.EDNeXusGenerator")
 
@@ -28,15 +39,15 @@ ED_phil = freephil.parse(
       datafiles = None
         .type = path
         .help = "List of input data files."
-      coordinate_frame = mcstas
-        .type = str
-        .help = "Which coordinate system is being used to provide input vectors."
       vds_writer = None *dataset file
         .type = choice
         .help = "If not None, write vds along with external link to data in NeXus file, or create _vds.h5 file."
       n_imgs = None
         .type = int
         .help = "Total number of images collected."
+      convert_to_mcstas = False
+        .type = bool
+        .help = "Convert vectors to mcstas if required. Defaults to False."
     }
 
     include scope nexgen.command_line.nxs_phil.goniometer_scope
@@ -71,6 +82,8 @@ def write_from_SINGLA(args):
         Path(f).expanduser().resolve()
         for f in sorted(glob.glob(params.input.datafiles))
     ]
+    # Define entry_key if dealing with singla detector
+    data_entry_key = "/entry/data/data"
 
     # Get NeXus file name
     infile = datafiles[0].parent / datafiles[0].name.replace("_data", "")
@@ -93,33 +106,29 @@ def write_from_SINGLA(args):
     logger.info("NeXus file will be saved as %s" % nxsfile)
 
     # Load technical info from phil parser
-    coordinate_frame = params.input.coordinate_frame
-    # ED_coord_system = phil2dict(params.coord_system.__dict__)
-    goniometer = phil2dict(params.goniometer.__dict__)
-    detector = phil2dict(params.detector.__dict__)
-    module = phil2dict(params.detector_module.__dict__)
-    source = phil2dict(params.source.__dict__)
-    beam = phil2dict(params.beam.__dict__)
+    # Get timestamps
     timestamps = (
         get_iso_timestamp(params.start_time),
         get_iso_timestamp(params.end_time),
     )
 
+    # Define Source, Beam, Attenuator
+    attenuator = Attenuator(transmission=None)
+    beam = Beam(params.beam.wavelength)
+    facility = Facility(
+        params.source.name,
+        params.source.short_name,
+        params.source.type,
+        params.source.facility_id,
+    )
+    source = Source(params.source.beamline_name, facility, params.source.probe)
+
     logger.info("Source information")
-    logger.info(f"Facility: {source['name']} - {source['type']}.")
-    logger.info(f"Beamline / instrument: {source['beamline_name']}")
+    logger.info(f"Facility: {source.name} - {source.facility_type}.")
+    logger.info(f"Beamline / instrument: {source.beamline}")
+    logger.info(f"Probe: {source.probe}")
 
-    logger.warning(
-        f"Coordinate frame of input arrays currently set to {coordinate_frame}."
-        "If that is not the case, please indicate the correct one with --coord-frame."
-        "For more information, see the help message."
-    )
-
-    logger.warning(
-        "Have you checked the coordinate system convention?\n"
-        "If no new values have been passed for coord_system.origin or coord_system.vectors the following convention will be applied:\n"
-        f"{ED_coord_system}"
-    )
+    logger.warning("Have you checked the coordinate system convention?\n")
 
     # If anything has been passed regarding the new coordinate system convention
     # overwrite the existing dictionary
@@ -128,6 +137,8 @@ def write_from_SINGLA(args):
             f"New coordinate system convention: {params.coord_system.convention}."
         )
         ED_coord_system["convention"] = params.coord_system.convention
+    else:
+        logger.info("The following convention will be applied:\n" f"{ED_coord_system}")
 
     if params.coord_system.origin:
         logger.info(
@@ -136,7 +147,7 @@ def write_from_SINGLA(args):
         ED_coord_system["origin"] = tuple(params.coord_system.origin)
 
     if params.coord_system.vectors:
-        from .. import split_arrays
+        from .cli_utils import split_arrays
 
         # Note: setting to coordinate frame to avoid any conversions. FIXME
         vectors = split_arrays(["x", "y", "z"], params.coord_system.vectors)
@@ -147,66 +158,128 @@ def write_from_SINGLA(args):
         ED_coord_system["y"] = ("x", "translation", "mm", vectors["y"])
         ED_coord_system["z"] = ("y", "translation", "mm", vectors["z"])
 
+    # Define Detector
+    det_params = SinglaDetector(params.detector.description, params.detector.image_size)
+    # Update detector params with info from master file
     if args.master:
         master = Path(args.master).expanduser().resolve()
         logger.info(
-            f"Looking through Dectris master file to extract at least mask and flatfield."
+            "Looking through Dectris master file to extract at least mask and flatfield."
         )
-        detector.update(extract_from_SINGLA_master(master))
+        det_info = extract_from_SINGLA_master(master)
+        det_params.constants.update(det_info)
 
         # Calculate beam centre if missing
-        if detector["beam_center"] is None:
-            detector["beam_center"] = find_beam_centre(master, datafiles[0])
-            if detector["beam_center"] is None:
-                detector["beam_center"] = (0, 0)
+        if params.detector.beam_center is None:
+            beam_center = find_beam_centre(master, datafiles[0])
+            logger.info(f"Calculated beam centre to be {beam_center}.")
+            if beam_center is None:
+                beam_center = (0, 0)
                 logger.warning(
-                    f"Unable to calculate beam centre. It has been set to {detector['beam_center']}."
+                    f"Unable to calculate beam centre. It has been set to {beam_center}."
                 )
-            else:
-                logger.info(f"Calculated beam centre to be {detector['beam_center']}.")
+    else:
+        beam_center = (
+            params.detector.beam_center if params.detector.beam_center else (0, 0)
+        )
+
+    # Detector/ module axes
+    det_axes = []
+    for n, ax in enumerate(params.detector.axes):
+        _tr = (
+            TransformationType.TRANSLATION
+            if params.detector.types[n] == "translation"
+            else TransformationType.ROTATION
+        )
+        _vec = params.detector.vectors[3 * n : 3 * n + 3]
+        _axis = Axis(
+            ax,
+            params.detector.depends[n],
+            _tr,
+            _vec,
+            start_pos=params.detector.starts[n],
+        )
+        det_axes.append(_axis)
+    fast_axis = tuple(params.detector_module.fast_axis)
+    slow_axis = tuple(params.detector_module.slow_axis)
+    detector = Detector(
+        det_params,
+        det_axes,
+        beam_center,
+        params.detector.exposure_time,
+        [fast_axis, slow_axis],
+    )
+    logger.info(detector.__repr__())
+
+    # Define Goniometer
+    # Get gonio axes
+    gonio_axes = []
+    for n, ax in enumerate(params.goniometer.axes):
+        _tr = (
+            TransformationType.TRANSLATION
+            if params.goniometer.types[n] == "translation"
+            else TransformationType.ROTATION
+        )
+        _vec = params.goniometer.vectors[3 * n : 3 * n + 3]
+        _axis = Axis(
+            ax,
+            params.goniometer.depends[n],
+            _tr,
+            _vec,
+            start_pos=params.goniometer.starts[n],
+            increment=params.goniometer.increments[n],
+        )
+        gonio_axes.append(_axis)
+    # If n_images is not passed, calculate it from data files
+    if not params.input.n_imgs:
+        n_images = find_number_of_images(datafiles, data_entry_key)
+        logger.info(f"Total number of images: {n_images}.")
+
+    # Find scan
+    scan_axis = identify_osc_axis(gonio_axes)
+    scan_idx = [n for n, ax in enumerate(gonio_axes) if ax.name == scan_axis][0]
+    gonio_axes[scan_idx].num_steps = n_images
+    OSC = calculate_scan_points(
+        gonio_axes[scan_idx],
+        rotation=True,
+        tot_num_imgs=n_images,
+    )
+    # No grid scan, can be added if needed at later time
+    logger.info(f"Rotation scan axis: {list(OSC.keys())[0]}.")
+    logger.info(
+        f"Scan from {list(OSC.values())[0][0]} to {list(OSC.values())[0][-1]}.\n"
+    )
+
+    goniometer = Goniometer(gonio_axes, OSC)
+    logger.info(goniometer.__repr__())
 
     # Start writing
     logger.info("Start writing NeXus file ...")
     try:
-        with h5py.File(nxsfile, "x") as nxs:
-            ED_call_writers(
-                nxs,
-                datafiles,
-                goniometer,
-                detector,
-                module,
-                source,
-                beam,
-                ED_coord_system,
-                coordinate_frame=coordinate_frame,
-                n_images=params.input.n_imgs,
-                timestamps=timestamps,
+        EDFileWriter = EDNXmxFileWriter(
+            nxsfile,
+            goniometer,
+            detector,
+            source,
+            beam,
+            attenuator,
+            n_images,
+            ED_coord_system,
+            convert_to_mcstas=params.input.convert_to_mcstas,
+        )
+        EDFileWriter.write(datafiles, data_entry_key)
+        if params.input.vds_writer:
+            logger.info(
+                f"Calling VDS writer to write a Virtual Dataset{params.input.vds_writer}"
             )
-
-            if params.input.vds_writer == "dataset":
-                nimages = (
-                    nxs["/entry/instrument/detector/detectorSpecific/nimages"][()]
-                    if params.input.n_imgs is None
-                    else params.input.n_imgs
-                )
-                logger.info("Calling VDS writer ...")
-                image_vds_writer(
-                    nxs,
-                    (int(nimages), *detector["image_size"]),
-                    entry_key="/entry/data/data",
-                )
-            elif params.input.vds_writer == "file":
-                nimages = (
-                    nxs["/entry/instrument/detector/detectorSpecific/nimages"][()]
-                    if params.input.n_imgs is None
-                    else params.input.n_imgs
-                )
-                logger.info(
-                    "Calling VDS writer to write a Virtual Dataset file and relative link."
-                )
-                vds_file_writer(nxs, datafiles, (int(nimages), *detector["image_size"]))
-            else:
-                logger.info("VDS won't be written.")
+            EDFileWriter.write_vds(
+                writer_type=params.input.vds_writer,
+                data_entry_key=data_entry_key,
+                datafiles=datafiles,
+            )
+        else:
+            logger.info("VDS won't be written.")
+        EDFileWriter.update_timestamps(timestamps)
 
         logger.info("NeXus file written correctly.")
     except Exception as err:

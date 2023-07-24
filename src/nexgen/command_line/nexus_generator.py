@@ -31,6 +31,7 @@ from . import (
     demo_parser,
     detectormode_parser,
     nexus_parser,
+    phil2dict,
     version_parser,
 )
 from .cli_utils import ScanReader, call_writers  # write_nexus_demo, write_nexus
@@ -214,7 +215,7 @@ def write_NXmx_cli(args):
             with h5py.File(datafiles[0], "r") as f:
                 num_images = f["data"].shape[0]
         else:
-            from ..nxs_write import find_number_of_images
+            from ..nxs_write.write_utils import find_number_of_images
 
             num_images = find_number_of_images(datafiles)
         data_type = ("images", num_images)
@@ -337,12 +338,12 @@ def write_NXmx_cli(args):
                 datafiles,
                 cf,
                 data_type,
-                goniometer.__dict__,
-                detector.__dict__,
-                module.__dict__,
-                source.__dict__,
-                beam.__dict__,
-                attenuator.__dict__,
+                phil2dict(goniometer.__dict__),
+                phil2dict(detector.__dict__),
+                phil2dict(module.__dict__),
+                phil2dict(source.__dict__),
+                phil2dict(beam.__dict__),
+                phil2dict(attenuator.__dict__),
                 OSC,
                 TRANSL,
             )
@@ -581,12 +582,12 @@ def write_demo_cli(args):
                 datafiles,
                 cf,
                 data_type,
-                goniometer.__dict__,
-                detector.__dict__,
-                module.__dict__,
-                source.__dict__,
-                beam.__dict__,
-                attenuator.__dict__,
+                phil2dict(goniometer.__dict__),
+                phil2dict(detector.__dict__),
+                phil2dict(module.__dict__),
+                phil2dict(source.__dict__),
+                phil2dict(beam.__dict__),
+                phil2dict(attenuator.__dict__),
                 OSC,
                 TRANSL,
             )
@@ -717,7 +718,7 @@ def write_with_meta_cli(args):
             with h5py.File(datafiles[0], "r") as f:
                 num_images = f["data"].shape[0]
         else:
-            from ..nxs_write import find_number_of_images
+            from ..nxs_write.write_utils import find_number_of_images
 
             num_images = find_number_of_images(datafiles)
         data_type = ("images", num_images)
@@ -857,12 +858,12 @@ def write_with_meta_cli(args):
                 datafiles,
                 cf,
                 data_type,
-                goniometer.__dict__,
-                detector.__dict__,
-                module.__dict__,
-                source.__dict__,
-                beam.__dict__,
-                attenuator.__dict__,
+                phil2dict(goniometer.__dict__),
+                phil2dict(detector.__dict__),
+                phil2dict(module.__dict__),
+                phil2dict(source.__dict__),
+                phil2dict(beam.__dict__),
+                phil2dict(attenuator.__dict__),
                 OSC,
                 TRANSL,
                 metafile,

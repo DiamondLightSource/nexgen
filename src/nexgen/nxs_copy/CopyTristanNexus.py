@@ -9,9 +9,9 @@ from pathlib import Path
 import h5py
 import numpy as np
 
-from ..nxs_write import create_attributes
 from ..nxs_write.NXclassWriters import write_NXnote
-from . import (
+from ..nxs_write.write_utils import create_attributes
+from .copy_utils import (
     check_and_fix_det_axis,
     compute_ssx_axes,
     convert_scan_axis,

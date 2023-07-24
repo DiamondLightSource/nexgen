@@ -148,7 +148,7 @@ def collection_summary_log(
     logger.info(
         f"Detector is a {detector.detector_params.image_size[::-1]} array of {detector.detector_params.pixel_size} pixels"
     )
-    for ax in detector.det_axes:
+    for ax in detector.detector_axes:
         logger.info(
             f"Detector axis: {ax.name} => {ax.start_pos}, {ax.transformation_type} on {ax.depends}"
         )

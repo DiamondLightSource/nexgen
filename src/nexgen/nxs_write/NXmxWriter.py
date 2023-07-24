@@ -11,12 +11,16 @@ from typing import Any, Dict, List, Tuple
 import h5py
 import numpy as np
 
-from .. import MAX_FRAMES_PER_DATASET, MAX_SUFFIX_DIGITS, reframe_arrays
 from ..nxs_utils.Detector import Detector
 from ..nxs_utils.Goniometer import Goniometer
 from ..nxs_utils.Source import Attenuator, Beam, Source
-from ..tools.VDS_tools import clean_unused_links, image_vds_writer
-from ..utils import get_filename_template
+from ..tools.VDS_tools import clean_unused_links, image_vds_writer, vds_file_writer
+from ..utils import (
+    MAX_FRAMES_PER_DATASET,
+    MAX_SUFFIX_DIGITS,
+    coord2mcstas,
+    get_filename_template,
+)
 from .NXclassWriters import (
     write_NXcoordinate_system_set,
     write_NXdata,
@@ -141,6 +145,7 @@ class NXmxFileWriter:
         image_datafiles: List | None = None,
         image_filename: str | None = None,
         start_time: str | None = None,
+        write_mode: str = "x",
     ):
         """Write the NXmx format NeXus file.
 
@@ -151,7 +156,10 @@ class NXmxFileWriter:
                 files with the stem_######.h5 in the target directory. Defaults to None.
             image_filename (str | None, optional): Filename stem to use to look for image files. Needed in case it doesn't match \
                 the NeXus file name. Format: filename_runnumber. Defaults to None.
-            start_time (str, optional): Collection start time if already available, in the format "%Y-%m-%dT%H:%M:%SZ". Defaults to None.
+            start_time (str, optional): Collection start time if already available, in the format "%Y-%m-%dT%H:%M:%SZ". \
+                Defaults to None.
+            write_mode (str, optional): String indicating writing mode for the output NeXus file. Accepts any valid \
+                h5py file opening mode. Defaults to "x".
         """
         metafile = self._get_meta_file(image_filename)
         if metafile:
@@ -169,7 +177,7 @@ class NXmxFileWriter:
 
         link_list = eiger_meta_links if "eiger" in det["description"].lower() else None
 
-        with h5py.File(self.filename, "x") as nxs:
+        with h5py.File(self.filename, write_mode) as nxs:
             # NXentry and NXmx definition
             write_NXentry(nxs)
 
@@ -193,6 +201,7 @@ class NXmxFileWriter:
                 self.beam.to_dict(),
                 self.attenuator.to_dict(),
                 source,
+                self.source.set_instrument_name(),
             )
 
             # NXdetector: entry/instrument/detector
@@ -311,10 +320,17 @@ class EventNXmxFileWriter(NXmxFileWriter):
         )
         self.end_pos = axis_end_position
 
-    def write(self):
+    def write(
+        self,
+        write_mode: str = "x",
+    ):
         """Write a NXmx-like NeXus file for event mode data collections.
 
         This method overrides the write() method of NXmxFileWriter, from which thsi class inherits.
+
+        Args:
+            write_mode (str, optional): String indicating writing mode for the output NeXus file. Accepts any valid \
+                h5py file opening mode. Defaults to "x".
         """
         # Get metafile
         # No data files, just link to meta
@@ -327,7 +343,7 @@ class EventNXmxFileWriter(NXmxFileWriter):
         # Here no scan, just get (start, stop) from omega/phi as osc and None as transl
         osc, _ = self.goniometer.define_scan_axes_for_event_mode(self.end_pos)
 
-        with h5py.File(self.filename, "x") as nxs:
+        with h5py.File(self.filename, write_mode) as nxs:
             # NXentry and NXmx definition
             write_NXentry(nxs)
 
@@ -346,6 +362,7 @@ class EventNXmxFileWriter(NXmxFileWriter):
                 self.beam.to_dict(),
                 self.attenuator.to_dict(),
                 source,
+                self.source.set_instrument_name(),
             )
 
             # NXdetector: entry/instrument/detector
@@ -379,7 +396,12 @@ class EventNXmxFileWriter(NXmxFileWriter):
 
 
 class EDNXmxFileWriter(NXmxFileWriter):
-    """A class to generate NXmx-like NeXus files for electron diffraction."""
+    """A class to generate NXmx-like NeXus files for electron diffraction.
+
+    Requires an additional argument:
+        ED_coord_system (Dict[str, Any]): Definition of the current coordinate frame for ED. \
+            It should at least contain the convention, origin and base vectors.
+    """
 
     def __init__(
         self,
@@ -390,8 +412,8 @@ class EDNXmxFileWriter(NXmxFileWriter):
         beam: Beam,
         attenuator: Attenuator,
         tot_num_imgs: int,
-        ED_coord_system: Dict,
-        coordinate_frame: str = "mcstas",
+        ED_coord_system: Dict[str, Tuple],
+        convert_to_mcstas: bool = False,
     ):
         super().__init__(
             filename,
@@ -403,13 +425,33 @@ class EDNXmxFileWriter(NXmxFileWriter):
             tot_num_imgs,
         )
         self.ED_coord_system = ED_coord_system
-        self.coord_frame = coordinate_frame
+        self.convert_cs = convert_to_mcstas
+
+    def _check_coordinate_frame(self):
+        if self.convert_cs is True:
+            nxmx_logger.warning(
+                "All the vector/offset axis coordinates will be converted to mcstas."
+            )
+            mat = np.array(
+                [
+                    self.ED_coord_system["x"][-1],
+                    self.ED_coord_system["y"][-1],
+                    self.ED_coord_system["z"][-1],
+                ]
+            )
+            # TODO: Need to redefine ED as {"x": Axis()} or something
+            for ax in self.goniometer.axes_list:
+                ax.vector = coord2mcstas(ax.vector, mat)
+            for ax in self.detector.detector_axes:
+                ax.vector = coord2mcstas(ax.vector, mat)
+            self.detector.fast_axis = coord2mcstas(self.detector.fast_axis, mat)
+            self.detector.slow_axis = coord2mcstas(self.detector.slow_axis, mat)
 
     def write(
         self,
         image_datafiles: List | None = None,
-        vds: bool = False,
         data_entry_key: str = "/entry/data/data",
+        write_mode: str = "x",
     ):
         """Write a NXmx-like NeXus file for electron diffraction.
 
@@ -420,7 +462,9 @@ class EDNXmxFileWriter(NXmxFileWriter):
         Args:
             image_datafiles (List | None, optional): List of image data files. If not passed, the program will look for \
                 files with the stem_######.h5 in the target directory. Defaults to None.
-            vds (bool, optional): Write a VDS as entry/data/data if True. Defaults to False.
+            data_entry_key (str, optional): Dataset entry key in datafiles. Defaults to entry/data/data.
+            write_mode (str, optional): String indicating writing mode for the output NeXus file. Accepts any valid \
+                h5py file opening mode. Defaults to "x".
         """
         # Get data files
         datafiles = (
@@ -433,21 +477,20 @@ class EDNXmxFileWriter(NXmxFileWriter):
         # Scans
         osc, _ = self.goniometer.define_scan_from_goniometer_axes()
 
-        # Deal with vecotrs/offsets/whatever
-        reframe_arrays(
-            gonio,
-            det,
-            module,
-            self.coord_frame,
-            self.ED_coord_system,
-        )
+        # Deal with vecotrs/offsets/whatever if needed
+        self._check_coordinate_frame()
 
-        with h5py.File(self.filename, "x") as nxs:
+        # Get the instrument name
+        instrument_name = self.source.set_instrument_name()
+        nxmx_logger.info(f"Instrument name will be set as {instrument_name}.")
+
+        # NXcoordinate_system_set: /entry/coordinate_system_set
+        base_vectors = {k: self.ED_coord_system.get(k) for k in ["x", "y", "z"]}
+
+        with h5py.File(self.filename, write_mode) as nxs:
             # NXentry and NXmx definition
             write_NXentry(nxs)
 
-            # NXcoordinate_system_set: /entry/coordinate_system_set
-            base_vectors = {k: self.ED_coord_system.get(k) for k in ["x", "y", "z"]}
             write_NXcoordinate_system_set(
                 nxs,
                 self.ED_coord_system["convention"],
@@ -471,6 +514,7 @@ class EDNXmxFileWriter(NXmxFileWriter):
                 self.beam.to_dict(),
                 self.attenuator.to_dict(),
                 source,
+                instrument_name=instrument_name,
             )
 
             # NXdetector: entry/instrument/detector
@@ -500,10 +544,49 @@ class EDNXmxFileWriter(NXmxFileWriter):
                 osc,
             )
 
-            # write vds
-            if vds is True:
+    def write_vds(
+        self,
+        vds_dtype: Any = np.uint16,
+        writer_type: str = "dataset",
+        data_entry_key: str = "/entry/data/data",
+        datafiles: List[Path] | None = None,
+    ):
+        """Write a vds for electron diffraction.
+
+        This method overrides the write_vds() method of NXmxFileWriter, from which thsi class inherits.
+        In particular, if required it will write an external vds file instead of a dataset.
+
+        Args:
+            vds_dtype (Any, optional): The type of the input data. Defaults to np.uint16.
+            writer_type (str, optional): Type of vds required. Defaults to "dataset".
+            data_entry_key (str, optional): Dataset entry key in datafiles. Defaults to "/entry/data/data".
+            datafiles ((List | None, optional): List of image data files. If not passed, the program will look for \
+                files with the stem_######.h5 in the target directory. Defaults to None.
+        """
+        with h5py.File(self.filename, "r+") as nxs:
+            if writer_type == "dataset":
+                nxmx_logger.info(
+                    "Writing vds dataset as /entry/data/data in nexus file."
+                )
                 image_vds_writer(
                     nxs,
                     (self.tot_num_imgs, *self.detector.detector_params.image_size),
+                    data_type=vds_dtype,
                     entry_key=data_entry_key,
+                )
+            else:
+                if not datafiles:
+                    nxmx_logger.warning(
+                        "No datafile list passed, vds file won't be written."
+                    )
+                    return
+                nxmx_logger.info(
+                    "Writing external vds file with link in /entry/data/data in nexus file."
+                )
+                vds_file_writer(
+                    nxs,
+                    datafiles,
+                    (self.tot_num_imgs, *self.detector.detector_params.image_size),
+                    vds_dtype,
+                    data_entry_key,
                 )

@@ -1,0 +1,63 @@
+import numpy as np
+import pytest
+
+from nexgen.nxs_write.write_utils import (
+    calculate_origin,
+    create_attributes,
+    find_number_of_images,
+    set_dependency,
+    write_compressed_copy,
+)
+
+test_goniometer = {
+    "axes": ["chi", "sam_z", "sam_y", "sam_x"],
+    "depends": [".", "chi", "sam_z", "sam_y"],
+    "vectors": [-1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0],
+    "types": ["rotation", "translation", "translation", "translation"],
+    "units": ["deg", "mm", "mm", "mm"],
+    "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    "starts": [0.0, 0.0, 0.0, 0.0],
+    "ends": [0.0, 0.0, 2.0, 2.0],
+    "increments": [0.0, 0.0, 0.2, 0.2],
+}
+
+test_module = {"fast_axis": [1, 0, 0], "slow_axis": [0, 1, 0]}
+
+
+def test_create_attributes(dummy_nexus_file):
+    nxentry = dummy_nexus_file.require_group("/entry/")
+    create_attributes(nxentry, ("NX_class", "version"), ("NXentry", "0.0"))
+
+    assert dummy_nexus_file["/entry/"].attrs["NX_class"] == b"NXentry"
+    assert dummy_nexus_file["/entry/"].attrs["version"] == b"0.0"
+
+
+def test_set_dependency():
+    # Check that the end of the dependency chain always gets set to b"."
+    assert set_dependency(".", "/entry/sample/transformations/") == b"."
+    assert set_dependency(test_goniometer["depends"][0]) == b"."
+    assert set_dependency("whatever") != b"."
+
+    # Check the path
+    assert set_dependency(test_goniometer["depends"][-1], "/entry") == b"/entry/sam_y"
+
+
+def test_calculate_origin():
+    # Check that the default return offset value is 1.0
+    beam_center = [1000, 2000]
+    pixel_size = [5e-05, 5e-05]
+    vec1, val1 = calculate_origin(
+        beam_center, pixel_size, test_module["fast_axis"], test_module["slow_axis"]
+    )
+    assert len(vec1) == 3
+    assert val1 == 1.0
+
+
+def test_find_number_of_images_returns_0_if_no_file_passed():
+    n_images = find_number_of_images([])
+    assert n_images == 0
+
+
+def test_write_copy_raises_error_if_both_array_and_file():
+    with pytest.raises(ValueError):
+        write_compressed_copy("", "", np.array([0.0]), "filename")

@@ -8,13 +8,13 @@ import re
 from collections import namedtuple
 from datetime import datetime
 from pathlib import Path
-from typing import List
+from typing import List, Tuple
 
 import h5py
+import numpy as np
 import pint
 from freephil.common import scope_extract as ScopeExtract  # Define scope extract type
-
-from . import MAX_SUFFIX_DIGITS
+from numpy.typing import ArrayLike
 
 __all__ = [
     "get_filename_template",
@@ -25,6 +25,9 @@ __all__ = [
     "get_iso_timestamp",
     "ScopeExtract",
 ]
+
+MAX_FRAMES_PER_DATASET = 1000
+MAX_SUFFIX_DIGITS = 6
 
 # Define coordinates
 Point3D = namedtuple("Point3D", ("x", "y", "z"))
@@ -201,3 +204,32 @@ def get_iso_timestamp(ts: str | float) -> str:
     if ts_iso.endswith("Z") is False:
         ts_iso += "Z"
     return ts_iso
+
+
+def imgcif2mcstas(vector: List | Tuple | ArrayLike) -> Tuple:
+    """
+    Convert from the standard coordinate frame used by imgCIF/CBF to the
+    NeXus McStas coordinate system.
+
+    Args:
+        vector (List | Tuple | np.array): Coordinates to be converted.
+
+    Returns:
+        Tuple: Converted coordinate values.
+    """
+    c2n = np.array([[-1, 0, 0], [0, 1, 0], [0, 0, -1]])
+    return tuple(np.dot(c2n, vector))
+
+
+def coord2mcstas(vector: List | Tuple | ArrayLike, mat: ArrayLike) -> Tuple:
+    """
+    General conversion from a new coordinate convention to the NeXus McStas coordinate system.
+
+    Args:
+        vector (List | Tuple | np.array): Coordinates to be converted.
+        mat (np.ndarray): Coordinate transformation matrix.
+
+    Returns:
+        Tuple: Converted coordinate values
+    """
+    return tuple(np.dot(mat, vector))

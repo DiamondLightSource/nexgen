@@ -13,7 +13,7 @@ from typing import Any, List, Tuple
 import h5py
 import numpy as np
 
-from .. import MAX_FRAMES_PER_DATASET
+from ..utils import MAX_FRAMES_PER_DATASET
 
 vds_logger = logging.getLogger("nexgen.VDSWriter")
 
@@ -118,13 +118,13 @@ def split_datasets(
         raise ValueError("Start index must be positive")
 
     if type(data_shape[0]) is not int:
-        vds_logger.warning(f"Datashape not passed as int, will attempt to cast")
+        vds_logger.warning("Datashape not passed as int, will attempt to cast")
 
     if type(start_idx) is not int:
-        vds_logger.warning(f"VDS start index not passed as int, will attempt to cast")
+        vds_logger.warning("VDS start index not passed as int, will attempt to cast")
 
     if vds_shape and type(vds_shape[0]) is not int:
-        vds_logger.warning(f"VDS start index not passed as int, will attempt to cast")
+        vds_logger.warning("VDS start index not passed as int, will attempt to cast")
 
     if vds_shape is None:
         vds_logger.info(

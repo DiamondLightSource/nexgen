@@ -1,15 +1,12 @@
 import numpy as np
 import pytest
 
-from nexgen.nxs_write import (
-    calculate_origin,
+from nexgen.command_line.cli_utils import (
     calculate_scan_range,
     find_grid_scan_axes,
-    find_number_of_images,
     find_osc_axis,
-    set_dependency,
-    set_instrument_name,
-    write_compressed_copy,
+    reframe_arrays,
+    split_arrays,
 )
 
 test_goniometer = {
@@ -24,7 +21,25 @@ test_goniometer = {
     "increments": [0.0, 0.0, 0.2, 0.2],
 }
 
-test_module = {"fast_axis": [1, 0, 0], "slow_axis": [0, 1, 0]}
+test_goniometer_small = {
+    "axes": ["alpha", "sam_z"],
+    "vectors": [1, 0, 0, 0, 0, 1],
+    "offsets": [(0, 0, 0), (0, 0, 0)],
+}
+
+test_detector = {"axes": ["det_z"], "vectors": [0, 0, 1]}
+test_module = {
+    "fast_axis": [1, 0, 0],
+    "slow_axis": [0, 1, 0],
+}
+
+test_new_coords = {
+    "convention": "rotate",
+    "origin": (0, 0, 0),
+    "x": (".", "", "", [1, 0, 0]),
+    "y": (".", "", "", [0, -1, 0]),
+    "z": (".", "", "", [0, 0, -1]),
+}
 
 
 def test_find_osc_axis():
@@ -166,57 +181,72 @@ def test_calc_scan_range():
     assert round(grid["sam_y"][10] - grid["sam_y"][0], 1) == 0.2
 
 
-def test_set_dependency():
-    # Check that the end of the dependency chain always gets set to b"."
-    assert set_dependency(".", "/entry/sample/transformations/") == b"."
-    assert set_dependency(test_goniometer["depends"][0]) == b"."
-    assert set_dependency("whatever") != b"."
-
-    # Check the path
-    assert set_dependency(test_goniometer["depends"][-1], "/entry") == b"/entry/sam_y"
-
-
-def test_calculate_origin():
-    # Check that the default return offset value is 1.0
-    beam_center = [1000, 2000]
-    pixel_size = [5e-05, 5e-05]
-    vec1, val1 = calculate_origin(
-        beam_center, pixel_size, test_module["fast_axis"], test_module["slow_axis"]
+def test_reframe_arrays_without_coordinate_conversion():
+    reframe_arrays(
+        test_goniometer_small,
+        test_detector,
+        test_module,
     )
-    assert len(vec1) == 3
-    assert val1 == 1.0
+    assert test_goniometer_small["vectors"] == [(1, 0, 0), (0, 0, 1)]
+    assert test_detector["vectors"] == [(0, 0, 1)]
 
 
-def test_find_number_of_images_returns_0_if_no_file_passed():
-    n_images = find_number_of_images([])
-    assert n_images == 0
+def test_reframe_arrays_from_imgcif():
+    reframe_arrays(
+        test_goniometer_small,
+        test_detector,
+        test_module,
+        "imgcif",
+    )
+    assert test_goniometer_small["vectors"] == [(-1, 0, 0), (0, 0, -1)]
+    assert test_detector["vectors"] == [(0, 0, -1)]
+    assert test_module["fast_axis"] == (-1, 0, 0)
+    assert test_module["slow_axis"] == (0, 1, 0)
 
 
-def test_set_instrument_name():
-    test_source_1 = {"type": "Synchrotron X-Ray Source", "beamline_name": "I24"}
-    test_source_2 = {"type": "Electron Microscope", "beamline_name": "eBic"}
-    assert set_instrument_name(test_source_1) == "DIAMOND BEAMLINE I24"
-    assert set_instrument_name(test_source_2) == "DIAMOND eBic"
-    assert (
-        set_instrument_name(test_source_2, facility_id="MICROSCOPE")
-        == "MICROSCOPE eBic"
+def test_reframe_arrays_from_another_coordinate_system():
+    test_goniometer_small["vectors"] = [1, 0, 0, 0, 0, 1]
+    test_detector["vectors"] = [0, 0, 1]
+    test_module["fast_axis"] = [1, 0, 0]
+    test_module["slow_axis"] = [0, 1, 0]
+    test_module["offsets"] = [0, 0, 0, 0, 0, 0]
+    reframe_arrays(
+        test_goniometer_small,
+        test_detector,
+        test_module,
+        "rotate",
+        test_new_coords,
     )
 
-
-def test_set_instrument_name_override_facility_id():
-    test_source = {
-        "type": "Electron Microscope",
-        "facility_id": "DIAMOND MICROSCOPE",
-        "beamline_name": "eBic",
-    }
-    assert set_instrument_name(test_source) == "DIAMOND MICROSCOPE eBic"
+    assert test_goniometer_small["vectors"] == [(1, 0, 0), (0, 0, -1)]
+    assert test_detector["vectors"] == [(0, 0, -1)]
+    assert test_module["fast_axis"] == (1, 0, 0)
+    assert test_module["slow_axis"] == (0, -1, 0)
+    assert test_module["offsets"] == [(0, 0, 0), (0, 0, 0)]
 
 
-def test_set_instrument_assumes_synchrotron_if_unspecified():
-    test_source = {"short_name": "DLS", "beamline_name": "I04"}
-    assert set_instrument_name(test_source) == "DIAMOND BEAMLINE I04"
-
-
-def test_write_copy_raises_error_if_both_array_and_file():
+def test_reframe_arrays_fails_if_coordinate_system_ill_defined():
     with pytest.raises(ValueError):
-        write_compressed_copy("", "", np.array([0.0]), "filename")
+        reframe_arrays(
+            test_goniometer_small, test_detector, test_module, "", test_new_coords
+        )
+
+
+def test_reframe_arrays_fails_if_new_coordinate_system_not_defined():
+    with pytest.raises(TypeError):
+        reframe_arrays(test_goniometer_small, test_detector, test_module, "new")
+
+
+def test_split_arrays():
+    assert split_arrays(["phi"], [1, 0, 0]) == {"phi": (1, 0, 0)}
+    two_axes = split_arrays(["omega", "phi"], [1, 0, 0, 0, 1, 0])
+    assert two_axes["omega"] == (1, 0, 0) and two_axes["phi"] == (0, 1, 0)
+    assert (
+        len(split_arrays(["omega", "phi", "chi"], [(1, 0, 0), (0, 1, 0), (0, 0, 1)]))
+        == 3
+    )
+
+
+def test_split_arrays_fails_if_wrong_size_arrays():
+    with pytest.raises(ValueError):
+        split_arrays(["omega", "phi"], [1, 0, 0, 1])

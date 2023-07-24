@@ -5,14 +5,14 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from nexgen.nxs_copy import (
+from nexgen.nxs_copy.copy_utils import (
     check_and_fix_det_axis,
     h5str,
     identify_tristan_scan_axis,
     is_chipmap_in_tristan_nxs,
 )
-from nexgen.nxs_write import create_attributes
 from nexgen.nxs_write.NXclassWriters import write_NXentry, write_NXnote
+from nexgen.nxs_write.write_utils import create_attributes
 
 test_chipmap = {"01": (0, 0)}
 
