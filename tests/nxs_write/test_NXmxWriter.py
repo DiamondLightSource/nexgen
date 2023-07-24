@@ -51,3 +51,11 @@ def test_NXmxFileWriter_adds_note(mock_NXnote, dummy_NXmxWriter):
     fake_notes = {"foo": "bar"}
     dummy_NXmxWriter.add_NXnote(fake_notes)
     mock_NXnote.assert_called_once()
+
+
+@patch("nexgen.nxs_write.NXmxWriter.image_vds_writer")
+def test_NXmxFileWriter_write_vds(mock_vds_writer, dummy_NXmxWriter):
+    dummy_NXmxWriter.goniometer = fake_gonio
+    dummy_NXmxWriter.detector.detector_params.image_size = (100, 100)
+    dummy_NXmxWriter.write_vds()
+    mock_vds_writer.assert_called_once()
