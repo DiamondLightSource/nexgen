@@ -14,6 +14,7 @@ from nexgen.nxs_write.NXclassWriters import (
     write_NXdetector,
     write_NXdetector_module,
     write_NXentry,
+    write_NXinstrument,
     write_NXnote,
     write_NXsample,
 )
@@ -60,6 +61,11 @@ test_eiger = {
     "units": ["mm"],
     "starts": [500],
     "exposure_time": 0.01,
+}
+
+test_source = {
+    "name": "Diamond Light Source",
+    "short_name": "DLS",
 }
 
 
@@ -427,3 +433,38 @@ def test_write_NXdetector_for_images_without_meta_file(dummy_nexus_file):
         dummy_nexus_file[det + "distance"], test_eiger["starts"][0] / 1000
     )
     assert dummy_nexus_file[det + "distance"].attrs["units"] == b"m"
+
+
+def test_write_NXinstrument(dummy_nexus_file):
+    instr = "/entry/instrument/"
+
+    test_source["beamline_name"] = "I03"
+
+    write_NXinstrument(
+        dummy_nexus_file,
+        {"wavelength": 0.6, "flux": None},
+        {"transmission": 10},
+        test_source,
+    )
+
+    assert "attenuator" in list(dummy_nexus_file[instr].keys())
+    assert "beam" in list(dummy_nexus_file[instr].keys())
+    assert dummy_nexus_file[instr + "name"][()] == b"DIAMOND BEAMLINE I03"
+    assert dummy_nexus_file[instr + "name"].attrs["short_name"] == b"DLS I03"
+
+
+def test_write_NXinstrument_sets_correct_instrument_name(dummy_nexus_file):
+    instr = "/entry/instrument/"
+
+    test_source["beamline_name"] = "eBic"
+
+    write_NXinstrument(
+        dummy_nexus_file,
+        {"wavelength": 0.001, "flux": None},
+        {"transmission": 1},
+        test_source,
+        "DIAMOND MICROSCOPE",
+    )
+
+    assert dummy_nexus_file[instr + "name"][()] == b"DIAMOND MICROSCOPE"
+    assert dummy_nexus_file[instr + "name"].attrs["short_name"] == b"DLS eBic"
