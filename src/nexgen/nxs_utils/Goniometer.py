@@ -38,7 +38,9 @@ class Goniometer:
         msg = ""
         for ax in self.axes_list:
             msg += f"{ax.name}: {ax.start_pos} => {ax.transformation_type} on {ax.depends} \n\t"
-        return f"Goniometer axes: \n\t{msg}"
+        if self.scan:
+            msg += f"Scan axis/axes: {list(self.scan.keys())}. \n"
+        return f"Goniometer information: \n\t{msg}"
 
     def _check_and_update_goniometer_from_scan(self, scan_axes: List[str]):
         """Check that the values entered for the goniometer match with the scan."""
