@@ -2,7 +2,7 @@ goniometer {
   axes = omega kappa phi sam_z sam_y sam_x
   depends = . omega kappa phi sam_z sam_y
   vectors = -1,0,0,-0.642788,-0.766044,0,-1,0,0,0,0,-1,0,-1,0,-1,0,0
-  offsets = 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+  offsets = 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
   offset_units = mm mm mm mm mm mm
   starts = None
   ends = None
