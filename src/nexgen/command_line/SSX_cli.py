@@ -7,8 +7,9 @@ import logging
 from pathlib import Path
 from typing import Tuple
 
-from .. import P, log
+from .. import log
 from ..beamlines.SSX_chip import CHIP_DICT_DEFAULT
+from ..utils import P
 from . import version_parser
 
 logger = logging.getLogger("nexgen.SSX_cli")
