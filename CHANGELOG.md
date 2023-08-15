@@ -10,6 +10,7 @@
 - Unified logging for beamline tools.
 
 ### Fixed
+- SSX cli import issue.
 - Read params from GDA-generated JSON files.
 - Tidy up/clear up obsolete methods.
 - Update and fix documentation.
