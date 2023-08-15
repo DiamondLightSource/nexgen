@@ -284,7 +284,7 @@ def calculate_scan_range(
     Returns:
         Dict[str, ArrayLike]: A dictionary of ("axis_name": axis_range) key-value pairs.
     """
-    if type(axes_names) != list or type(axes_starts) != list or type(axes_ends) != list:
+    if type(axes_names) is not list or type(axes_starts) is not list or type(axes_ends) is not list:
         raise TypeError("Input values for axes must be passed as lists.")
 
     if len(axes_names) == 0:
