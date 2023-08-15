@@ -69,7 +69,7 @@ def test_read_chip_map(dummy_chipmap_file):
     blocks = read_chip_map(
         dummy_chipmap_file.name, test_chip.num_blocks[0], test_chip.num_blocks[1]
     )
-    assert type(blocks) == dict and len(blocks) == 2
+    assert isinstance(blocks, dict) and len(blocks) == 2
     assert list(blocks.keys()) == ["01", "04"]
 
 
