@@ -14,6 +14,7 @@ import h5py
 import numpy as np
 
 from ..utils import MAX_FRAMES_PER_DATASET
+from .Constants import jungfrau_fill_value, jungfrau_gap_size, jungfrau_mod_size
 
 vds_logger = logging.getLogger("nexgen.VDSWriter")
 
@@ -211,7 +212,6 @@ def image_vds_writer(
     vds_logger.info("Start creating VDS ...")
     # Where the vds will go
     nxdata = nxsfile["/entry/data"]
-    # entry_key = "data"
     dset_names = find_datasets_in_file(nxdata)
 
     vds_shape = (
@@ -240,6 +240,34 @@ def image_vds_writer(
     # Writea Virtual Dataset in NeXus file
     nxdata.create_virtual_dataset(entry_key, layout, fillvalue=-1)
     vds_logger.info("VDS written to NeXus file.")
+
+
+def jungfrau_vds_writer(
+    nxsfile: h5py.File,
+    vds_shape: Tuple | List,
+    data_type: Any = np.uint16,
+    source_dsets: List | None = None,
+):
+    # Use case, jungfrau. 1 module, 2 files one for upper, one for lower
+    entry_key = "data"
+    frames = vds_shape[0]
+
+    nxdata = nxsfile["/entry/data"]
+    if not source_dsets:
+        source_dsets = find_datasets_in_file(nxdata)
+
+    sources = []
+    for dset in source_dsets:
+        source = h5py.VirtualSource(dset, entry_key, shape=(frames, *jungfrau_mod_size))
+        sources.append(source)
+
+    layout = h5py.VirtualLayout(shape=vds_shape, dtype=data_type)
+    # The first one is the upper one
+    s0 = jungfrau_mod_size[0] + jungfrau_gap_size[0]
+    layout[:, : jungfrau_mod_size[0], :] = sources[1][:, :, :]
+    layout[:, s0:, :] = sources[0][:, :, :]
+
+    nxdata.create_virtual_dataset(entry_key, layout, fillvalue=jungfrau_fill_value)
 
 
 def vds_file_writer(

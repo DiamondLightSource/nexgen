@@ -14,7 +14,12 @@ import numpy as np
 from ..nxs_utils.Detector import Detector
 from ..nxs_utils.Goniometer import Goniometer
 from ..nxs_utils.Source import Attenuator, Beam, Source
-from ..tools.VDS_tools import clean_unused_links, image_vds_writer, vds_file_writer
+from ..tools.VDS_tools import (
+    clean_unused_links,
+    image_vds_writer,
+    jungfrau_vds_writer,
+    vds_file_writer,
+)
 from ..utils import (
     MAX_FRAMES_PER_DATASET,
     MAX_SUFFIX_DIGITS,
@@ -273,13 +278,20 @@ class NXmxFileWriter:
         nxmx_logger.info(f"VDS shape set to {vds_shape}.")
 
         with h5py.File(self.filename, "r+") as nxs:
-            image_vds_writer(
-                nxs,
-                (self.tot_num_imgs, *self.detector.detector_params.image_size),
-                start_index=vds_offset,
-                vds_shape=vds_shape,
-                data_type=vds_dtype,
-            )
+            if "jungfrau" in self.detector.detector_params.description.lower():
+                jungfrau_vds_writer(
+                    nxs,
+                    (self.tot_num_imgs, *self.detector.detector_params.image_size),
+                    data_type=vds_dtype,
+                )
+            else:
+                image_vds_writer(
+                    nxs,
+                    (self.tot_num_imgs, *self.detector.detector_params.image_size),
+                    start_index=vds_offset,
+                    vds_shape=vds_shape,
+                    data_type=vds_dtype,
+                )
             if clean_up is True:
                 nxmx_logger.warning("Starting clean up of unused links.")
                 clean_unused_links(

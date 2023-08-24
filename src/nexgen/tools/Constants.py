@@ -14,6 +14,7 @@ tristan_gap_size = (117, 45)
 tristan_chunk = 2097152
 
 # Junfrau 1M specific
+jungfrau_modules = {"1M": (1, 2)}
 jungfrau_mod_size = (514, 1030)  # (slow, fast)
 jungfrau_gap_size = (38, 12)
 jungfrau_fill_value = 0b10000000000000000000000000000000
