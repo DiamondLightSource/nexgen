@@ -8,6 +8,7 @@ import pytest
 from nexgen.tools.VDS_tools import (
     Dataset,
     create_virtual_layout,
+    find_datasets_in_file,
     image_vds_writer,
     split_datasets,
 )
@@ -85,6 +86,13 @@ def nexus_file_with_single_dataset():
     test_nexus_file = h5py.File(test_hdf_file, "w")
     test_nexus_file["/entry/data/data_0001"] = h5py.ExternalLink("filename", "path")
     yield test_nexus_file
+
+
+def test_find_datasets_int_file(nexus_file_with_single_dataset):
+    nxdata = nexus_file_with_single_dataset["/entry/data"]
+    dsets = find_datasets_in_file(nxdata)
+    assert len(dsets) == 1
+    assert dsets[0] == "data_0001"
 
 
 def test_when_float_shape_passed_to_vds_writer_then_no_exception(
