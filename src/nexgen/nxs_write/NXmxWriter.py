@@ -6,15 +6,21 @@ from __future__ import annotations
 import logging
 import math
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Dict, List, Tuple
 
 import h5py
 import numpy as np
+from numpy.typing import DTypeLike
 
 from ..nxs_utils.Detector import Detector
 from ..nxs_utils.Goniometer import Goniometer
 from ..nxs_utils.Source import Attenuator, Beam, Source
-from ..tools.VDS_tools import clean_unused_links, image_vds_writer, vds_file_writer
+from ..tools.VDS_tools import (
+    clean_unused_links,
+    image_vds_writer,
+    jungfrau_vds_writer,
+    vds_file_writer,
+)
 from ..utils import (
     MAX_FRAMES_PER_DATASET,
     MAX_SUFFIX_DIGITS,
@@ -239,7 +245,7 @@ class NXmxFileWriter:
         self,
         vds_offset: int = 0,
         vds_shape: Tuple[int, int, int] = None,
-        vds_dtype: Any = np.uint16,
+        vds_dtype: DTypeLike = np.uint16,
         clean_up: bool = False,
     ):
         """Write a Virtual Dataset.
@@ -252,7 +258,7 @@ class NXmxFileWriter:
             vds_offset (int, optional): Start index for the vds writer. Defaults to 0.
             vds_shape (Tuple[int,int,int], optional): Shape of the data which will be linked in the VDS. If not passed, it will be defined as \
             (tot_num_imgs - start_idx, *image_size). Defaults to None.
-            vds_dtype (Any, optional): The type of the input data. Defaults to np.uint16.
+            vds_dtype (DTypeLike, optional): The type of the input data. Defaults to np.uint16.
             clean_up(bool, optional): Clean up unused links in vds. Defaults to False.
         """
         if not vds_shape:
@@ -273,13 +279,20 @@ class NXmxFileWriter:
         nxmx_logger.info(f"VDS shape set to {vds_shape}.")
 
         with h5py.File(self.filename, "r+") as nxs:
-            image_vds_writer(
-                nxs,
-                (self.tot_num_imgs, *self.detector.detector_params.image_size),
-                start_index=vds_offset,
-                vds_shape=vds_shape,
-                data_type=vds_dtype,
-            )
+            if "jungfrau" in self.detector.detector_params.description.lower():
+                jungfrau_vds_writer(
+                    nxs,
+                    (self.tot_num_imgs, *self.detector.detector_params.image_size),
+                    data_type=vds_dtype,
+                )
+            else:
+                image_vds_writer(
+                    nxs,
+                    (self.tot_num_imgs, *self.detector.detector_params.image_size),
+                    start_index=vds_offset,
+                    vds_shape=vds_shape,
+                    data_type=vds_dtype,
+                )
             if clean_up is True:
                 nxmx_logger.warning("Starting clean up of unused links.")
                 clean_unused_links(
@@ -399,7 +412,7 @@ class EDNXmxFileWriter(NXmxFileWriter):
     """A class to generate NXmx-like NeXus files for electron diffraction.
 
     Requires an additional argument:
-        ED_coord_system (Dict[str, Any]): Definition of the current coordinate frame for ED. \
+        ED_coord_system (Dict[str, Tuple]): Definition of the current coordinate frame for ED. \
             It should at least contain the convention, origin and base vectors.
     """
 
@@ -546,7 +559,7 @@ class EDNXmxFileWriter(NXmxFileWriter):
 
     def write_vds(
         self,
-        vds_dtype: Any = np.uint16,
+        vds_dtype: DTypeLike = np.uint16,
         writer_type: str = "dataset",
         data_entry_key: str = "/entry/data/data",
         datafiles: List[Path] | None = None,
@@ -557,7 +570,7 @@ class EDNXmxFileWriter(NXmxFileWriter):
         In particular, if required it will write an external vds file instead of a dataset.
 
         Args:
-            vds_dtype (Any, optional): The type of the input data. Defaults to np.uint16.
+            vds_dtype (DTypeLike, optional): The type of the input data. Defaults to np.uint16.
             writer_type (str, optional): Type of vds required. Defaults to "dataset".
             data_entry_key (str, optional): Dataset entry key in datafiles. Defaults to "/entry/data/data".
             datafiles ((List | None, optional): List of image data files. If not passed, the program will look for \

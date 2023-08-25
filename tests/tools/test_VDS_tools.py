@@ -8,7 +8,9 @@ import pytest
 from nexgen.tools.VDS_tools import (
     Dataset,
     create_virtual_layout,
+    find_datasets_in_file,
     image_vds_writer,
+    jungfrau_vds_writer,
     split_datasets,
 )
 
@@ -87,6 +89,13 @@ def nexus_file_with_single_dataset():
     yield test_nexus_file
 
 
+def test_find_datasets_int_file(nexus_file_with_single_dataset):
+    nxdata = nexus_file_with_single_dataset["/entry/data"]
+    dsets = find_datasets_in_file(nxdata)
+    assert len(dsets) == 1
+    assert dsets[0] == "data_0001"
+
+
 def test_when_float_shape_passed_to_vds_writer_then_no_exception(
     nexus_file_with_single_dataset,
 ):
@@ -107,3 +116,28 @@ def test_given_file_with_no_dataset_external_links_then_exception_is_sensible():
     test_nexus_file["/entry/data/data_0001"] = MagicMock()
     with pytest.raises(KeyError):
         image_vds_writer(test_nexus_file, (1000, 10, 10))
+
+
+def test_jungfrau_vds_writer_with_external_dsets():
+    test_hdf_file = tempfile.TemporaryFile()
+    test_nexus_file = h5py.File(test_hdf_file, "w")
+    test_nexus_file["/entry/data/data_0001"] = MagicMock()
+    source_dsets = ["path/to/file1", "path/to/file2"]
+    jungfrau_vds_writer(
+        test_nexus_file,
+        (100, 1066, 1030),
+        source_dsets=source_dsets,
+    )
+    assert "data" in list(test_nexus_file["/entry/data"].keys())
+
+
+def test_jungfrau_vds_writer_not_failing_if_no_external_dsets():
+    test_hdf_file = tempfile.TemporaryFile()
+    test_nexus_file = h5py.File(test_hdf_file, "w")
+    test_nexus_file["/entry/data/data_0001"] = h5py.ExternalLink("f1le1", "data")
+    test_nexus_file["/entry/data/data_0002"] = h5py.ExternalLink("f1le2", "data")
+    jungfrau_vds_writer(
+        test_nexus_file,
+        (100, 1066, 1030),
+    )
+    assert "data" in list(test_nexus_file["/entry/data"].keys())

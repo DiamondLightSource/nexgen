@@ -8,12 +8,14 @@ import operator
 from dataclasses import dataclass
 from functools import reduce
 from pathlib import Path
-from typing import Any, List, Tuple
+from typing import List, Tuple
 
 import h5py
 import numpy as np
+from numpy.typing import DTypeLike
 
 from ..utils import MAX_FRAMES_PER_DATASET
+from .Constants import jungfrau_fill_value, jungfrau_gap_size, jungfrau_mod_size
 
 vds_logger = logging.getLogger("nexgen.VDSWriter")
 
@@ -155,13 +157,13 @@ def split_datasets(
     return result
 
 
-def create_virtual_layout(datasets: List[Dataset], data_type: Any):
+def create_virtual_layout(datasets: List[Dataset], data_type: DTypeLike):
     """
     Create a virtual layout and populate it based on the provided data.
 
     Args:
         datasets (List[Dataset]): A list of datasets that are to be merged.
-        data_type (Any): The type of the input data.
+        data_type (DTypeLike): The type of the input data.
 
     Returns:
         layout (h5py.VirtualLayout): Virtual layout.
@@ -193,7 +195,7 @@ def image_vds_writer(
     full_data_shape: Tuple | List,
     start_index: int = 0,
     vds_shape: Tuple | List | None = None,
-    data_type: Any = np.uint16,
+    data_type: DTypeLike = np.uint16,
     entry_key: str = "data",
 ):
     """
@@ -205,13 +207,12 @@ def image_vds_writer(
         start_index(int): The start point for the source data. Defaults to 0.
         vds_shape(Tuple, optional): Desired shape of the VDS, usually defined as (num_frames, *image_size). \
             The number of frames must be smaller or equal to the one in full_data_shape. Defaults to None.
-        data_type (Any, optional): The type of the input data. Defaults to np.uint16.
+        data_type (DTypeLike, optional): The type of the input data. Defaults to np.uint16.
         entry_key (str, optional): Entry key for the Virtual DataSet name. Defaults to data.
     """
     vds_logger.info("Start creating VDS ...")
     # Where the vds will go
     nxdata = nxsfile["/entry/data"]
-    # entry_key = "data"
     dset_names = find_datasets_in_file(nxdata)
 
     vds_shape = (
@@ -242,11 +243,45 @@ def image_vds_writer(
     vds_logger.info("VDS written to NeXus file.")
 
 
+def jungfrau_vds_writer(
+    nxsfile: h5py.File,
+    vds_shape: Tuple | List,
+    data_type: DTypeLike = np.uint16,
+    source_dsets: List[str] | None = None,
+):
+    """Write VDS for Jungfrau 1M use case, with a tiled layout."""
+    external_dsets = True
+    entry_key = "data"
+    frames = vds_shape[0]
+
+    nxdata = nxsfile["/entry/data"]
+    if not source_dsets:
+        source_dsets = find_datasets_in_file(nxdata)
+        external_dsets = False
+
+    sources = []
+    for dset in source_dsets:
+        source_path = dset if external_dsets is True else "."
+        source_name = entry_key if external_dsets is True else f"/entry/data/{dset}"
+        source = h5py.VirtualSource(
+            source_path, source_name, shape=(frames, *jungfrau_mod_size)
+        )
+        sources.append(source)
+
+    layout = h5py.VirtualLayout(shape=vds_shape, dtype=data_type)
+    # The first one is the upper one
+    s0 = jungfrau_mod_size[0] + jungfrau_gap_size[0]
+    layout[:, : jungfrau_mod_size[0], :] = sources[1][:, :, :]
+    layout[:, s0:, :] = sources[0][:, :, :]
+
+    nxdata.create_virtual_dataset(entry_key, layout, fillvalue=jungfrau_fill_value)
+
+
 def vds_file_writer(
     nxsfile: h5py.File,
     datafiles: List[Path],
     data_shape: Tuple | List,
-    data_type: Any = np.uint16,
+    data_type: DTypeLike = np.uint16,
     entry_key: str = "data",
 ):
     """
@@ -256,7 +291,7 @@ def vds_file_writer(
         nxsfile (h5py.File): NeXus file being written.
         datafiles (List[Path]): List of paths to source files.
         data_shape (Tuple | List): Shape of the dataset, usually defined as (num_frames, *image_size).
-        data_type (Any, optional): Dtype. Defaults to np.uint16.
+        data_type (DTypeLike, optional): Dtype. Defaults to np.uint16.
         entry_key (str): Entry key for the Virtual DataSet name. Defaults to data.
     """
     vds_logger.info("Start creating VDS ...")

@@ -13,25 +13,21 @@ import numpy as np
 from hdf5plugin import Bitshuffle
 from numpy.typing import ArrayLike
 
+from .Constants import (
+    clock_freq,
+    eiger_gap_size,
+    eiger_mod_size,
+    eiger_modules,
+    tristan_chunk,
+    tristan_gap_size,
+    tristan_mod_size,
+    tristan_modules,
+)
+
 data_logger = logging.getLogger("nexgen.DataWriter")
 
 # Random number generator
 rng = np.random.default_rng()
-
-# Eiger specific
-eiger_modules = {"1M": (1, 2), "4M": (2, 4), "9M": (3, 6), "16M": (4, 8)}
-eiger_mod_size = (512, 1028)
-eiger_gap_size = (38, 12)
-intra_mod_gap = 2
-
-# Tristan specific
-clock_freq = int(6.4e8)
-tristan_modules = {"10M": (2, 5), "2M": (1, 2)}
-tristan_mod_size = (515, 2069)  # (H, V)
-tristan_gap_size = (117, 45)
-
-# Pre-defined chunk size
-tristan_chunk = 2097152
 
 
 # Build-a-detector functions
