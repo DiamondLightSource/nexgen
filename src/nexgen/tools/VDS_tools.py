@@ -249,17 +249,23 @@ def jungfrau_vds_writer(
     data_type: DTypeLike = np.uint16,
     source_dsets: List[str] | None = None,
 ):
-    # Use case, jungfrau. 1 module, 2 files one for upper, one for lower
+    """Write VDS for Jungfrau 1M use case, with a tiled layout."""
+    external_dsets = True
     entry_key = "data"
     frames = vds_shape[0]
 
     nxdata = nxsfile["/entry/data"]
     if not source_dsets:
         source_dsets = find_datasets_in_file(nxdata)
+        external_dsets = False
 
     sources = []
     for dset in source_dsets:
-        source = h5py.VirtualSource(dset, entry_key, shape=(frames, *jungfrau_mod_size))
+        source_path = dset if external_dsets is True else "."
+        source_name = entry_key if external_dsets is True else f"/entry/data/{dset}"
+        source = h5py.VirtualSource(
+            source_path, source_name, shape=(frames, *jungfrau_mod_size)
+        )
         sources.append(source)
 
     layout = h5py.VirtualLayout(shape=vds_shape, dtype=data_type)
