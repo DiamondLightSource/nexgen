@@ -3,6 +3,10 @@
 
 ## 0.#.#
 
+
+### Added
+- Writer for JungFrau 1M use case.
+
 ### Changed
 - Refactoring of serial writer.
 - Refactoring of I19 writers.
