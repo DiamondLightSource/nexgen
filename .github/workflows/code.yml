@@ -117,3 +117,4 @@ jobs:
       - name: Test module --version works using the installed wheel
         # If more than one module in src/ replace with module name to test
         run: python -m nexgen --version
+  
