@@ -73,7 +73,6 @@ jobs:
         uses: ./.github/actions/install_requirements
         with:
           python_version: ${{ matrix.python }}
-          requirements_file: requirements_dev.txt
           install_options: ${{ matrix.install }}
 
       - name: List dependency tree
