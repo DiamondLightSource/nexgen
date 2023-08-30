@@ -1,5 +1,3 @@
-#from . import __version__
-
 from .command_line import version_parser
 
 def main(args=None):
