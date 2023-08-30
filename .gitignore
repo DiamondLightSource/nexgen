@@ -78,6 +78,13 @@ docs/_build/
 # PyBuilder
 target/
 
+# likely venv names
+.venv*
+venv*
+
+# further build artifacts
+lockfiles/
+
 # Jupyter Notebook
 .ipynb_checkpoints
 
