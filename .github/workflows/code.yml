@@ -81,3 +81,39 @@ jobs:
         with:
           name: ${{ matrix.python }}/${{ matrix.os }}
           files: cov.xml
+  
+  dist:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
+    runs-on: "ubuntu-latest"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          # Need this to get version number from last tag
+          fetch-depth: 0
+
+      - name: Build sdist and wheel
+        run: |
+          export SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct) && \
+          pipx run build
+
+      - name: Upload sdist and wheel as artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist
+          path: dist
+
+      - name: Check for packaging errors
+        run: pipx run twine check --strict dist/*
+
+      - name: Install python packages
+        uses: ./.github/actions/install_requirements
+        with:
+          python_version: '3.10'
+          requirements_file: requirements.txt
+          install_options: dist/*.whl
+
+      - name: Test module --version works using the installed wheel
+        # If more than one module in src/ replace with module name to test
+        run: python -m nexgen --version
