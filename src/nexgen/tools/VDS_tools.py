@@ -194,9 +194,8 @@ def image_vds_writer(
     nxsfile: h5py.File,
     full_data_shape: Tuple | List,
     start_index: int = 0,
-    vds_shape: Tuple | List | None = None,
     data_type: DTypeLike = np.uint16,
-    entry_key: str = "data",
+    **kwargs,
 ):
     """
     Virtual DataSet writer function for image data.
@@ -205,9 +204,11 @@ def image_vds_writer(
         nxsfile (h5py.File): Handle to NeXus file being written.
         full_data_shape (Tuple | List): Shape of the full dataset, usually defined as (num_frames, *image_size).
         start_index(int): The start point for the source data. Defaults to 0.
+        data_type (DTypeLike, optional): The type of the input data. Defaults to np.uint16.
+
+    Useful kwargs:
         vds_shape(Tuple, optional): Desired shape of the VDS, usually defined as (num_frames, *image_size). \
             The number of frames must be smaller or equal to the one in full_data_shape. Defaults to None.
-        data_type (DTypeLike, optional): The type of the input data. Defaults to np.uint16.
         entry_key (str, optional): Entry key for the Virtual DataSet name. Defaults to data.
     """
     vds_logger.info("Start creating VDS ...")
@@ -215,10 +216,14 @@ def image_vds_writer(
     nxdata = nxsfile["/entry/data"]
     dset_names = find_datasets_in_file(nxdata)
 
+    entry_key = (
+        "data" if "entry_key" not in list(kwargs.keys()) else kwargs["entry_key"]
+    )
+
     vds_shape = (
-        tuple(vds_shape)
-        if vds_shape is not None
-        else (full_data_shape[0] - start_index, *full_data_shape[1:])
+        (full_data_shape[0] - start_index, *full_data_shape[1:])
+        if "vds_shape" not in list(kwargs.keys())
+        else tuple(kwargs["vds_shape"])
     )
 
     # Hack for datasets with no maximum number of frames (eg. Singla)

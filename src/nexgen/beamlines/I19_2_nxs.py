@@ -269,8 +269,8 @@ def eiger_writer(
         )
         NXmx_writer.write(start_time=timestamps[0])
         NXmx_writer.write_vds(
-            vds_shape=(n_frames, *detector.detector_params.image_size),
             vds_dtype=vds_dtype,
+            vds_shape=(n_frames, *detector.detector_params.image_size),
         )
         NXmx_writer.update_timestamps((None, timestamps[1]))
         logger.info(f"The file {master_file} was written correctly.")

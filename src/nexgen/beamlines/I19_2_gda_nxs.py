@@ -250,8 +250,8 @@ def eiger_writer(
         NXmx_Writer.write()
         NXmx_Writer.update_timestamps(timestamps)
         NXmx_Writer.write_vds(
-            vds_shape=(n_frames, *detector.detector_params.image_size),
             vds_dtype=vds_dtype,
+            vds_shape=(n_frames, *detector.detector_params.image_size),
         )
         logger.info(f"The file {master_file} was written correctly.")
     except Exception as err:

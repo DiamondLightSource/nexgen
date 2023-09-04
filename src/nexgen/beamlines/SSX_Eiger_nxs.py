@@ -328,8 +328,8 @@ def ssx_eiger_writer(
             )
         NXmx_Writer.update_timestamps((None, timestamps[1]))
         NXmx_Writer.write_vds(
-            vds_shape=(tot_num_imgs, *detector.detector_params.image_size),
             vds_dtype=vds_dtype,
+            vds_shape=(tot_num_imgs, *detector.detector_params.image_size),
         )
         logger.info(f"The file {master_file} was written correctly.")
     except Exception as err:

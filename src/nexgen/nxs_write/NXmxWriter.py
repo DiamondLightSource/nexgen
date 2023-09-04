@@ -290,15 +290,15 @@ class NXmxFileWriter:
                     nxs,
                     (self.tot_num_imgs, *self.detector.detector_params.image_size),
                     start_index=vds_offset,
-                    vds_shape=vds_shape,
                     data_type=vds_dtype,
+                    vds_shape=vds_shape,
                 )
             if clean_up is True:
                 nxmx_logger.warning("Starting clean up of unused links.")
                 clean_unused_links(
                     nxs,
-                    vds_shape=vds_shape,
                     start_index=vds_offset,
+                    vds_shape=vds_shape,
                 )
 
             # If number of frames in the VDS is lower than the total, nimages in NXcollection should be overwritten to match this
