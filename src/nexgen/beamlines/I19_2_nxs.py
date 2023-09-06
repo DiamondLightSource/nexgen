@@ -329,8 +329,8 @@ def nexus_writer(
         transmission=params["transmission"],
         wavelength=params["wavelength"],
         beam_center=params["beam_center"],
-        start_time=start_time.strftime("%Y-%m-%dT%H:%M:%S"),
-        stop_time=stop_time.strftime("%Y-%m-%dT%H:%M:%S"),
+        start_time=start_time.strftime("%Y-%m-%dT%H:%M:%S") if start_time else None,
+        stop_time=stop_time.strftime("%Y-%m-%dT%H:%M:%S") if stop_time else None,
         scan_axis=scan_axis,
     )
 
