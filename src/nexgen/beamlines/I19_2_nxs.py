@@ -305,7 +305,7 @@ def nexus_writer(**params):
         serial (bool): Specify whether it's a serial crystallography dataset.
         det_dist (float): Distance between sample and detector, in mm.
     """
-    if params["serial"] and params["serial"] is True:
+    if "serial" in list(params.keys()) and params["serial"] is True:
         raise ExperimentTypeError(
             "This is writer is not enabled for ssx collections."
             "Pleas look into SSX_Eiger or SSX_Tristan for this functionality."
