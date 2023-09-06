@@ -208,8 +208,11 @@ def image_vds_writer(
 
     Useful kwargs:
         vds_shape(Tuple, optional): Desired shape of the VDS, usually defined as (num_frames, *image_size). \
-            The number of frames must be smaller or equal to the one in full_data_shape. Defaults to None.
-        entry_key (str, optional): Entry key for the Virtual DataSet name. Defaults to data.
+            The number of frames must be smaller or equal to the one in full_data_shape. Defaults to the full shape \
+            if not passed.
+        entry_key (str, optional): Entry key for the Virtual DataSet name. Defaults to 'data' is not otherwise \
+            specified.
+        source_dsets (List[str], optional): List of source datasets, either in the nexus file or external.
     """
     vds_logger.info("Start creating VDS ...")
     # Where the vds will go
