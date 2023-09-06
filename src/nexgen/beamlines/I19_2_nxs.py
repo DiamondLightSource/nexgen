@@ -93,7 +93,7 @@ def tristan_writer(
     # Goniometer
     end_pos = None
     for gax in axes_pos:
-        idx = [n for n, ax in enumerate(gonio_axes) if ax.name == ax.id][0]
+        idx = [n for n, ax in enumerate(gonio_axes) if ax.name == gax.id][0]
         gonio_axes[idx].start_pos = gax.start
         if gax.start != gax.end:
             end_pos = gax.end
