@@ -221,7 +221,7 @@ def eiger_writer(
             beam_center = meta.get_beam_center()
 
     scan_axis = identify_osc_axis(gonio_axes)
-    scan_idx = [n for n, ax in gonio_axes if ax.name == scan_axis][0]
+    scan_idx = [n for n, ax in enumerate(gonio_axes) if ax.name == scan_axis][0]
     gonio_axes[scan_idx].num_steps = n_frames
     OSC = calculate_scan_points(
         gonio_axes[scan_idx],
@@ -319,16 +319,16 @@ def nexus_writer(**params):
         wavelength=params["wavelength"],
         beam_center=params["beam_center"],
         start_time=params["start_time"].strftime("%Y-%m-%dT%H:%M:%S")  #
-        if params["start_time"]
+        if "start_time" in list(params.keys())
         else None,
         stop_time=params["stop_time"].strftime("%Y-%m-%dT%H:%M:%S")  #
-        if params["stop_time"]
+        if "stop_time" in list(params.keys())
         else None,
         scan_axis=params["scan_axis"] if params["scan_axis"] else None,
     )
 
     # Check that the new NeXus file is to be written in the same directory
-    if params["outdir"]:
+    if "outdir" in list(params.keys()):
         wdir = Path(params["outdir"]).expanduser().resolve()
     else:
         wdir = TR.meta_file.parent
