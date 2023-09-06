@@ -92,15 +92,15 @@ def tristan_writer(
     # Update axes
     # Goniometer
     end_pos = None
-    for ax in axes_pos:
-        idx = [n for n, ax in gonio_axes if ax.name == ax.id][0]
-        gonio_axes[idx].start_pos = ax.start
-        if ax.start != ax.end:
-            end_pos = ax.end
+    for gax in axes_pos:
+        idx = [n for n, ax in enumerate(gonio_axes) if ax.name == ax.id][0]
+        gonio_axes[idx].start_pos = gax.start
+        if gax.start != gax.end:
+            end_pos = gax.end
 
     # Detector
     for dax in det_pos:
-        idx = [n for n, ax in det_axes if ax.name == dax.id][0]
+        idx = [n for n, ax in enumerate(det_axes) if ax.name == dax.id][0]
         det_axes[idx].start_pos = dax.start
 
     # Identify scan axis and calculate scan range
