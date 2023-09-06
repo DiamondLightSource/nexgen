@@ -105,7 +105,7 @@ def tristan_writer(
 
     # Identify scan axis and calculate scan range
     scan_axis = TR.scan_axis if TR.scan_axis else "phi"
-    scan_idx = [n for n, ax in gonio_axes if ax.name == scan_axis][0]
+    scan_idx = [n for n, ax in enumerate(gonio_axes) if ax.name == scan_axis][0]
     if not end_pos:
         end_pos = gonio_axes[scan_idx].end_pos
     OSC = {scan_axis: (gonio_axes[scan_idx].start_pos, end_pos)}
