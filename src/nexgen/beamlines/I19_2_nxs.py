@@ -1,9 +1,11 @@
 """
 Create a NeXus file for time-resolved collections on I19-2.
 """
+from __future__ import annotations
 
 import logging
 from collections import namedtuple
+from datetime import datetime
 from pathlib import Path
 from typing import List, Tuple
 
@@ -92,20 +94,20 @@ def tristan_writer(
     # Update axes
     # Goniometer
     end_pos = None
-    for ax in axes_pos:
-        idx = [n for n, ax in gonio_axes if ax.name == ax.id][0]
-        gonio_axes[idx].start_pos = ax.start
-        if ax.start != ax.end:
-            end_pos = ax.end
+    for gax in axes_pos:
+        idx = [n for n, ax in enumerate(gonio_axes) if ax.name == gax.id][0]
+        gonio_axes[idx].start_pos = gax.start
+        if gax.start != gax.end:
+            end_pos = gax.end
 
     # Detector
     for dax in det_pos:
-        idx = [n for n, ax in det_axes if ax.name == dax.id][0]
+        idx = [n for n, ax in enumerate(det_axes) if ax.name == dax.id][0]
         det_axes[idx].start_pos = dax.start
 
     # Identify scan axis and calculate scan range
     scan_axis = TR.scan_axis if TR.scan_axis else "phi"
-    scan_idx = [n for n, ax in gonio_axes if ax.name == scan_axis][0]
+    scan_idx = [n for n, ax in enumerate(gonio_axes) if ax.name == scan_axis][0]
     if not end_pos:
         end_pos = gonio_axes[scan_idx].end_pos
     OSC = {scan_axis: (gonio_axes[scan_idx].start_pos, end_pos)}
@@ -221,7 +223,7 @@ def eiger_writer(
             beam_center = meta.get_beam_center()
 
     scan_axis = identify_osc_axis(gonio_axes)
-    scan_idx = [n for n, ax in gonio_axes if ax.name == scan_axis][0]
+    scan_idx = [n for n, ax in enumerate(gonio_axes) if ax.name == scan_axis][0]
     gonio_axes[scan_idx].num_steps = n_frames
     OSC = calculate_scan_points(
         gonio_axes[scan_idx],
@@ -282,20 +284,29 @@ def eiger_writer(
         raise
 
 
-def nexus_writer(**params):
+def nexus_writer(
+    meta_file: Path | str,
+    detector_name: str,
+    scan_axis: str = "phi",
+    start_time: datetime | None = None,
+    stop_time: datetime | None = None,
+    **params,
+):
     """
     Gather all parameters from the beamline and call the NeXus writers.
 
-    Keyword Args:
+    Args:
         meta_file (Path | str): Path to _meta.h5 file.
         detector_name (str): Detector in use.
+        scan_axis (str, optional): Name of the oscillation axis. Defaults to phi.
+        start_time (datetime, optional): Experiment start time. Defaults to None.
+        stop_time (datetime, optional): Experiment end time. Defaults to None.
+
+    Keyword Args:
         exposure_time (float): Exposure time, in s.
         transmission (float): Attenuator transmission, in %.
         wavelength (float): Wavelength of incident beam, in A.
         beam_center (List[float, float]): Beam center position, in pixels.
-        start_time (datetime): Experiment start time.
-        stop_time (datetime): Experiment end time.
-        scan_axis (str): Name of the oscillation axis.
         gonio_pos (List[namedtuple(str, float, float)]): Name, start and end positions \
             of the goniometer axes.
         det_pos (List[namedtuple(str, float, float)]): Name, start and end positions \
@@ -305,30 +316,26 @@ def nexus_writer(**params):
         serial (bool): Specify whether it's a serial crystallography dataset.
         det_dist (float): Distance between sample and detector, in mm.
     """
-    if params["serial"] and params["serial"] is True:
+    if "serial" in list(params.keys()) and params["serial"] is True:
         raise ExperimentTypeError(
             "This is writer is not enabled for ssx collections."
             "Pleas look into SSX_Eiger or SSX_Tristan for this functionality."
         )
 
     TR = tr_collect(
-        meta_file=Path(params["meta_file"]).expanduser().resolve(),
-        detector_name=params["detector_name"],
+        meta_file=Path(meta_file).expanduser().resolve(),
+        detector_name=detector_name,
         exposure_time=params["exposure_time"],
         transmission=params["transmission"],
         wavelength=params["wavelength"],
         beam_center=params["beam_center"],
-        start_time=params["start_time"].strftime("%Y-%m-%dT%H:%M:%S")  #
-        if params["start_time"]
-        else None,
-        stop_time=params["stop_time"].strftime("%Y-%m-%dT%H:%M:%S")  #
-        if params["stop_time"]
-        else None,
-        scan_axis=params["scan_axis"] if params["scan_axis"] else None,
+        start_time=start_time.strftime("%Y-%m-%dT%H:%M:%S") if start_time else None,
+        stop_time=stop_time.strftime("%Y-%m-%dT%H:%M:%S") if stop_time else None,
+        scan_axis=scan_axis,
     )
 
     # Check that the new NeXus file is to be written in the same directory
-    if params["outdir"]:
+    if "outdir" in list(params.keys()):
         wdir = Path(params["outdir"]).expanduser().resolve()
     else:
         wdir = TR.meta_file.parent

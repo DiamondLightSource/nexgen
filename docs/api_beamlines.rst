@@ -15,16 +15,25 @@ General utilities
 I19-2
 -----
 
-Directly from the beamline ...
+Directly from the python intepreter/ a python script ...
 
 .. autoclass:: nexgen.beamlines.I19_2_nxs.tr_collect
     :members:
+
+
+The function
+
+.. autofunction:: nexgen.beamlines.I19_2_nxs.nexus_writer
+
+
+can be called from python and depending on the specified detector type will run:
+
 
 .. autofunction:: nexgen.beamlines.I19_2_nxs.tristan_writer
 
 .. autofunction:: nexgen.beamlines.I19_2_nxs.eiger_writer
 
-From GDA ...
+Interface with GDA ...
 
 .. autoclass:: nexgen.beamlines.I19_2_gda_nxs.tr_collect
     :members:
