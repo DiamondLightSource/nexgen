@@ -18,6 +18,7 @@ Example usage
 **Example I: Rotation scan with Tristan**
 
 .. code-block:: python
+
     """
     This example calls the nexus writer for a collection using Tristan detector.
 
@@ -64,9 +65,11 @@ Example usage
     )
 
 
+
 **Example II: Rotation scan with Eiger**
 
 .. code-block:: python
+
     """
     This example calls the nexus writer for a collection using Eiger detector.
 
@@ -96,7 +99,7 @@ Serial crystallography
 ----------------------
 
 - I19-2: Fixed target SSX with Tristan detector.
-- I24 serial crystallography with Eiger detector:
+- I24: serial crystallography with Eiger detector
     * Still shots (or extruder)
     * Fixed target
     * 3D grid scan

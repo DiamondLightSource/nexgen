@@ -15,13 +15,14 @@ General utilities
 I19-2
 -----
 
-Directly from the python inteepreter/ a python script ...
+Directly from the python intepreter/ a python script ...
 
 .. autoclass:: nexgen.beamlines.I19_2_nxs.tr_collect
     :members:
 
 
 The function
+
 .. autofunction:: nexgen.beamlines.I19_2_nxs.nexus_writer
 
 
