@@ -8,8 +8,89 @@ Nexgen is currently being used for some specific applications at beamlines I19-2
 Time resolved collections on I19-2
 ----------------------------------
 
-- NXmx format NeXus files writer for manual Eiger/Tristan collections (where GDA is not in use).
-- Interface with GDA to write new NeXus files for a time-resolved experiment.
+Where GDA is not in use, a NXmx format NeXus files writer is available for time-resolved
+Eiger/Tristan collections.
+
+
+Example usage
+*************
+
+**Example I: Rotation scan with Tristan**
+
+.. code-block:: python
+    """
+    This example calls the nexus writer for a collection using Tristan detector.
+
+    Note that in this case the axes start and end positions need to be passed to the writer
+    and this can be done by defining the following namedtuples:
+       axes = namedtuple("axes", ("id", "start", "end"))
+        det_axes = namedtuple("det_axes", ("id", "start"))
+    """
+
+    from nexgen.beamlines.I19_2_nxs import nexus_writer
+
+    from datetime import datetime
+    from collections import namedtuple
+    from pathlib import Path
+
+    axes = namedtuple("axes", ("id", "start", "end"))
+    det_axes = namedtuple("det_axes", ("id", "start"))
+
+    axes_list = [
+        axes("omega", 0, 10),
+        axes("kappa", 0, 0),
+        axes("phi", -90, -90),
+        axes("sam_z", 0, 0),
+        axes("sam_y", 1, 1),
+        axes("sam_x", 0, 0),
+    ]
+
+    det_ax_list = [
+        det_axes("two_theta", 90),
+        det_axes("det_z", 100),
+    ]
+
+    nexus_writer(
+        meta_file=Path("/path/to/file_meta.h5"),
+        detector_name="tristan",
+        scan_axis="omega",
+        start_time=datetime.now(),
+        exposure_time=60.0,
+        transmission=1.0,
+        wavelength=0.6,
+        beam_center=[1000., 1200.],
+        gonio_pos=axes_list,
+        det_pos=det_ax_list,
+    )
+
+
+**Example II: Rotation scan with Eiger**
+
+.. code-block:: python
+    """
+    This example calls the nexus writer for a collection using Eiger detector.
+
+    Note that in this case there's no need to pass the axes positions as those can be read from
+    the config written to the _meta.h5 file at the arming of the detector.
+    """
+
+    from nexgen.beamlines.I19_2_nxs import nexus_writer
+
+    from datetime import datetime
+    from pathlib import Path
+
+    nexus_writer(
+        meta_file=Path("/path/to/file_meta.h5"),
+        detector_name="eiger",
+        scan_axis="phi",
+        start_time=datetime.now(),
+        exposure_time=60.0,
+        transmission=1.0,
+        wavelength=0.6,
+        beam_center=[1000., 1200.],
+    )
+
+
 
 Serial crystallography
 ----------------------
@@ -120,14 +201,14 @@ Write a NeXus file for a Tristan collection using a GDA-generated xml file conta
 
 .. code-block:: console
 
-    I19_nexus Expt_00_meta.h5 Expt.xml tristan 300 0.649 1590.7 1643.7 --start 2022-09-09T10:26:32Z --stop 2022-09-09T10:31:32Z
+    I19_nexus 1 Expt_00_meta.h5 Expt.xml tristan 300 0.649 1590.7 1643.7 --start 2022-09-09T10:26:32Z --stop 2022-09-09T10:31:32Z
 
 
 Manually generate a NeXus file for a dataset collected on Eiger detector using the metadata recorded inside the meta file:
 
 .. code-block:: console
 
-    I19-2_nxs Expt1_00_meta.h5 eiger 0.02 -tr 100
+    I19_nexus 2 Expt1_00_meta.h5 eiger 0.02 -tr 100
 
 
 SSX CLI
