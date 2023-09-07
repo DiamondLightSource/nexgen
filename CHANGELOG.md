@@ -1,20 +1,22 @@
 # CHANGELOG
 
 
-## 0.#.#
-
+## 0.7.0
 
 ### Added
-- Writer for JungFrau 1M use case.
+- Choise of filter to use for write_compressed_copy
+- VDS writer for JungFrau 1M use case.
 
 ### Changed
 - Refactoring of serial writer.
 - Refactoring of I19 writers.
 - Refactoring of ED writer.
 - Unified logging for beamline tools.
+- write_NXdetector now uses a blosc filter to write mask and flatfield for event data.
 
 ### Fixed
 - SSX cli import issue.
+- I19 cli bugs.
 - Read params from GDA-generated JSON files.
 - Tidy up/clear up obsolete methods.
 - Update and fix documentation.
