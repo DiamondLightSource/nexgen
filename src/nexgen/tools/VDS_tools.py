@@ -157,6 +157,33 @@ def split_datasets(
     return result
 
 
+class VSource:
+    """Virtual Source definition"""
+
+    def __init__(
+        self,
+        source_path: str | h5py.Dataset,
+        source_name: str | None = None,
+        source_shape: Tuple | None = None,
+    ):
+        self.source_path = source_path
+        self.source_name = source_name
+        self.source_shape = source_shape
+
+    def create_source(self) -> h5py.VirtualSource:
+        """
+        Create the virtual source from the input arguments.
+        Note that if the source_path provided is a h5py.Dataset, the name and shape will be\
+            read from it even if passed to the class.
+        """
+        if isinstance(self.source_path, h5py.Dataset):
+            return h5py.VirtualSource(self.source_path)
+        else:
+            return h5py.VirtualSource(
+                self.source_path, self.source_name, shape=self.source_shape
+            )
+
+
 def create_virtual_layout(datasets: List[Dataset], data_type: DTypeLike):
     """
     Create a virtual layout and populate it based on the provided data.

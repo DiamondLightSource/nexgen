@@ -7,12 +7,29 @@ import pytest
 
 from nexgen.tools.VDS_tools import (
     Dataset,
+    VSource,
     create_virtual_layout,
     find_datasets_in_file,
     image_vds_writer,
     jungfrau_vds_writer,
     split_datasets,
 )
+
+
+def test_VSource_create():
+    v = VSource("file1", ".", (10, 5, 2)).create_source()
+    assert v.path == "file1"
+    assert v.name == "."
+    assert v.shape == (10, 5, 2)
+
+
+def test_Vsource_create_from_dataset_ignores_passed_shape():
+    test_hdf_file = tempfile.TemporaryFile()
+    test_data_file = h5py.File(test_hdf_file, "w")
+    test_data_file.create_dataset("data", shape=(100,))
+    v = VSource(test_data_file["data"], "a", (1, 1, 1)).create_source()
+    assert v.name == "/data"
+    assert v.shape == (100,)
 
 
 def test_when_get_frames_and_shape_less_than_1000_then_correct():

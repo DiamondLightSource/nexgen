@@ -280,6 +280,7 @@ class NXmxFileWriter:
 
         with h5py.File(self.filename, "r+") as nxs:
             if "jungfrau" in self.detector.detector_params.description.lower():
+                # Write VDS for Jungfrau 1M use case, with a tiled layout.
                 jungfrau_vds_writer(
                     nxs,
                     (self.tot_num_imgs, *self.detector.detector_params.image_size),
