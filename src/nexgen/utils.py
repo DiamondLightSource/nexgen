@@ -132,7 +132,9 @@ def units_of_length(q: str | float, to_base: bool = False) -> Q_:  # -> pint.Qua
     """
     quantity = Q_(q)
     if quantity <= 0:
-        raise ValueError("Quantity (length) must be positive.")
+        raise ValueError(
+            f"Quantity (length) must be positive. Current value: {quantity}."
+        )
     quantity = quantity * ureg.m if quantity.dimensionless else quantity
     if quantity.check("[length]"):
         if to_base is True:
@@ -162,7 +164,9 @@ def units_of_time(q: str) -> Q_:  # -> pint.Quantity:
     """
     quantity = Q_(q)
     if quantity <= 0:
-        raise ValueError("Quantity (time) of time must be positive.")
+        raise ValueError(
+            f"Quantity (time) of time must be positive. Current value: {quantity}."
+        )
     quantity = quantity * ureg.s if quantity.dimensionless else quantity
     if quantity.check("[time]"):
         return quantity.to_base_units()

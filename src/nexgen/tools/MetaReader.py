@@ -309,3 +309,8 @@ def update_axes_from_meta(
                 )
         if osc_axis and ax.name == osc_axis:
             ax.num_steps = num
+
+        if ax.name == "det_z":
+            dist = units_of_length(meta_file.get_detector_distance())
+            ax.start_pos = dist.to("mm").magnitude
+            overwrite_logger.info(f"Start value for axis {ax.name}: {ax.start_pos}.")
