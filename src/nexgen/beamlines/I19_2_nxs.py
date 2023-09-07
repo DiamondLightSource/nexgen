@@ -207,6 +207,7 @@ def eiger_writer(
         vds_dtype = define_vds_data_type(meta)
         update_axes_from_meta(meta, gonio_axes)
         update_axes_from_meta(meta, det_axes)
+        # WARNING.det_z not in _dectris, but det_distance is. Getting that.
 
         logger.info(
             "Goniometer and detector axes positions have been updated with values from the meta file."
@@ -335,7 +336,7 @@ def nexus_writer(
     )
 
     # Check that the new NeXus file is to be written in the same directory
-    if "outdir" in list(params.keys()):
+    if "outdir" in list(params.keys()) and params["outdir"]:
         wdir = Path(params["outdir"]).expanduser().resolve()
     else:
         wdir = TR.meta_file.parent

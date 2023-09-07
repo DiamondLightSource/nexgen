@@ -482,7 +482,11 @@ def write_NXdetector(
             if maskfile:
                 NXclass_logger.info("Pixel mask file found in working directory.")
                 write_compressed_copy(
-                    nxdetector, "pixel_mask", filename=maskfile[0], dset_key="image"
+                    nxdetector,
+                    "pixel_mask",
+                    filename=maskfile[0],
+                    filter_choice="blosc",
+                    dset_key="image",
                 )
             else:
                 NXclass_logger.warning(
@@ -510,7 +514,11 @@ def write_NXdetector(
             if flatfieldfile:
                 NXclass_logger.info("Flatfield file found in working directory.")
                 write_compressed_copy(
-                    nxdetector, "flatfield", filename=flatfieldfile[0], dset_key="image"
+                    nxdetector,
+                    "flatfield",
+                    filename=flatfieldfile[0],
+                    filter_choice="blosc",
+                    dset_key="image",
                 )
             else:
                 NXclass_logger.warning(
