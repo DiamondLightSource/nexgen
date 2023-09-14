@@ -205,7 +205,7 @@ def eiger_writer(
         n_frames = meta.get_number_of_images()
         logger.info(f"Number of images found in meta file: {n_frames}.")
         vds_dtype = define_vds_data_type(meta)
-        update_axes_from_meta(meta, gonio_axes)
+        update_axes_from_meta(meta, gonio_axes, osc_axis=TR.scan_axis, use_config=True)
         update_axes_from_meta(meta, det_axes)
         # WARNING.det_z not in _dectris, but det_distance is. Getting that.
 
