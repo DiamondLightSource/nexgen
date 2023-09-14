@@ -29,6 +29,8 @@ test_beam = {"wavelength": 0.0}
 test_goniometer = {"axes": ["omega", "phi", "sam_x"]}
 test_detector = {"axes": ["two_theta", "det_z"]}
 
+dummy_config = '{"nimages": 10, "ntrigger": 1}'
+
 
 def test_Tristan_meta_file():
     test_hdf_file = tempfile.NamedTemporaryFile(suffix=".h5", delete=True)
@@ -45,6 +47,7 @@ def test_Tristan_meta_file():
 def dummy_eiger_meta_file():
     test_hdf_file = tempfile.TemporaryFile()
     test_meta_file = h5py.File(test_hdf_file, "w")
+    test_meta_file["config"] = dummy_config
     test_meta_file["_dectris/nimages"] = np.array([10])
     test_meta_file["_dectris/ntrigger"] = np.array([1])
     test_meta_file["_dectris/wavelength"] = np.array([0.6])
@@ -82,6 +85,8 @@ def test_Eiger_meta_file(dummy_eiger_meta_file):
     }
     assert meta.get_number_of_images() == 10
     assert meta.get_detector_size() == test_detector_size
+    assert meta.hasConfig
+    assert meta.read_config_dset() == {"nimages": 10, "ntrigger": 1}
 
 
 def test_overwrite_beam(dummy_eiger_meta_file):
