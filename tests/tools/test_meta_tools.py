@@ -29,7 +29,14 @@ test_beam = {"wavelength": 0.0}
 test_goniometer = {"axes": ["omega", "phi", "sam_x"]}
 test_detector = {"axes": ["two_theta", "det_z"]}
 
-dummy_config = '{"nimages": 10, "ntrigger": 1}'
+dummy_config = """{
+    "nimages": 10,
+    "ntrigger": 1,
+    "omega_increment": 0.0,
+    "omega_start": 90.0,
+    "phi_increment": 0.1,
+    "phi_start": 0.0,
+    }"""
 
 
 def test_Tristan_meta_file():
@@ -86,7 +93,14 @@ def test_Eiger_meta_file(dummy_eiger_meta_file):
     assert meta.get_number_of_images() == 10
     assert meta.get_detector_size() == test_detector_size
     assert meta.hasConfig
-    assert meta.read_config_dset() == {"nimages": 10, "ntrigger": 1}
+    assert meta.read_config_dset() == {
+        "nimages": 10,
+        "ntrigger": 1,
+        "omega_increment": 0.0,
+        "omega_start": 90.0,
+        "phi_increment": 0.1,
+        "phi_start": 0.0,
+    }
 
 
 def test_overwrite_beam(dummy_eiger_meta_file):
@@ -122,6 +136,17 @@ def test_update_axes_from_meta(dummy_eiger_meta_file):
     assert axes_list[0].start_pos == 0.0  # omega
     assert axes_list[-1].start_pos == 0.0  # phi
     update_axes_from_meta(meta, axes_list, osc_axis="phi")
+    assert axes_list[0].start_pos == 90.0  # omega
+    assert axes_list[-1].start_pos == 0.0  # phi
+    assert axes_list[-1].num_steps == 10
+
+
+def test_update_axes_from_meta_using_config(dummy_eiger_meta_file):
+    meta = DectrisMetafile(dummy_eiger_meta_file)
+    # Reset axes
+    axes_list[0].start_pos = 0.0
+    axes_list[-1].start_pos = 0.0
+    update_axes_from_meta(meta, axes_list, osc_axis="phi", use_config=True)
     assert axes_list[0].start_pos == 90.0  # omega
     assert axes_list[-1].start_pos == 0.0  # phi
     assert axes_list[-1].num_steps == 10

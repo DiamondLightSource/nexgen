@@ -300,7 +300,7 @@ def update_axes_from_meta(
         )
         return
 
-    if use_config is True:
+    if use_config is True and meta_file.hasConfig is True:
         config = meta_file.read_config_dset()
     else:
         config = meta_file.read_dectris_config()
