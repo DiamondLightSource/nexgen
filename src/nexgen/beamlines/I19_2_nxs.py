@@ -224,6 +224,13 @@ def eiger_writer(
             beam_center = meta.get_beam_center()
 
     scan_axis = identify_osc_axis(gonio_axes)
+    # Check that found scan_axis matches
+    if scan_axis != TR.scan_axis:
+        logger.warning(
+            f"Scan axis {scan_axis} found different from requested one {TR.scan_axis}."
+            f"Defaulting to {TR.scan_axis}. If wrong please check meta file."
+        )
+        scan_axis = TR.scan_axis
     scan_idx = [n for n, ax in enumerate(gonio_axes) if ax.name == scan_axis][0]
     gonio_axes[scan_idx].num_steps = n_frames
     OSC = calculate_scan_points(
