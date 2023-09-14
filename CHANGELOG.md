@@ -1,6 +1,16 @@
 # CHANGELOG
 
 
+## 0.7.1
+
+### Added
+- Re-added a hasConfig and read_config_dset to Metafile.
+- Flag to use config instead of dectris group when updating axes from meta.
+
+### Fixed
+- I19 eiger writer to use config when updating axes values.
+- I19 eiger writer to read scan axis.
+
 ## 0.7.0
 
 ### Added

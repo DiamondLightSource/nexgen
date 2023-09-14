@@ -62,6 +62,12 @@ class DectrisMetafile(Metafile):
             return True
         return False
 
+    @cached_property
+    def hasConfig(self) -> bool:
+        if "config" in self._handle.keys():
+            return True
+        return False
+
     def read_dectris_config(self) -> Dict:
         config = {}
         for k, v in self._handle["_dectris"].items():
@@ -71,6 +77,10 @@ class DectrisMetafile(Metafile):
                 if isinstance(v, bytes):
                     v = v.decode()
             config[k] = v
+        return config
+
+    def read_config_dset(self) -> Dict:
+        config = eval(self._handle["config"][()])
         return config
 
     def get_number_of_images(self) -> int:
