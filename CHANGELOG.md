@@ -1,7 +1,7 @@
 # CHANGELOG
 
 
-## 0.7.1
+## 0.7.2
 
 ### Added
 - Re-added a hasConfig and read_config_dset to Metafile.
@@ -10,6 +10,12 @@
 ### Fixed
 - I19 eiger writer to use config when updating axes values.
 - I19 eiger writer to read scan axis.
+
+## 0.7.1
+
+
+**BROKEN!**
+
 
 ## 0.7.0
 
