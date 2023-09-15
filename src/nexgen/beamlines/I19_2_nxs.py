@@ -205,7 +205,7 @@ def eiger_writer(
         n_frames = meta.get_number_of_images()
         logger.info(f"Number of images found in meta file: {n_frames}.")
         vds_dtype = define_vds_data_type(meta)
-        update_axes_from_meta(meta, gonio_axes)
+        update_axes_from_meta(meta, gonio_axes, osc_axis=TR.scan_axis, use_config=True)
         update_axes_from_meta(meta, det_axes)
         # WARNING.det_z not in _dectris, but det_distance is. Getting that.
 
@@ -224,6 +224,13 @@ def eiger_writer(
             beam_center = meta.get_beam_center()
 
     scan_axis = identify_osc_axis(gonio_axes)
+    # Check that found scan_axis matches
+    if scan_axis != TR.scan_axis:
+        logger.warning(
+            f"Scan axis {scan_axis} found different from requested one {TR.scan_axis}."
+            f"Defaulting to {TR.scan_axis}. If wrong please check meta file."
+        )
+        scan_axis = TR.scan_axis
     scan_idx = [n for n, ax in enumerate(gonio_axes) if ax.name == scan_axis][0]
     gonio_axes[scan_idx].num_steps = n_frames
     OSC = calculate_scan_points(
