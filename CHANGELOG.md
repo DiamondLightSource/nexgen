@@ -1,6 +1,13 @@
 # CHANGELOG
 
 
+
+## 0.#.#
+
+### Changed
+- Write a soft link for /entry/instrument/detector/detector_z in NXdetector, for compatibility with autoPROC.
+
+
 ## 0.7.2
 
 ### Added
@@ -10,6 +17,7 @@
 ### Fixed
 - I19 eiger writer to use config when updating axes values.
 - I19 eiger writer to read scan axis.
+
 
 ## 0.7.1
 
