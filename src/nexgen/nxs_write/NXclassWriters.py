@@ -665,6 +665,16 @@ def write_NXdetector(
                 data=set_dependency(ax, path=nxgrp_ax.name),
             )
 
+    # Look for nxbeam in file, if it's there make link
+    try:
+        nxdetector["detector_z"] = nxsfile[
+            "/entry/instrument/detector/transformations/detector_z"
+        ]
+    except KeyError:
+        NXclass_logger.debug(
+            "No NXbeam group found elsewhere in the NeXus file." "No link written."
+        )
+
     # Detector distance
     nxdetector.create_dataset("distance", data=dist.to("m").magnitude)
     create_attributes(

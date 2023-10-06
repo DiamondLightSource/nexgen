@@ -434,6 +434,9 @@ def test_write_NXdetector_for_images_without_meta_file(dummy_nexus_file):
     )
     assert dummy_nexus_file[det + "distance"].attrs["units"] == b"m"
 
+    # Check that detector_z has also been written in /detector
+    assert "detector_z" in list(dummy_nexus_file[det].keys())
+
 
 def test_write_NXinstrument(dummy_nexus_file):
     instr = "/entry/instrument/"
