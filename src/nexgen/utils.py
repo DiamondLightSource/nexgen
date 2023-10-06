@@ -182,7 +182,7 @@ def get_iso_timestamp(ts: str | float) -> str:
 
     Args:
         ts (str | float): Input string, can also be a timestamp (eg. time.time()) string.
-                        Allowed formats: "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%a %b %d %Y %H:%M:%S", "%A, %d. %B %Y %I:%M%p".
+            Allowed formats: "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%a %b %d %Y %H:%M:%S", "%A, %d. %B %Y %I:%M%p".
 
     Returns:
         ts_iso (str): Formatted timestamp.

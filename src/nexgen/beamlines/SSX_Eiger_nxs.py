@@ -326,7 +326,7 @@ def ssx_eiger_writer(
                 notes=pump_info,
                 loc="/entry/source/notes",
             )
-        NXmx_Writer.update_timestamps((None, timestamps[1]))
+        NXmx_Writer.update_timestamps(timestamps[1], "end_time")
         NXmx_Writer.write_vds(
             vds_shape=(tot_num_imgs, *detector.detector_params.image_size),
             vds_dtype=vds_dtype,

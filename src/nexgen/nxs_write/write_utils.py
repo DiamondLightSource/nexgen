@@ -7,14 +7,16 @@ from __future__ import annotations
 import logging
 import math
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Literal, Tuple
 
-# import h5py
 import numpy as np
 from hdf5plugin import Bitshuffle, Blosc
 from numpy.typing import ArrayLike
 
 import h5py  # isort: skip
+
+# Define Timestamp dataset names
+TSdset = Literal["start_time", "end_time", "end_time_estimated"]
 
 
 def create_attributes(nxs_obj: h5py.Group | h5py.Dataset, names: Tuple, values: Tuple):
