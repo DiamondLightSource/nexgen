@@ -665,13 +665,11 @@ def write_NXdetector(
                 data=set_dependency(ax, path=nxgrp_ax.name),
             )
 
-    # Look for nxbeam in file, if it's there make link
-    try:
+    # Write a soft link for detector_z
+    if "detector_z" in list(nxtransformations.keys()):
         nxdetector["detector_z"] = nxsfile[
             "/entry/instrument/detector/transformations/detector_z"
         ]
-    except KeyError:
-        pass
 
     # Detector distance
     nxdetector.create_dataset("distance", data=dist.to("m").magnitude)
