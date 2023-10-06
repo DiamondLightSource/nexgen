@@ -671,9 +671,7 @@ def write_NXdetector(
             "/entry/instrument/detector/transformations/detector_z"
         ]
     except KeyError:
-        NXclass_logger.debug(
-            "No NXbeam group found elsewhere in the NeXus file." "No link written."
-        )
+        pass
 
     # Detector distance
     nxdetector.create_dataset("distance", data=dist.to("m").magnitude)
