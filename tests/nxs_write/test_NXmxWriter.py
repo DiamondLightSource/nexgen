@@ -41,8 +41,8 @@ def test_NXmxFileWriter_write(
 
 @patch("nexgen.nxs_write.NXmxWriter.write_NXdatetime")
 def test_NXmxFileWriter_updates_timestamps(mock_NXdatetime, dummy_NXmxWriter):
-    fake_timestaps = (None, datetime.now())
-    dummy_NXmxWriter.update_timestamps(fake_timestaps)
+    fake_timestap = datetime.now()
+    dummy_NXmxWriter.update_timestamps(fake_timestap, "start_time")
     mock_NXdatetime.assert_called_once()
 
 

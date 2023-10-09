@@ -279,7 +279,8 @@ def write_from_SINGLA(args):
             )
         else:
             logger.info("VDS won't be written.")
-        EDFileWriter.update_timestamps(timestamps)
+        for ts, ds in zip(timestamps, ["start_time", "end_time"]):
+            EDFileWriter.update_timestamps(ts, ds)
 
         logger.info("NeXus file written correctly.")
     except Exception as err:

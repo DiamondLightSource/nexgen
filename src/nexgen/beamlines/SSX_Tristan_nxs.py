@@ -193,8 +193,10 @@ def ssx_tristan_writer(
             beam,
             attenuator,
         )
-        EventFileWriter.write()
-        EventFileWriter.update_timestamps(timestamps)
+        EventFileWriter.write(start_time=timestamps[0])
+        if timestamps[1]:
+            # TODO add calc for estimated and put it here (same for SSX_eiger)
+            EventFileWriter.update_timestamps(timestamps[1], "end_time")
 
         # Save chipmap (list of city blocks)
         if SSX_TR.chipmap:
