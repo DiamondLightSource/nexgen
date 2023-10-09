@@ -912,8 +912,6 @@ def write_NXdatetime(
     if type(timestamp) is datetime:
         timestamp = timestamp.strftime("%Y-%m-%dT%H:%M:%S")
     timestamp = get_iso_timestamp(timestamp)
-    if not timestamp.endswith("Z"):  # Just in case
-        timestamp += "Z"
     nxentry.create_dataset(dset_name, data=np.string_(timestamp))
 
 
