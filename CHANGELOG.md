@@ -4,6 +4,9 @@
 
 ## 0.#.#
 
+### Added
+- Added possibility to write `end_time_estimated` field in NXmxWriter and refactored `write_NXdatetime`.
+
 ### Changed
 - Write a soft link for /entry/instrument/detector/detector_z in NXdetector, for compatibility with autoPROC.
 
