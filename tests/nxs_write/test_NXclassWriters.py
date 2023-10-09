@@ -307,6 +307,13 @@ def test_write_NXdatetime_writes_nothing_if_wrong_dset_requested(dummy_nexus_fil
     assert "no_time" not in dummy_nexus_file[entry_path].keys()
 
 
+def test_NXdatetime_exits_before_writing_if_timestamp_is_None(dummy_nexus_file):
+    entry_path = "/entry/"
+    write_NXdatetime(dummy_nexus_file, None, "end_time_estimated")
+
+    assert entry_path + "end_time_estimated" not in dummy_nexus_file.keys()
+
+
 def test_write_NXnote_in_given_location(dummy_nexus_file):
     loc_path = "/entry/source/pump_probe/"
     info = {"pump_status": True, "pump_exp": 0.001}

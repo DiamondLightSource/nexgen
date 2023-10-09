@@ -897,6 +897,11 @@ def write_NXdatetime(
         dset_name (TSdset, optional): NXdatetime dataset name.\
             Allowed values: ["start_time", "end_time", "end_time_estimated". Defaults to "start_time".
     """
+    if timestamp is None:
+        NXclass_logger.warning(
+            f"Timestamp value is None, {dset_name} won't be written."
+        )
+        return
     nxentry = nxsfile.require_group("entry")
     dset_opts = get_args(TSdset)
     if dset_name not in dset_opts:
