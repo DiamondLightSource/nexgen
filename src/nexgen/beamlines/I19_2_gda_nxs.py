@@ -150,8 +150,9 @@ def tristan_writer(
             beam,
             attenuator,
         )
-        EventFileWriter.write()
-        EventFileWriter.update_timestamps(timestamps)
+        EventFileWriter.write(start_time=timestamps[0])
+        if timestamps[1]:
+            EventFileWriter.update_timestamps(timestamps[1], "end_time")
         logger.info(f"The file {master_file} was written correctly.")
     except Exception as err:
         logger.exception(err)
@@ -247,8 +248,9 @@ def eiger_writer(
             attenuator,
             n_frames,
         )
-        NXmx_Writer.write()
-        NXmx_Writer.update_timestamps(timestamps)
+        NXmx_Writer.write(start_time=timestamps[0])
+        if timestamps[1]:
+            NXmx_Writer.update_timestamps(timestamps[1], "end_time")
         NXmx_Writer.write_vds(
             vds_dtype=vds_dtype,
             vds_shape=(n_frames, *detector.detector_params.image_size),

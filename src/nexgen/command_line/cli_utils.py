@@ -284,7 +284,11 @@ def calculate_scan_range(
     Returns:
         Dict[str, ArrayLike]: A dictionary of ("axis_name": axis_range) key-value pairs.
     """
-    if type(axes_names) is not list or type(axes_starts) is not list or type(axes_ends) is not list:
+    if (
+        type(axes_names) is not list
+        or type(axes_starts) is not list
+        or type(axes_ends) is not list
+    ):
         raise TypeError("Input values for axes must be passed as lists.")
 
     if len(axes_names) == 0:
@@ -856,9 +860,9 @@ def write_nexus_from_scope(
         writer_logger.info("Writing recorded timestamps.")
         # NX_DATE_TIME: /entry/start_time and /entry/end_time
         if timestamps[0] is not None:
-            write_NXdatetime(nxs_file, (timestamps[0], None))
+            write_NXdatetime(nxs_file, timestamps[0], "start_time")
         if timestamps[1] is not None:
-            write_NXdatetime(nxs_file, (None, timestamps[1]))
+            write_NXdatetime(nxs_file, timestamps[1], "end_time")
 
     # Write any notes that might have been passed as NXnote
     if "notes" in params.keys():
