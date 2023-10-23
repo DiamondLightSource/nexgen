@@ -15,11 +15,7 @@ General utilities
 I19-2
 -----
 
-Directly from the python intepreter/ a python script ...
-
-.. autoclass:: nexgen.beamlines.I19_2_nxs.tr_collect
-    :members:
-
+1. Directly from the python intepreter/ a python script ...
 
 The function
 
@@ -33,7 +29,24 @@ can be called from python and depending on the specified detector type will run:
 
 .. autofunction:: nexgen.beamlines.I19_2_nxs.eiger_writer
 
-Interface with GDA ...
+
+Some useful type definitions to use with these methods:
+
+.. autoclass:: nexgen.beamlines.I19_2_nxs.axes
+    :members:
+
+
+.. autoclass:: nexgen.beamlines.I19_2_nxs.det_axes
+    :members:
+
+
+
+.. autoclass:: nexgen.beamlines.I19_2_nxs.tr_collect
+    :members:
+
+
+
+2. Interface with GDA ...
 
 .. autoclass:: nexgen.beamlines.I19_2_gda_nxs.tr_collect
     :members:
