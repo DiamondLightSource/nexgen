@@ -65,7 +65,7 @@ tr_collect.scan_axis.__doc__ = "Rotation scan axis. Must be passed for Tristan."
 
 def tristan_writer(
     master_file: Path,
-    TR: namedtuple,
+    TR: tr_collect,
     timestamps: Tuple[str, str] = (None, None),
     axes_pos: List[namedtuple] = None,
     det_pos: List[namedtuple] = None,
@@ -75,7 +75,7 @@ def tristan_writer(
 
     Args:
         master_file (Path): Path to nexus file to be written.
-        TR (namedtuple): Parameters passed from the beamline.
+        TR (tr_collect): Parameters passed from the beamline.
         timestamps (Tuple[str, str], optional): Collection start and end time. Defaults to (None, None).
         axes_pos (List[namedtuple], optional): List of (axis_name, start, end) values for the goniometer, passed from command line. Defaults to None.
         det_pos (List[namedtuple], optional): List of (axis_name, start) values for the detector, passed from command line. Defaults to None.
@@ -163,7 +163,7 @@ def tristan_writer(
 
 def eiger_writer(
     master_file: Path,
-    TR: namedtuple,
+    TR: tr_collect,
     timestamps: Tuple[str, str] = (None, None),
 ):
     """
@@ -172,7 +172,7 @@ def eiger_writer(
 
     Args:
         master_file (Path): Path to nexus file to be written.
-        TR (namedtuple): Parameters passed from the beamline.
+        TR (tr_collect): Parameters passed from the beamline.
         timestamps (Tuple[str, str], optional): Collection start and end time. Defaults to (None, None).
 
     Raises:
@@ -325,6 +325,8 @@ def nexus_writer(
             from meta_file directory.
         serial (bool): Specify whether it's a serial crystallography dataset.
         det_dist (float): Distance between sample and detector, in mm.
+        use_meta (bool): For Eiger, if True use metadata from meta.h5 file. Otherwise \
+            will require all other information to be passed manually.
     """
     if "serial" in list(params.keys()) and params["serial"] is True:
         raise ExperimentTypeError(

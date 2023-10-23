@@ -66,6 +66,13 @@ def nexgen_writer(args):
             "Please pass start and increment values for each of the detector axes indicated."
         )
 
+    if args.detector_name == "eiger" and not args.use_meta:
+        if not args.axes or not args.det_axes:
+            logger.error(
+                "If not using the metadata from the meta_file please pass all axes values."
+            )
+            raise OSError("Missing axes values.")
+
     if args.axes and args.ax_start:
         if args.detector_name == "eiger":
             axes = namedtuple("axes", ("id", "start", "inc"))
@@ -110,6 +117,7 @@ def nexgen_writer(args):
         gonio_pos=axes_list if args.axes else None,
         det_pos=det_list if args.det_axes else None,
         outdir=args.output if args.output else None,
+        use_meta=args.use_meta,
     )
 
 
@@ -231,6 +239,11 @@ parser_nex.add_argument(
     "--output",
     type=str,
     help="Output directory for new NeXus file, if different from collection directory.",
+)
+parser_nex.add_argument(
+    "--use-meta",
+    action="store_true",
+    help="If passed, for Eiger metadata will be read from meta.h5 file. No action for Tristan.",
 )
 parser_nex.set_defaults(func=nexgen_writer)
 
