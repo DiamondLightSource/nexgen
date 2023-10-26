@@ -231,28 +231,36 @@ def eiger_writer(
     det_axes = axes_params.det_axes
 
     # Update axes
-    with h5py.File(TR.meta_file, "r", libver="latest", swmr=True) as mh:
-        meta = DectrisMetafile(mh)
-        n_frames = meta.get_number_of_images()
-        logger.info(f"Number of images found in meta file: {n_frames}.")
-        vds_dtype = define_vds_data_type(meta)
-        update_axes_from_meta(meta, gonio_axes, osc_axis=TR.scan_axis, use_config=True)
-        update_axes_from_meta(meta, det_axes)
-        # WARNING.det_z not in _dectris, but det_distance is. Getting that.
+    if use_meta:
+        logger.info("User requested to update metadata using meta file.")
+        with h5py.File(TR.meta_file, "r", libver="latest", swmr=True) as mh:
+            meta = DectrisMetafile(mh)
+            n_frames = meta.get_number_of_images()
+            logger.info(f"Number of images found in meta file: {n_frames}.")
+            vds_dtype = define_vds_data_type(meta)
+            update_axes_from_meta(
+                meta, gonio_axes, osc_axis=TR.scan_axis, use_config=True
+            )
+            update_axes_from_meta(meta, det_axes)
+            # WARNING.det_z not in _dectris, but det_distance is. Getting that.
 
-        logger.info(
-            "Goniometer and detector axes positions have been updated with values from the meta file."
-        )
-        if TR.wavelength is None:
             logger.info(
-                "Wavelength has't been passed by user. Looking for it in the meta file."
+                "Goniometer and detector axes positions have been updated with values from the meta file."
             )
-            wl = meta.get_wavelength()
-        if TR.beam_center is None:
-            logger.info(
-                "Beam center position has't been passed by user. Looking for it in the meta file."
-            )
-            beam_center = meta.get_beam_center()
+            if TR.wavelength is None:
+                logger.info(
+                    "Wavelength has't been passed by user. Looking for it in the meta file."
+                )
+                wl = meta.get_wavelength()
+            if TR.beam_center is None:
+                logger.info(
+                    "Beam center position has't been passed by user. Looking for it in the meta file."
+                )
+                beam_center = meta.get_beam_center()
+    else:
+        # TODO
+        logger.info("Not using meta file.")
+        pass
 
     scan_axis = identify_osc_axis(gonio_axes)
     # Check that found scan_axis matches
@@ -404,6 +412,11 @@ def nexus_writer(
         get_iso_timestamp(TR.stop_time),
     )
 
+    if "gonio_pos" not in list(params.keys()):
+        params["gonio_pos"] = None
+    if "det_pos" not in list(params.keys()):
+        params["det_pos"] = None
+
     if "tristan" in TR.detector_name.lower():
         if params["gonio_pos"] is None or params["det_pos"] is None:
             logger.error("Please pass the axes positions for a Tristan collection.")
@@ -412,7 +425,7 @@ def nexus_writer(
                 "No scan axis has been specified. Phi will be set as default."
             )
 
-    if "use_meta" not in (params.keys()):
+    if "use_meta" not in list(params.keys()):
         # If by any chance not passed, assume False
         params["use_meta"] = False
 

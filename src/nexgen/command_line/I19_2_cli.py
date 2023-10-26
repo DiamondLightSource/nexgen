@@ -55,7 +55,7 @@ def nexgen_writer(args):
     """
     logger.info("Create a NeXus file for I19-2 data.")
 
-    from ..beamlines.I19_2_nxs import nexus_writer
+    from ..beamlines.I19_2_nxs import nexus_writer  # axes, det_axes, nexus_writer
 
     if args.axes and not args.ax_start:
         raise OSError(
