@@ -56,6 +56,9 @@ class SinglaMaster:
             return None
         return self.__getitem__(_loc[0])[()]
 
+    def full_number_of_images(self) -> int:
+        return self.get_number_of_images() * self.get_number_of_triggers()
+
     def get_trigger_mode(self) -> str:
         _loc = [obj for obj in self.walk if "trigger_mode" in obj]
         if len(_loc) == 0:
