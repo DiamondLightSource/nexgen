@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import logging
 import math
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Literal, Tuple
 
@@ -115,6 +116,19 @@ def find_number_of_images(datafile_list: List[Path], entry_key: str = "data") ->
         with h5py.File(filename, "r") as f:
             num_images += f[entry_key].shape[0]
     return int(num_images)
+
+
+def calculate_estimated_end_time(
+    start_time: datetime | str, tot_collection_time: float
+) -> str:
+    time_format = r"%Y-%m-%dT%H:%M:%SZ"
+
+    if isinstance(start_time, str):
+        start_time = start_time.format("%Y-%m-%dT%H:%M:%S")
+        start_time = datetime.strptime(start_time, time_format.removesuffix("Z"))
+
+    est_end = start_time + timedelta(seconds=tot_collection_time)
+    return est_end.strftime(time_format)
 
 
 # Copy and compress a dataset inside a specified NXclass

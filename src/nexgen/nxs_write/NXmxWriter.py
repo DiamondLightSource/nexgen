@@ -171,7 +171,7 @@ class NXmxFileWriter:
                 the NeXus file name. Format: filename_runnumber. Defaults to None.
             start_time (datetime | str, optional): Collection start time if available, in the format "%Y-%m-%dT%H:%M:%SZ".\
                 Defaults to None.
-            start_time (datetime | str, optional): Collection estimated end time if available, in the format "%Y-%m-%dT%H:%M:%SZ".\
+            est_end_time (datetime | str, optional): Collection estimated end time if available, in the format "%Y-%m-%dT%H:%M:%SZ".\
                 Defaults to None.
             write_mode (str, optional): String indicating writing mode for the output NeXus file. Accepts any valid \
                 h5py file opening mode. Defaults to "x".
