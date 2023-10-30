@@ -40,7 +40,7 @@ from .NXclassWriters import (
     write_NXsample,
     write_NXsource,
 )
-from .write_utils import TSdset
+from .write_utils import TSdset, calculate_estimated_end_time
 
 # Logger
 nxmx_logger = logging.getLogger("nexgen.NXmxFileWriter")
@@ -478,6 +478,9 @@ class EDNXmxFileWriter(NXmxFileWriter):
             self.detector.fast_axis = coord2mcstas(self.detector.fast_axis, mat)
             self.detector.slow_axis = coord2mcstas(self.detector.slow_axis, mat)
 
+    def _get_collection_time(self):
+        return self.detector.exp_time * self.tot_num_imgs
+
     def write(
         self,
         image_datafiles: List | None = None,
@@ -534,6 +537,9 @@ class EDNXmxFileWriter(NXmxFileWriter):
 
             if start_time:
                 write_NXdatetime(nxs, start_time, "start_time")
+                tot_exp_time = self._get_collection_time()
+                est_end = calculate_estimated_end_time(start_time, tot_exp_time)
+                write_NXdatetime(nxs, est_end, "end_time_estimated")
 
             # NXdata: entry/data
             write_NXdata(

@@ -30,7 +30,7 @@ def create_attributes(nxs_obj: h5py.Group | h5py.Dataset, names: Tuple, values: 
         values (Tuple): The attribute values asociated to the names.
     """
     for n, v in zip(names, values):
-        if type(v) is str:
+        if isinstance(v, str):
             # If a string, convert to numpy.string_
             v = np.string_(v)
         h5py.AttributeManager.create(nxs_obj, name=n, data=v)
