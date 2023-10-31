@@ -177,6 +177,7 @@ def eiger_writer(
     TR: tr_collect,
     timestamps: Tuple[str, str] = (None, None),
     use_meta: bool = False,
+    n_imgs: int | None = None,
     axes_pos: List[axes] = None,
     det_pos: List[det_axes] = None,
 ):
@@ -192,6 +193,7 @@ def eiger_writer(
         timestamps (Tuple[str, str], optional): Collection start and end time. Defaults to (None, None).
         use_meta (bool, optional): If True, metadata such as axes positions, wavelength etc. \
             will be updated using the meta.h5 file. Defaults to False.
+        num_imgs (int, optional): Total number of images to be collected. Defaults to None.
         axes_pos (List[axes], optional): List of (axis_name, start, inc) values for the \
             goniometer, passed from command line. Defaults to None.
         det_pos (List[det_axes], optional): List of (axis_name, start) values for the \
@@ -202,11 +204,14 @@ def eiger_writer(
         IOError: If the axes positions can't be read from the metafile (missing config or broken links).
     """
     if not use_meta:
-        if axes_pos is None or det_pos is None:
+        if axes_pos is None or det_pos is None or n_imgs is None:
             logger.error(
-                "If not using the meta file, please pass the complete axis information."
+                """
+                If not using the meta file, please pass the complete axis information for goniometer
+                and/or detector. Also make sure that the number of frames was passed.
+                """
             )
-            raise IOError("Missing axes information.")
+            raise IOError("Missing at least one of axes_pos, det_pos, n_imgs.")
 
     source = Source("I19-2")
     from .beamline_utils import I19_2Eiger as axes_params
@@ -249,7 +254,7 @@ def eiger_writer(
             )
             if TR.wavelength is None:
                 logger.info(
-                    "Wavelength has't been passed by user. Looking for it in the meta file."
+                    "Wavelength hasn't been passed by user. Looking for it in the meta file."
                 )
                 wl = meta.get_wavelength()
             if TR.beam_center is None:
@@ -259,7 +264,9 @@ def eiger_writer(
                 beam_center = meta.get_beam_center()
     else:
         # TODO
-        logger.info("Not using meta file.")
+        logger.info(
+            "Not using meta file to update metadata, only the external links will be set up."
+        )
         pass
 
     scan_axis = identify_osc_axis(gonio_axes)
@@ -351,6 +358,7 @@ def nexus_writer(
         stop_time (datetime, optional): Experiment end time. Defaults to None.
 
     Keyword Args:
+        num_imgs (int): Total number of images to be collected.
         exposure_time (float): Exposure time, in s.
         transmission (float): Attenuator transmission, in %.
         wavelength (float): Wavelength of incident beam, in A.
@@ -374,7 +382,7 @@ def nexus_writer(
 
     TR = tr_collect(
         meta_file=Path(meta_file).expanduser().resolve(),
-        detector_name=detector_name,
+        detector_name=detector_name.lower(),
         exposure_time=params["exposure_time"],
         transmission=params["transmission"],
         wavelength=params["wavelength"],
@@ -428,10 +436,20 @@ def nexus_writer(
     if "use_meta" not in list(params.keys()):
         # If by any chance not passed, assume False
         params["use_meta"] = False
+        if "n_imgs" not in list(params.keys()) and "eiger" in TR.detector_name:
+            raise ValueError(
+                """
+                Missing input parameter n_imgs. \n
+                For and Eiger collection, if meta file is to be ignored, the number of images to
+                be collected has to be passed to the writer.
+                """
+            )
 
-    if "eiger" in TR.detector_name.lower():
-        eiger_writer(master_file, TR, timestamps, params["use_meta"])
-    elif "tristan" in TR.detector_name.lower():
+    if "eiger" in TR.detector_name:
+        if "n_imgs" not in list(params.keys()):
+            params["n_imgs"] = None
+        eiger_writer(master_file, TR, timestamps, params["use_meta"], params["n_imgs"])
+    elif "tristan" in TR.detector_name:
         tristan_writer(
             master_file, TR, timestamps, params["gonio_pos"], params["det_pos"]
         )
