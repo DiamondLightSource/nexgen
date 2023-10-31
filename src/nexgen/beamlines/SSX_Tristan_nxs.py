@@ -113,11 +113,11 @@ def ssx_tristan_writer(
     logger.info(f"DLS Beamline: {beamline.upper()}.")
     if "I19" in beamline.upper():
         source = Source("I19-2")
-        from .beamline_utils import I19_2Tristan as axes_params
+        from .I19_2_params import I19_2Tristan as axes_params
 
     elif "I24" in beamline.upper():
         source = Source("I19-2")
-        from .beamline_utils import I24Eiger as axes_params
+        from .I24_params import I24Eiger as axes_params
 
         axes_params.fast_axis = Point3D(-1, 0, 0)
         axes_params.slow_axis = Point3D(0, 1, 0)

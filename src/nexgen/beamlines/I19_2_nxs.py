@@ -93,7 +93,7 @@ def tristan_writer(
             detector, passed from command line. Defaults to None.
     """
     source = Source("I19-2")
-    from .beamline_utils import I19_2Tristan as axes_params
+    from .I19_2_params import I19_2Tristan as axes_params
 
     # Define Tristan params
     tristan_params = TristanDetector("Tristan 10M", (3043, 4183))
@@ -215,7 +215,7 @@ def eiger_writer(
             raise IOError("Missing at least one of axes_pos, det_pos, n_frames.")
 
     source = Source("I19-2")
-    from .beamline_utils import I19_2Eiger as axes_params
+    from .I19_2_params import I19_2Eiger as axes_params
 
     # Define Eiger 4M params
     eiger_params = EigerDetector(

@@ -3,10 +3,6 @@ Create a NeXus file for serial crystallography datasets collected on Eiger detec
 """
 from __future__ import annotations
 
-"""
-Create a NeXus file for serial crystallography datasets collected on Eiger detector either on I19-2 or I24 beamlines.
-"""
-
 import logging
 from collections import namedtuple
 from pathlib import Path
@@ -129,7 +125,7 @@ def ssx_eiger_writer(
     if "I19" in beamline.upper():
         source = Source("I19-2")
         osc_axis = ssx_params["osc_axis"] if "osc_axis" in ssx_params.keys() else "phi"
-        from .beamline_utils import I19_2Eiger as axes_params
+        from .I19_2_params import I19_2Eiger as axes_params
 
         eiger_params = EigerDetector(
             "Eiger 2X 4M",
@@ -141,7 +137,7 @@ def ssx_eiger_writer(
     elif "I24" in beamline.upper():
         source = Source("I24")
         osc_axis = "omega"
-        from .beamline_utils import I24Eiger as axes_params
+        from .I24_params import I24Eiger as axes_params
 
         eiger_params = EigerDetector(
             "Eiger 2X 9M",
