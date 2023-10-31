@@ -9,7 +9,8 @@
 - Choice to avoid using the meta file for I19-2 data, as long as all relevant information is passed.
 
 ### Changed
-- Write a soft link for /entry/instrument/detector/detector_z in NXdetector, for compatibility with autoPROC.
+- (Temporary) Write a soft link for /entry/instrument/detector/detector_z in NXdetector, for compatibility with autoPROC.
+- Beamline parameters have been tidied up.
 
 
 ## 0.7.2
