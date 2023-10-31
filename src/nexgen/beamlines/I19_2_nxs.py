@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import List, Tuple
 
 import h5py
+import numpy as np
 
 from .. import log
 from ..nxs_utils import (
@@ -177,7 +178,7 @@ def eiger_writer(
     TR: tr_collect,
     timestamps: Tuple[str, str] = (None, None),
     use_meta: bool = False,
-    n_imgs: int | None = None,
+    n_frames: int | None = None,
     axes_pos: List[axes] = None,
     det_pos: List[det_axes] = None,
 ):
@@ -193,7 +194,7 @@ def eiger_writer(
         timestamps (Tuple[str, str], optional): Collection start and end time. Defaults to (None, None).
         use_meta (bool, optional): If True, metadata such as axes positions, wavelength etc. \
             will be updated using the meta.h5 file. Defaults to False.
-        num_imgs (int, optional): Total number of images to be collected. Defaults to None.
+        num_frames (int, optional): Total number of images to be collected. Defaults to None.
         axes_pos (List[axes], optional): List of (axis_name, start, inc) values for the \
             goniometer, passed from command line. Defaults to None.
         det_pos (List[det_axes], optional): List of (axis_name, start) values for the \
@@ -204,14 +205,14 @@ def eiger_writer(
         IOError: If the axes positions can't be read from the metafile (missing config or broken links).
     """
     if not use_meta:
-        if axes_pos is None or det_pos is None or n_imgs is None:
+        if axes_pos is None or det_pos is None or n_frames is None:
             logger.error(
                 """
                 If not using the meta file, please pass the complete axis information for goniometer
                 and/or detector. Also make sure that the number of frames was passed.
                 """
             )
-            raise IOError("Missing at least one of axes_pos, det_pos, n_imgs.")
+            raise IOError("Missing at least one of axes_pos, det_pos, n_frames.")
 
     source = Source("I19-2")
     from .beamline_utils import I19_2Eiger as axes_params
@@ -263,11 +264,25 @@ def eiger_writer(
                 )
                 beam_center = meta.get_beam_center()
     else:
-        # TODO
         logger.info(
             "Not using meta file to update metadata, only the external links will be set up."
         )
-        pass
+        vds_dtype = np.uint32
+        # Update axes
+        # Goniometer
+        for gax in axes_pos:
+            idx = [n for n, ax in enumerate(gonio_axes) if ax.name == gax.id][0]
+            gonio_axes[idx].start_pos = gax.start
+            if gax.inc != 0.0:
+                gonio_axes[idx].increment = gax.inc
+
+        # Detector
+        for dax in det_pos:
+            idx = [n for n, ax in enumerate(det_axes) if ax.name == dax.id][0]
+            det_axes[idx].start_pos = dax.start
+            logger.info(
+                "Goniometer and detector axes positions have been updated with values passed by the user."
+            )
 
     scan_axis = identify_osc_axis(gonio_axes)
     # Check that found scan_axis matches
@@ -445,10 +460,22 @@ def nexus_writer(
                 """
             )
 
+    if params["use_meta"] is True:
+        params["gonio_pos"] = None
+        params["det_pos"] = None
+
     if "eiger" in TR.detector_name:
         if "n_imgs" not in list(params.keys()):
             params["n_imgs"] = None
-        eiger_writer(master_file, TR, timestamps, params["use_meta"], params["n_imgs"])
+        eiger_writer(
+            master_file,
+            TR,
+            timestamps,
+            params["use_meta"],
+            params["n_imgs"],
+            params["gonio_pos"],
+            params["det_pos"],
+        )
     elif "tristan" in TR.detector_name:
         tristan_writer(
             master_file, TR, timestamps, params["gonio_pos"], params["det_pos"]
