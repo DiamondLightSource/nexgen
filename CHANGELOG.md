@@ -6,6 +6,7 @@
 
 ### Added
 - Added possibility to write `end_time_estimated` field in NXmxWriter and refactored `write_NXdatetime`.
+- Choice to avoid using the meta file for I19-2 data, as long as all relevant information is passed.
 
 ### Changed
 - Write a soft link for /entry/instrument/detector/detector_z in NXdetector, for compatibility with autoPROC.
