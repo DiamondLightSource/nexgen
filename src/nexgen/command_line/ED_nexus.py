@@ -10,6 +10,8 @@ import sys
 from pathlib import Path
 
 import freephil
+import h5py
+from datetime import datetime
 
 from .. import log
 from ..beamlines.ED_params import ED_coord_system
@@ -178,13 +180,28 @@ def write_from_SINGLA(args):
                 logger.warning(
                     f"Unable to calculate beam centre. It has been set to {beam_center}."
                 )
+
+        # Get data_collection_date from the master file and write it as start_time
+        try:
+            with h5py.File(master, "r") as mfile:
+                data_collection_date = mfile['/entry/instrument/detector/detectorSpecific/data_collection_date']
+                data_collection_date = str(data_collection_date[()])[2:21]
+                data_collection_date = datetime.strptime(data_collection_date, '%Y-%m-%dT%H:%M:%S')
+                logger.info('Data collection date read from the master file.')
+        except KeyError:
+            data_collection_date = None
+        if not params.start_time:
+            params.start_time = data_collection_date
+
     else:
         beam_center = (
             params.detector.beam_center if params.detector.beam_center else (0, 0)
         )
+        data_collection_date = None
 
     # Detector/ module axes
     det_axes = []
+
     for n, ax in enumerate(params.detector.axes):
         _tr = (
             TransformationType.TRANSLATION
@@ -267,7 +284,8 @@ def write_from_SINGLA(args):
             ED_coord_system,
             convert_to_mcstas=params.input.convert_to_mcstas,
         )
-        EDFileWriter.write(datafiles, data_entry_key)
+        EDFileWriter.write(datafiles, data_entry_key,
+                           start_time=params.start_time)
         if params.input.vds_writer:
             logger.info(
                 f"Calling VDS writer to write a Virtual Dataset{params.input.vds_writer}"
