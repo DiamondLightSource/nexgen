@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Tuple
 import h5py
 import hdf5plugin  # noqa: F401
 import numpy as np
+from datetime import datetime
 from numpy.typing import ArrayLike
 
 
@@ -134,6 +135,16 @@ class SinglaMaster:
             return None
         return self.__getitem__(_loc[0])[()]
 
+    def get_data_collection_date(self) -> str:
+        _loc = [obj for obj in self.walk if "data_collection_date" in obj]
+        if len(_loc) == 0:
+            return None
+        else:
+            collection_date = str(self.__getitem__(_loc[0])[()])[2:21]
+            collection_date = datetime.strptime(collection_date,
+                                                '%Y-%m-%dT%H:%M:%S')
+            return collection_date
+
 
 def extract_from_SINGLA_master(master: Path | str) -> Dict[str, Any]:
     """
@@ -173,6 +184,7 @@ def extract_from_SINGLA_master(master: Path | str) -> Dict[str, Any]:
         D["detector_number"] = singla.get_detector_number()
         D["detector_readout_time"] = singla.get_detector_readout_time()
         D["photon_energy"] = singla.get_photon_energy()
+        D["data_collection_date"] = singla.get_data_collection_date()
 
     return D
 

@@ -178,6 +178,12 @@ def write_from_SINGLA(args):
                 logger.warning(
                     f"Unable to calculate beam centre. It has been set to {beam_center}."
                 )
+
+        # Write data_collection_date from the master file as start_time
+        if not params.start_time:
+            params.start_time = det_info['data_collection_date']
+            logger.info('Data collection date read from the master file as start_time.')
+
     else:
         beam_center = (
             params.detector.beam_center if params.detector.beam_center else (0, 0)
@@ -185,6 +191,7 @@ def write_from_SINGLA(args):
 
     # Detector/ module axes
     det_axes = []
+
     for n, ax in enumerate(params.detector.axes):
         _tr = (
             TransformationType.TRANSLATION
@@ -267,7 +274,8 @@ def write_from_SINGLA(args):
             ED_coord_system,
             convert_to_mcstas=params.input.convert_to_mcstas,
         )
-        EDFileWriter.write(datafiles, data_entry_key)
+        EDFileWriter.write(datafiles, data_entry_key,
+                           start_time=params.start_time)
         if params.input.vds_writer:
             logger.info(
                 f"Calling VDS writer to write a Virtual Dataset{params.input.vds_writer}"
