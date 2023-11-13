@@ -481,6 +481,10 @@ class EDNXmxFileWriter(NXmxFileWriter):
     def _get_collection_time(self):
         return self.detector.exp_time * self.tot_num_imgs
 
+    def _get_data_filename(self) -> List[Path]:
+        image_filename = f"{self.filename.stem}_data_000001.h5"
+        return self.filename.parent / f"{image_filename}"
+
     def write(
         self,
         image_datafiles: List | None = None,
@@ -496,7 +500,7 @@ class EDNXmxFileWriter(NXmxFileWriter):
 
         Args:
             image_datafiles (List | None, optional): List of image data files. If not passed, the program will look for \
-                files with the stem_######.h5 in the target directory. Defaults to None.
+                files with the stem_data_######.h5 in the target directory. Defaults to None.
             data_entry_key (str, optional): Dataset entry key in datafiles. Defaults to entry/data/data.
             start_time (datetime | str, optional): Collection estimated end time if available, in the format "%Y-%m-%dT%H:%M:%SZ".\
                 Defaults to None.
@@ -504,9 +508,7 @@ class EDNXmxFileWriter(NXmxFileWriter):
                 h5py file opening mode. Defaults to "x".
         """
         # Get data files
-        datafiles = (
-            image_datafiles if image_datafiles else super()._get_data_files_list()[0]
-        )
+        datafiles = image_datafiles if image_datafiles else [self._get_data_filename()]
 
         # Unpack
         gonio, det, module, source = self._unpack_dictionaries()
