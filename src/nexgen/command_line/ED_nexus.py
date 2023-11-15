@@ -65,11 +65,18 @@ ED_phil = freephil.parse(
     process_includes=True,
 )
 
-parser = argparse.ArgumentParser(description=__doc__, parents=[version_parser])
+usage = "%(prog)s <sub-command> [options]"
+parser = argparse.ArgumentParser(
+    usage=usage, description=__doc__, parents=[version_parser]
+)
 parser.add_argument("--debug", action="store_const", const=True)
 
 
 def write_from_SINGLA(args):
+    pass
+
+
+def write_from_SINGLA_with_phil(args):
     cl = ED_phil.command_line_argument_interpreter()
     working_phil = ED_phil.fetch(cl.process_and_fetch(args.phil_args))
     params = working_phil.extract()
@@ -288,30 +295,75 @@ def write_from_SINGLA(args):
         logger.info(f"An error occurred and {nxsfile} couldn't be written correctly.")
 
 
-subparsers = parser.add_subparsers(
-    help="Define what to do with input file depending on their origin.",
-    required=True,
-    dest="sub-command",
-)
-
-singla_parser = subparsers.add_parser(
-    "singla",
-    description=("Trigger NeXus file writing for Singla data."),
-    parents=[nexus_parser, config_parser],
-)
-singla_parser.add_argument(
-    "-m",
-    "--master",
-    type=str,
-    help="HDF5 master file written by Singla detector.",
-)
-singla_parser.add_argument(
+# Define some useful parsers
+output_parser = argparse.ArgumentParser(add_help=False)
+output_parser.add_argument(
     "-o",
     "--output",
     type=str,
     help="Output directory if different from location of data files.",
 )
-singla_parser.set_defaults(func=write_from_SINGLA)
+
+# Define subparsers
+subparsers = parser.add_subparsers(
+    help="Define what to do with input file depending on their origin.",
+    required=True,
+    dest="sub-command",
+)
+singla1_parser = subparsers.add_parser(
+    "singla",
+    aliases="singla1",
+    description=("Trigger NeXus file writing for Singla data."),
+    parents=[config_parser, output_parser],
+)
+singla1_parser.add_argument(
+    "master_file",
+    type=str,
+    help="HDF5 master file written by Singla detector.",
+)
+singla1_parser.add_argument(
+    "det_distance",
+    type=float,
+    help="The sample-detector distance.",
+)
+singla1_parser.add_argument(
+    "-e",
+    "--exp-time",
+    type=float,
+    help="Exposure time, in s.",
+)
+singla1_parser.add_argument(
+    "-wl",
+    "--wavelength",
+    type=float,
+    default=None,
+    help="Incident beam wavelength, in A.",
+)
+singla1_parser.add_argument(
+    "-bc",
+    "--beam-center",
+    type=float,
+    nargs=2,
+    help="Beam center (x,y) positions.",
+)
+singla1_parser.add_argument(
+    "--start", "--start-time", type=str, default=None, help="Collection start time."
+)
+singla1_parser.set_defaults(func=write_from_SINGLA)
+
+singla2_parser = subparsers.add_parser(
+    "singla-phil",
+    aliases="singla2",
+    description=("Trigger NeXus file writing for Singla data, using a phil parser."),
+    parents=[nexus_parser, config_parser, output_parser],
+)
+singla2_parser.add_argument(
+    "-m",
+    "--master",
+    type=str,
+    help="HDF5 master file written by Singla detector.",
+)
+singla2_parser.set_defaults(func=write_from_SINGLA_with_phil)
 
 
 def main():
