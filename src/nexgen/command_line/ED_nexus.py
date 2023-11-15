@@ -69,7 +69,7 @@ def write_from_SINGLA(args):
         beam_center=args.beam_center if args.beam_center else None,
         wavelength=args.wavelength if args.wavelength else None,
         outdir=args.output,
-        start_time=args.start_time if args.start_time else None,
+        start_time=args.start if args.start else None,
     )
 
 
@@ -177,7 +177,6 @@ subparsers = parser.add_subparsers(
 )
 singla1_parser = subparsers.add_parser(
     "singla",
-    aliases="singla1",
     description=("Trigger NeXus file writing for Singla data."),
     parents=[output_parser],
 )
@@ -243,7 +242,6 @@ singla1_parser.set_defaults(func=write_from_SINGLA)
 
 singla2_parser = subparsers.add_parser(
     "singla-phil",
-    aliases="singla2",
     description=("Trigger NeXus file writing for Singla data, using a phil parser."),
     parents=[nexus_parser, config_parser, output_parser],
 )
