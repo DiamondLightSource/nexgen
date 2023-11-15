@@ -67,6 +67,7 @@ def singla_nexus_writer(
     nxsfile = get_nexus_filename(master_file)
     if find_in_dict("outdir", params) and params["outdir"]:
         wdir = coerce_to_path(params["outdir"])
+        # Reset the location of the NeXus file
         nxsfile = wdir / nxsfile.name
     else:
         wdir = master_file.parent
@@ -104,15 +105,21 @@ def singla_nexus_writer(
     # Update source if new info passed
     source = EDSource
     if find_in_dict("new_source_info", params):
-        logger.info("Updating source information.")
+        logger.warning("Updating source information.")
         for k, v in params["new_source_info"].keys():
             source.__setattr__(k, v)
             logger.info(f"Source {k} now set to {v}.")
+    logger.info(source.__repr__())
 
     # Define beam and attenuator
     attenuator = Attenuator(transmission=None)
     wl = params["wavelength"] if find_in_dict("wavelength", params) else None
+    if not wl:
+        logger.warning("Wavelength value was not set, it will default to 0.02 A.")
+        wl = 0.02
     beam = Beam(wl)
+    logger.info(f"Attenuation: {attenuator.transmission}")
+    logger.info(f"Incident beam wavelength: {beam.wavelength}")
 
     # Define Singla detector
     det_params = SinglaDetector("Dectris Singla 1M", [1062, 1028])
@@ -146,6 +153,7 @@ def singla_nexus_writer(
         exp_time,
         [EDSingla.fast_axis, EDSingla.slow_axis],
     )
+    logger.info(detector.__repr__())
 
     # Goniometer
     gonio_axes = EDSingla.gonio
