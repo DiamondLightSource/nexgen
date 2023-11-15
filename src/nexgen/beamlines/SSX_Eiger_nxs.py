@@ -295,8 +295,7 @@ def ssx_eiger_writer(
     # Log a bunch of stuff
     collection_summary_log(
         logger,
-        gonio_axes,
-        list(SCAN.keys()),
+        goniometer,
         detector,
         attenuator,
         beam,

@@ -175,8 +175,7 @@ def ssx_tristan_writer(
 
     collection_summary_log(
         logger,
-        gonio_axes,
-        ["sam_y", "sam_x"],
+        goniometer,
         detector,
         attenuator,
         beam,

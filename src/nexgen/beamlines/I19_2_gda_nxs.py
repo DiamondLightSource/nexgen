@@ -131,8 +131,7 @@ def tristan_writer(
 
     collection_summary_log(
         logger,
-        gonio_axes,
-        [scan_axis],
+        goniometer,
         detector,
         attenuator,
         beam,

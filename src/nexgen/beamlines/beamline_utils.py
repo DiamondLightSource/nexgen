@@ -9,7 +9,7 @@ from typing import List, Optional, Tuple
 
 from dataclasses_json import DataClassJsonMixin
 
-from nexgen.nxs_utils import Attenuator, Axis, Beam, Detector, Source
+from nexgen.nxs_utils import Attenuator, Axis, Beam, Detector, Goniometer, Source
 from nexgen.utils import Point3D
 
 
@@ -53,8 +53,7 @@ class BeamlineAxes:
 
 def collection_summary_log(
     logger: logging.Logger,
-    gonio_axes: List[Axis],
-    scan_axis: List[str],
+    goniometer: Goniometer,
     detector: Detector,
     attenuator: Attenuator,
     beam: Beam,
@@ -63,34 +62,13 @@ def collection_summary_log(
 ):
     """General function to log a collection summary."""
     logger.info("--- COLLECTION SUMMARY ---")
-    logger.info("Source information")
-    logger.info(f"Facility: {source.name} - {source.facility_type}.")
-    logger.info(f"Beamline / instrument: {source.beamline}")
-    if source.probe:
-        logger.info(f"Probe: {source.probe}")
+    logger.info(source.__repr__())
 
     logger.info(f"Incident beam wavelength: {beam.wavelength}")
     logger.info(f"Attenuation: {attenuator.transmission}")
 
-    logger.info(f"Scan axis/axes: {scan_axis}")
-
-    logger.info("Goniometer information")
-    for ax in gonio_axes:
-        logger.info(
-            f"Goniometer axis: {ax.name} => {ax.start_pos}, {ax.transformation_type} on {ax.depends}"
-        )
-    logger.info("Detector information")
-    logger.info(f"Detector in use: {detector.detector_params.description}")
-    logger.info(
-        f"Sensor made of {detector.detector_params.sensor_material} x {detector.detector_params.sensor_thickness}"
-    )
-    logger.info(
-        f"Detector is a {detector.detector_params.image_size[::-1]} array of {detector.detector_params.pixel_size} pixels"
-    )
-    for ax in detector.detector_axes:
-        logger.info(
-            f"Detector axis: {ax.name} => {ax.start_pos}, {ax.transformation_type} on {ax.depends}"
-        )
+    logger.info(goniometer.__repr__())
+    logger.info(detector.__repr__)
 
     logger.info(f"Recorded beam center is: {detector.beam_center}.")
     logger.info(f"Recorded exposure time: {detector.exp_time} s.")
