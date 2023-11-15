@@ -8,7 +8,7 @@ import re
 from collections import namedtuple
 from datetime import datetime
 from pathlib import Path
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 import h5py
 import numpy as np
@@ -42,6 +42,12 @@ def coerce_to_path(filename: Path | str):
     if not isinstance(filename, Path):
         filename = Path(filename).expanduser().resolve()
     return filename
+
+
+def find_in_dict(key: str, params_dict: Dict):
+    if key in list(params_dict.keys()):
+        return True
+    return False
 
 
 def get_filename_template(input_filename: Path) -> str:

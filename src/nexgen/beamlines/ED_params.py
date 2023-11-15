@@ -2,7 +2,7 @@
 Define parameters for Electron Diffraction with Singla detector.
 """
 
-from ..nxs_utils import Axis, TransformationType
+from ..nxs_utils import Axis, Facility, Source, TransformationType
 from ..utils import Point3D
 from .beamline_utils import BeamlineAxes
 
@@ -30,6 +30,12 @@ ED_coord_system = {
     # "y": ("x", "translation", "mm", [-1, 0, 0]),
     # "z": ("y", "translation", "mm", [0, 0, 1]),
 }
+
+EDSource = Source(
+    "eBIC",
+    Facility("Diamond Light Source", "DLS", "Electron Source", "DIAMOND MICROSCOPE"),
+    "electron",
+)
 
 goniometer = {
     "axes": ["alpha", "sam_z", "sam_y", "sam_x"],

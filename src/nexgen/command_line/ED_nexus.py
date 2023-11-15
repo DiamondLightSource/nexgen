@@ -156,7 +156,7 @@ def write_from_SINGLA_with_phil(args):
     if params.coord_system.vectors:
         from .cli_utils import split_arrays
 
-        # Note: setting to coordinate frame to avoid any conversions. FIXME
+        # Note: setting to coordinate frame to avoid any conversions.
         vectors = split_arrays(["x", "y", "z"], params.coord_system.vectors)
         logger.info(
             f"New vectors defined for {params.coord_system.convention} coordinate system."
@@ -325,6 +325,24 @@ singla1_parser.add_argument(
     "det_distance",
     type=float,
     help="The sample-detector distance.",
+)
+singla1_parser.add_argument(
+    "--axis-name",
+    type=str,
+    default="alpha",
+    help="Rotation axis name",
+)
+singla1_parser.add_argument(
+    "--axis-start",
+    type=float,
+    default=0.0,
+    help="Rotation axis start position.",
+)
+singla1_parser.add_argument(
+    "--axis-inc",
+    type=float,
+    default=0.0,
+    help="Rotation axis increment.",
 )
 singla1_parser.add_argument(
     "-e",
