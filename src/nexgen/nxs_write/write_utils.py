@@ -125,7 +125,7 @@ def calculate_estimated_end_time(
 
     if isinstance(start_time, str):
         start_time = start_time.format("%Y-%m-%dT%H:%M:%S")
-        start_time = datetime.strptime(start_time, time_format.removesuffix("Z"))
+        start_time = datetime.strptime(start_time.strip("Z"), time_format.strip("Z"))
 
     est_end = start_time + timedelta(seconds=tot_collection_time)
     return est_end.strftime(time_format)
