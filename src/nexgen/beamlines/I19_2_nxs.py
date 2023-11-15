@@ -454,7 +454,7 @@ def nexus_writer(
             raise ValueError(
                 """
                 Missing input parameter n_imgs. \n
-                For and Eiger collection, if meta file is to be ignored, the number of images to
+                For an Eiger collection, if meta file is to be ignored, the number of images to
                 be collected has to be passed to the writer.
                 """
             )

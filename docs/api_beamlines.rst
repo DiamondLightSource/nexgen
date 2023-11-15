@@ -82,6 +82,12 @@ Serial crystallography: experiment types
 .. autofunction:: nexgen.beamlines.SSX_expt.run_fixed_target
 
 
+Electron diffraction: Singla writer
+-----------------------------------
+
+.. autofunction:: nexgen.beamlines.ED_singla_nxs.singla_nexus_writer
+
+
 GDA integration tools
 ---------------------
 
