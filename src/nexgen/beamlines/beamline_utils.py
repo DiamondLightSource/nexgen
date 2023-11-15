@@ -65,7 +65,9 @@ def collection_summary_log(
     logger.info("--- COLLECTION SUMMARY ---")
     logger.info("Source information")
     logger.info(f"Facility: {source.name} - {source.facility_type}.")
-    logger.info(f"Beamline: {source.beamline}")
+    logger.info(f"Beamline / instrument: {source.beamline}")
+    if source.probe:
+        logger.info(f"Probe: {source.probe}")
 
     logger.info(f"Incident beam wavelength: {beam.wavelength}")
     logger.info(f"Attenuation: {attenuator.transmission}")

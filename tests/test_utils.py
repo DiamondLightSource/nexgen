@@ -25,15 +25,30 @@ def test_coord2nxs():
     assert utils.coord2mcstas([0, 0, 1], R) == (0, -1, 0)
 
 
+def test_coerce_to_path():
+    s = "/some/path"
+    s = utils.coerce_to_path(s)
+    assert isinstance(s, Path)
+
+
+def test_find_in_dict():
+    test_dict = {
+        "alpha": 0,
+        "beta": 1,
+    }
+    assert utils.find_in_dict("alpha", test_dict) is True
+    assert utils.find_in_dict("gamma", test_dict) is False
+
+
 def test_get_filename_template():
     # Check filename from _master.h5 file
     fn = utils.get_filename_template(Path("File_01_master.h5"))
-    assert type(fn) is str
+    assert isinstance(fn, str)
     assert fn == "File_01_%06d.h5"
     assert fn % 1 == "File_01_000001.h5"
     # Check filename from .nxs file
     fn = utils.get_filename_template(Path("File_02.nxs"))
-    assert type(fn) is str
+    assert isinstance(fn, str)
     assert fn == "File_02_%06d.h5"
     assert fn % 1 == "File_02_000001.h5"
 
