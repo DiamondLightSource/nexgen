@@ -40,7 +40,7 @@ from .NXclassWriters import (
     write_NXsample,
     write_NXsource,
 )
-from .write_utils import TSdset
+from .write_utils import TSdset, calculate_estimated_end_time
 
 # Logger
 nxmx_logger = logging.getLogger("nexgen.NXmxFileWriter")
@@ -171,7 +171,7 @@ class NXmxFileWriter:
                 the NeXus file name. Format: filename_runnumber. Defaults to None.
             start_time (datetime | str, optional): Collection start time if available, in the format "%Y-%m-%dT%H:%M:%SZ".\
                 Defaults to None.
-            start_time (datetime | str, optional): Collection estimated end time if available, in the format "%Y-%m-%dT%H:%M:%SZ".\
+            est_end_time (datetime | str, optional): Collection estimated end time if available, in the format "%Y-%m-%dT%H:%M:%SZ".\
                 Defaults to None.
             write_mode (str, optional): String indicating writing mode for the output NeXus file. Accepts any valid \
                 h5py file opening mode. Defaults to "x".
@@ -430,7 +430,7 @@ class EDNXmxFileWriter(NXmxFileWriter):
     """A class to generate NXmx-like NeXus files for electron diffraction.
 
     Requires an additional argument:
-        ED_coord_system (Dict[str, Tuple]): Definition of the current coordinate frame for ED. \
+        ED_coord_system (Dict): Definition of the current coordinate frame for ED. \
             It should at least contain the convention, origin and base vectors.
     """
 
@@ -443,7 +443,7 @@ class EDNXmxFileWriter(NXmxFileWriter):
         beam: Beam,
         attenuator: Attenuator,
         tot_num_imgs: int,
-        ED_coord_system: Dict[str, Tuple],
+        ED_coord_system: Dict,
         convert_to_mcstas: bool = False,
     ):
         super().__init__(
@@ -465,9 +465,9 @@ class EDNXmxFileWriter(NXmxFileWriter):
             )
             mat = np.array(
                 [
-                    self.ED_coord_system["x"][-1],
-                    self.ED_coord_system["y"][-1],
-                    self.ED_coord_system["z"][-1],
+                    self.ED_coord_system["x"].vector,
+                    self.ED_coord_system["y"].vector,
+                    self.ED_coord_system["z"].vector,
                 ]
             )
             # TODO: Need to redefine ED as {"x": Axis()} or something
@@ -477,6 +477,13 @@ class EDNXmxFileWriter(NXmxFileWriter):
                 ax.vector = coord2mcstas(ax.vector, mat)
             self.detector.fast_axis = coord2mcstas(self.detector.fast_axis, mat)
             self.detector.slow_axis = coord2mcstas(self.detector.slow_axis, mat)
+
+    def _get_collection_time(self):
+        return self.detector.exp_time * self.tot_num_imgs
+
+    def _get_data_filename(self) -> List[Path]:
+        image_filename = f"{self.filename.stem}_data_000001.h5"
+        return self.filename.parent / f"{image_filename}"
 
     def write(
         self,
@@ -493,7 +500,7 @@ class EDNXmxFileWriter(NXmxFileWriter):
 
         Args:
             image_datafiles (List | None, optional): List of image data files. If not passed, the program will look for \
-                files with the stem_######.h5 in the target directory. Defaults to None.
+                files with the stem_data_######.h5 in the target directory. Defaults to None.
             data_entry_key (str, optional): Dataset entry key in datafiles. Defaults to entry/data/data.
             start_time (datetime | str, optional): Collection estimated end time if available, in the format "%Y-%m-%dT%H:%M:%SZ".\
                 Defaults to None.
@@ -501,9 +508,7 @@ class EDNXmxFileWriter(NXmxFileWriter):
                 h5py file opening mode. Defaults to "x".
         """
         # Get data files
-        datafiles = (
-            image_datafiles if image_datafiles else super()._get_data_files_list()[0]
-        )
+        datafiles = image_datafiles if image_datafiles else [self._get_data_filename()]
 
         # Unpack
         gonio, det, module, source = self._unpack_dictionaries()
@@ -534,6 +539,9 @@ class EDNXmxFileWriter(NXmxFileWriter):
 
             if start_time:
                 write_NXdatetime(nxs, start_time, "start_time")
+                tot_exp_time = self._get_collection_time()
+                est_end = calculate_estimated_end_time(start_time, tot_exp_time)
+                write_NXdatetime(nxs, est_end, "end_time_estimated")
 
             # NXdata: entry/data
             write_NXdata(

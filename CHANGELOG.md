@@ -6,9 +6,11 @@
 
 ### Added
 - Added possibility to write `end_time_estimated` field in NXmxWriter and refactored `write_NXdatetime`.
+- A small utility to write a nexus file for electron diffraction and a new command line tool for SINGLA without phil.
 
 ### Changed
 - Write a soft link for /entry/instrument/detector/detector_z in NXdetector, for compatibility with autoPROC.
+- Electron diffraction parameters.
 
 
 ## 0.7.2
