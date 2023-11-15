@@ -200,7 +200,7 @@ def singla_nexus_writer(
         EDFileWriter.write(datafiles, SINGLA_DATA_ENTRY_KEY, start_time)
         if vds_writer:
             EDFileWriter.write_vds(
-                vds_writer=vds_writer,
+                writer_type=vds_writer,
                 data_entry_key=SINGLA_DATA_ENTRY_KEY,
                 datafiles=datafiles,
             )
