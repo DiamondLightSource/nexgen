@@ -23,9 +23,12 @@ coordinate_frame = "mcstas"
 ED_coord_system = {
     "convention": "ED",
     "origin": (0, 0, 0),
-    "x": (".", "translation", "mm", [0, 1, 0]),  # (depends, type, unit, vector)
-    "y": ("x", "translation", "mm", [-1, 0, 0]),
-    "z": ("y", "translation", "mm", [0, 0, 1]),
+    "x": Axis("x", ".", TransformationType.TRANSLATION, Point3D(0, 1, 0)),
+    "y": Axis("y", "x", TransformationType.TRANSLATION, Point3D(-1, 0, 0)),
+    "z": Axis("z", "y", TransformationType.TRANSLATION, Point3D(0, 0, 1)),
+    # "x": (".", "translation", "mm", [0, 1, 0]),  # (depends, type, unit, vector)
+    # "y": ("x", "translation", "mm", [-1, 0, 0]),
+    # "z": ("y", "translation", "mm", [0, 0, 1]),
 }
 
 goniometer = {

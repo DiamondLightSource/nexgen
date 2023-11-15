@@ -119,6 +119,12 @@ class SinglaMaster:
             return None
         return self.__getitem__(_loc[0])[()]
 
+    def get_exposure_time(self) -> float:
+        _loc = [obj for obj in self.walk if "count_time" in obj]
+        if len(_loc) == 0:
+            return None
+        return self.__getitem__(_loc[0])[()]
+
     def get_photon_energy(self) -> float:
         _loc = [obj for obj in self.walk if "photon_energy" in obj]
         if len(_loc) == 0:

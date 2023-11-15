@@ -430,7 +430,7 @@ class EDNXmxFileWriter(NXmxFileWriter):
     """A class to generate NXmx-like NeXus files for electron diffraction.
 
     Requires an additional argument:
-        ED_coord_system (Dict[str, Tuple]): Definition of the current coordinate frame for ED. \
+        ED_coord_system (Dict): Definition of the current coordinate frame for ED. \
             It should at least contain the convention, origin and base vectors.
     """
 
@@ -443,7 +443,7 @@ class EDNXmxFileWriter(NXmxFileWriter):
         beam: Beam,
         attenuator: Attenuator,
         tot_num_imgs: int,
-        ED_coord_system: Dict[str, Tuple],
+        ED_coord_system: Dict,
         convert_to_mcstas: bool = False,
     ):
         super().__init__(
@@ -465,9 +465,9 @@ class EDNXmxFileWriter(NXmxFileWriter):
             )
             mat = np.array(
                 [
-                    self.ED_coord_system["x"][-1],
-                    self.ED_coord_system["y"][-1],
-                    self.ED_coord_system["z"][-1],
+                    self.ED_coord_system["x"].vector,
+                    self.ED_coord_system["y"].vector,
+                    self.ED_coord_system["z"].vector,
                 ]
             )
             # TODO: Need to redefine ED as {"x": Axis()} or something

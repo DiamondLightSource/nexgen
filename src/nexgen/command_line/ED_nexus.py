@@ -31,7 +31,7 @@ from ..tools.ED_tools import extract_from_SINGLA_master, find_beam_centre
 from ..utils import get_iso_timestamp, get_nexus_filename
 from . import config_parser, nexus_parser, version_parser
 
-logger = logging.getLogger("nexgen.EDNeXusGenerator")
+logger = logging.getLogger("nexgen.EDNeXusGeneratorCLI")
 
 ED_phil = freephil.parse(
     """
@@ -345,6 +345,12 @@ singla1_parser.add_argument(
     type=float,
     nargs=2,
     help="Beam center (x,y) positions.",
+)
+singla1_parser.add_argument(
+    "-n",
+    "--n-imgs",
+    type=int,
+    help="Total number of images",
 )
 singla1_parser.add_argument(
     "--start", "--start-time", type=str, default=None, help="Collection start time."
