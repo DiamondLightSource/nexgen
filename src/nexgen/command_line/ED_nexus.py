@@ -59,7 +59,18 @@ parser.add_argument("--debug", action="store_const", const=True)
 
 
 def write_from_SINGLA(args):
-    pass
+
+    singla_nexus_writer(
+        args.master_file,
+        args.det_distance,
+        args.exp_time,
+        n_imgs=args.n_imgs if args.n_imgs else None,
+        scan_axis=[args.axis_name, args.axis_start, args.axis_inc],
+        beam_center=args.beam_center if args.beam_center else None,
+        wavelength=args.wavelength if args.wavelength else None,
+        outdir=args.output,
+        start_time=args.start_time if args.start_time else None,
+    )
 
 
 def write_from_SINGLA_with_phil(args):
@@ -168,7 +179,7 @@ singla1_parser = subparsers.add_parser(
     "singla",
     aliases="singla1",
     description=("Trigger NeXus file writing for Singla data."),
-    parents=[config_parser, output_parser],
+    parents=[output_parser],
 )
 singla1_parser.add_argument(
     "master_file",
@@ -202,6 +213,7 @@ singla1_parser.add_argument(
     "-e",
     "--exp-time",
     type=float,
+    required=True,
     help="Exposure time, in s.",
 )
 singla1_parser.add_argument(
