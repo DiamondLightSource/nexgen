@@ -434,9 +434,9 @@ def nexus_writer(
         get_iso_timestamp(TR.stop_time),
     )
 
-    if find_in_dict("gonio_pos", params):
+    if not find_in_dict("gonio_pos", params):
         params["gonio_pos"] = None
-    if find_in_dict("det_pos", params):
+    if not find_in_dict("det_pos", params):
         params["det_pos"] = None
 
     if "tristan" in TR.detector_name.lower():
@@ -447,10 +447,10 @@ def nexus_writer(
                 "No scan axis has been specified. Phi will be set as default."
             )
 
-    if find_in_dict("use_meta", params):
+    if not find_in_dict("use_meta", params):
         # If by any chance not passed, assume False
         params["use_meta"] = False
-        if find_in_dict("n_imgs", params) and "eiger" in TR.detector_name:
+        if not find_in_dict("n_imgs", params) and "eiger" in TR.detector_name:
             raise ValueError(
                 """
                 Missing input parameter n_imgs. \n
@@ -464,7 +464,7 @@ def nexus_writer(
         params["det_pos"] = None
 
     if "eiger" in TR.detector_name:
-        if find_in_dict("n_imgs", params):
+        if not find_in_dict("n_imgs", params):
             params["n_imgs"] = None
         eiger_writer(
             master_file,
