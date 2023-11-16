@@ -10,7 +10,7 @@ from pathlib import Path
 from .. import log
 from ..nxs_utils import Attenuator, Beam, Detector, Goniometer, Source, TristanDetector
 from ..nxs_write.NXmxWriter import EventNXmxFileWriter
-from ..utils import Point3D, get_iso_timestamp
+from ..utils import Point3D, find_in_dict, get_iso_timestamp
 from .beamline_utils import collection_summary_log
 
 # Define a logger object and a formatter
@@ -64,21 +64,38 @@ def ssx_tristan_writer(
         chipmap (Path | str): Path to the chipmap file corresponding to the experiment,
             or 'fullchip' indicating that the whole chip is being scanned.
     """
+    if not find_in_dict("start_time", ssx_params):
+        ssx_params["start_time"] = None
+    if not find_in_dict("stop_time", ssx_params):
+        ssx_params["stop_time"] = None
+
     # Get info from the beamline
     SSX_TR = ssx_tr_collect(
-        exposure_time=float(ssx_params["exp_time"]),
-        detector_distance=float(ssx_params["det_dist"]),
-        beam_center=ssx_params["beam_center"],
-        transmission=float(ssx_params["transmission"]),
-        wavelength=float(ssx_params["wavelength"]),
+        exposure_time=float(ssx_params["exp_time"])
+        if find_in_dict("exp_time", ssx_params)
+        else None,
+        detector_distance=float(ssx_params["det_dist"])
+        if find_in_dict("det_dist", ssx_params)
+        else None,
+        beam_center=ssx_params["beam_center"]
+        if find_in_dict("beam_center", ssx_params)
+        else (0, 0),
+        transmission=float(ssx_params["transmission"])
+        if find_in_dict("transmission", ssx_params)
+        else None,
+        wavelength=float(ssx_params["wavelength"])
+        if find_in_dict("wavelength", ssx_params)
+        else None,
         start_time=ssx_params["start_time"].strftime("%Y-%m-%dT%H:%M:%S")
         if ssx_params["start_time"]
         else None,  # This should be datetiem type
         stop_time=ssx_params["stop_time"].strftime("%Y-%m-%dT%H:%M:%S")
         if ssx_params["stop_time"]
         else None,  # idem.
-        chipmap=ssx_params["chipmap"] if ssx_params["chipmap"] else None,
-        chip_info=ssx_params["chip_info"] if ssx_params["chip_info"] else None,
+        chipmap=ssx_params["chipmap"] if find_in_dict("chipmap", ssx_params) else None,
+        chip_info=ssx_params["chip_info"]
+        if find_in_dict("chip_info", ssx_params)
+        else None,
     )
 
     visitpath = Path(visitpath).expanduser().resolve()
