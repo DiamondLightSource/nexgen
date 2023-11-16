@@ -26,7 +26,7 @@ from ..nxs_utils.ScanUtils import calculate_scan_points, identify_osc_axis
 from ..nxs_write.NXmxWriter import EventNXmxFileWriter, NXmxFileWriter
 from ..tools.Metafile import DectrisMetafile
 from ..tools.MetaReader import define_vds_data_type, update_axes_from_meta
-from ..utils import get_iso_timestamp, get_nexus_filename
+from ..utils import find_in_dict, get_iso_timestamp, get_nexus_filename
 from .beamline_utils import collection_summary_log
 
 
@@ -388,7 +388,7 @@ def nexus_writer(
         use_meta (bool): For Eiger, if True use metadata from meta.h5 file. Otherwise \
             will require all other information to be passed manually.
     """
-    if "serial" in list(params.keys()) and params["serial"] is True:
+    if find_in_dict("serial", params) and params["serial"] is True:
         raise ExperimentTypeError(
             "This is writer is not enabled for ssx collections."
             "Pleas look into SSX_Eiger or SSX_Tristan for this functionality."
@@ -407,7 +407,7 @@ def nexus_writer(
     )
 
     # Check that the new NeXus file is to be written in the same directory
-    if "outdir" in list(params.keys()) and params["outdir"]:
+    if find_in_dict("outdir", params) and params["outdir"]:
         wdir = Path(params["outdir"]).expanduser().resolve()
     else:
         wdir = TR.meta_file.parent
@@ -434,9 +434,9 @@ def nexus_writer(
         get_iso_timestamp(TR.stop_time),
     )
 
-    if "gonio_pos" not in list(params.keys()):
+    if find_in_dict("gonio_pos", params):
         params["gonio_pos"] = None
-    if "det_pos" not in list(params.keys()):
+    if find_in_dict("det_pos", params):
         params["det_pos"] = None
 
     if "tristan" in TR.detector_name.lower():
@@ -447,10 +447,10 @@ def nexus_writer(
                 "No scan axis has been specified. Phi will be set as default."
             )
 
-    if "use_meta" not in list(params.keys()):
+    if find_in_dict("use_meta", params):
         # If by any chance not passed, assume False
         params["use_meta"] = False
-        if "n_imgs" not in list(params.keys()) and "eiger" in TR.detector_name:
+        if find_in_dict("n_imgs", params) and "eiger" in TR.detector_name:
             raise ValueError(
                 """
                 Missing input parameter n_imgs. \n
@@ -464,7 +464,7 @@ def nexus_writer(
         params["det_pos"] = None
 
     if "eiger" in TR.detector_name:
-        if "n_imgs" not in list(params.keys()):
+        if find_in_dict("n_imgs", params):
             params["n_imgs"] = None
         eiger_writer(
             master_file,
