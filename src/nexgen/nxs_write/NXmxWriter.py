@@ -94,6 +94,9 @@ class NXmxFileWriter:
         else:
             return self.filename.parent / f"{self.filename.stem}_meta.h5"
 
+    def _get_collection_time(self):
+        return self.detector.exp_time * self.tot_num_imgs
+
     def _get_data_files_list(
         self,
         image_filename: str | None = None,
@@ -199,6 +202,10 @@ class NXmxFileWriter:
             # Start and estimated end time if known
             if start_time:
                 write_NXdatetime(nxs, start_time, "start_time")
+                if not est_end_time:
+                    tot_exp_time = self._get_collection_time()
+                    est_end = calculate_estimated_end_time(start_time, tot_exp_time)
+                    write_NXdatetime(nxs, est_end, "end_time_estimated")
             if est_end_time:
                 write_NXdatetime(nxs, est_end_time, "end_time_estimated")
 
@@ -478,9 +485,6 @@ class EDNXmxFileWriter(NXmxFileWriter):
             self.detector.fast_axis = coord2mcstas(self.detector.fast_axis, mat)
             self.detector.slow_axis = coord2mcstas(self.detector.slow_axis, mat)
 
-    def _get_collection_time(self):
-        return self.detector.exp_time * self.tot_num_imgs
-
     def _get_data_filename(self) -> List[Path]:
         image_filename = f"{self.filename.stem}_data_000001.h5"
         return self.filename.parent / f"{image_filename}"
@@ -539,7 +543,7 @@ class EDNXmxFileWriter(NXmxFileWriter):
 
             if start_time:
                 write_NXdatetime(nxs, start_time, "start_time")
-                tot_exp_time = self._get_collection_time()
+                tot_exp_time = super()._get_collection_time()
                 est_end = calculate_estimated_end_time(start_time, tot_exp_time)
                 write_NXdatetime(nxs, est_end, "end_time_estimated")
 

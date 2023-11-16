@@ -9,14 +9,7 @@ from typing import List, Optional, Tuple
 
 from dataclasses_json import DataClassJsonMixin
 
-from nexgen.nxs_utils import (
-    Attenuator,
-    Axis,
-    Beam,
-    Detector,
-    Source,
-    TransformationType,
-)
+from nexgen.nxs_utils import Attenuator, Axis, Beam, Detector, Goniometer, Source
 from nexgen.utils import Point3D
 
 
@@ -58,66 +51,9 @@ class BeamlineAxes:
             self.slow_axis = Point3D(*self.slow_axis)
 
 
-# I24
-I24Eiger = BeamlineAxes(
-    gonio=[
-        Axis("omega", ".", TransformationType.ROTATION, (-1, 0, 0)),
-        Axis("sam_z", "omega", TransformationType.TRANSLATION, (0, 0, 1)),
-        Axis("sam_y", "sam_z", TransformationType.TRANSLATION, (0, 1, 0)),
-        Axis("sam_x", "sam_y", TransformationType.TRANSLATION, (1, 0, 0)),
-    ],
-    det_axes=[Axis("det_z", ".", TransformationType.TRANSLATION, (0, 0, 1))],
-    fast_axis=Point3D(-1, 0, 0),
-    slow_axis=Point3D(0, -1, 0),
-)
-
-I24Jungfrau = BeamlineAxes(
-    gonio=[
-        Axis("omega", ".", TransformationType.ROTATION, (0, 1, 0)),
-        Axis("sam_z", "omega", TransformationType.TRANSLATION, (0, 0, 1)),
-        Axis("sam_y", "sam_z", TransformationType.TRANSLATION, (0, 1, 0)),
-        Axis("sam_x", "sam_y", TransformationType.TRANSLATION, (1, 0, 0)),
-    ],
-    det_axes=[Axis("det_z", ".", TransformationType.TRANSLATION, (0, 0, 1))],
-    fast_axis=Point3D(-1, 0, 0),
-    slow_axis=Point3D(0, -1, 0),
-)
-
-# I19-2
-I19_2_gonio = [
-    Axis("omega", ".", TransformationType.ROTATION, (-1, 0, 0)),
-    Axis("kappa", "omega", TransformationType.ROTATION, (-0.642788, -0.766044, 0)),
-    Axis("phi", "kappa", TransformationType.ROTATION, (-1, 0, 0)),
-    Axis("sam_z", "phi", TransformationType.TRANSLATION, (0, 0, 1)),
-    Axis("sam_y", "sam_z", TransformationType.TRANSLATION, (0, 1, 0)),
-    Axis("sam_x", "sam_y", TransformationType.TRANSLATION, (1, 0, 0)),
-]
-
-I19_2Eiger = BeamlineAxes(
-    gonio=I19_2_gonio,
-    det_axes=[
-        Axis("two_theta", ".", TransformationType.ROTATION, (-1, 0, 0)),
-        Axis("det_z", "two_theta", TransformationType.TRANSLATION, (0, 0, 1)),
-    ],
-    fast_axis=Point3D(0, 1, 0),
-    slow_axis=Point3D(-1, 0, 0),
-)
-
-I19_2Tristan = BeamlineAxes(
-    gonio=I19_2_gonio,
-    det_axes=[
-        Axis("two_theta", ".", TransformationType.ROTATION, (-1, 0, 0), 0),
-        Axis("det_z", "two_theta", TransformationType.TRANSLATION, (0, 0, 1)),
-    ],
-    fast_axis=Point3D(-1, 0, 0),
-    slow_axis=Point3D(0, 1, 0),
-)
-
-
 def collection_summary_log(
     logger: logging.Logger,
-    gonio_axes: List[Axis],
-    scan_axis: List[str],
+    goniometer: Goniometer,
     detector: Detector,
     attenuator: Attenuator,
     beam: Beam,
@@ -126,34 +62,13 @@ def collection_summary_log(
 ):
     """General function to log a collection summary."""
     logger.info("--- COLLECTION SUMMARY ---")
-    logger.info("Source information")
-    logger.info(f"Facility: {source.name} - {source.facility_type}.")
-    logger.info(f"Beamline / instrument: {source.beamline}")
-    if source.probe:
-        logger.info(f"Probe: {source.probe}")
+    logger.info(source.__repr__())
 
     logger.info(f"Incident beam wavelength: {beam.wavelength}")
     logger.info(f"Attenuation: {attenuator.transmission}")
 
-    logger.info(f"Scan axis/axes: {scan_axis}")
-
-    logger.info("Goniometer information")
-    for ax in gonio_axes:
-        logger.info(
-            f"Goniometer axis: {ax.name} => {ax.start_pos}, {ax.transformation_type} on {ax.depends}"
-        )
-    logger.info("Detector information")
-    logger.info(f"Detector in use: {detector.detector_params.description}")
-    logger.info(
-        f"Sensor made of {detector.detector_params.sensor_material} x {detector.detector_params.sensor_thickness}"
-    )
-    logger.info(
-        f"Detector is a {detector.detector_params.image_size[::-1]} array of {detector.detector_params.pixel_size} pixels"
-    )
-    for ax in detector.detector_axes:
-        logger.info(
-            f"Detector axis: {ax.name} => {ax.start_pos}, {ax.transformation_type} on {ax.depends}"
-        )
+    logger.info(goniometer.__repr__())
+    logger.info(detector.__repr__)
 
     logger.info(f"Recorded beam center is: {detector.beam_center}.")
     logger.info(f"Recorded exposure time: {detector.exp_time} s.")
