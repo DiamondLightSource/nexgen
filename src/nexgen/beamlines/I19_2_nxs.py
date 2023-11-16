@@ -372,7 +372,7 @@ def nexus_writer(
         stop_time (datetime, optional): Experiment end time. Defaults to None.
 
     Keyword Args:
-        num_imgs (int): Total number of images to be collected.
+        n_imgs (int): Total number of images to be collected.
         exposure_time (float): Exposure time, in s.
         transmission (float): Attenuator transmission, in %.
         wavelength (float): Wavelength of incident beam, in A.
