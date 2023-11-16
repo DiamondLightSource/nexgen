@@ -201,7 +201,7 @@ def eiger_writer(
             detector, passed from command line. Defaults to None.
 
     Raises:
-        IOError: If use_meta is set to False but axes_pos and det_pos haven't been passed.
+        ValueError: If use_meta is set to False but axes_pos and det_pos haven't been passed.
         IOError: If the axes positions can't be read from the metafile (missing config or broken links).
     """
     if not use_meta:
@@ -212,7 +212,7 @@ def eiger_writer(
                 and/or detector. Also make sure that the number of frames was passed.
                 """
             )
-            raise IOError("Missing at least one of axes_pos, det_pos, n_frames.")
+            raise ValueError("Missing at least one of axes_pos, det_pos, n_frames.")
 
     source = Source("I19-2")
     from .I19_2_params import I19_2Eiger as axes_params
@@ -356,6 +356,7 @@ def eiger_writer(
 def nexus_writer(
     meta_file: Path | str,
     detector_name: str,
+    exposure_time: float,
     scan_axis: str = "phi",
     start_time: datetime | None = None,
     stop_time: datetime | None = None,
@@ -367,13 +368,13 @@ def nexus_writer(
     Args:
         meta_file (Path | str): Path to _meta.h5 file.
         detector_name (str): Detector in use.
+        exposure_time (float): Exposure time, in s.
         scan_axis (str, optional): Name of the oscillation axis. Defaults to phi.
         start_time (datetime, optional): Experiment start time. Defaults to None.
         stop_time (datetime, optional): Experiment end time. Defaults to None.
 
     Keyword Args:
         n_imgs (int): Total number of images to be collected.
-        exposure_time (float): Exposure time, in s.
         transmission (float): Attenuator transmission, in %.
         wavelength (float): Wavelength of incident beam, in A.
         beam_center (List[float, float]): Beam center position, in pixels.
@@ -397,10 +398,14 @@ def nexus_writer(
     TR = tr_collect(
         meta_file=Path(meta_file).expanduser().resolve(),
         detector_name=detector_name.lower(),
-        exposure_time=params["exposure_time"],
-        transmission=params["transmission"],
-        wavelength=params["wavelength"],
-        beam_center=params["beam_center"],
+        exposure_time=exposure_time,
+        transmission=params["transmission"]
+        if find_in_dict("transmission", params)
+        else None,
+        wavelength=params["wavelength"] if find_in_dict("wavelength", params) else None,
+        beam_center=params["beam_center"]
+        if find_in_dict("beam_center", params)
+        else (0, 0),
         start_time=start_time.strftime("%Y-%m-%dT%H:%M:%S") if start_time else None,
         stop_time=stop_time.strftime("%Y-%m-%dT%H:%M:%S") if stop_time else None,
         scan_axis=scan_axis,
@@ -442,6 +447,9 @@ def nexus_writer(
     if "tristan" in TR.detector_name.lower():
         if params["gonio_pos"] is None or params["det_pos"] is None:
             logger.error("Please pass the axes positions for a Tristan collection.")
+            raise ValueError(
+                "Missing goniometer and/or detector axes information for tristan collection"
+            )
         if TR.scan_axis is None:
             logger.warning(
                 "No scan axis has been specified. Phi will be set as default."
@@ -450,6 +458,11 @@ def nexus_writer(
     if not find_in_dict("use_meta", params):
         # If by any chance not passed, assume False
         params["use_meta"] = False
+
+    if params["use_meta"] is True:
+        params["gonio_pos"] = None
+        params["det_pos"] = None
+    else:
         if not find_in_dict("n_imgs", params) and "eiger" in TR.detector_name:
             raise ValueError(
                 """
@@ -458,10 +471,13 @@ def nexus_writer(
                 be collected has to be passed to the writer.
                 """
             )
-
-    if params["use_meta"] is True:
-        params["gonio_pos"] = None
-        params["det_pos"] = None
+        if TR.beam_center == (0, 0):
+            logger.warning(
+                """
+                Beam centre was not passed to the writer.
+                As it won't be updated from the meta file, it will be set to (0, 0).
+                """
+            )
 
     if "eiger" in TR.detector_name:
         if not find_in_dict("n_imgs", params):
