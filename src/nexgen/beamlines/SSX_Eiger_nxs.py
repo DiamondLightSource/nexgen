@@ -14,7 +14,7 @@ from ..nxs_utils import Attenuator, Beam, Detector, EigerDetector, Goniometer, S
 from ..nxs_write.NXmxWriter import NXmxFileWriter
 from ..tools.Metafile import DectrisMetafile
 from ..tools.MetaReader import define_vds_data_type, update_axes_from_meta
-from ..utils import get_iso_timestamp
+from ..utils import find_in_dict, get_iso_timestamp
 from .beamline_utils import PumpProbe, collection_summary_log
 
 # Define logger
@@ -82,28 +82,39 @@ def ssx_eiger_writer(
         ValueError: If an invalid beamline name is passed.
         ValueError: If an invalid experiment type is passed.
     """
+    if not find_in_dict("start_time", ssx_params):
+        ssx_params["start_time"] = None
+    if not find_in_dict("stop_time", ssx_params):
+        ssx_params["stop_time"] = None
+
     SSX = ssx_collect(
         num_imgs=int(num_imgs),
-        exposure_time=ssx_params["exp_time"],
-        detector_distance=ssx_params["det_dist"]
-        if "det_dist" in ssx_params.keys()
+        exposure_time=ssx_params["exp_time"]
+        if find_in_dict("exp_time", ssx_params)
         else None,
-        beam_center=ssx_params["beam_center"],
+        detector_distance=ssx_params["det_dist"]
+        if find_in_dict("det_dist", ssx_params)
+        else None,
+        beam_center=ssx_params["beam_center"]
+        if find_in_dict("beam_center", ssx_params)
+        else (0, 0),
         transmission=ssx_params["transmission"]
-        if "transmission" in ssx_params.keys()
+        if find_in_dict("transmission", ssx_params)
         else None,
         wavelength=ssx_params["wavelength"]
-        if "wavelength" in ssx_params.keys()
+        if find_in_dict("wavelength", ssx_params)
         else None,
-        flux=ssx_params["flux"] if "flux" in ssx_params.keys() else None,
+        flux=ssx_params["flux"] if find_in_dict("flux", ssx_params) else None,
         start_time=ssx_params["start_time"].strftime("%Y-%m-%dT%H:%M:%S")
         if ssx_params["start_time"]
         else None,
         stop_time=ssx_params["stop_time"].strftime("%Y-%m-%dT%H:%M:%S")
         if ssx_params["stop_time"]
         else None,
-        chip_info=ssx_params["chip_info"] if "chip_info" in ssx_params.keys() else None,
-        chipmap=ssx_params["chipmap"] if "chipmap" in ssx_params.keys() else None,
+        chip_info=ssx_params["chip_info"]
+        if find_in_dict("chip_info", ssx_params)
+        else None,
+        chipmap=ssx_params["chipmap"] if find_in_dict("chipmap", ssx_params) else None,
     )
 
     if expt_type.lower() not in ["extruder", "fixed-target", "3Dgridscan"]:
@@ -167,10 +178,10 @@ def ssx_eiger_writer(
         logger.info("Pump status is True.")
         pump_probe.pump_status = pump_status
         pump_probe.pump_exposure = (
-            ssx_params["pump_exp"] if "pump_exp" in ssx_params.keys() else None
+            ssx_params["pump_exp"] if find_in_dict("pump_exp", ssx_params) else None
         )
         pump_probe.pump_delay = (
-            ssx_params["pump_exp"] if "pump_exp" in ssx_params.keys() else None
+            ssx_params["pump_exp"] if find_in_dict("pump_exp", ssx_params) else None
         )
 
         logger.info(f"Recorded pump exposure time: {pump_probe.pump_exposure}")
