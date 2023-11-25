@@ -106,7 +106,7 @@ def singla_nexus_writer(
     source = EDSource
     if find_in_dict("new_source_info", params):
         logger.warning("Updating source information.")
-        for k, v in params["new_source_info"].keys():
+        for k, v in params["new_source_info"].items():
             source.__setattr__(k, v)
             logger.info(f"Source {k} now set to {v}.")
     logger.info(source.__repr__())
@@ -180,7 +180,7 @@ def singla_nexus_writer(
     logger.info(goniometer.__repr__())
 
     vds_writer = (
-        "dataset" if not find_in_dict("vds_writer", params) else params["vds_wrter"]
+        "dataset" if not find_in_dict("vds_writer", params) else params["vds_writer"]
     )
 
     # Start writing
