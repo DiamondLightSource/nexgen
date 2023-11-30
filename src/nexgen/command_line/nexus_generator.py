@@ -374,7 +374,8 @@ def write_NXmx_cli(args):
                 logger.info("VDS won't be written.")
 
             # Write /entry/start_time and /entry/end_time
-            write_NXdatetime(nxsfile, timestamps)
+            for ts, ds in zip(timestamps, ["start_time", "end_time"]):
+                write_NXdatetime(nxsfile, ts, ds)
 
         logger.info(f"The file {master_file} was written correctly.")
     except Exception as err:
@@ -382,7 +383,6 @@ def write_NXmx_cli(args):
             f"An error occurred and {master_file} couldn't be written correctly."
         )
         logger.exception(err)
-        # logger.error(err)
 
     logger.info("EOF\n")
 
@@ -629,7 +629,8 @@ def write_demo_cli(args):
             logger.info("Writing timestamps to NeXus.")
             logger.info(f"Start time: {timestamps[0]}")
             logger.info(f"End time: {timestamps[1]}")
-            write_NXdatetime(nxsfile, timestamps)
+            for ts, ds in zip(timestamps, ["start_time", "end_time"]):
+                write_NXdatetime(nxsfile, ts, ds)
         logger.info(f"The file {master_file} was written correctly.")
     except Exception as err:
         logger.info(
@@ -896,7 +897,8 @@ def write_with_meta_cli(args):
                 logger.info("VDS won't be written.")
 
             # Write /entry/start_time and /entry/end_time
-            write_NXdatetime(nxsfile, timestamps)
+            for ts, ds in zip(timestamps, ["start_time", "end_time"]):
+                write_NXdatetime(nxsfile, ts, ds)
 
             logger.info(f"The file {master_file} was written correctly.")
     except Exception as err:

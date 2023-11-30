@@ -278,7 +278,10 @@ def define_vds_data_type(meta_file: DectrisMetafile) -> DTypeLike:
 
 
 def update_axes_from_meta(
-    meta_file: DectrisMetafile, axes_list: List[Axis], osc_axis: str | None = None
+    meta_file: DectrisMetafile,
+    axes_list: List[Axis],
+    osc_axis: str | None = None,
+    use_config: bool = False,
 ):
     """Update goniometer or detector axes values from those stores in the _dectris group.
 
@@ -287,6 +290,8 @@ def update_axes_from_meta(
         axes_list (List[Axis]): List of axes to look up and eventually update.
         osc_axis (str | None, optional): If passed, the number of images corresponding to the osc_axis \
             will be updated too. Defaults to None.
+        use_config (bool, optional): If passed read from config dataset in meta file instead of _dectris\
+            group. Defaults to False.
     """
     overwrite_logger.info("Updating axes list with values saved to _dectris group.")
     if meta_file.hasDectrisGroup is False:
@@ -295,7 +300,10 @@ def update_axes_from_meta(
         )
         return
 
-    config = meta_file.read_dectris_config()
+    if use_config is True and meta_file.hasConfig is True:
+        config = meta_file.read_config_dset()
+    else:
+        config = meta_file.read_dectris_config()
     num = meta_file.get_number_of_images()
 
     for ax in axes_list:
@@ -309,3 +317,8 @@ def update_axes_from_meta(
                 )
         if osc_axis and ax.name == osc_axis:
             ax.num_steps = num
+
+        if ax.name == "det_z":
+            dist = units_of_length(meta_file.get_detector_distance())
+            ax.start_pos = dist.to("mm").magnitude
+            overwrite_logger.info(f"Start value for axis {ax.name}: {ax.start_pos}.")

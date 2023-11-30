@@ -6,15 +6,18 @@ from __future__ import annotations
 
 import logging
 import math
+from datetime import datetime, timedelta
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Literal, Tuple
 
-# import h5py
 import numpy as np
-from hdf5plugin import Bitshuffle
+from hdf5plugin import Bitshuffle, Blosc
 from numpy.typing import ArrayLike
 
 import h5py  # isort: skip
+
+# Define Timestamp dataset names
+TSdset = Literal["start_time", "end_time", "end_time_estimated"]
 
 
 def create_attributes(nxs_obj: h5py.Group | h5py.Dataset, names: Tuple, values: Tuple):
@@ -27,7 +30,7 @@ def create_attributes(nxs_obj: h5py.Group | h5py.Dataset, names: Tuple, values: 
         values (Tuple): The attribute values asociated to the names.
     """
     for n, v in zip(names, values):
-        if type(v) is str:
+        if isinstance(v, str):
             # If a string, convert to numpy.string_
             v = np.string_(v)
         h5py.AttributeManager.create(nxs_obj, name=n, data=v)
@@ -115,17 +118,32 @@ def find_number_of_images(datafile_list: List[Path], entry_key: str = "data") ->
     return int(num_images)
 
 
+def calculate_estimated_end_time(
+    start_time: datetime | str, tot_collection_time: float
+) -> str:
+    time_format = r"%Y-%m-%dT%H:%M:%SZ"
+
+    if isinstance(start_time, str):
+        start_time = start_time.format("%Y-%m-%dT%H:%M:%S")
+        start_time = datetime.strptime(start_time.strip("Z"), time_format.strip("Z"))
+
+    est_end = start_time + timedelta(seconds=tot_collection_time)
+    return est_end.strftime(time_format)
+
+
 # Copy and compress a dataset inside a specified NXclass
 def write_compressed_copy(
     nxgroup: h5py.Group,
     dset_name: str,
     data: ArrayLike = None,
     filename: Path | str = None,
-    dset_key: str = None,
-    block_size: int = 0,
+    filter_choice: str = "bitshuffle",
+    dset_key: str = "image",
+    **kwargs,
 ):
     """
-    Write a compressed copy of some dataset in the desired HDF5 group, using the Bitshuffle filter with lz4 compression.
+    Write a compressed copy of some dataset in the desired HDF5 group, using the filter of choice with lz4 compression. Available filters \
+    at this time include "Blosc" and "Bitshuffle" (default).
     The main application for this function in nexgen is to write a compressed copy of a pixel mask or a flatfield file/dataset \
     directly into the NXdetector group of a NXmx NeXus file.
     The data and filename arguments are mutually exclusive as only one of them can be used as input.
@@ -137,8 +155,12 @@ def write_compressed_copy(
         dset_name (str): Name of the new dataset to be written.
         data (ArrayLike, optional): Dataset to be compressed. Defaults to None.
         filename (Path | str, optional): Filename containing the dataset to be compressed into the NeXus file. Defaults to None.
-        dset_key (str, optional): Dataset name inside the passed file. Defaults to None.
-        block_size (int, optional): Number of elements per block, it needs to be divisible by 8. Defaults to 0.
+        filter_choice (str, optional): Filter to be used for compression. Either blosc or bitshuffle. Defaults to bitshuffle.
+        dset_key (str, optional): Dataset name inside the passed file. Defaults to "image".
+
+    Keyword Args:
+        block_size (int, optional): Number of elements per block, it needs to be divisible by 8. Needed for Bitshuffle filter. \
+            Defaults to 0.
 
     Raises:
         ValueError: If both a dataset and a filename have been passed to the function.
@@ -161,9 +183,20 @@ def write_compressed_copy(
         with h5py.File(filename, "r") as fh:
             data = fh[dset_key][()]
 
-    nxgroup.create_dataset(
-        dset_name, data=data, **Bitshuffle(nelems=block_size, cname="lz4")  # lz4=True)
-    )
+    if filter_choice.lower() == "blosc":
+        nxgroup.create_dataset(
+            dset_name, data=data, **Blosc(cname="lz4", shuffle=Blosc.BITSHUFFLE)
+        )
+    elif filter_choice.lower() == "bitshuffle":
+        block_size = (
+            0 if "block_size" not in list(kwargs.keys()) else kwargs["block_size"]
+        )
+        nxgroup.create_dataset(
+            dset_name, data=data, **Bitshuffle(nelems=block_size, cname="lz4")
+        )
+    else:
+        NXclass_logger.warning("Unknown filter choice, no dataset will be written.")
+        return
     NXclass_logger.info(
         f"A compressed copy of the {dset_name} has been written into the NeXus file."
     )

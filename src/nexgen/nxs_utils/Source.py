@@ -37,10 +37,11 @@ class Source:
         self.probe = probe
 
     def __repr__(self) -> str:
-        msg = f"Beamline {self.beamline} at {self.name}.\n"
+        msg = f"Facility: {self.name} - {self.facility_type}. \n\t"
+        msg += f"Beamline / instrument: {self.beamline} \n\t"
         if self.probe:
             msg += "Probe: {}"
-        return msg
+        return f"Source information: \n\t{msg}"
 
     def set_instrument_name(self) -> str:
         """Set the instrument name from the details saved in source.

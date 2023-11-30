@@ -6,11 +6,12 @@ from __future__ import annotations
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, get_args
 
 import numpy as np
 from numpy.typing import ArrayLike
 
+from ..nxs_utils import Axis
 from ..utils import (
     MAX_SUFFIX_DIGITS,
     get_iso_timestamp,
@@ -19,6 +20,7 @@ from ..utils import (
     ureg,
 )
 from .write_utils import (
+    TSdset,
     calculate_origin,
     create_attributes,
     set_dependency,
@@ -482,7 +484,11 @@ def write_NXdetector(
             if maskfile:
                 NXclass_logger.info("Pixel mask file found in working directory.")
                 write_compressed_copy(
-                    nxdetector, "pixel_mask", filename=maskfile[0], dset_key="image"
+                    nxdetector,
+                    "pixel_mask",
+                    filename=maskfile[0],
+                    filter_choice="blosc",
+                    dset_key="image",
                 )
             else:
                 NXclass_logger.warning(
@@ -510,7 +516,11 @@ def write_NXdetector(
             if flatfieldfile:
                 NXclass_logger.info("Flatfield file found in working directory.")
                 write_compressed_copy(
-                    nxdetector, "flatfield", filename=flatfieldfile[0], dset_key="image"
+                    nxdetector,
+                    "flatfield",
+                    filename=flatfieldfile[0],
+                    filter_choice="blosc",
+                    dset_key="image",
                 )
             else:
                 NXclass_logger.warning(
@@ -656,6 +666,12 @@ def write_NXdetector(
                 "depends_on",
                 data=set_dependency(ax, path=nxgrp_ax.name),
             )
+
+    # Write a soft link for detector_z
+    if "detector_z" in list(nxtransformations.keys()):
+        nxdetector["detector_z"] = nxsfile[
+            "/entry/instrument/detector/transformations/detector_z"
+        ]
 
     # Detector distance
     nxdetector.create_dataset("distance", data=dist.to("m").magnitude)
@@ -867,33 +883,37 @@ def write_NXcollection(
 
 
 # NXdatetime writer
-def write_NXdatetime(nxsfile: h5py.File, timestamps: List | Tuple):
-    """
-    Write start and end timestamps under /entry/start_time and /entry/end_time.
+def write_NXdatetime(
+    nxsfile: h5py.File,
+    timestamp: datetime | str,
+    dset_name: TSdset = "start_time",
+):
+    """Write NX_DATE_TIME fields under /entry/.
+    Required fields for NXmx format: 'start_time' and 'end_time_estimated'.
+    Optional field: 'end_time', to be writte only if values accurately observed
 
     Args:
-        nxsfile (h5py.File): Nexus file to be written.
-        timestamps (List | Tuple): Timestamps (start, end).
+        nxsfile (h5py.File): Nexus file handle.
+        timestamp (datetime | str): Timestamp, either in datetime or as a string.
+        dset_name (TSdset, optional): NXdatetime dataset name.\
+            Allowed values: ["start_time", "end_time", "end_time_estimated". Defaults to "start_time".
     """
+    if timestamp is None:
+        NXclass_logger.warning(
+            f"Timestamp value is None, {dset_name} won't be written."
+        )
+        return
     nxentry = nxsfile.require_group("entry")
-
-    start = timestamps[0]
-    if start:
-        if type(start) is datetime:
-            start = start.strftime("%Y-%m-%dT%H:%M:%S")
-            start = get_iso_timestamp(start)
-        if start.endswith("Z") is False:  # Just in case
-            start += "Z"
-        nxentry.create_dataset("start_time", data=np.string_(start))
-
-    stop = timestamps[1]
-    if stop:
-        if type(stop) is datetime:
-            stop = stop.strftime("%Y-%m-%dT%H:%M:%S")
-            stop = get_iso_timestamp(stop)
-        if stop.endswith("Z") is False:
-            stop += "Z"
-        nxentry.create_dataset("end_time", data=np.string_(stop))
+    dset_opts = get_args(TSdset)
+    if dset_name not in dset_opts:
+        NXclass_logger.warning(
+            f"{dset_name} is not an allowed value for NXdatetime dataset. Please pass one of {dset_opts}."
+        )
+        return
+    if type(timestamp) is datetime:
+        timestamp = timestamp.strftime("%Y-%m-%dT%H:%M:%S")
+    timestamp = get_iso_timestamp(timestamp)
+    nxentry.create_dataset(dset_name, data=np.string_(timestamp))
 
 
 # NXnote writer
@@ -928,7 +948,7 @@ def write_NXnote(nxsfile: h5py.File, loc: str, info: Dict):
 def write_NXcoordinate_system_set(
     nxsfile: h5py.File,
     convention: str,
-    base_vectors: Dict[str, Tuple],
+    base_vectors: Dict[str, Axis],
     origin: List | Tuple | ArrayLike,
 ):
     """
@@ -944,7 +964,7 @@ def write_NXcoordinate_system_set(
     Args:
         nxsfile (h5py.File): Handle to NeXus file.
         convention (str): Convention decription. Defaults to "ED".
-        base_vectors (Dict[str, Tuple]): The three base vectors of the coordinate system.
+        base_vectors (Dict[str, Axis]): The three base vectors of the coordinate system.
         origin (List | Tuple | np.ndarray): The location of the origin of the coordinate system.
     """
     NXclass_logger.info(
@@ -973,9 +993,9 @@ def write_NXcoordinate_system_set(
     # Base vectors
     NXclass_logger.info(
         "Base vectors: \n"
-        f"x: {base_vectors['x'][-1]} \n"
-        f"y: {base_vectors['y'][-1]} \n"
-        f"z: {base_vectors['z'][-1]} \n"
+        f"x: {base_vectors['x'].vector} \n"
+        f"y: {base_vectors['y'].vector} \n"
+        f"z: {base_vectors['z'].vector} \n"
     )
     idx = 0
     for k, v in base_vectors.items():
@@ -984,10 +1004,10 @@ def write_NXcoordinate_system_set(
             base,
             ("depends_on", "transformation_type", "units", "vector"),
             (
-                set_dependency(v[0], transf.name),
-                v[1],
-                v[2],
-                v[3],
+                set_dependency(v.depends, transf.name),
+                v.transformation_type,
+                v.units,
+                v.vector,
             ),
         )
         idx += 1

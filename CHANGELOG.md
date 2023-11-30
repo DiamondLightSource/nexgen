@@ -1,20 +1,53 @@
 # CHANGELOG
 
 
+
 ## 0.#.#
 
+### Added
+- Added possibility to write `end_time_estimated` field in NXmxWriter and refactored `write_NXdatetime`.
+- A small utility to write a nexus file for electron diffraction and a new command line tool for SINGLA without phil.
+- Choice to avoid using the meta file for I19-2 data, as long as all relevant information is passed.
+
+### Changed
+- (Temporary) Write a soft link for /entry/instrument/detector/detector_z in NXdetector, for compatibility with autoPROC.
+- Beamline parameters and elettron diffraction have been tidied up.
+
+
+
+## 0.7.2
 
 ### Added
-- Writer for JungFrau 1M use case.
+- Re-added a hasConfig and read_config_dset to Metafile.
+- Flag to use config instead of dectris group when updating axes from meta.
+
+### Fixed
+- I19 eiger writer to use config when updating axes values.
+- I19 eiger writer to read scan axis.
+
+
+## 0.7.1
+
+
+**BROKEN!**
+
+
+## 0.7.0
+
+### Added
+- Choise of filter to use for write_compressed_copy
+- VDS writer for JungFrau 1M use case.
 
 ### Changed
 - Refactoring of serial writer.
 - Refactoring of I19 writers.
 - Refactoring of ED writer.
 - Unified logging for beamline tools.
+- write_NXdetector now uses a blosc filter to write mask and flatfield for event data.
 
 ### Fixed
 - SSX cli import issue.
+- I19 cli bugs.
 - Read params from GDA-generated JSON files.
 - Tidy up/clear up obsolete methods.
 - Update and fix documentation.

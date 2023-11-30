@@ -8,7 +8,7 @@ import re
 from collections import namedtuple
 from datetime import datetime
 from pathlib import Path
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 import h5py
 import numpy as np
@@ -35,7 +35,19 @@ Point3D.__doc__ = """Coordinates in 3D space."""
 
 # Filename pattern: filename_######.h5 or filename_meta.h5
 # P = re.compile(r"(.*)_(?:\d+)")
-P = re.compile(r"(.*)_(?:meta|\d+)")
+P = re.compile(r"(.*)_(?:meta|master|\d+)")
+
+
+def coerce_to_path(filename: Path | str):
+    if not isinstance(filename, Path):
+        filename = Path(filename).expanduser().resolve()
+    return filename
+
+
+def find_in_dict(key: str, params_dict: Dict):
+    if key in list(params_dict.keys()):
+        return True
+    return False
 
 
 def get_filename_template(input_filename: Path) -> str:
@@ -132,7 +144,9 @@ def units_of_length(q: str | float, to_base: bool = False) -> Q_:  # -> pint.Qua
     """
     quantity = Q_(q)
     if quantity <= 0:
-        raise ValueError("Quantity (length) must be positive.")
+        raise ValueError(
+            f"Quantity (length) must be positive. Current value: {quantity}."
+        )
     quantity = quantity * ureg.m if quantity.dimensionless else quantity
     if quantity.check("[length]"):
         if to_base is True:
@@ -162,7 +176,9 @@ def units_of_time(q: str) -> Q_:  # -> pint.Quantity:
     """
     quantity = Q_(q)
     if quantity <= 0:
-        raise ValueError("Quantity (time) of time must be positive.")
+        raise ValueError(
+            f"Quantity (time) of time must be positive. Current value: {quantity}."
+        )
     quantity = quantity * ureg.s if quantity.dimensionless else quantity
     if quantity.check("[time]"):
         return quantity.to_base_units()
@@ -178,7 +194,7 @@ def get_iso_timestamp(ts: str | float) -> str:
 
     Args:
         ts (str | float): Input string, can also be a timestamp (eg. time.time()) string.
-                        Allowed formats: "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%a %b %d %Y %H:%M:%S", "%A, %d. %B %Y %I:%M%p".
+            Allowed formats: "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%a %b %d %Y %H:%M:%S", "%A, %d. %B %Y %I:%M%p".
 
     Returns:
         ts_iso (str): Formatted timestamp.

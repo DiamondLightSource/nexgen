@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
+from nexgen.nxs_utils import Axis, TransformationType
 from nexgen.nxs_write.NXclassWriters import (
     write_NXcollection,
     write_NXcoordinate_system_set,
@@ -280,38 +281,49 @@ def test_given_module_offset_of_1_when_write_NXdetector_module_then_fast_and_slo
         )
 
 
-def test_write_NXdatetime_from_IS8601str(dummy_nexus_file):
+def test_write_NXdatetime_from_ISO8601str(dummy_nexus_file):
     # Check that ISO8601 strings are accepted and written to file
     entry_path = "/entry/"
-    timestamps_str = ("2022-03-31T10:30:42Z", "2022-03-31T10:42:20Z")
-    write_NXdatetime(dummy_nexus_file, timestamps_str)
+    timestamp_str = "2022-03-31T10:30:42Z"
+    write_NXdatetime(dummy_nexus_file, timestamp_str, "start_time")
 
     assert "start_time" in dummy_nexus_file[entry_path].keys()
-    assert "end_time" in dummy_nexus_file[entry_path].keys()
+
+
+def test_write_NXdatetime_from_not_ISO8601str(dummy_nexus_file):
+    entry_path = "/entry/"
+    timestamp_str = datetime.now().strftime("%a %b %d %Y %H:%M:%S")
+
+    write_NXdatetime(dummy_nexus_file, timestamp_str, "start_time")
+
+    assert "start_time" in dummy_nexus_file[entry_path].keys()
+    val = dummy_nexus_file[entry_path + "start_time"][()].decode()
+    assert val.endswith("Z")
 
 
 def test_write_NXdatetime_from_datetime(dummy_nexus_file):
     # Check that datetime objects are accepted and written to file
     entry_path = "/entry/"
-    start = datetime.fromisoformat("2022-03-31T16:30:32")
-    stop = datetime.fromisoformat("2022-03-31T16:34:12")
-    timestamps = (start, stop)
-    write_NXdatetime(dummy_nexus_file, timestamps)
+    end_ts = datetime.fromisoformat("2022-03-31T16:30:32")
+    write_NXdatetime(dummy_nexus_file, end_ts, "end_time")
 
-    assert "start_time" in dummy_nexus_file[entry_path].keys()
     assert "end_time" in dummy_nexus_file[entry_path].keys()
+    val = dummy_nexus_file[entry_path + "end_time"][()].decode()
+    assert val.endswith("Z")
 
 
-def test_write_NXdatetime_with_missing_timestamp(dummy_nexus_file):
-    # Check that relevant dataset doesn't get written is timestamp is missing
+def test_write_NXdatetime_writes_nothing_if_wrong_dset_requested(dummy_nexus_file):
     entry_path = "/entry/"
-    timestamp = (None, "2022-04-01T09:40:56")
-    write_NXdatetime(dummy_nexus_file, timestamp)
+    write_NXdatetime(dummy_nexus_file, "", "no_time")
 
-    assert "start_time" not in dummy_nexus_file[entry_path].keys()
-    assert "end_time" in dummy_nexus_file[entry_path].keys()
-    end = dummy_nexus_file[entry_path + "end_time"][()].decode()
-    assert end.endswith("Z")
+    assert "no_time" not in dummy_nexus_file[entry_path].keys()
+
+
+def test_NXdatetime_exits_before_writing_if_timestamp_is_None(dummy_nexus_file):
+    entry_path = "/entry/"
+    write_NXdatetime(dummy_nexus_file, None, "end_time_estimated")
+
+    assert entry_path + "end_time_estimated" not in dummy_nexus_file.keys()
 
 
 def test_write_NXnote_in_given_location(dummy_nexus_file):
@@ -326,9 +338,9 @@ def test_write_NXnote_in_given_location(dummy_nexus_file):
 
 def test_write_NXcoordinate_system_set(dummy_nexus_file):
     bases = {
-        "x": (".", "translation", "mm", [0, 0, 1]),
-        "y": ("x", "translation", "mm", [0, 0, 0]),
-        "z": ("y", "translation", "mm", [-1, 0, 0]),
+        "x": Axis("x", ".", TransformationType.TRANSLATION, (0, 0, 1)),
+        "y": Axis("y", "x", TransformationType.TRANSLATION, (0, 0, 0)),
+        "z": Axis("z", "y", TransformationType.TRANSLATION, (-1, 0, 0)),
     }
 
     write_NXcoordinate_system_set(
@@ -433,6 +445,9 @@ def test_write_NXdetector_for_images_without_meta_file(dummy_nexus_file):
         dummy_nexus_file[det + "distance"], test_eiger["starts"][0] / 1000
     )
     assert dummy_nexus_file[det + "distance"].attrs["units"] == b"m"
+
+    # Check that detector_z has also been written in /detector
+    assert "detector_z" in list(dummy_nexus_file[det].keys())
 
 
 def test_write_NXinstrument(dummy_nexus_file):

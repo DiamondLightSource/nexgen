@@ -88,7 +88,7 @@ def tristan_writer(
         det_params (DetectorType): Detector definition for Tristan.
         timestamps (Tuple[str, str], optional): Collection start and end time. Defaults to None.
     """
-    ecr = ExtendedRequestIO(TR.xmlfile)
+    ecr = ExtendedRequestIO(TR.xml_file)
     # Read information from xml file
     logger.info("Read xml file.")
     scan_axis, pos, _ = read_scan_from_xml(ecr)
@@ -125,14 +125,13 @@ def tristan_writer(
     gonio_axes = axes_params.gonio
     for k, v in pos.items():
         # Get correct start positions
-        idx = [n for n, ax in enumerate(gonio_axes) if ax.name == k]
+        idx = [n for n, ax in enumerate(gonio_axes) if ax.name == k][0]
         gonio_axes[idx].start_pos = v[0]
     goniometer = Goniometer(gonio_axes, OSC)
 
     collection_summary_log(
         logger,
-        gonio_axes,
-        [scan_axis],
+        goniometer,
         detector,
         attenuator,
         beam,
@@ -150,8 +149,9 @@ def tristan_writer(
             beam,
             attenuator,
         )
-        EventFileWriter.write()
-        EventFileWriter.update_timestamps(timestamps)
+        EventFileWriter.write(start_time=timestamps[0])
+        if timestamps[1]:
+            EventFileWriter.update_timestamps(timestamps[1], "end_time")
         logger.info(f"The file {master_file} was written correctly.")
     except Exception as err:
         logger.exception(err)
@@ -179,7 +179,7 @@ def eiger_writer(
         timestamps (Tuple[str, str], optional): Collection start and end time. Defaults to (None, None).
         vds_dtype (DtypeLike): Data type for vds as np.uint##.
     """
-    ecr = ExtendedRequestIO(TR.xmlfile)
+    ecr = ExtendedRequestIO(TR.xml_file)
     # Read information from xml file
     logger.info("Read xml file.")
     scan_axis, pos, n_frames = read_scan_from_xml(ecr)
@@ -211,12 +211,12 @@ def eiger_writer(
     gonio_axes = axes_params.det_axes
     for k, v in pos.items():
         # Get correct start positions
-        idx = [n for n, ax in enumerate(gonio_axes) if ax.name == k]
+        idx = [n for n, ax in enumerate(gonio_axes) if ax.name == k][0]
         gonio_axes[idx].start_pos = v[0]
 
     # Get scan range array
     logger.info("Calculating scan range...")
-    scan_idx = [n for n, ax in enumerate(gonio_axes) if ax.name == scan_axis]
+    scan_idx = [n for n, ax in enumerate(gonio_axes) if ax.name == scan_axis][0]
 
     # Define OSC scans dictionary
     OSC = calculate_scan_points(
@@ -247,8 +247,9 @@ def eiger_writer(
             attenuator,
             n_frames,
         )
-        NXmx_Writer.write()
-        NXmx_Writer.update_timestamps(timestamps)
+        NXmx_Writer.write(start_time=timestamps[0])
+        if timestamps[1]:
+            NXmx_Writer.update_timestamps(timestamps[1], "end_time")
         NXmx_Writer.write_vds(
             vds_shape=(n_frames, *detector.detector_params.image_size),
             vds_dtype=vds_dtype,
@@ -318,7 +319,7 @@ def write_nxs(**tr_params):
 
     # Get some parameters in here
     if "eiger" in TR.detector_name.lower():
-        from .beamline_parameters import I19_2Eiger as axes_params
+        from .I19_2_params import I19_2Eiger as axes_params
 
         det_params = EigerDetector(
             "Eiger 2X 4M",
@@ -328,7 +329,7 @@ def write_nxs(**tr_params):
             -1,
         )
     elif "tristan" in TR.detector_name.lower():
-        from .beamline_parameters import I19_2Tristan as axes_params
+        from .I19_2_params import I19_2Tristan as axes_params
 
         det_params = TristanDetector("Tristan 10M", (3043, 4183))
     else:

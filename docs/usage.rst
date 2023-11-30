@@ -122,11 +122,11 @@ Generating new NeXus files
 Generating NXmx-like NeXus files for Electron Diffraction
 =========================================================
 
-Example usage for a dataset collected on Dectris Singla 1M detector:
+Example usage for a dataset collected on Dectris Singla 1M detector using a phil parser:
 
 .. code-block:: console
 
-    ED_nexus singla ED_Singla.phil input.datafiles=FILE_data_*.h5 goniometer.starts=0,0,0,0 \
+    ED_nexus singla-phil ED_Singla.phil input.datafiles=FILE_data_*.h5 goniometer.starts=0,0,0,0 \
     goniometer.ends=900,0,0,0 goniometer.increments=1,0,0,0 detector.starts=400 detector.beam_center=1,1 \
     -m FILE_master.h5
 
@@ -155,14 +155,22 @@ To specify a more specific name for the `/entry/instrument/name` field, the foll
 
 which will result in the instrument name being set to `DIAMOND MICROSCOPE eBic` instead of `DIAMOND eBic`.
 
-In case there is a need to save the NeXus file in a different location than the data files:
+
+The downside of this option is that the external links to the data will now be saved using absolute paths instead of relative.
+
+
+Example usage for a dataset collected on Dectris Singla 1M detector without the phil parser (new as of version `0.7.3`):
+
+.. code-block:: console
+
+    ED_nexus singla FILE_master.h5 400 -e 0.099 -wl 0.02 -bc 1 1 --axis-name alpha --axis-start 0.0 --axis-inc 0.11
+
+
+For both CLI tools, in case there is a need to save the NeXus file in a different location than the data files:
 
 .. code-block:: console
 
     -o /path/to/new/directory
-
-
-The downside of this option is that the external links to the data will now be saved using absolute paths instead of relative.
 
 
 Copying NeXus files

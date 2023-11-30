@@ -1,6 +1,34 @@
 """
-Define beamline parameters for I24 with Eiger 9M detector.
+Define beamline parameters for I24 with Eiger 9M and Jungfrau 1M detectors.
 """
+
+from ..nxs_utils import Axis, TransformationType
+from ..utils import Point3D
+from .beamline_utils import BeamlineAxes
+
+I24Eiger = BeamlineAxes(
+    gonio=[
+        Axis("omega", ".", TransformationType.ROTATION, Point3D(-1, 0, 0)),
+        Axis("sam_z", "omega", TransformationType.TRANSLATION, Point3D(0, 0, 1)),
+        Axis("sam_y", "sam_z", TransformationType.TRANSLATION, Point3D(0, 1, 0)),
+        Axis("sam_x", "sam_y", TransformationType.TRANSLATION, Point3D(1, 0, 0)),
+    ],
+    det_axes=[Axis("det_z", ".", TransformationType.TRANSLATION, Point3D(0, 0, 1))],
+    fast_axis=Point3D(-1, 0, 0),
+    slow_axis=Point3D(0, -1, 0),
+)
+
+I24Jungfrau = BeamlineAxes(
+    gonio=[
+        Axis("omega", ".", TransformationType.ROTATION, Point3D(0, 1, 0)),
+        Axis("sam_z", "omega", TransformationType.TRANSLATION, Point3D(0, 0, 1)),
+        Axis("sam_y", "sam_z", TransformationType.TRANSLATION, Point3D(0, 1, 0)),
+        Axis("sam_x", "sam_y", TransformationType.TRANSLATION, Point3D(1, 0, 0)),
+    ],
+    det_axes=[Axis("det_z", ".", TransformationType.TRANSLATION, Point3D(0, 0, 1))],
+    fast_axis=Point3D(-1, 0, 0),
+    slow_axis=Point3D(0, -1, 0),
+)
 
 goniometer_axes = {
     "axes": ["omega", "sam_z", "sam_y", "sam_x"],
