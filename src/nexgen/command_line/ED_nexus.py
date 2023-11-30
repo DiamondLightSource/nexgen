@@ -134,7 +134,7 @@ def write_from_SINGLA_with_phil(args):
     # Find scan axis in parsed values
     scan_idx = [
         n
-        for n in len(params.goniometer.axes)
+        for n in range(len(params.goniometer.axes))
         if params.goniometer.types[n] == "rotation"
     ][0]
     scan_info = [
