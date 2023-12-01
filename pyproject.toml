@@ -1,9 +1,88 @@
 [build-system]
-requires = ["setuptools>=40.6.0", "wheel"]
+requires = ["setuptools>=64", "setuptools_scm[toml]>=8.0.1", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "nexgen"
+version = "0.7.2"
+description = "Next Generation Nexus Generator"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: BSD License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+keywords = ["nexus", "NXmx"]
+dependencies = [
+    "freephil",
+    "h5py",
+    "hdf5plugin>=4.0.1",
+    "numpy",
+    "pint",
+    "importlib_resources>=1.1",
+    "scanspec",
+    "dataclasses-json",
+    "pydantic<2.0",
+]
+license.file = "LICENSE"
+readme = "README.rst"
+requires-python = ">=3.8"
+
+[project.optional-dependencies]
+dev = [
+    "black",
+    "flake8-isort",
+    "Flake8-pyproject",
+    "pytest-cov",
+    "pytest-random-order",
+    "sphinx-autobuild",
+    "pipdeptree",
+    "ipython",
+    "mockito",
+    "pre-commit",
+    "mypy",
+    "tox",
+    "build",
+    "types-mock",
+]
+
+[project.urls]
+GitHub = "https://github.com/dials/nexgen"
+Documentation = "https://nexgen.readthedocs.io/"
+Bug-Tracker = "https://github.com/dials/nexgen/issues"
+
+#[[project.authors]]
+#email = "data_analysis@diamond.ac.uk"
+#name = "Diamond Light Source - Scientific Software"
+
+[project.scripts]
+nexgen = "nexgen.__main__:main"
+generate_nexus = "nexgen.command_line.nexus_generator:main"
+copy_nexus = "nexgen.command_line.copy_nexus:main"
+nexgen_phil = "nexgen.command_line.phil_files_cli:main"
+I19_nexus = "nexgen.command_line.I19_2_cli:main"
+ED_nexus = "nexgen.command_line.ED_nexus:main"
+SSX_nexus = "nexgen.command_line.SSX_cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.isort]
 profile = "black"
+float_to_top = "true"
+
+[tool.flake8]
+max-line-length = 88    # Respect black's line length (default 88)
+extend-ignore = ["E203", "E266", "E402", "E501", "W503", "E741"]
+exclude = [".tox"]
+
+[tool.mypy]
+plugins = ["pydantic.mypy"]
+ignore_missing_imports = true # Ignore missing stubs in imported modules
 
 [tool.pytest.ini_options]
 addopts = """
