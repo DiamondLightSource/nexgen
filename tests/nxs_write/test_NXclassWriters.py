@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
+from nexgen.nxs_utils import Axis, TransformationType
 from nexgen.nxs_write.NXclassWriters import (
     write_NXcollection,
     write_NXcoordinate_system_set,
@@ -337,9 +338,9 @@ def test_write_NXnote_in_given_location(dummy_nexus_file):
 
 def test_write_NXcoordinate_system_set(dummy_nexus_file):
     bases = {
-        "x": (".", "translation", "mm", [0, 0, 1]),
-        "y": ("x", "translation", "mm", [0, 0, 0]),
-        "z": ("y", "translation", "mm", [-1, 0, 0]),
+        "x": Axis("x", ".", TransformationType.TRANSLATION, (0, 0, 1)),
+        "y": Axis("y", "x", TransformationType.TRANSLATION, (0, 0, 0)),
+        "z": Axis("z", "y", TransformationType.TRANSLATION, (-1, 0, 0)),
     }
 
     write_NXcoordinate_system_set(

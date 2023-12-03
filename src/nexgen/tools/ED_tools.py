@@ -57,6 +57,9 @@ class SinglaMaster:
             return None
         return self.__getitem__(_loc[0])[()]
 
+    def full_number_of_images(self) -> int:
+        return self.get_number_of_images() * self.get_number_of_triggers()
+
     def get_trigger_mode(self) -> str:
         _loc = [obj for obj in self.walk if "trigger_mode" in obj]
         if len(_loc) == 0:
@@ -113,6 +116,12 @@ class SinglaMaster:
 
     def get_detector_readout_time(self) -> float:
         _loc = [obj for obj in self.walk if "detector_readout_time" in obj]
+        if len(_loc) == 0:
+            return None
+        return self.__getitem__(_loc[0])[()]
+
+    def get_exposure_time(self) -> float:
+        _loc = [obj for obj in self.walk if "count_time" in obj]
         if len(_loc) == 0:
             return None
         return self.__getitem__(_loc[0])[()]

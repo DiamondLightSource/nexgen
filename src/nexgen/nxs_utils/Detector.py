@@ -188,8 +188,8 @@ class Detector:
     def __repr__(self) -> str:
         det_msg = (
             f"{self.detector_params.description} \n\t"
-            f"Image size {self.detector_params.image_size} pixels; \n\t"
-            f"{self.detector_params.sensor_material} sensor x {self.detector_params.sensor_thickness}; \n"
+            f"Image size {self.detector_params.image_size} pixels of size {self.detector_params.pixel_size}; \n\t"
+            f"{self.detector_params.sensor_material} sensor x {self.detector_params.sensor_thickness}; \n\t"
             "Detector axes: \n\t"
         )
         for ax in self.detector_axes:

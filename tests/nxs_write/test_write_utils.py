@@ -1,7 +1,10 @@
+from datetime import datetime
+
 import numpy as np
 import pytest
 
 from nexgen.nxs_write.write_utils import (
+    calculate_estimated_end_time,
     calculate_origin,
     create_attributes,
     find_number_of_images,
@@ -61,3 +64,15 @@ def test_find_number_of_images_returns_0_if_no_file_passed():
 def test_write_copy_raises_error_if_both_array_and_file():
     with pytest.raises(ValueError):
         write_compressed_copy("", "", np.array([0.0]), "filename")
+
+
+def test_calculate_estimated_end_time_from_iso_string():
+    timestamp_str = "2023-11-15T10:30:42Z"
+    est_end_time = calculate_estimated_end_time(timestamp_str, 10)
+    assert est_end_time == "2023-11-15T10:30:52Z"
+
+
+def test_calculate_estimated_end_time_from_datetime():
+    timestamp = datetime.strptime("2023-11-15T10:30:42", "%Y-%m-%dT%H:%M:%S")
+    est_end_time = calculate_estimated_end_time(timestamp, 20)
+    assert est_end_time == "2023-11-15T10:31:02Z"

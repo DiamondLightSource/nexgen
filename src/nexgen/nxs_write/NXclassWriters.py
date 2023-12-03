@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Optional, Tuple, get_args
 import numpy as np
 from numpy.typing import ArrayLike
 
+from ..nxs_utils import Axis
 from ..utils import (
     MAX_SUFFIX_DIGITS,
     get_iso_timestamp,
@@ -947,7 +948,7 @@ def write_NXnote(nxsfile: h5py.File, loc: str, info: Dict):
 def write_NXcoordinate_system_set(
     nxsfile: h5py.File,
     convention: str,
-    base_vectors: Dict[str, Tuple],
+    base_vectors: Dict[str, Axis],
     origin: List | Tuple | ArrayLike,
 ):
     """
@@ -963,7 +964,7 @@ def write_NXcoordinate_system_set(
     Args:
         nxsfile (h5py.File): Handle to NeXus file.
         convention (str): Convention decription. Defaults to "ED".
-        base_vectors (Dict[str, Tuple]): The three base vectors of the coordinate system.
+        base_vectors (Dict[str, Axis]): The three base vectors of the coordinate system.
         origin (List | Tuple | np.ndarray): The location of the origin of the coordinate system.
     """
     NXclass_logger.info(
@@ -992,9 +993,9 @@ def write_NXcoordinate_system_set(
     # Base vectors
     NXclass_logger.info(
         "Base vectors: \n"
-        f"x: {base_vectors['x'][-1]} \n"
-        f"y: {base_vectors['y'][-1]} \n"
-        f"z: {base_vectors['z'][-1]} \n"
+        f"x: {base_vectors['x'].vector} \n"
+        f"y: {base_vectors['y'].vector} \n"
+        f"z: {base_vectors['z'].vector} \n"
     )
     idx = 0
     for k, v in base_vectors.items():
@@ -1003,10 +1004,10 @@ def write_NXcoordinate_system_set(
             base,
             ("depends_on", "transformation_type", "units", "vector"),
             (
-                set_dependency(v[0], transf.name),
-                v[1],
-                v[2],
-                v[3],
+                set_dependency(v.depends, transf.name),
+                v.transformation_type,
+                v.units,
+                v.vector,
             ),
         )
         idx += 1

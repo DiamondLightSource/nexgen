@@ -131,8 +131,7 @@ def tristan_writer(
 
     collection_summary_log(
         logger,
-        gonio_axes,
-        [scan_axis],
+        goniometer,
         detector,
         attenuator,
         beam,
@@ -320,7 +319,7 @@ def write_nxs(**tr_params):
 
     # Get some parameters in here
     if "eiger" in TR.detector_name.lower():
-        from .beamline_utils import I19_2Eiger as axes_params
+        from .I19_2_params import I19_2Eiger as axes_params
 
         det_params = EigerDetector(
             "Eiger 2X 4M",
@@ -330,7 +329,7 @@ def write_nxs(**tr_params):
             -1,
         )
     elif "tristan" in TR.detector_name.lower():
-        from .beamline_utils import I19_2Tristan as axes_params
+        from .I19_2_params import I19_2Tristan as axes_params
 
         det_params = TristanDetector("Tristan 10M", (3043, 4183))
     else:
