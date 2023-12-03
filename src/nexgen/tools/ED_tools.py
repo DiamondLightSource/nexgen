@@ -155,6 +155,30 @@ class SinglaMaster:
             return collection_date
 
 
+def extract_start_time_from_master(master: Path | str) -> datetime:
+    """
+    Extracts `data_collection_data` from the master file
+
+    Args:
+        master (Path | str): Path to Singla master file.
+
+    Returns:
+        data collection date: Datetime object.
+    """
+    import logging
+
+    logger = logging.getLogger("nexgen.EDtools.Singla")
+    logger.setLevel(logging.DEBUG)
+
+    if SinglaMaster.isDectrisSingla(master) is False:
+        logger.warning(f"The file {master} is the wrong format.")
+        return
+
+    with h5py.File(master, "r") as fh:
+        singla = SinglaMaster(fh)
+        return singla.get_data_collection_date()
+
+
 def extract_from_SINGLA_master(master: Path | str) -> Dict[str, Any]:
     """
     Extracts mask, flatfield and any other information relative to the detector \
@@ -193,7 +217,6 @@ def extract_from_SINGLA_master(master: Path | str) -> Dict[str, Any]:
         D["detector_number"] = singla.get_detector_number()
         D["detector_readout_time"] = singla.get_detector_readout_time()
         D["photon_energy"] = singla.get_photon_energy()
-        D["data_collection_date"] = singla.get_data_collection_date()
 
     return D
 

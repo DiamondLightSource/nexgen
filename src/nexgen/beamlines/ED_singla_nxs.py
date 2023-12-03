@@ -14,6 +14,7 @@ from ..nxs_utils.ScanUtils import calculate_scan_points
 from ..nxs_write.NXmxWriter import EDNXmxFileWriter
 from ..nxs_write.write_utils import find_number_of_images
 from ..tools.ED_tools import extract_from_SINGLA_master, find_beam_centre
+from ..tools.ED_tools import extract_start_time_from_master
 from ..utils import coerce_to_path, find_in_dict, get_iso_timestamp, get_nexus_filename
 from .ED_params import ED_coord_system, EDSingla, EDSource
 
@@ -100,7 +101,7 @@ def singla_nexus_writer(
     if find_in_dict("start_time", params):
         start_time = get_iso_timestamp(params["start_time"])
     else:
-        start_time = None
+        start_time = extract_start_time_from_master(master_file)
 
     # Update source if new info passed
     source = EDSource
