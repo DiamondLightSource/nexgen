@@ -157,7 +157,7 @@ class SinglaMaster:
 
 def extract_start_time_from_master(master: Path | str) -> datetime:
     """
-    Extracts `data_collection_data` from the master file
+    Extracts `data_collection_date` from the master file
 
     Args:
         master (Path | str): Path to Singla master file.
@@ -170,13 +170,18 @@ def extract_start_time_from_master(master: Path | str) -> datetime:
     logger = logging.getLogger("nexgen.EDtools.Singla")
     logger.setLevel(logging.DEBUG)
 
+
     if SinglaMaster.isDectrisSingla(master) is False:
         logger.warning(f"The file {master} is the wrong format.")
         return
 
+    start_time = None
+
     with h5py.File(master, "r") as fh:
         singla = SinglaMaster(fh)
-        return singla.get_data_collection_date()
+        start_time = singla.get_data_collection_date()
+    
+    return start_time
 
 
 def extract_from_SINGLA_master(master: Path | str) -> Dict[str, Any]:
