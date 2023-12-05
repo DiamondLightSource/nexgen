@@ -15,6 +15,7 @@ from ..nxs_write.NXmxWriter import EDNXmxFileWriter
 from ..nxs_write.write_utils import find_number_of_images
 from ..tools.ED_tools import extract_from_SINGLA_master, find_beam_centre
 from ..tools.ED_tools import extract_start_time_from_master
+from ..tools.ED_tools import extract_exposure_time_from_master
 from ..utils import coerce_to_path, find_in_dict, get_iso_timestamp, get_nexus_filename
 from .ED_params import ED_coord_system, EDSingla, EDSource
 
@@ -145,6 +146,13 @@ def singla_nexus_writer(
     # Detector/module axes
     det_axes = EDSingla.det_axes
     det_axes[0].start_pos = det_distance
+
+    if not exp_time:
+        logger.warning("Exposure time not set, trying to read it from the master file.")
+        exp_time = extract_exposure_time_from_master(master_file)
+
+    if not exp_time:
+        raise ValueError("Exposure time not provided. No 'count_time' in the master file.")
 
     # Define detector
     detector = Detector(
