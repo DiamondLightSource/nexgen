@@ -10,13 +10,8 @@ import numpy as np
 from numpy.typing import ArrayLike
 
 from .Axes import Axis
-from .ScanUtils import (
-    GridScanOptions,
-    ScanDirection,
-    calculate_scan_points,
-    identify_grid_scan_axes,
-    identify_osc_axis,
-)
+from .ScanUtils import (GridScanOptions, ScanDirection, calculate_scan_points,
+                        identify_grid_scan_axes, identify_osc_axis)
 
 
 class Goniometer:

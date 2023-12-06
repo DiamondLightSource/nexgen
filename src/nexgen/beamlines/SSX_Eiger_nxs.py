@@ -10,7 +10,8 @@ from pathlib import Path
 import h5py
 
 from .. import log
-from ..nxs_utils import Attenuator, Beam, Detector, EigerDetector, Goniometer, Source
+from ..nxs_utils import (Attenuator, Beam, Detector, EigerDetector, Goniometer,
+                         Source)
 from ..nxs_write.NXmxWriter import NXmxFileWriter
 from ..tools.Metafile import DectrisMetafile
 from ..tools.MetaReader import define_vds_data_type, update_axes_from_meta

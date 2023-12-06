@@ -14,27 +14,18 @@ import freephil
 import h5py
 import numpy as np
 
+from . import (add_tristan_spec, config_parser, demo_parser,
+               detectormode_parser, nexus_parser, phil2dict, version_parser)
 from .. import log
-from ..nxs_write.NXclassWriters import write_NXdatetime, write_NXentry, write_NXnote
+from ..nxs_write.NXclassWriters import (write_NXdatetime, write_NXentry,
+                                        write_NXnote)
 from ..tools.DataWriter import generate_event_files, generate_image_files
 from ..tools.MetaReader import overwrite_beam, overwrite_detector
 from ..tools.VDS_tools import image_vds_writer, vds_file_writer
-from ..utils import (
-    get_filename_template,
-    get_iso_timestamp,
-    get_nexus_filename,
-    units_of_time,
-)
-from . import (
-    add_tristan_spec,
-    config_parser,
-    demo_parser,
-    detectormode_parser,
-    nexus_parser,
-    phil2dict,
-    version_parser,
-)
-from .cli_utils import ScanReader, call_writers  # write_nexus_demo, write_nexus
+from ..utils import (get_filename_template, get_iso_timestamp,
+                     get_nexus_filename, units_of_time)
+from .cli_utils import (ScanReader,  # write_nexus_demo, write_nexus
+                        call_writers)
 
 # Define a logger object
 logger = logging.getLogger("nexgen.NeXusGenerator")

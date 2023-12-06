@@ -5,17 +5,18 @@ from __future__ import annotations
 
 import logging
 import operator
-from dataclasses import dataclass
 from functools import reduce
 from pathlib import Path
 from typing import List, Tuple
 
 import h5py
 import numpy as np
+from dataclasses import dataclass
 from numpy.typing import DTypeLike
 
 from ..utils import MAX_FRAMES_PER_DATASET
-from .Constants import jungfrau_fill_value, jungfrau_gap_size, jungfrau_mod_size
+from .Constants import (jungfrau_fill_value, jungfrau_gap_size,
+                        jungfrau_mod_size)
 
 vds_logger = logging.getLogger("nexgen.VDSWriter")
 

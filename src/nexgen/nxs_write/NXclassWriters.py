@@ -8,29 +8,19 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, get_args
 
+import h5py  # isort: skip
 import numpy as np
 from numpy.typing import ArrayLike
 
 from ..nxs_utils import Axis
-from ..utils import (
-    MAX_SUFFIX_DIGITS,
-    get_iso_timestamp,
-    units_of_length,
-    units_of_time,
-    ureg,
-)
-from .write_utils import (
-    TSdset,
-    calculate_origin,
-    create_attributes,
-    set_dependency,
-    write_compressed_copy,
-)
+from ..utils import (MAX_SUFFIX_DIGITS, get_iso_timestamp, units_of_length,
+                     units_of_time, ureg)
+from .write_utils import (TSdset, calculate_origin, create_attributes,
+                          set_dependency, write_compressed_copy)
 
 # from hdf5plugin import Bitshuffle   # noqa: F401
 
 
-import h5py  # isort: skip
 
 
 NXclass_logger = logging.getLogger("nexgen.NXclass_writers")

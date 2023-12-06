@@ -9,9 +9,10 @@ from pathlib import Path
 
 import freephil
 
+from . import (config_parser, full_copy_parser, tristan_copy_parser,
+               version_parser)
 from .. import log
 from ..nxs_copy import CopyNexus, CopyTristanNexus
-from . import config_parser, full_copy_parser, tristan_copy_parser, version_parser
 
 # Define a logger object and a formatter
 logger = logging.getLogger("nexgen.CopyNeXus")

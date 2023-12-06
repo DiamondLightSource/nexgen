@@ -13,16 +13,9 @@ import numpy as np
 from hdf5plugin import Bitshuffle
 from numpy.typing import ArrayLike
 
-from .Constants import (
-    clock_freq,
-    eiger_gap_size,
-    eiger_mod_size,
-    eiger_modules,
-    tristan_chunk,
-    tristan_gap_size,
-    tristan_mod_size,
-    tristan_modules,
-)
+from .Constants import (clock_freq, eiger_gap_size, eiger_mod_size,
+                        eiger_modules, tristan_chunk, tristan_gap_size,
+                        tristan_mod_size, tristan_modules)
 
 data_logger = logging.getLogger("nexgen.DataWriter")
 

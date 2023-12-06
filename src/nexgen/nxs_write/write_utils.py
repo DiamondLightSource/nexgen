@@ -10,11 +10,10 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Literal, Tuple
 
+import h5py  # isort: skip
 import numpy as np
 from hdf5plugin import Bitshuffle, Blosc
 from numpy.typing import ArrayLike
-
-import h5py  # isort: skip
 
 # Define Timestamp dataset names
 TSdset = Literal["start_time", "end_time", "end_time_estimated"]

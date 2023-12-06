@@ -14,7 +14,8 @@ from ..nxs_utils.ScanUtils import calculate_scan_points
 from ..nxs_write.NXmxWriter import EDNXmxFileWriter
 from ..nxs_write.write_utils import find_number_of_images
 from ..tools.ED_tools import extract_from_SINGLA_master, find_beam_centre
-from ..utils import coerce_to_path, find_in_dict, get_iso_timestamp, get_nexus_filename
+from ..utils import (coerce_to_path, find_in_dict, get_iso_timestamp,
+                     get_nexus_filename)
 from .ED_params import ED_coord_system, EDSingla, EDSource
 
 logger = logging.getLogger("nexgen.EDNeXusWriter")

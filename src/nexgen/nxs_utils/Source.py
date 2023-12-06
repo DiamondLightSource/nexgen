@@ -4,8 +4,8 @@ Object definition for Source, Beam and Attenuator
 from __future__ import annotations
 
 from collections import namedtuple
-from dataclasses import dataclass
 
+from dataclasses import dataclass
 from dataclasses_json import DataClassJsonMixin
 
 # Describe facility

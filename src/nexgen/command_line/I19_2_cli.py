@@ -8,8 +8,8 @@ import logging
 from collections import namedtuple
 from datetime import datetime
 
-from .. import log
 from . import version_parser
+from .. import log
 
 logger = logging.getLogger("nexgen.I19-2_NeXus_cli")
 

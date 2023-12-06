@@ -4,12 +4,12 @@ Define and store basic beamline utilities.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
+from dataclasses import dataclass
 from dataclasses_json import DataClassJsonMixin
-
-from nexgen.nxs_utils import Attenuator, Axis, Beam, Detector, Goniometer, Source
+from nexgen.nxs_utils import (Attenuator, Axis, Beam, Detector, Goniometer,
+                              Source)
 from nexgen.utils import Point3D
 
 
