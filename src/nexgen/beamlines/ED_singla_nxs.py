@@ -13,9 +13,12 @@ from ..nxs_utils import Attenuator, Beam, Detector, Goniometer, SinglaDetector
 from ..nxs_utils.ScanUtils import calculate_scan_points
 from ..nxs_write.NXmxWriter import EDNXmxFileWriter
 from ..nxs_write.write_utils import find_number_of_images
-from ..tools.ED_tools import extract_from_SINGLA_master, find_beam_centre
-from ..tools.ED_tools import extract_start_time_from_master
-from ..tools.ED_tools import extract_exposure_time_from_master
+from ..tools.ED_tools import (
+    extract_detector_info_from_master,
+    extract_exposure_time_from_master,
+    extract_start_time_from_master,
+    find_beam_centre,
+)
 from ..utils import coerce_to_path, find_in_dict, get_iso_timestamp, get_nexus_filename
 from .ED_params import ED_coord_system, EDSingla, EDSource
 
@@ -129,7 +132,7 @@ def singla_nexus_writer(
     logger.info(
         "Looking through Dectris master file to extract at least mask and flatfield."
     )
-    det_info = extract_from_SINGLA_master(master_file)
+    det_info = extract_detector_info_from_master(master_file)
     det_params.constants.update(det_info)
     # If beam_centre not passed, define it
     if not find_in_dict("beam_center", params) or params["beam_center"] is None:
@@ -152,7 +155,9 @@ def singla_nexus_writer(
         exp_time = extract_exposure_time_from_master(master_file)
 
     if not exp_time:
-        raise ValueError("Exposure time not provided. No 'count_time' in the master file.")
+        raise ValueError(
+            "Exposure time not provided. No 'count_time' in the master file."
+        )
 
     # Define detector
     detector = Detector(

@@ -1,4 +1,5 @@
 import tempfile
+from datetime import datetime
 
 import h5py
 import numpy as np
@@ -8,7 +9,9 @@ from nexgen.tools.DataWriter import build_an_eiger
 from nexgen.tools.ED_tools import (
     SinglaMaster,
     centroid_max,
-    extract_from_SINGLA_master,
+    extract_detector_info_from_master,
+    extract_exposure_time_from_master,
+    extract_start_time_from_master,
     find_beam_centre,
 )
 
@@ -39,6 +42,10 @@ test_flatfield = np.array([[0, 0, 0], [0, 0, 0]])
 def dummy_singla_master_file():
     test_hdf_file = tempfile.NamedTemporaryFile(suffix=".h5", delete=True)
     with h5py.File(test_hdf_file, "w") as test_master_file:
+        test_master_file["/entry/instrument/detector/count_time"] = 0.1
+        test_master_file[
+            "/entry/instrument/detector/detectorSpecific/data_collection_date"
+        ] = "2023-12-06T10:30:42.039+02:00"
         test_master_file["/entry/instrument/detector/description/"] = b"Dectris Singla"
         test_master_file["/entry/instrument/detector/pixel_mask_applied"] = False
         test_master_file[
@@ -56,7 +63,7 @@ def test_isSingla_master_file(dummy_singla_master_file):
 
 
 def test_get_mask_and_flatfield_from_singla_master_file(dummy_singla_master_file):
-    D = extract_from_SINGLA_master(dummy_singla_master_file.name)
+    D = extract_detector_info_from_master(dummy_singla_master_file.name)
     assert "pixel_mask" in D.keys() and "flatfield" in D.keys()
     assert D["pixel_mask"] is None
     assert D["pixel_mask_applied"] == 0
@@ -65,10 +72,22 @@ def test_get_mask_and_flatfield_from_singla_master_file(dummy_singla_master_file
 
 
 def test_get_software_version_from_singla_master_file(dummy_singla_master_file):
-    D = extract_from_SINGLA_master(dummy_singla_master_file.name)
+    D = extract_detector_info_from_master(dummy_singla_master_file.name)
     assert "software_version" in D.keys()
-    assert type(D["software_version"]) is bytes
+    assert isinstance(D["software_version"], bytes)
     assert D["software_version"].decode() == "0.0.0"
+
+
+def test_get_exposure_time_from_singla_master_file(dummy_singla_master_file):
+    exp_time = extract_exposure_time_from_master(dummy_singla_master_file.name)
+    assert isinstance(exp_time, float)
+    assert exp_time == 0.1
+
+
+def test_get_collection_start_time_from_singla_master_file(dummy_singla_master_file):
+    start_time = extract_start_time_from_master(dummy_singla_master_file.name)
+    assert isinstance(start_time, datetime)
+    assert start_time == datetime.fromisoformat("2023-12-06T10:30:42")
 
 
 def test_get_nimages_and_triggers(dummy_singla_master_file):
@@ -110,6 +129,6 @@ def test_find_beam_center(dummy_singla_master_file):
     beam_center = find_beam_centre(
         dummy_singla_master_file.name, test_img_hdf_file.name
     )
-    assert type(beam_center) is tuple
+    assert isinstance(beam_center, tuple)
     assert beam_center[0] is not None
     assert beam_center[1] is not None
