@@ -141,3 +141,6 @@ dmypy.json
 
 # JetBrains PyCharm project files
 /.idea/*
+
+# ruff cache
+.ruff_cache/

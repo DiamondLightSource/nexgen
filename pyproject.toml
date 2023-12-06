@@ -35,8 +35,7 @@ requires-python = ">=3.8"
 [project.optional-dependencies]
 dev = [
     "black",
-    "flake8-isort",
-    "Flake8-pyproject",
+    "ruff",
     "pytest-cov",
     "pytest-random-order",
     "sphinx-autobuild",
@@ -71,14 +70,24 @@ SSX_nexus = "nexgen.command_line.SSX_cli:main"
 [tool.setuptools.packages.find]
 where = ["src"]
 
-[tool.isort]
-profile = "black"
-float_to_top = "true"
-
-[tool.flake8]
-max-line-length = 88    # Respect black's line length (default 88)
-extend-ignore = ["E203", "E266", "E402", "E501", "W503", "E741"]
-exclude = [".tox"]
+[tool.ruff]
+src = ["src", "tests"]
+line-length = 88
+extend-ignore = [
+    "E501", # Line too long
+    "F811", # support typing.overload decorator
+    "E203",
+    "E266",
+    "E402",
+    "E741",
+]
+select = [
+    "C4",   # flake8-comprehensions - https://beta.ruff.rs/docs/rules/#flake8-comprehensions-c4
+    "E",    # pycodestyle errors - https://beta.ruff.rs/docs/rules/#error-e
+    "F",    # pyflakes rules - https://beta.ruff.rs/docs/rules/#pyflakes-f
+    "W",    # pycodestyle warnings - https://beta.ruff.rs/docs/rules/#warning-w
+    "I001", # isort
+]
 
 [tool.mypy]
 plugins = ["pydantic.mypy"]
