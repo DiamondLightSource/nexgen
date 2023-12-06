@@ -35,6 +35,8 @@ jobs:
       - name: Run flake8
         uses: TrueBrain/actions-flake8@v2
         with:
+          ignore: "E203, E266, E402, E501, W503, E741"
+          max-line-length: "88"
           path: src
   
   test:
