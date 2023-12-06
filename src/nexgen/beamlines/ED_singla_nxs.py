@@ -13,9 +13,13 @@ from ..nxs_utils import Attenuator, Beam, Detector, Goniometer, SinglaDetector
 from ..nxs_utils.ScanUtils import calculate_scan_points
 from ..nxs_write.NXmxWriter import EDNXmxFileWriter
 from ..nxs_write.write_utils import find_number_of_images
-from ..tools.ED_tools import extract_from_SINGLA_master, find_beam_centre
-from ..utils import (coerce_to_path, find_in_dict, get_iso_timestamp,
-                     get_nexus_filename)
+from ..tools.ED_tools import (
+    extract_detector_info_from_master,
+    extract_exposure_time_from_master,
+    extract_start_time_from_master,
+    find_beam_centre,
+)
+from ..utils import coerce_to_path, find_in_dict, get_iso_timestamp, get_nexus_filename
 from .ED_params import ED_coord_system, EDSingla, EDSource
 
 logger = logging.getLogger("nexgen.EDNeXusWriter")
@@ -101,13 +105,13 @@ def singla_nexus_writer(
     if find_in_dict("start_time", params):
         start_time = get_iso_timestamp(params["start_time"])
     else:
-        start_time = None
+        start_time = extract_start_time_from_master(master_file)
 
     # Update source if new info passed
     source = EDSource
     if find_in_dict("new_source_info", params):
         logger.warning("Updating source information.")
-        for k, v in params["new_source_info"].keys():
+        for k, v in params["new_source_info"].items():
             source.__setattr__(k, v)
             logger.info(f"Source {k} now set to {v}.")
     logger.info(source.__repr__())
@@ -128,7 +132,7 @@ def singla_nexus_writer(
     logger.info(
         "Looking through Dectris master file to extract at least mask and flatfield."
     )
-    det_info = extract_from_SINGLA_master(master_file)
+    det_info = extract_detector_info_from_master(master_file)
     det_params.constants.update(det_info)
     # If beam_centre not passed, define it
     if not find_in_dict("beam_center", params) or params["beam_center"] is None:
@@ -145,6 +149,15 @@ def singla_nexus_writer(
     # Detector/module axes
     det_axes = EDSingla.det_axes
     det_axes[0].start_pos = det_distance
+
+    if not exp_time:
+        logger.warning("Exposure time not set, trying to read it from the master file.")
+        exp_time = extract_exposure_time_from_master(master_file)
+
+    if not exp_time:
+        raise ValueError(
+            "Exposure time not provided. No 'count_time' in the master file."
+        )
 
     # Define detector
     detector = Detector(
@@ -181,7 +194,7 @@ def singla_nexus_writer(
     logger.info(goniometer.__repr__())
 
     vds_writer = (
-        "dataset" if not find_in_dict("vds_writer", params) else params["vds_wrter"]
+        "dataset" if not find_in_dict("vds_writer", params) else params["vds_writer"]
     )
 
     # Start writing

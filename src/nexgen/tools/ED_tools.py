@@ -3,6 +3,8 @@ Tools to extract metadata for Electron Diffraction.
 """
 from __future__ import annotations
 
+import logging
+from datetime import datetime
 from functools import cached_property
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
@@ -11,6 +13,9 @@ import h5py
 import hdf5plugin  # noqa: F401
 import numpy as np
 from numpy.typing import ArrayLike
+
+logger = logging.getLogger("nexgen.EDtools.Singla")
+logger.setLevel(logging.DEBUG)
 
 
 class SinglaMaster:
@@ -143,8 +148,65 @@ class SinglaMaster:
             return None
         return self.__getitem__(_loc[0])[()]
 
+    def get_data_collection_date(self) -> str:
+        _loc = [obj for obj in self.walk if "data_collection_date" in obj]
+        if len(_loc) == 0:
+            return None
+        else:
+            collection_date = str(self.__getitem__(_loc[0])[()])[2:21]
+            collection_date = datetime.strptime(collection_date, "%Y-%m-%dT%H:%M:%S")
+            return collection_date
 
-def extract_from_SINGLA_master(master: Path | str) -> Dict[str, Any]:
+
+def extract_exposure_time_from_master(master: Path | str) -> float:
+    """
+    Extracts the exposure time from the count_time field in the master file.
+
+    Args:
+        master (Path | str): Path to Singla master file.
+
+    Returns:
+        exposure_time (float): Exposure time, in seconds.
+    """
+
+    if SinglaMaster.isDectrisSingla(master) is False:
+        logger.warning(f"The file {master} is the wrong format.")
+        return
+
+    exposure_time = None
+
+    with h5py.File(master, "r") as fh:
+        singla = SinglaMaster(fh)
+        exposure_time = singla.get_exposure_time()
+
+    return exposure_time
+
+
+def extract_start_time_from_master(master: Path | str) -> datetime:
+    """
+    Extracts start_time from the data_collection_date field of the master file.
+
+    Args:
+        master (Path | str): Path to Singla master file.
+
+    Returns:
+        start_time (datetime): Collection start time, as datetime object.
+    """
+
+    if SinglaMaster.isDectrisSingla(master) is False:
+        logger.warning(f"The file {master} is the wrong format.")
+        return
+
+    start_time = None
+
+    with h5py.File(master, "r") as fh:
+        singla = SinglaMaster(fh)
+        start_time = singla.get_data_collection_date()
+
+    return start_time
+
+
+def extract_detector_info_from_master(master: Path | str) -> Dict[str, Any]:
     """
     Extracts mask, flatfield and any other information relative to the detector \
     from a Singla master file.
@@ -155,10 +217,6 @@ def extract_from_SINGLA_master(master: Path | str) -> Dict[str, Any]:
     Returns:
         Dict[str, Any]: Dictionary of information relative to the detector.
     """
-    import logging
-
-    logger = logging.getLogger("nexgen.EDtools.Singla")
-    logger.setLevel(logging.DEBUG)
 
     if SinglaMaster.isDectrisSingla(master) is False:
         logger.warning(f"The file {master} is the wrong format.")
