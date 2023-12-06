@@ -3,6 +3,8 @@ Tools to extract metadata for Electron Diffraction.
 """
 from __future__ import annotations
 
+import logging
+from datetime import datetime
 from functools import cached_property
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
@@ -10,9 +12,7 @@ from typing import Any, Dict, List, Tuple
 import h5py
 import hdf5plugin  # noqa: F401
 import numpy as np
-from datetime import datetime
 from numpy.typing import ArrayLike
-import logging
 
 logger = logging.getLogger("nexgen.EDtools.Singla")
 logger.setLevel(logging.DEBUG)
@@ -128,7 +128,7 @@ class SinglaMaster:
         _loc = [obj for obj in self.walk if "count_time" in obj]
         if len(_loc) == 0:
             return None
-        return float(self.__getitem__(_loc[0])[()])
+        return self.__getitem__(_loc[0])[()]
 
     def get_photon_energy(self) -> float:
         _loc = [obj for obj in self.walk if "photon_energy" in obj]
@@ -154,21 +154,19 @@ class SinglaMaster:
             return None
         else:
             collection_date = str(self.__getitem__(_loc[0])[()])[2:21]
-            collection_date = datetime.strptime(collection_date,
-                                                '%Y-%m-%dT%H:%M:%S')
+            collection_date = datetime.strptime(collection_date, "%Y-%m-%dT%H:%M:%S")
             return collection_date
 
 
 def extract_exposure_time_from_master(master: Path | str) -> float:
     """
-    Extracts `count_time` from the master file
+    Extracts the exposure time from the count_time field in the master file.
 
     Args:
         master (Path | str): Path to Singla master file.
 
     Returns:
-        exposure time (float): In the master file this
-        is recorded as `count_time`.
+        exposure_time (float): Exposure time, in seconds.
     """
 
     if SinglaMaster.isDectrisSingla(master) is False:
@@ -186,13 +184,13 @@ def extract_exposure_time_from_master(master: Path | str) -> float:
 
 def extract_start_time_from_master(master: Path | str) -> datetime:
     """
-    Extracts `data_collection_date` from the master file
+    Extracts start_time from the data_collection_date field of the master file.
 
     Args:
         master (Path | str): Path to Singla master file.
 
     Returns:
-        data collection date: Datetime object.
+        start_time (datetime): Collection start time, as datetime object.
     """
 
     if SinglaMaster.isDectrisSingla(master) is False:
@@ -208,7 +206,7 @@ def extract_start_time_from_master(master: Path | str) -> datetime:
     return start_time
 
 
-def extract_from_SINGLA_master(master: Path | str) -> Dict[str, Any]:
+def extract_detector_info_from_master(master: Path | str) -> Dict[str, Any]:
     """
     Extracts mask, flatfield and any other information relative to the detector \
     from a Singla master file.
