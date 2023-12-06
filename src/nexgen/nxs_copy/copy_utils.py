@@ -141,7 +141,7 @@ def convert_scan_axis(nxsample: h5py.Group, nxdata: h5py.Group, ax: str):
 def check_and_fix_det_axis(nxs_in: h5py.File):
     det_z_grp = nxs_in["/entry/instrument/detector/transformations/detector_z"]
     det_z = det_z_grp["det_z"]
-    if type(det_z[()]) is bytes or type(det_z[()]) is str:
+    if isinstance(det_z[()], bytes) or isinstance(det_z[()], str):
         det_z_attrs = {}
         for k, v in det_z.attrs.items():
             det_z_attrs[k] = v

@@ -11,8 +11,8 @@ from pathlib import Path
 
 import freephil
 
-from . import config_parser, nexus_parser, version_parser
 from .. import log, templates
+from . import config_parser, nexus_parser, version_parser
 
 try:
     from importlib.resources import files

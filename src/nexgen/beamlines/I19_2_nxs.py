@@ -13,8 +13,15 @@ import h5py
 import numpy as np
 
 from .. import log
-from ..nxs_utils import (Attenuator, Beam, Detector, EigerDetector, Goniometer,
-                         Source, TristanDetector)
+from ..nxs_utils import (
+    Attenuator,
+    Beam,
+    Detector,
+    EigerDetector,
+    Goniometer,
+    Source,
+    TristanDetector,
+)
 from ..nxs_utils.ScanUtils import calculate_scan_points, identify_osc_axis
 from ..nxs_write.NXmxWriter import EventNXmxFileWriter, NXmxFileWriter
 from ..tools.Metafile import DectrisMetafile

@@ -3,10 +3,9 @@ Tools to read a chip and compute the coordinates of a Serial Crystallography col
 """
 from __future__ import annotations
 
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
-
-from dataclasses import dataclass, field
 
 from ..nxs_utils.ScanUtils import ScanDirection
 

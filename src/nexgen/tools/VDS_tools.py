@@ -5,18 +5,17 @@ from __future__ import annotations
 
 import logging
 import operator
+from dataclasses import dataclass
 from functools import reduce
 from pathlib import Path
 from typing import List, Tuple
 
 import h5py
 import numpy as np
-from dataclasses import dataclass
 from numpy.typing import DTypeLike
 
 from ..utils import MAX_FRAMES_PER_DATASET
-from .Constants import (jungfrau_fill_value, jungfrau_gap_size,
-                        jungfrau_mod_size)
+from .Constants import jungfrau_fill_value, jungfrau_gap_size, jungfrau_mod_size
 
 vds_logger = logging.getLogger("nexgen.VDSWriter")
 
@@ -120,13 +119,13 @@ def split_datasets(
     if start_idx < 0:
         raise ValueError("Start index must be positive")
 
-    if type(data_shape[0]) is not int:
+    if not isinstance(data_shape[0], int):
         vds_logger.warning("Datashape not passed as int, will attempt to cast")
 
-    if type(start_idx) is not int:
+    if not isinstance(start_idx, int):
         vds_logger.warning("VDS start index not passed as int, will attempt to cast")
 
-    if vds_shape and type(vds_shape[0]) is not int:
+    if vds_shape and not isinstance(vds_shape[0], int):
         vds_logger.warning("VDS start index not passed as int, will attempt to cast")
 
     if vds_shape is None:

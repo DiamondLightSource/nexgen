@@ -15,7 +15,7 @@ axes_list = [
 
 def test_goniometer_to_dict():
     gonio = Goniometer(axes_list[:2]).to_dict()
-    assert type(gonio) is dict
+    assert isinstance(gonio, dict)
     assert gonio["axes"] == ["omega", "sam_z"]
     assert gonio["depends"] == [".", "omega"]
     assert gonio["vectors"] == [(0, 0, -1), (0, 0, 1)]

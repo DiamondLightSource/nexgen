@@ -13,11 +13,13 @@ from ..nxs_utils import Attenuator, Beam, Detector, Goniometer, SinglaDetector
 from ..nxs_utils.ScanUtils import calculate_scan_points
 from ..nxs_write.NXmxWriter import EDNXmxFileWriter
 from ..nxs_write.write_utils import find_number_of_images
-from ..tools.ED_tools import (extract_detector_info_from_master,
-                              extract_exposure_time_from_master,
-                              extract_start_time_from_master, find_beam_centre)
-from ..utils import (coerce_to_path, find_in_dict, get_iso_timestamp,
-                     get_nexus_filename)
+from ..tools.ED_tools import (
+    extract_detector_info_from_master,
+    extract_exposure_time_from_master,
+    extract_start_time_from_master,
+    find_beam_centre,
+)
+from ..utils import coerce_to_path, find_in_dict, get_iso_timestamp, get_nexus_filename
 from .ED_params import ED_coord_system, EDSingla, EDSource
 
 logger = logging.getLogger("nexgen.EDNeXusWriter")

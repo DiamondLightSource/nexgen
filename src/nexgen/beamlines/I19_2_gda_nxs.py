@@ -12,16 +12,25 @@ import numpy as np
 from numpy.typing import DTypeLike
 
 from .. import log
-from ..nxs_utils import (Attenuator, Beam, Detector, EigerDetector, Goniometer,
-                         Source, TristanDetector)
+from ..nxs_utils import (
+    Attenuator,
+    Beam,
+    Detector,
+    EigerDetector,
+    Goniometer,
+    Source,
+    TristanDetector,
+)
 from ..nxs_utils.Detector import DetectorType, UnknownDetectorTypeError
 from ..nxs_utils.ScanUtils import calculate_scan_points
 from ..nxs_write.NXmxWriter import EventNXmxFileWriter, NXmxFileWriter
 from ..utils import get_iso_timestamp, get_nexus_filename
 from .beamline_utils import BeamlineAxes, collection_summary_log
-from .GDAtools.ExtendedRequest import (ExtendedRequestIO,
-                                       read_det_position_from_xml,
-                                       read_scan_from_xml)
+from .GDAtools.ExtendedRequest import (
+    ExtendedRequestIO,
+    read_det_position_from_xml,
+    read_scan_from_xml,
+)
 from .GDAtools.GDAjson2params import JSONParamsIO
 
 # Define a logger object and a formatter

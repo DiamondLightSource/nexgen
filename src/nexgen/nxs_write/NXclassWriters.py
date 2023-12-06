@@ -13,14 +13,22 @@ import numpy as np
 from numpy.typing import ArrayLike
 
 from ..nxs_utils import Axis
-from ..utils import (MAX_SUFFIX_DIGITS, get_iso_timestamp, units_of_length,
-                     units_of_time, ureg)
-from .write_utils import (TSdset, calculate_origin, create_attributes,
-                          set_dependency, write_compressed_copy)
+from ..utils import (
+    MAX_SUFFIX_DIGITS,
+    get_iso_timestamp,
+    units_of_length,
+    units_of_time,
+    ureg,
+)
+from .write_utils import (
+    TSdset,
+    calculate_origin,
+    create_attributes,
+    set_dependency,
+    write_compressed_copy,
+)
 
 # from hdf5plugin import Bitshuffle   # noqa: F401
-
-
 
 
 NXclass_logger = logging.getLogger("nexgen.NXclass_writers")
@@ -324,7 +332,7 @@ def write_NXsample(
 
     if sample_details:
         for k, v in sample_details.items():
-            if type(v) is str:
+            if isinstance(v, str):
                 v = np.string_(v)
             nxsample.create_dataset(k, data=v)
 
@@ -524,7 +532,7 @@ def write_NXdetector(
                 nxdetector["flatfield"] = h5py.ExternalLink(flatfield.name, image_key)
     else:
         # Flatfield
-        if type(detector["flatfield"]) is str:
+        if isinstance(detector["flatfield"], str):
             nxdetector.create_dataset(
                 "flatfield_applied", data=detector["flatfield_applied"]
             )
@@ -540,7 +548,7 @@ def write_NXdetector(
             )
             write_compressed_copy(nxdetector, "flatfield", data=detector["flatfield"])
         # Bad pixel mask
-        if type(detector["pixel_mask"]) is str:
+        if isinstance(detector["pixel_mask"], str):
             nxdetector.create_dataset(
                 "pixel_mask_applied", data=detector["pixel_mask_applied"]
             )
@@ -681,7 +689,7 @@ def write_NXdetector(
         if nxdetector.__contains__(dset) is False and dset in detector.keys():
             val = (
                 np.string_(detector[dset])
-                if type(detector[dset]) is str
+                if isinstance(detector[dset], str)
                 else detector[dset]
             )
             if val is not None:  # FIXME bit of a gorilla here, for bit_depth_readout
@@ -929,7 +937,7 @@ def write_NXnote(nxsfile: h5py.File, loc: str, info: Dict):
     # Write datasets
     for k, v in info.items():
         if v:  # Just in case one value is not recorded and set as None
-            if type(v) is str:
+            if isinstance(v, str):
                 v = np.string_(v)
             nxnote.create_dataset(k, data=v)
             NXclass_logger.info(f"{k} dataset written in {loc}.")

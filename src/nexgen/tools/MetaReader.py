@@ -44,7 +44,7 @@ def overwrite_beam(meta_file: h5py.File, name: str, beam: Dict | ScopeExtract):
     # If value exists, overwrite. Otherwise, create.
     overwrite_logger.warning("Wavelength will be overwritten.")
     overwrite_logger.info(f"Value for wavelength found in meta file: {wl}")
-    if type(beam) is dict:
+    if isinstance(beam, dict):
         beam["wavelength"] = wl
     else:
         try:
@@ -72,7 +72,7 @@ def overwrite_detector(
     """
     new_values = {}
     link_list = [[], []]
-    if type(detector) is dict:
+    if isinstance(detector, dict):
         detector_name = detector["description"].lower()
     else:
         detector_name = detector.description.lower()
@@ -158,7 +158,7 @@ def overwrite_detector(
                 del new_values[i]
 
     for k, v in new_values.items():
-        if type(detector) is dict:
+        if isinstance(detector, dict):
             detector[k] = v
         else:
             try:

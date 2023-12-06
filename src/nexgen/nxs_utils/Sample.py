@@ -4,6 +4,7 @@ Sample definition utilities.
 from __future__ import annotations
 
 from dataclasses import dataclass
+
 from dataclasses_json import DataClassJsonMixin
 
 

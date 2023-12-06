@@ -8,8 +8,7 @@ from collections import namedtuple
 from pathlib import Path
 
 from .. import log
-from ..nxs_utils import (Attenuator, Beam, Detector, Goniometer, Source,
-                         TristanDetector)
+from ..nxs_utils import Attenuator, Beam, Detector, Goniometer, Source, TristanDetector
 from ..nxs_write.NXmxWriter import EventNXmxFileWriter
 from ..utils import Point3D, find_in_dict, get_iso_timestamp
 from .beamline_utils import collection_summary_log

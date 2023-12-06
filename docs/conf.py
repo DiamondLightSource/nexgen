@@ -20,8 +20,6 @@
 import os
 import sys
 
-import sphinx_rtd_theme  # noqa; F401 - install theme
-
 import nexgen
 
 sys.path.insert(0, os.path.abspath(".."))

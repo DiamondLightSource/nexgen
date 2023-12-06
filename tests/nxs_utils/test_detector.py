@@ -44,7 +44,7 @@ def test_jungfrau_detector():
     assert test_jungfrau.sensor_material == "Si"
     assert test_jungfrau.sensor_thickness == "0.320mm"
     assert test_jungfrau.hasMeta is False
-    assert type(test_jungfrau.constants) is dict
+    assert isinstance(test_jungfrau.constants, dict)
 
 
 def test_singla_detector():
@@ -58,7 +58,7 @@ def test_detector_axes():
     det = Detector(
         test_eiger, det_axes, [100, 200], 0.1, [(0, 0, 1), Point3D(0, -1, 0)]
     )
-    assert type(det.detector_axes) is list
+    assert isinstance(det.detector_axes, list)
     assert det.detector_axes[0].name == "two_theta"
     assert det.detector_axes[1].name == "det_z"
     assert [det.detector_axes[0].depends, det.detector_axes[1].depends] == [
@@ -105,7 +105,7 @@ def test_detector_to_module_dict():
     mod = Detector(
         test_eiger, det_axes, [100, 200], 0.1, [(0, 0, 1), Point3D(0, -1, 0)]
     ).to_module_dict()
-    assert type(mod) is dict
+    assert isinstance(mod, dict)
     assert mod["module_offset"] == "1"
     assert_array_equal(mod["fast_axis"], [0, 0, 1])
     assert_array_equal(mod["slow_axis"], [0, -1, 0])

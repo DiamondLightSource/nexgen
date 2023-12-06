@@ -15,8 +15,12 @@ import numpy as np
 from ..nxs_utils import Axis, TransformationType
 from ..nxs_utils.ScanUtils import calculate_scan_points
 from .beamline_utils import PumpProbe
-from .SSX_chip import (Chip, compute_goniometer, fullchip_blocks_conversion,
-                       read_chip_map)
+from .SSX_chip import (
+    Chip,
+    compute_goniometer,
+    fullchip_blocks_conversion,
+    read_chip_map,
+)
 
 __all__ = ["run_extruder", "run_fixed_target", "run_3D_grid_scan"]
 

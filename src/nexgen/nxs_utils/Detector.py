@@ -3,9 +3,9 @@ Object definition for detectors.
 """
 from __future__ import annotations
 
+from dataclasses import dataclass, field
 from typing import Dict, List, Literal, Tuple, Union
 
-from dataclasses import dataclass, field
 from dataclasses_json import DataClassJsonMixin
 
 from ..utils import Point3D
