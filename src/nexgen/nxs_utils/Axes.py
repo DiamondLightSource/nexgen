@@ -10,7 +10,7 @@ from typing import Tuple
 from ..utils import Point3D
 
 
-class TransformationType(Enum):  # StrEnum only from Python 3.11
+class TransformationType(str, Enum):  # StrEnum only from Python 3.11
     """Define axis transformation type
     - ROTATION
     - TRANSLATION

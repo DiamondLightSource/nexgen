@@ -60,12 +60,10 @@ def write_NXentry(nxsfile: h5py.File, definition: str = "NXmx") -> h5py.Group:
 
 
 # NXdata writer
-# TODO (this ticket): of the goniometer we only need the scan Axes, without passing the whole thing
-# We have the scans -> just check that passed axes match.
 def write_NXdata(
     nxsfile: h5py.File,
     datafiles: List[Path],
-    goniometer: Dict,
+    goniometer_axes: List[Axis],
     data_type: str,
     osc_scan: Dict[str, ArrayLike],
     transl_scan: Dict[str, ArrayLike] = None,
@@ -77,7 +75,7 @@ def write_NXdata(
     Args:
         nxsfile (h5py.File): NeXus file handle.
         datafiles (List[Path]): List of Path objects pointing to HDF5 data files.
-        goniometer (Dict): Dictionary containing all the axes information.
+        goniometer_axes (List[Axis]): List of goniometer axes.
         data_type (str): Images or events.
         osc_scan (Dict[str, ArrayLike]): Rotation scan. If writing events, this is just a (start, end) tuple.
         transl_scan (Dict[str, ArrayLike], optional): Scan along the xy axes at sample. Defaults to None.
@@ -143,9 +141,9 @@ def write_NXdata(
 
     # Write rotation axis dataset
     ax = nxdata.create_dataset(osc_axis, data=osc_range)
-    idx = goniometer["axes"].index(osc_axis)
+    idx = [n for n, ax in enumerate(goniometer_axes) if ax.name == osc_axis][0]
     dep = set_dependency(
-        goniometer["depends"][idx], path="/entry/sample/transformations/"
+        goniometer_axes[idx].depends, path="/entry/sample/transformations/"
     )
 
     # Write attributes for axis
@@ -154,9 +152,9 @@ def write_NXdata(
         ("depends_on", "transformation_type", "units", "vector"),
         (
             dep,
-            goniometer["types"][idx],
-            goniometer["units"][idx],
-            goniometer["vectors"][idx],
+            goniometer_axes[idx].transformation_type,
+            goniometer_axes[idx].units,
+            goniometer_axes[idx].vector,
         ),
     )
 
@@ -164,18 +162,18 @@ def write_NXdata(
     if transl_scan:
         for k, v in transl_scan.items():
             ax_dset = nxdata.create_dataset(k, data=v)
-            ax_idx = goniometer["axes"].index(k)
+            ax_idx = [n for n, ax in enumerate(goniometer_axes) if ax.name == k][0]
             ax_dep = set_dependency(
-                goniometer["depends"][ax_idx], path="/entry/sample/transformations/"
+                goniometer_axes[ax_idx].depends, path="/entry/sample/transformations/"
             )
             create_attributes(
                 ax_dset,
                 ("depends_on", "transformation_type", "units", "vector"),
                 (
                     ax_dep,
-                    goniometer["types"][ax_idx],
-                    goniometer["units"][ax_idx],
-                    goniometer["vectors"][ax_idx],
+                    goniometer_axes[ax_idx].transformation_type,
+                    goniometer_axes[ax_idx].units,
+                    goniometer_axes[ax_idx].vector,
                 ),
             )
 

@@ -213,7 +213,7 @@ class NXmxFileWriter:
             write_NXdata(
                 nxs,
                 datafiles,
-                gonio,
+                self.goniometer.axes_list,
                 "images",
                 osc,
                 transl,
@@ -389,7 +389,7 @@ class EventNXmxFileWriter(NXmxFileWriter):
             write_NXdata(
                 nxs,
                 [metafile],
-                gonio,
+                self.goniometer.axes_list,
                 "events",
                 osc,
             )
@@ -551,7 +551,7 @@ class EDNXmxFileWriter(NXmxFileWriter):
             write_NXdata(
                 nxs,
                 datafiles,
-                gonio,
+                self.goniometer.axes_list,
                 "images",
                 osc,
                 entry_key=data_entry_key,
