@@ -10,7 +10,7 @@ from nexgen.nxs_write.NXmxWriter import NXmxFileWriter
 
 
 @pytest.fixture
-def test_goniometer():
+def mock_goniometer():
     return Goniometer(
         [
             Axis(

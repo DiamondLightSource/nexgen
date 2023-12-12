@@ -23,15 +23,15 @@ def test_create_attributes(dummy_nexus_file):
     assert dummy_nexus_file["/entry/"].attrs["version"] == b"0.0"
 
 
-def test_set_dependency(test_goniometer):
+def test_set_dependency(mock_goniometer):
     # Check that the end of the dependency chain always gets set to b"."
     assert set_dependency(".", "/entry/sample/transformations/") == b"."
-    assert set_dependency(test_goniometer.axes_list[0].depends) == b"."
+    assert set_dependency(mock_goniometer.axes_list[0].depends) == b"."
     assert set_dependency("whatever") != b"."
 
     # Check the path
     assert (
-        set_dependency(test_goniometer.axes_list[-1].depends, "/entry")
+        set_dependency(mock_goniometer.axes_list[-1].depends, "/entry")
         == b"/entry/sam_z"
     )
 

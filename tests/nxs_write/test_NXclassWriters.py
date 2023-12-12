@@ -68,34 +68,34 @@ def test_write_NXentry(dummy_nexus_file):
 
 
 def test_given_no_data_type_specified_when_write_NXdata_then_exception_raised(
-    dummy_nexus_file, test_goniometer
+    dummy_nexus_file, mock_goniometer
 ):
     with pytest.raises(ValueError):
         write_NXdata(
             dummy_nexus_file,
             [Path("tmp")],
-            test_goniometer.axes_list,
+            mock_goniometer.axes_list,
             "",
-            test_goniometer.scan,
+            mock_goniometer.scan,
         )
 
 
 def test_given_one_data_file_when_write_NXdata_then_data_in_file(
-    dummy_nexus_file, test_goniometer
+    dummy_nexus_file, mock_goniometer
 ):
     write_NXdata(
         dummy_nexus_file,
         [Path("tmp")],
-        test_goniometer.axes_list,
+        mock_goniometer.axes_list,
         "images",
-        test_goniometer.scan,
+        mock_goniometer.scan,
     )
     assert dummy_nexus_file["/entry/data"].attrs["NX_class"] == b"NXdata"
     assert "data_000001" in dummy_nexus_file["/entry/data"]
 
 
 def test_given_scan_axis_when_write_NXdata_then_axis_in_data_entry_with_correct_data_and_attributes(
-    dummy_nexus_file, test_goniometer
+    dummy_nexus_file, mock_goniometer
 ):
     test_axis = "omega"
     test_scan_range = np.arange(0, 90, 1)
@@ -104,9 +104,9 @@ def test_given_scan_axis_when_write_NXdata_then_axis_in_data_entry_with_correct_
     write_NXdata(
         dummy_nexus_file,
         [Path("tmp")],
-        test_goniometer.axes_list,
+        mock_goniometer.axes_list,
         "images",
-        test_goniometer.scan,
+        mock_goniometer.scan,
     )
 
     assert test_axis in dummy_nexus_file["/entry/data"]
@@ -118,7 +118,7 @@ def test_given_scan_axis_when_write_NXdata_then_axis_in_data_entry_with_correct_
 
 
 def test_given_scan_axis_when_write_NXsample_then_scan_axis_data_copied_from_data_group_as_well_as_increment_set_and_end(
-    dummy_nexus_file, test_goniometer
+    dummy_nexus_file, mock_goniometer
 ):
     test_axis = "omega"
     test_scan_range = [0, 1, 2]
@@ -129,14 +129,14 @@ def test_given_scan_axis_when_write_NXsample_then_scan_axis_data_copied_from_dat
     write_NXdata(
         dummy_nexus_file,
         [Path("tmp")],
-        test_goniometer.axes_list,
+        mock_goniometer.axes_list,
         "images",
         osc_scan,
     )
 
     write_NXsample(
         dummy_nexus_file,
-        test_goniometer.axes_list,
+        mock_goniometer.axes_list,
         "images",
         osc_scan,
     )
@@ -153,7 +153,7 @@ def test_given_scan_axis_when_write_NXsample_then_scan_axis_data_copied_from_dat
 
 
 def test_sample_depends_on_written_correctly_in_NXsample(
-    dummy_nexus_file, test_goniometer
+    dummy_nexus_file, mock_goniometer
 ):
     test_axis = "omega"
     test_scan_range = [0, 1, 2]
@@ -163,14 +163,14 @@ def test_sample_depends_on_written_correctly_in_NXsample(
     write_NXdata(
         dummy_nexus_file,
         [Path("tmp")],
-        test_goniometer.axes_list,
+        mock_goniometer.axes_list,
         "images",
-        test_goniometer.scan,
+        mock_goniometer.scan,
     )
 
     write_NXsample(
         dummy_nexus_file,
-        test_goniometer.axes_list,
+        mock_goniometer.axes_list,
         "images",
         osc_scan,
         sample_depends_on=test_axis,
@@ -185,26 +185,26 @@ def test_sample_depends_on_written_correctly_in_NXsample(
 
 def test_sample_depends_on_written_correctly_in_NXsample_when_value_not_passed(
     dummy_nexus_file,
-    test_goniometer,
+    mock_goniometer,
 ):
     test_axis = "omega"
     test_scan_range = [0, 1, 2]
     osc_scan = {test_axis: test_scan_range}
 
-    test_depends = f"/entry/sample/transformations/{test_goniometer.axes_list[-1].name}"
+    test_depends = f"/entry/sample/transformations/{mock_goniometer.axes_list[-1].name}"
 
     # Doing this to write the scan axis data into the data group
     write_NXdata(
         dummy_nexus_file,
         [Path("tmp")],
-        test_goniometer.axes_list,
+        mock_goniometer.axes_list,
         "images",
-        test_goniometer.scan,
+        mock_goniometer.scan,
     )
 
     write_NXsample(
         dummy_nexus_file,
-        test_goniometer.axes_list,
+        mock_goniometer.axes_list,
         "images",
         osc_scan,
     )
@@ -213,7 +213,7 @@ def test_sample_depends_on_written_correctly_in_NXsample_when_value_not_passed(
     assert dummy_nexus_file["/entry/sample/depends_on"][()] == test_depends.encode()
 
 
-def test_sample_details_in_NXsample(dummy_nexus_file, test_goniometer):
+def test_sample_details_in_NXsample(dummy_nexus_file, mock_goniometer):
 
     test_details = {"name": b"test_sample", "temperature": "25C"}
     test_axis = "omega"
@@ -224,14 +224,14 @@ def test_sample_details_in_NXsample(dummy_nexus_file, test_goniometer):
     write_NXdata(
         dummy_nexus_file,
         [Path("tmp")],
-        test_goniometer.axes_list,
+        mock_goniometer.axes_list,
         "images",
-        test_goniometer.scan,
+        mock_goniometer.scan,
     )
 
     write_NXsample(
         dummy_nexus_file,
-        test_goniometer.axes_list,
+        mock_goniometer.axes_list,
         "images",
         osc_scan,
         sample_details=test_details,
