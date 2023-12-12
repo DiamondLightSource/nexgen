@@ -247,7 +247,7 @@ class NXmxFileWriter:
             )
 
             # NXsource: entry/source
-            write_NXsource(nxs, source)
+            write_NXsource(nxs, self.source)
 
             # NXsample: entry/sample
             write_NXsample(
@@ -421,7 +421,7 @@ class EventNXmxFileWriter(NXmxFileWriter):
             )
 
             # NXsource: entry/source
-            write_NXsource(nxs, source)
+            write_NXsource(nxs, self.source)
 
             # NXsample: entry/sample
             write_NXsample(
@@ -583,7 +583,7 @@ class EDNXmxFileWriter(NXmxFileWriter):
             )
 
             # NXsource: entry/source
-            write_NXsource(nxs, source)
+            write_NXsource(nxs, self.source)
 
             # NXsample: entry/sample
             write_NXsample(

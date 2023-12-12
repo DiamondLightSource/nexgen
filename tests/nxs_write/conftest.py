@@ -5,7 +5,7 @@ import h5py
 import numpy as np
 import pytest
 
-from nexgen.nxs_utils import Axis, Goniometer, TransformationType
+from nexgen.nxs_utils import Axis, Goniometer, Source, TransformationType
 from nexgen.nxs_write.NXmxWriter import NXmxFileWriter
 
 
@@ -27,6 +27,11 @@ def mock_goniometer():
         ],
         {"omega": np.arange(0, 90, 1)},
     )
+
+
+@pytest.fixture
+def mock_source():
+    return Source("ixx")
 
 
 @pytest.fixture

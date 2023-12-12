@@ -18,6 +18,7 @@ from nexgen.nxs_write.NXclassWriters import (
     write_NXinstrument,
     write_NXnote,
     write_NXsample,
+    write_NXsource,
 )
 
 test_module = {"fast_axis": [1, 0, 0], "slow_axis": [0, 1, 0]}
@@ -65,6 +66,21 @@ def test_write_NXentry(dummy_nexus_file):
 
     assert "definition" in entry.keys()
     assert dummy_nexus_file["/entry/definition"][()] == b"NXmx"
+
+
+def test_write_NXSource(dummy_nexus_file, mock_source):
+    write_NXsource(dummy_nexus_file, mock_source)
+
+    assert dummy_nexus_file["/entry/source/name"][()] == b"Diamond Light Source"
+    assert dummy_nexus_file["/entry/source/name"].attrs["short_name"] == b"DLS"
+    assert "probe" not in dummy_nexus_file["/entry/source"].keys()
+
+
+def test_write_NXSource_with_probe(dummy_nexus_file, mock_source):
+    mock_source.probe = "electron"
+    write_NXsource(dummy_nexus_file, mock_source)
+
+    assert dummy_nexus_file["/entry/source/probe"][()] == b"electron"
 
 
 def test_given_no_data_type_specified_when_write_NXdata_then_exception_raised(

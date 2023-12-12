@@ -12,7 +12,7 @@ import h5py  # isort: skip
 import numpy as np
 from numpy.typing import ArrayLike
 
-from ..nxs_utils import Axis
+from ..nxs_utils import Axis, Source
 from ..utils import (
     MAX_SUFFIX_DIGITS,
     get_iso_timestamp,
@@ -179,7 +179,6 @@ def write_NXdata(
 
 
 # NXsample
-# TODO Main change here: goniometer is a list of Axis.
 def write_NXsample(
     nxsfile: h5py.File,
     goniometer_axes: List[Axis],
@@ -412,14 +411,13 @@ def write_NXinstrument(
 
 
 # NXsource
-# TODO see previous one
-def write_NXsource(nxsfile: h5py.File, source: Dict):
+def write_NXsource(nxsfile: h5py.File, source: Source):
     """
     Write NXsource group /in entry/source.
 
     Args:
         nxsfile (h5py.File): NeXus file handle.
-        source (Dict): Dictionary containing the facility information.
+        source (Source): Source definition, containing the facility information.
     """
     NXclass_logger.info("Start writing NXsource.")
     nxsource = nxsfile.require_group("/entry/source")
@@ -429,11 +427,11 @@ def write_NXsource(nxsfile: h5py.File, source: Dict):
         ("NXsource",),
     )
 
-    nxsource.create_dataset("name", data=np.string_(source["name"]))
-    create_attributes(nxsource["name"], ("short_name",), (source["short_name"],))
-    nxsource.create_dataset("type", data=np.string_(source["type"]))
-    if "probe" in source.keys():
-        nxsource.create_dataset("probe", data=np.string_(source["probe"]))
+    nxsource.create_dataset("name", data=np.string_(source.name))
+    create_attributes(nxsource["name"], ("short_name",), (source.short_name,))
+    nxsource.create_dataset("type", data=np.string_(source.facility_type))
+    if source.probe:
+        nxsource.create_dataset("probe", data=np.string_(source.probe))
 
 
 # NXdetector writer
