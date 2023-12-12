@@ -1,6 +1,6 @@
 freephil==0.2.1
 h5py==3.9.0
-hdf5plugin==4.1.3
+hdf5plugin==4.3.0
 numpy==1.24.3
 pint==0.22
 scanspec==0.6.1
