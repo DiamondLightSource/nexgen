@@ -348,7 +348,6 @@ def write_NXsample(
 
 
 # NXinstrument
-# Use Beam, Attenuator and Source in here. Instrument name should then already be in.
 def write_NXinstrument(
     nxsfile: h5py.File,
     beam: Beam,
