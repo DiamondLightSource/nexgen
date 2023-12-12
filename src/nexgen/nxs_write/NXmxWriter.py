@@ -252,7 +252,7 @@ class NXmxFileWriter:
             # NXsample: entry/sample
             write_NXsample(
                 nxs,
-                gonio,
+                self.goniometer.axes_list,
                 "images",
                 osc,
                 transl,
@@ -426,7 +426,7 @@ class EventNXmxFileWriter(NXmxFileWriter):
             # NXsample: entry/sample
             write_NXsample(
                 nxs,
-                gonio,
+                self.goniometer.axes_list,
                 "events",
                 osc,
                 sample_depends_on=None,  # TODO
@@ -588,7 +588,7 @@ class EDNXmxFileWriter(NXmxFileWriter):
             # NXsample: entry/sample
             write_NXsample(
                 nxs,
-                gonio,
+                self.goniometer.axes_list,
                 "images",
                 osc,
             )

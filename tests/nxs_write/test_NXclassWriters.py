@@ -39,26 +39,6 @@ test_goniometer = Goniometer(
     {"omega": np.arange(0, 90, 1)},
 )
 
-test_goniometer_axes = {
-    "axes": ["omega", "sam_z", "sam_y"],
-    "depends": [".", "omega", "sam_z"],
-    "vectors": [
-        (-1, 0, 0),
-        (0, -1, 0),
-        (-1, 0, 0),
-    ],
-    "types": [
-        "rotation",
-        "translation",
-        "translation",
-    ],
-    "units": ["deg", "mm", "mm"],
-    "offsets": [(0, 0, 0), (0, 0, 0), (0, 0, 0)],
-    "starts": [0, 0, 0],
-    "ends": [90, 0, 0],
-    "increments": [1, 0, 0],
-}
-
 test_eiger = {
     "mode": "images",
     "description": "Eiger 2X 9M",
@@ -173,7 +153,7 @@ def test_given_scan_axis_when_write_NXsample_then_scan_axis_data_copied_from_dat
 
     write_NXsample(
         dummy_nexus_file,
-        test_goniometer_axes,
+        test_goniometer.axes_list,
         "images",
         osc_scan,
     )
@@ -205,7 +185,7 @@ def test_sample_depends_on_written_correctly_in_NXsample(dummy_nexus_file):
 
     write_NXsample(
         dummy_nexus_file,
-        test_goniometer_axes,
+        test_goniometer.axes_list,
         "images",
         osc_scan,
         sample_depends_on=test_axis,
@@ -225,7 +205,7 @@ def test_sample_depends_on_written_correctly_in_NXsample_when_value_not_passed(
     test_scan_range = [0, 1, 2]
     osc_scan = {test_axis: test_scan_range}
 
-    test_depends = f"/entry/sample/transformations/{test_goniometer_axes['axes'][-1]}"
+    test_depends = f"/entry/sample/transformations/{test_goniometer.axes_list[-1].name}"
 
     # Doing this to write the scan axis data into the data group
     write_NXdata(
@@ -238,7 +218,7 @@ def test_sample_depends_on_written_correctly_in_NXsample_when_value_not_passed(
 
     write_NXsample(
         dummy_nexus_file,
-        test_goniometer_axes,
+        test_goniometer.axes_list,
         "images",
         osc_scan,
     )
@@ -265,7 +245,7 @@ def test_sample_details_in_NXsample(dummy_nexus_file):
 
     write_NXsample(
         dummy_nexus_file,
-        test_goniometer_axes,
+        test_goniometer.axes_list,
         "images",
         osc_scan,
         sample_details=test_details,
