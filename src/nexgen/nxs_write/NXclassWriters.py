@@ -28,9 +28,6 @@ from .write_utils import (
     write_compressed_copy,
 )
 
-# from hdf5plugin import Bitshuffle   # noqa: F401
-
-
 NXclass_logger = logging.getLogger("nexgen.NXclass_writers")
 NXclass_logger.setLevel(logging.DEBUG)
 
@@ -63,6 +60,8 @@ def write_NXentry(nxsfile: h5py.File, definition: str = "NXmx") -> h5py.Group:
 
 
 # NXdata writer
+# TODO (this ticket): of the goniometer we only need the scan Axes, without passing the whole thing
+# We have the scans -> just check that passed axes match.
 def write_NXdata(
     nxsfile: h5py.File,
     datafiles: List[Path],
@@ -182,6 +181,7 @@ def write_NXdata(
 
 
 # NXsample
+# TODO Main change here: goniometer is a list of Axis.
 def write_NXsample(
     nxsfile: h5py.File,
     goniometer: Dict,
@@ -338,6 +338,7 @@ def write_NXsample(
 
 
 # NXinstrument
+# Use Beam, Attenuator and Source in here. Instrument name should then already be in.
 def write_NXinstrument(
     nxsfile: h5py.File,
     beam: Dict,
@@ -400,6 +401,7 @@ def write_NXinstrument(
 
 
 # NXsource
+# TODO see previous one
 def write_NXsource(nxsfile: h5py.File, source: Dict):
     """
     Write NXsource group /in entry/source.
@@ -424,6 +426,8 @@ def write_NXsource(nxsfile: h5py.File, source: Dict):
 
 
 # NXdetector writer
+# TODO Use detector
+# Clean up the whole mask/flatfield bit
 def write_NXdetector(
     nxsfile: h5py.File,
     detector: Dict,
@@ -829,13 +833,8 @@ def write_NXdetector_module(
         create_attributes(slow_pixel, ("depends_on",), (_path,))
 
 
-# NXdetector_group writer
-# def writr_NXdetector_group(nxinstrument: h5py.Group, detector: Dict):
-# TODO to be added once multiple module functionality works
-# pass
-
-
 # NXCollection writer (detectorSpecific)
+# TODO Using Detector should also eliminate the need for link_list
 def write_NXcollection(
     nxdetector: h5py.Group,
     detector: Dict,
