@@ -222,10 +222,9 @@ class NXmxFileWriter:
             # NXinstrument: entry/instrument
             write_NXinstrument(
                 nxs,
-                self.beam.to_dict(),
-                self.attenuator.to_dict(),
-                source,
-                self.source.set_instrument_name(),
+                self.beam,
+                self.attenuator,
+                self.source,
             )
 
             # NXdetector: entry/instrument/detector
@@ -397,10 +396,9 @@ class EventNXmxFileWriter(NXmxFileWriter):
             # NXinstrument: entry/instrument
             write_NXinstrument(
                 nxs,
-                self.beam.to_dict(),
-                self.attenuator.to_dict(),
-                source,
-                self.source.set_instrument_name(),
+                self.beam,
+                self.attenuator,
+                self.source,
             )
 
             # NXdetector: entry/instrument/detector
@@ -560,10 +558,10 @@ class EDNXmxFileWriter(NXmxFileWriter):
             # NXinstrument: entry/instrument
             write_NXinstrument(
                 nxs,
-                self.beam.to_dict(),
-                self.attenuator.to_dict(),
-                source,
-                instrument_name=instrument_name,
+                self.beam,
+                self.attenuator,
+                self.source,
+                reset_instrument_name=True,
             )
 
             # NXdetector: entry/instrument/detector

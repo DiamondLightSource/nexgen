@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from nexgen.nxs_utils import Axis, TransformationType
+from nexgen.nxs_utils import Axis, Facility, Source, TransformationType
 from nexgen.nxs_write.NXclassWriters import (
     write_NXcollection,
     write_NXcoordinate_system_set,
@@ -43,11 +43,6 @@ test_eiger = {
     "units": ["mm"],
     "starts": [500],
     "exposure_time": 0.01,
-}
-
-test_source = {
-    "name": "Diamond Light Source",
-    "short_name": "DLS",
 }
 
 
@@ -446,16 +441,14 @@ def test_write_NXdetector_for_images_without_meta_file(dummy_nexus_file):
     assert "detector_z" in list(dummy_nexus_file[det].keys())
 
 
-def test_write_NXinstrument(dummy_nexus_file):
+def test_write_NXinstrument(dummy_nexus_file, mock_source, mock_beam, mock_attenuator):
     instr = "/entry/instrument/"
-
-    test_source["beamline_name"] = "I03"
 
     write_NXinstrument(
         dummy_nexus_file,
-        {"wavelength": 0.6, "flux": None},
-        {"transmission": 10},
-        test_source,
+        mock_beam,
+        mock_attenuator,
+        mock_source,
     )
 
     assert "attenuator" in list(dummy_nexus_file[instr].keys())
@@ -464,18 +457,28 @@ def test_write_NXinstrument(dummy_nexus_file):
     assert dummy_nexus_file[instr + "name"].attrs["short_name"] == b"DLS I03"
 
 
-def test_write_NXinstrument_sets_correct_instrument_name(dummy_nexus_file):
+def test_write_NXinstrument_sets_correct_instrument_name(
+    dummy_nexus_file, mock_attenuator, mock_beam
+):
     instr = "/entry/instrument/"
 
-    test_source["beamline_name"] = "eBic"
+    mock_beam.wavelength = 0.001
+    mock_attenuator.transmission = 1.0
+    mock_electron_source = Source(
+        "eBic",
+        Facility(
+            "Diamond Light Source", "DLS", "Electron Source", "DIAMOND MICROSCOPE"
+        ),
+        probe="electron",
+    )
 
     write_NXinstrument(
         dummy_nexus_file,
-        {"wavelength": 0.001, "flux": None},
-        {"transmission": 1},
-        test_source,
-        "DIAMOND MICROSCOPE",
+        mock_beam,
+        mock_attenuator,
+        mock_electron_source,
+        reset_instrument_name=True,
     )
 
-    assert dummy_nexus_file[instr + "name"][()] == b"DIAMOND MICROSCOPE"
+    assert dummy_nexus_file[instr + "name"][()] == b"DIAMOND MICROSCOPE eBic"
     assert dummy_nexus_file[instr + "name"].attrs["short_name"] == b"DLS eBic"

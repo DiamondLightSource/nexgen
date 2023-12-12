@@ -5,12 +5,19 @@ import h5py
 import numpy as np
 import pytest
 
-from nexgen.nxs_utils import Axis, Goniometer, Source, TransformationType
+from nexgen.nxs_utils import (
+    Attenuator,
+    Axis,
+    Beam,
+    Goniometer,
+    Source,
+    TransformationType,
+)
 from nexgen.nxs_write.NXmxWriter import NXmxFileWriter
 
 
 @pytest.fixture
-def mock_goniometer():
+def mock_goniometer() -> Goniometer:
     return Goniometer(
         [
             Axis(
@@ -30,8 +37,18 @@ def mock_goniometer():
 
 
 @pytest.fixture
-def mock_source():
-    return Source("ixx")
+def mock_source() -> Source:
+    return Source("I03")
+
+
+@pytest.fixture
+def mock_beam() -> Beam:
+    return Beam(wavelength=0.6)
+
+
+@pytest.fixture
+def mock_attenuator() -> Attenuator:
+    return Attenuator(transmission=10.0)
 
 
 @pytest.fixture

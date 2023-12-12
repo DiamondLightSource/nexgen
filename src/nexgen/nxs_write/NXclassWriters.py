@@ -12,7 +12,7 @@ import h5py  # isort: skip
 import numpy as np
 from numpy.typing import ArrayLike
 
-from ..nxs_utils import Axis, Source
+from ..nxs_utils import Attenuator, Axis, Beam, Source
 from ..utils import (
     MAX_SUFFIX_DIGITS,
     get_iso_timestamp,
@@ -351,10 +351,10 @@ def write_NXsample(
 # Use Beam, Attenuator and Source in here. Instrument name should then already be in.
 def write_NXinstrument(
     nxsfile: h5py.File,
-    beam: Dict,
-    attenuator: Dict,
-    source: Dict,
-    instrument_name: str | None = None,
+    beam: Beam,
+    attenuator: Attenuator,
+    source: Source,
+    reset_instrument_name: bool = False,
 ):
     """
     Write NXinstrument group at /entry/instrument.
@@ -363,9 +363,9 @@ def write_NXinstrument(
         nxsfile (h5py.File): NeXus file handle.
         beam (Dict):Dictionary with beam information, mainly wavelength and flux.
         attenuator (Dict): Dictionary containing transmission.
-        source (Dict): Dictionary containing the facility information.
-        instrument_name (str, optional): A string with the name of the instrument used. \
-            If not passed, it will be set to 'DIAMOND BEAMLINE Ixx'. Defaults to None.
+        source (Source): Source definition, containing the facility information.
+        reset_instrument_name (bool, optional): If True, a string with the name of the \
+            instrument used. Otherwise, it will be set to 'DIAMOND BEAMLINE Ixx'. Defaults to False.
     """
     NXclass_logger.info("Start writing NXinstrument.")
     # Create NXinstrument group, unless it already exists, in which case just open it.
@@ -377,36 +377,36 @@ def write_NXinstrument(
     )
 
     # Write /name field and relative attribute
-    NXclass_logger.info(f"{source['short_name']} {source['beamline_name']}")
+    NXclass_logger.info(f"{source.short_name} {source.beamline}")
     name_str = (
-        instrument_name
-        if instrument_name
-        else f"DIAMOND BEAMLINE {source['beamline_name']}"
+        source.set_instrument_name()
+        if reset_instrument_name
+        else f"DIAMOND BEAMLINE {source.beamline}"
     )
     nxinstrument.create_dataset("name", data=np.string_(name_str))
     create_attributes(
         nxinstrument["name"],
         ("short_name",),
-        (f"{source['short_name']} {source['beamline_name']}",),
+        (f"{source.short_name} {source.beamline}",),
     )
 
     NXclass_logger.info("Write NXattenuator and NXbeam.")
     # Write NXattenuator group: entry/instrument/attenuator
     nxatt = nxinstrument.require_group("attenuator")
     create_attributes(nxatt, ("NX_class",), ("NXattenuator",))
-    if attenuator["transmission"]:
+    if attenuator.transmission:
         nxatt.create_dataset(
             "attenuator_transmission",
-            data=attenuator["transmission"],
+            data=attenuator.transmission,
         )
 
     # Write NXbeam group: entry/instrument/beam
     nxbeam = nxinstrument.require_group("beam")
     create_attributes(nxbeam, ("NX_class",), ("NXbeam",))
-    wl = nxbeam.create_dataset("incident_wavelength", data=beam["wavelength"])
+    wl = nxbeam.create_dataset("incident_wavelength", data=beam.wavelength)
     create_attributes(wl, ("units",), ("angstrom",))
-    if beam["flux"]:
-        flux = nxbeam.create_dataset("total_flux", data=beam["flux"])
+    if beam.flux:
+        flux = nxbeam.create_dataset("total_flux", data=beam.flux)
         create_attributes(flux, ("units"), ("Hz",))
 
 
