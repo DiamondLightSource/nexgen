@@ -2,9 +2,31 @@ import tempfile
 from unittest.mock import MagicMock
 
 import h5py
+import numpy as np
 import pytest
 
+from nexgen.nxs_utils import Axis, Goniometer, TransformationType
 from nexgen.nxs_write.NXmxWriter import NXmxFileWriter
+
+
+@pytest.fixture
+def test_goniometer():
+    return Goniometer(
+        [
+            Axis(
+                "omega",
+                ".",
+                TransformationType.ROTATION,
+                (-1, 0, 0),
+                start_pos=0,
+                increment=1,
+                num_steps=90,
+            ),
+            Axis("sam_z", "omega", TransformationType.TRANSLATION, (0, -1, 0)),
+            Axis("sam_y", "sam_z", TransformationType.TRANSLATION, (-1, 0, 0)),
+        ],
+        {"omega": np.arange(0, 90, 1)},
+    )
 
 
 @pytest.fixture

@@ -12,18 +12,6 @@ from nexgen.nxs_write.write_utils import (
     write_compressed_copy,
 )
 
-test_goniometer = {
-    "axes": ["chi", "sam_z", "sam_y", "sam_x"],
-    "depends": [".", "chi", "sam_z", "sam_y"],
-    "vectors": [-1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0],
-    "types": ["rotation", "translation", "translation", "translation"],
-    "units": ["deg", "mm", "mm", "mm"],
-    "offsets": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    "starts": [0.0, 0.0, 0.0, 0.0],
-    "ends": [0.0, 0.0, 2.0, 2.0],
-    "increments": [0.0, 0.0, 0.2, 0.2],
-}
-
 test_module = {"fast_axis": [1, 0, 0], "slow_axis": [0, 1, 0]}
 
 
@@ -35,14 +23,17 @@ def test_create_attributes(dummy_nexus_file):
     assert dummy_nexus_file["/entry/"].attrs["version"] == b"0.0"
 
 
-def test_set_dependency():
+def test_set_dependency(test_goniometer):
     # Check that the end of the dependency chain always gets set to b"."
     assert set_dependency(".", "/entry/sample/transformations/") == b"."
-    assert set_dependency(test_goniometer["depends"][0]) == b"."
+    assert set_dependency(test_goniometer.axes_list[0].depends) == b"."
     assert set_dependency("whatever") != b"."
 
     # Check the path
-    assert set_dependency(test_goniometer["depends"][-1], "/entry") == b"/entry/sam_y"
+    assert (
+        set_dependency(test_goniometer.axes_list[-1].depends, "/entry")
+        == b"/entry/sam_z"
+    )
 
 
 def test_calculate_origin():
