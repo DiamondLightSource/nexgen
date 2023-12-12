@@ -8,6 +8,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, get_args
 
+import h5py  # isort: skip
 import numpy as np
 from numpy.typing import ArrayLike
 
@@ -28,9 +29,6 @@ from .write_utils import (
 )
 
 # from hdf5plugin import Bitshuffle   # noqa: F401
-
-
-import h5py  # isort: skip
 
 
 NXclass_logger = logging.getLogger("nexgen.NXclass_writers")
@@ -334,7 +332,7 @@ def write_NXsample(
 
     if sample_details:
         for k, v in sample_details.items():
-            if type(v) is str:
+            if isinstance(v, str):
                 v = np.string_(v)
             nxsample.create_dataset(k, data=v)
 
@@ -534,7 +532,7 @@ def write_NXdetector(
                 nxdetector["flatfield"] = h5py.ExternalLink(flatfield.name, image_key)
     else:
         # Flatfield
-        if type(detector["flatfield"]) is str:
+        if isinstance(detector["flatfield"], str):
             nxdetector.create_dataset(
                 "flatfield_applied", data=detector["flatfield_applied"]
             )
@@ -550,7 +548,7 @@ def write_NXdetector(
             )
             write_compressed_copy(nxdetector, "flatfield", data=detector["flatfield"])
         # Bad pixel mask
-        if type(detector["pixel_mask"]) is str:
+        if isinstance(detector["pixel_mask"], str):
             nxdetector.create_dataset(
                 "pixel_mask_applied", data=detector["pixel_mask_applied"]
             )
@@ -691,7 +689,7 @@ def write_NXdetector(
         if nxdetector.__contains__(dset) is False and dset in detector.keys():
             val = (
                 np.string_(detector[dset])
-                if type(detector[dset]) is str
+                if isinstance(detector[dset], str)
                 else detector[dset]
             )
             if val is not None:  # FIXME bit of a gorilla here, for bit_depth_readout
@@ -939,7 +937,7 @@ def write_NXnote(nxsfile: h5py.File, loc: str, info: Dict):
     # Write datasets
     for k, v in info.items():
         if v:  # Just in case one value is not recorded and set as None
-            if type(v) is str:
+            if isinstance(v, str):
                 v = np.string_(v)
             nxnote.create_dataset(k, data=v)
             NXclass_logger.info(f"{k} dataset written in {loc}.")

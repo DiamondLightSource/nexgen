@@ -38,7 +38,7 @@ class JSONParamsIO:
         """Read the axes information from the GDA-supplied json file."""
         axes_list = []
         for v in self.params.values():
-            if type(v) is dict and v["location"] == "sample":
+            if isinstance(v, dict) and v["location"] == "sample":
                 ax_depends = self._find_axis_depends_on(v["depends_on"])
                 ax_type = (
                     TransformationType.ROTATION
@@ -54,7 +54,7 @@ class JSONParamsIO:
         """Read the detector axes information from the GDA-supplied json file."""
         axes_list = []
         for v in self.params.values():
-            if type(v) is dict and v["location"] == "detector":
+            if isinstance(v, dict) and v["location"] == "detector":
                 ax_type = (
                     TransformationType.ROTATION
                     if v["type"] == "rotation"

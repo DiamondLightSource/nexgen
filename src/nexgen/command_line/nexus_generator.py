@@ -34,7 +34,10 @@ from . import (
     phil2dict,
     version_parser,
 )
-from .cli_utils import ScanReader, call_writers  # write_nexus_demo, write_nexus
+from .cli_utils import (
+    ScanReader,  # write_nexus_demo, write_nexus
+    call_writers,
+)
 
 # Define a logger object
 logger = logging.getLogger("nexgen.NeXusGenerator")

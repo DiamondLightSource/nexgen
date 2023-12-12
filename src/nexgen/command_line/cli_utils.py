@@ -285,9 +285,9 @@ def calculate_scan_range(
         Dict[str, ArrayLike]: A dictionary of ("axis_name": axis_range) key-value pairs.
     """
     if (
-        type(axes_names) is not list
-        or type(axes_starts) is not list
-        or type(axes_ends) is not list
+        not isinstance(axes_names, list)
+        or not isinstance(axes_starts, list)
+        or not isinstance(axes_ends, list)
     ):
         raise TypeError("Input values for axes must be passed as lists.")
 
@@ -416,7 +416,7 @@ def ScanReader(
         transl_start = [goniometer["starts"][i] for i in transl_idx]
         transl_end = [goniometer["ends"][i] for i in transl_idx]
         transl_increment = [goniometer["increments"][i] for i in transl_idx]
-        if n_images and type(n_images) is int:
+        if n_images and isinstance(n_images, int):
             TRANSL = calculate_scan_range(
                 transl_axes,
                 transl_start,
@@ -550,7 +550,7 @@ def call_writers(
         datafiles = [Path(f).expanduser().resolve() for f in datafiles]
 
     if metafile:
-        if type(metafile) is str:
+        if isinstance(metafile, str):
             metafile = Path(metafile).expanduser().resolve()
 
     # NXdata: entry/data

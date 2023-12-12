@@ -35,7 +35,7 @@ def test_run_extruder():
     assert gonio[idx].num_steps == 10
     assert list(osc.keys()) == ["omega"]
     assert_array_equal(osc["omega"], np.zeros(10))
-    assert type(info) is dict
+    assert isinstance(info, dict)
     assert info["pump_exposure"] == 0.1 and info["pump_delay"] is None
 
 

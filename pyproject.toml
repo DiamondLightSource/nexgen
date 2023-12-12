@@ -1,6 +1,126 @@
 [build-system]
-requires = ["setuptools >= 40.6.0", "wheel"]
+requires = ["setuptools>=64", "setuptools_scm[toml]>=8.0.1", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[tool.isort]
-profile = "black"
+[project]
+name = "nexgen"
+version = "0.7.2"
+description = "Next Generation Nexus Generator"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: BSD License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+keywords = ["nexus", "NXmx"]
+dependencies = [
+    "freephil",
+    "h5py",
+    "hdf5plugin>=4.0.1",
+    "numpy",
+    "pint",
+    "importlib_resources>=1.1",
+    "scanspec",
+    "dataclasses-json",
+    "pydantic<2.0",
+]
+license.file = "LICENSE"
+readme = "README.rst"
+requires-python = ">=3.8"
+
+[project.optional-dependencies]
+dev = [
+    "black",
+    "ruff",
+    "pytest-cov",
+    "pytest-random-order",
+    "sphinx-autobuild",
+    "pipdeptree",
+    "ipython",
+    "mockito",
+    "pre-commit",
+    "mypy",
+    "tox",
+    "build",
+    "types-mock",
+]
+
+[project.urls]
+GitHub = "https://github.com/dials/nexgen"
+Documentation = "https://nexgen.readthedocs.io/"
+Bug-Tracker = "https://github.com/dials/nexgen/issues"
+
+#[[project.authors]]
+#email = "data_analysis@diamond.ac.uk"
+#name = "Diamond Light Source - Scientific Software"
+
+[project.scripts]
+nexgen = "nexgen.__main__:main"
+generate_nexus = "nexgen.command_line.nexus_generator:main"
+copy_nexus = "nexgen.command_line.copy_nexus:main"
+nexgen_phil = "nexgen.command_line.phil_files_cli:main"
+I19_nexus = "nexgen.command_line.I19_2_cli:main"
+ED_nexus = "nexgen.command_line.ED_nexus:main"
+SSX_nexus = "nexgen.command_line.SSX_cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+src = ["src", "tests"]
+line-length = 88
+extend-ignore = [
+    "E501", # Line too long
+    "F811", # support typing.overload decorator
+    "E203",
+    "E266",
+    "E402",
+    "E741",
+]
+select = [
+    "C4",   # flake8-comprehensions - https://beta.ruff.rs/docs/rules/#flake8-comprehensions-c4
+    "E",    # pycodestyle errors - https://beta.ruff.rs/docs/rules/#error-e
+    "F",    # pyflakes rules - https://beta.ruff.rs/docs/rules/#pyflakes-f
+    "W",    # pycodestyle warnings - https://beta.ruff.rs/docs/rules/#warning-w
+    "I001", # isort
+]
+
+[tool.mypy]
+plugins = ["pydantic.mypy"]
+ignore_missing_imports = true # Ignore missing stubs in imported modules
+
+[tool.pytest.ini_options]
+addopts = """
+    -ra
+    --cov=nexgen --cov-report=xml --cov-branch
+    """
+junit_family = "xunit2"
+testpaths = "src tests"
+
+# tox must currently be configured via an embedded ini string
+# See: https://github.com/tox-dev/tox/issues/999
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+skipsdist=True
+
+[testenv:{pre-commit,mypy,pytest,docs}]
+# Don't create a virtualenv for the command, requires tox-direct plugin
+direct = True
+passenv = *
+allowlist_externals =
+    pytest
+    pre-commit
+    mypy
+    sphinx-build
+    sphinx-autobuild
+commands =
+    pytest: pytest {posargs}
+    mypy: mypy src tests --ignore-missing-imports --no-strict-optional {posargs}
+    pre-commit: pre-commit run --all-files {posargs}
+    docs: sphinx-{posargs:build -EW --keep-going} -T docs build/html
+"""

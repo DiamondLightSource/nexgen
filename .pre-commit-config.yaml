@@ -7,21 +7,17 @@ repos:
   - id: black
     args: [--safe, --quiet]
 
-# Sort imports
-- repo: https://github.com/pycqa/isort
-  rev: 5.12.0
-  hooks:
-  - id: isort
-    name: isort (python)
-    args: ['--profile=black', '--add_imports="from __future__ import annotations']
 
-# Linting
-- repo: https://github.com/pycqa/flake8
-  rev: 5.0.4
+# Linter
+- repo: local
   hooks:
-  - id: flake8
-    additional_dependencies: ['flake8-comprehensions==3.8.0']
-    args: ['--max-line-length=88', '--select=E401,E711,E712,E713,E714,E721,E722,E901,F401,F402,F403,F405,F631,F632,F633,F811,F812,F821,F822,F841,F901,W191,W291,W292,W293,W602,W603,W604,W605,W606', '--ignore=E203,E266,E402,E501,W503,E741']
+    - id: ruff
+      name: Run ruff
+      stages: [commit]
+      language: system
+      entry: ruff
+      types: [python]
+
 
 # Other syntax checks
 - repo: https://github.com/pre-commit/pre-commit-hooks

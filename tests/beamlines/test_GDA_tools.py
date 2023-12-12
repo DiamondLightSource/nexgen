@@ -12,14 +12,14 @@ def test_get_coordinate_frame_from_json(dummy_geometry_json):
 
 def test_get_gonio_axes_from_json(dummy_geometry_json):
     gonio_axes = JSONParamsIO(dummy_geometry_json.name).get_goniometer_axes_from_file()
-    assert type(gonio_axes) is list and len(gonio_axes) == 3
+    assert isinstance(gonio_axes, list) and len(gonio_axes) == 3
     assert gonio_axes[0].name == "omega" and gonio_axes[1].name == "sam_x"
     assert gonio_axes[2].name == "phi" and gonio_axes[2].depends == "sam_x"
 
 
 def test_get_detector_axes_from_json(dummy_geometry_json):
     det_axes = JSONParamsIO(dummy_geometry_json.name).get_detector_axes_from_file()
-    assert type(det_axes) is list and len(det_axes) == 1
+    assert isinstance(det_axes, list) and len(det_axes) == 1
     assert det_axes[0].name == "det_z"
 
 
@@ -51,7 +51,7 @@ def test_read_scan_from_xml(dummy_xml_file):
     scan_axis, pos, num = read_scan_from_xml(test_ecr)
     assert scan_axis == test_ecr.getAxisChoice()
     assert num == 10
-    assert type(pos) is dict and len(pos) == 6  # gonio axes on I19-2
+    assert isinstance(pos, dict) and len(pos) == 6  # gonio axes on I19-2
     assert pos["omega"] == (-180.0, -160.0, 2)
     assert pos["phi"] == (*2 * (test_ecr.getOtherAxis(),), 0.0)
 

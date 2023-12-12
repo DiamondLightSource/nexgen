@@ -119,13 +119,13 @@ def split_datasets(
     if start_idx < 0:
         raise ValueError("Start index must be positive")
 
-    if type(data_shape[0]) is not int:
+    if not isinstance(data_shape[0], int):
         vds_logger.warning("Datashape not passed as int, will attempt to cast")
 
-    if type(start_idx) is not int:
+    if not isinstance(start_idx, int):
         vds_logger.warning("VDS start index not passed as int, will attempt to cast")
 
-    if vds_shape and type(vds_shape[0]) is not int:
+    if vds_shape and not isinstance(vds_shape[0], int):
         vds_logger.warning("VDS start index not passed as int, will attempt to cast")
 
     if vds_shape is None:

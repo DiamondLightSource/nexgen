@@ -78,6 +78,13 @@ docs/_build/
 # PyBuilder
 target/
 
+# likely venv names
+.venv*
+venv*
+
+# further build artifacts
+lockfiles/
+
 # Jupyter Notebook
 .ipynb_checkpoints
 
@@ -134,3 +141,6 @@ dmypy.json
 
 # JetBrains PyCharm project files
 /.idea/*
+
+# ruff cache
+.ruff_cache/

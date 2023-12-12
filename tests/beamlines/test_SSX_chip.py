@@ -29,20 +29,20 @@ def test_chip_windows():
 
 def test_chip_size():
     size = test_chip.chip_size()
-    assert type(size) is tuple
+    assert isinstance(size, tuple)
     assert size == (6.35, 6.35)
 
 
 def test_chip_types():
-    assert type(test_chip.num_steps[0]) is int
-    assert type(test_chip.step_size[0]) is float
-    assert type(test_chip.num_blocks[0]) is int
-    assert type(test_chip.block_size[0]) is float
+    assert isinstance(test_chip.num_steps[0], int)
+    assert isinstance(test_chip.step_size[0], float)
+    assert isinstance(test_chip.num_blocks[0], int)
+    assert isinstance(test_chip.block_size[0], float)
 
 
 def test_no_chip_map_passed_returns_fullchip():
     res = read_chip_map(None, 1, 1)
-    assert type(res) is dict
+    assert isinstance(res, dict)
     assert list(res.values())[0] == "fullchip"
 
 
