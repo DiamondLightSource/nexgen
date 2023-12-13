@@ -105,7 +105,6 @@ class Goniometer:
 
         if len(transl_axes) == 0:
             # Take care of rotations in both directions
-            # TODO it would be much much better if axes were passed correctly already.
             self.axes_list[osc_idx].increment = (
                 self.axes_list[osc_idx].increment * scan_direction.value
             )
