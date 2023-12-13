@@ -2,13 +2,25 @@
 
 
 
+## 0.8.0
+
+### Changed
+- The NXclass writers are ot using phil-like dictionaries anymore
+- Utilities for the CLI simplified.
+
+
+### Removed
+- Removed obsolete writer from phil scope
+- Removed obsolete scan calculation tools for cli (ScanReader, calculate_scan_range)
+
+
 ## 0.7.3
 
 ### Added
 - Added possibility to write `end_time_estimated` field in NXmxWriter and refactored `write_NXdatetime`.
 - A small utility to write a nexus file for electron diffraction and a new command line tool for SINGLA without phil.
 - Choice to avoid using the meta file for I19-2 data, as long as all relevant information is passed.
-- Utilities to extract collection start time and exposure time from singla master file for ED. 
+- Utilities to extract collection start time and exposure time from singla master file for ED.
 
 ### Changed
 - (Temporary) Write a soft link for /entry/instrument/detector/detector_z in NXdetector, for compatibility with autoPROC.

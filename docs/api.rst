@@ -109,22 +109,10 @@ All the NXclass writers available can be found in:
 Old tools
 ---------
 
-.. note:: The following tools will soon be deprecated.
-
-Older tools can stiil be used with the same functionality. The NXclass writers can be called using the ``call_writers`` function,
-with the exception of ``write_NXentry``, ``write_NXdatetime`` and ``write_NXnote``.
+.. note:: Tools such as ScanReader and write_nexus_from_scope have been deprecated as of version 0.8.0. The functionality of `call_writers` has also been changed.
 
 .. autofunction:: nexgen.command_line.cli_utils.call_writers
 
-
-To identify the scan axes and calculate the scan range:
-
-.. autofunction:: nexgen.command_line.cli_utils.ScanReader
-
-
-Finally, if using phil scopes instead of dictionaries to store the goniometer/detector/beamline/... information, the following function has been added:
-
-.. autofunction:: nexgen.command_line.cli_utils.write_nexus_from_scope
 
 
 Writing blank datasets
