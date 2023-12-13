@@ -87,33 +87,6 @@ def test_get_detector_mode():
     assert tr.get_detector_mode() == "events"
 
 
-def test_eiger_detector_to_dict():
-    eig = Detector(
-        test_eiger, det_axes, [100, 200], 0.1, [(0, 0, 1), Point3D(0, -1, 0)]
-    ).to_dict()
-    assert "pixel_mask" in list(eig.keys())
-    assert "threshold_energy" in list(eig.keys())
-    assert "sensor_thickness" in list(eig.keys())
-    assert "mode" in list(eig.keys()) and eig["mode"] == "images"
-
-
-def tristan_detector_to_dict():
-    trist = Detector(
-        test_tristan, det_axes, [100, 200], 0.1, [(0, 0, 1), Point3D(0, -1, 0)]
-    ).to_dict()
-    assert "timeslice_rollover" in list(trist.keys())
-    assert "sensor_thickness" in list(trist.keys())
-    assert "mode" in list(trist.keys()) and trist["mode"] == "events"
-
-
-def test_jungfrau_detector_to_dict():
-    jf = Detector(
-        test_jungfrau, det_axes, [100, 200], 0.1, [(0, 0, 1), Point3D(0, -1, 0)]
-    ).to_dict()
-    assert "mode" in list(jf.keys()) and jf["mode"] == "images"
-    assert_array_equal(jf["beam_center"], [100, 200])
-
-
 def test_detector_to_module_dict():
     mod = Detector(
         test_eiger, det_axes, [100, 200], 0.1, [(0, 0, 1), Point3D(0, -1, 0)]

@@ -13,16 +13,6 @@ axes_list = [
 ]
 
 
-def test_goniometer_to_dict():
-    gonio = Goniometer(axes_list[:2]).to_dict()
-    assert isinstance(gonio, dict)
-    assert gonio["axes"] == ["omega", "sam_z"]
-    assert gonio["depends"] == [".", "omega"]
-    assert gonio["vectors"] == [(0, 0, -1), (0, 0, 1)]
-    assert gonio["types"] == ["rotation", "translation"]
-    assert gonio["units"] == ["deg", "mm"]
-
-
 def test_define_scan_from_gonio():
     osc_scan, grid_scan = Goniometer(axes_list).define_scan_from_goniometer_axes()
     assert_array_equal(osc_scan["omega"], np.repeat(0.0, 100))

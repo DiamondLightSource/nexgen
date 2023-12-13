@@ -206,26 +206,8 @@ class Detector:
         )
         return f"Detector description: {det_msg}"
 
-    def _generate_detector_dict(self):
-        detector = self.detector_params.__dict__
-        detector["axes"] = [ax.name for ax in self.detector_axes]
-        detector["depends"] = [ax.depends for ax in self.detector_axes]
-        detector["vectors"] = [ax.vector for ax in self.detector_axes]
-        detector["starts"] = [ax.start_pos for ax in self.detector_axes]
-        detector["units"] = [ax.units for ax in self.detector_axes]
-        detector["types"] = [ax.transformation_type for ax in self.detector_axes]
-        if "tristan" not in self.detector_params.description.lower():
-            # Mode is already in params
-            detector["mode"] = "images"
-        if "eiger" in self.detector_params.description.lower():
-            # In this case sensor thickess is a property, and depends on material
-            detector["sensor_thickness"] = self.detector_params.sensor_thickness
-        detector.update(self.detector_params.constants)
-        detector["beam_center"] = self.beam_center
-        detector["exposure_time"] = self.exp_time
-        return detector
-
     def get_detector_description(self) -> str:
+        """Get detector description string."""
         return self.detector_params.description
 
     def get_detector_mode(self) -> str:
@@ -235,10 +217,6 @@ class Detector:
         if "mode" in self.detector_params.__dataclass_fields__:
             return self.detector_params.mode
         return "images"
-
-    def to_dict(self):
-        """Write the detector information to a dictionary."""
-        return self._generate_detector_dict()
 
     def get_module_info(self):
         """Write the module information to a dictionary."""

@@ -63,19 +63,6 @@ class Goniometer:
             return None
         return idx[0]
 
-    def _generate_goniometer_dict(self):
-        goniometer = {
-            "axes": [ax.name for ax in self.axes_list],
-            "depends": [ax.depends for ax in self.axes_list],
-            "types": [ax.transformation_type for ax in self.axes_list],
-            "units": [ax.units for ax in self.axes_list],
-            "vectors": [ax.vector for ax in self.axes_list],
-            "starts": [ax.start_pos for ax in self.axes_list],
-            "increments": [abs(ax.increment) for ax in self.axes_list],
-            "ends": [ax.end_pos for ax in self.axes_list],
-        }
-        return goniometer
-
     def define_scan_from_goniometer_axes(
         self,
         grid_scan_options: GridScanOptions | None = None,
@@ -183,7 +170,3 @@ class Goniometer:
         axis_name = list(scan.keys())[0]
         scan_length = len(scan[axis_name])
         return scan_length
-
-    def to_dict(self):
-        """Write the goniometer information to a dictionary."""
-        return self._generate_goniometer_dict()
