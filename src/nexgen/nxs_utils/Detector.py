@@ -176,14 +176,12 @@ class Detector:
         self.detector_axes = detector_axes
         self.beam_center = beam_center
         self.exp_time = exposure_time
-        if type(module_vectors[0]) is Point3D:
-            self.fast_axis = module_vectors[0]
-        else:
-            self.fast_axis = Point3D(*module_vectors[0])
-        if type(module_vectors[1]) is Point3D:
-            self.slow_axis = module_vectors[1]
-        else:
-            self.slow_axis = Point3D(*module_vectors[1])
+        self.fast_axis = module_vectors[0]
+        self.slow_axis = module_vectors[1]
+        if isinstance(self.fast_axis, Point3D):
+            self.fast_axis = (self.fast_axis.x, self.fast_axis.y, self.fast_axis.z)
+        if isinstance(self.slow_axis, Point3D):
+            self.slow_axis = (self.slow_axis.x, self.slow_axis.y, self.slow_axis.z)
 
     def __repr__(self) -> str:
         det_msg = (
@@ -194,6 +192,10 @@ class Detector:
         )
         for ax in self.detector_axes:
             det_msg += f"{ax.name}: {ax.start_pos} => {ax.transformation_type} on {ax.depends} \n\t"
+        det_msg += (
+            "Detector module axes: \n\t"
+            f"Fast axis: {self.fast_axis} \n\t Slow axis: {self.slow_axis}\n"
+        )
         return f"Detector description: {det_msg}"
 
     def _generate_detector_dict(self):
@@ -218,8 +220,8 @@ class Detector:
     def _generate_module_dict(self):
         module = {
             "module_offset": "1",
-            "fast_axis": [self.fast_axis.x, self.fast_axis.y, self.fast_axis.z],
-            "slow_axis": [self.slow_axis.x, self.slow_axis.y, self.slow_axis.z],
+            "fast_axis": self.fast_axis,
+            "slow_axis": self.slow_axis,
         }
         return module
 

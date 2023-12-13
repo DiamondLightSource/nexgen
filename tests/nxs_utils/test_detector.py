@@ -74,6 +74,18 @@ def test_get_detector_description():
     assert eig.get_detector_description() == test_eiger.description
 
 
+def test_get_detector_mode():
+    eig = Detector(
+        test_eiger, det_axes, [100, 200], 0.1, [(0, 0, 1), Point3D(0, -1, 0)]
+    )
+    assert eig.get_detector_mode() == "images"
+
+    tr = Detector(
+        test_tristan, det_axes, [100, 200], 0.1, [(0, 0, 1), Point3D(0, -1, 0)]
+    )
+    assert tr.get_detector_mode() == "events"
+
+
 def test_eiger_detector_to_dict():
     eig = Detector(
         test_eiger, det_axes, [100, 200], 0.1, [(0, 0, 1), Point3D(0, -1, 0)]
@@ -107,13 +119,14 @@ def test_detector_to_module_dict():
     ).to_module_dict()
     assert isinstance(mod, dict)
     assert mod["module_offset"] == "1"
-    assert_array_equal(mod["fast_axis"], [0, 0, 1])
-    assert_array_equal(mod["slow_axis"], [0, -1, 0])
+    assert_array_equal(mod["fast_axis"], (0, 0, 1))
+    assert_array_equal(mod["slow_axis"], (0, -1, 0))
 
 
 def test_fast_slow_axis_input():
     det = Detector(
         test_eiger, det_axes, [100, 200], 0.1, [(0, 0, 1), Point3D(0, -1, 0)]
     )
-    assert type(det.fast_axis) is Point3D and type(det.slow_axis) is Point3D
-    assert det.fast_axis == Point3D(0, 0, 1)
+    assert isinstance(det.fast_axis, tuple) and isinstance(det.slow_axis, tuple)
+    assert det.fast_axis == (0, 0, 1)
+    assert det.slow_axis == (0, -1, 0)
