@@ -4,6 +4,7 @@ from numpy.testing import assert_array_equal
 from nexgen.nxs_utils import (
     Axis,
     Detector,
+    DetectorModule,
     EigerDetector,
     JungfrauDetector,
     SinglaDetector,
@@ -116,7 +117,7 @@ def test_jungfrau_detector_to_dict():
 def test_detector_to_module_dict():
     mod = Detector(
         test_eiger, det_axes, [100, 200], 0.1, [(0, 0, 1), Point3D(0, -1, 0)]
-    ).to_module_dict()
+    ).get_module_info()
     assert isinstance(mod, dict)
     assert mod["module_offset"] == "1"
     assert_array_equal(mod["fast_axis"], (0, 0, 1))
@@ -124,9 +125,9 @@ def test_detector_to_module_dict():
 
 
 def test_fast_slow_axis_input():
-    det = Detector(
-        test_eiger, det_axes, [100, 200], 0.1, [(0, 0, 1), Point3D(0, -1, 0)]
-    )
-    assert isinstance(det.fast_axis, tuple) and isinstance(det.slow_axis, tuple)
-    assert det.fast_axis == (0, 0, 1)
-    assert det.slow_axis == (0, -1, 0)
+    mod = DetectorModule((0, 0, 1), Point3D(0, -1, 0))
+
+    assert isinstance(mod.fast_axis, tuple) and isinstance(mod.slow_axis, tuple)
+    assert mod.fast_axis == (0, 0, 1)
+    assert mod.slow_axis == (0, -1, 0)
+    assert mod.module_offset == "1"

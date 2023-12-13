@@ -772,14 +772,13 @@ def write_NXdetector_module(
         ("NXdetector_module",),
     )
 
-    # TODO check how many modules, and write as many, plus NXdetector_group
     nxmodule.create_dataset("data_origin", data=np.array([0, 0]))
     nxmodule.create_dataset("data_size", data=image_size)
     nxmodule.create_dataset("data_stride", data=np.array([1, 1]))
 
     # Write fast_ and slow_ pixel_direction
-    fast_axis = tuple(module["fast_axis"])
-    slow_axis = tuple(module["slow_axis"])
+    fast_axis = module["fast_axis"]
+    slow_axis = module["slow_axis"]
 
     if "offsets" in module.keys():
         offsets = module["offsets"]

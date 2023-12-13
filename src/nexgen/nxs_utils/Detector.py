@@ -161,6 +161,19 @@ class JungfrauDetector(DataClassJsonMixin):
 DetectorType = Union[EigerDetector, TristanDetector, SinglaDetector, JungfrauDetector]
 
 
+@dataclass
+class DetectorModule(DataClassJsonMixin):
+    fast_axis: Tuple[float] | Point3D
+    slow_axis: Tuple[float] | Point3D
+    module_offset: str = "1"
+
+    def __post_init__(self):
+        if isinstance(self.fast_axis, Point3D):
+            self.fast_axis = (self.fast_axis.x, self.fast_axis.y, self.fast_axis.z)
+        if isinstance(self.slow_axis, Point3D):
+            self.slow_axis = (self.slow_axis.x, self.slow_axis.y, self.slow_axis.z)
+
+
 class Detector:
     """Detector definition."""
 
@@ -176,12 +189,7 @@ class Detector:
         self.detector_axes = detector_axes
         self.beam_center = beam_center
         self.exp_time = exposure_time
-        self.fast_axis = module_vectors[0]
-        self.slow_axis = module_vectors[1]
-        if isinstance(self.fast_axis, Point3D):
-            self.fast_axis = (self.fast_axis.x, self.fast_axis.y, self.fast_axis.z)
-        if isinstance(self.slow_axis, Point3D):
-            self.slow_axis = (self.slow_axis.x, self.slow_axis.y, self.slow_axis.z)
+        self.module = DetectorModule(module_vectors[0], module_vectors[1])
 
     def __repr__(self) -> str:
         det_msg = (
@@ -194,7 +202,7 @@ class Detector:
             det_msg += f"{ax.name}: {ax.start_pos} => {ax.transformation_type} on {ax.depends} \n\t"
         det_msg += (
             "Detector module axes: \n\t"
-            f"Fast axis: {self.fast_axis} \n\t Slow axis: {self.slow_axis}\n"
+            f"Fast axis: {self.module.fast_axis} \n\t Slow axis: {self.module.slow_axis}\n"
         )
         return f"Detector description: {det_msg}"
 
@@ -217,14 +225,6 @@ class Detector:
         detector["exposure_time"] = self.exp_time
         return detector
 
-    def _generate_module_dict(self):
-        module = {
-            "module_offset": "1",
-            "fast_axis": self.fast_axis,
-            "slow_axis": self.slow_axis,
-        }
-        return module
-
     def get_detector_description(self) -> str:
         return self.detector_params.description
 
@@ -240,6 +240,6 @@ class Detector:
         """Write the detector information to a dictionary."""
         return self._generate_detector_dict()
 
-    def to_module_dict(self):
+    def get_module_info(self):
         """Write the module information to a dictionary."""
-        return self._generate_module_dict()
+        return self.module.to_dict()

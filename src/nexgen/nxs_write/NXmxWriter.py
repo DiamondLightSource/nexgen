@@ -106,14 +106,6 @@ class NXmxFileWriter:
         nxmx_logger.debug(f"Number of datafiles to be written: {len(datafiles)}.")
         return datafiles
 
-    def _unpack_dictionaries(self) -> Tuple[Dict]:
-        return (
-            self.goniometer.to_dict(),
-            self.detector.to_dict(),
-            self.detector.to_module_dict(),
-            self.source.to_dict(),
-        )
-
     def update_timestamps(
         self, timestamp: datetime | str, dset_name: TSdset = "end_time"
     ):
@@ -173,7 +165,7 @@ class NXmxFileWriter:
             else self._get_data_files_list(image_filename)
         )
 
-        gonio, det, module, source = self._unpack_dictionaries()
+        module = self.detector.get_module_info()
 
         osc, transl = self.goniometer.define_scan_from_goniometer_axes()
 
@@ -350,8 +342,7 @@ class EventNXmxFileWriter(NXmxFileWriter):
         # No data files, just link to meta
         metafile = super()._get_meta_file()
 
-        # Unpack
-        gonio, det, module, source = super()._unpack_dictionaries()
+        module = self.detector.get_module_info()
 
         # Get scan info
         # Here no scan, just get (start, stop) from omega/phi as osc and None as transl
@@ -492,8 +483,7 @@ class EDNXmxFileWriter(NXmxFileWriter):
         # Get data files
         datafiles = image_datafiles if image_datafiles else [self._get_data_filename()]
 
-        # Unpack
-        gonio, det, module, source = self._unpack_dictionaries()
+        module = self.detector.get_module_info()
 
         # Scans
         osc, _ = self.goniometer.define_scan_from_goniometer_axes()

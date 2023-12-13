@@ -3,6 +3,7 @@ from __future__ import annotations
 from .Axes import Axis, TransformationType
 from .Detector import (
     Detector,
+    DetectorModule,
     DetectorType,
     EigerDetector,
     JungfrauDetector,
@@ -17,6 +18,7 @@ __all__ = [
     "Axis",
     "Goniometer",
     "Detector",
+    "DetectorModule",
     "DetectorType",
     "SinglaDetector",
     "TristanDetector",
