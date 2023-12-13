@@ -6,7 +6,14 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from nexgen.nxs_utils import Axis, Facility, Source, TransformationType
+from nexgen.nxs_utils import (
+    Axis,
+    EigerDetector,
+    Facility,
+    Source,
+    TransformationType,
+    TristanDetector,
+)
 from nexgen.nxs_write.NXclassWriters import (
     write_NXcollection,
     write_NXcoordinate_system_set,
@@ -22,28 +29,6 @@ from nexgen.nxs_write.NXclassWriters import (
 )
 
 test_module = {"fast_axis": [1, 0, 0], "slow_axis": [0, 1, 0]}
-
-test_eiger = {
-    "mode": "images",
-    "description": "Eiger 2X 9M",
-    "detector_type": "Pixel",
-    "sensor_material": "CdTe",
-    "sensor_thickness": "0.750mm",
-    "flatfield": None,
-    "pixel_mask": None,
-    "overload": 50649,  # "_dectris/countrate_correction_count_cutoff",
-    "underload": -1,
-    "pixel_size": ["0.075mm", "0.075mm"],
-    "beam_center": [1590.7, 1643.7],
-    "image_size": [3262, 3108],  # (slow, fast)
-    "axes": ["det_z"],
-    "depends": ["."],
-    "vectors": [(0, 0, 1)],
-    "types": ["translation"],
-    "units": ["mm"],
-    "starts": [500],
-    "exposure_time": 0.01,
-}
 
 
 def test_given_no_data_files_when_write_NXdata_then_assert_error():
@@ -352,34 +337,26 @@ def test_write_NXcoordinate_system_set(dummy_nexus_file):
 
 def test_write_NXcollection_for_images(dummy_nexus_file):
     nxdet = dummy_nexus_file.require_group("/entry/instrument/detector")
-    test_detector_spec = {
-        "description": "eiger",
-        "image_size": [512, 1028],
-        "software_version": "0.0.0",
-    }
-    write_NXcollection(nxdet, test_detector_spec, ("images", 10))
+    test_detector_spec = EigerDetector("eiger", [512, 1028], "Si", 10000, -1)
+    test_detector_spec.constants["software_version"] = "0.0.0"
+
+    write_NXcollection(nxdet, test_detector_spec, "images", 10)
 
     spec = "/entry/instrument/detector/detectorSpecific/"
     assert dummy_nexus_file[spec + "software_version"][()] == b"0.0.0"
     assert_array_equal(dummy_nexus_file[spec + "nimages"][()], 10)
     assert_array_equal(
-        dummy_nexus_file[spec + "x_pixels"][()], test_detector_spec["image_size"][1]
+        dummy_nexus_file[spec + "x_pixels"][()], test_detector_spec.image_size[1]
     )
     assert_array_equal(
-        dummy_nexus_file[spec + "y_pixels"][()], test_detector_spec["image_size"][0]
+        dummy_nexus_file[spec + "y_pixels"][()], test_detector_spec.image_size[0]
     )
 
 
 def test_write_NXcollection_for_events(dummy_nexus_file):
     nxdet = dummy_nexus_file.require_group("/entry/instrument/detector")
-    test_detector_spec = {
-        "description": "Tristan 1M",
-        "image_size": [515, 2069],
-        "software_version": "0.0.0",
-        "detector_tick": "1562.5ps",
-        "detector_frequency": "6.4e+08Hz",
-        "timeslice_rollover": 18,
-    }
+    test_detector_spec = TristanDetector("Tristan 1M", [515, 2069])
+    test_detector_spec.constants["software_version"] = "0.0.0"
 
     write_NXcollection(nxdet, test_detector_spec, ("events", None))
 
@@ -387,30 +364,29 @@ def test_write_NXcollection_for_events(dummy_nexus_file):
     assert dummy_nexus_file[spec + "software_version"][()] == b"0.0.0"
     assert_array_equal(
         dummy_nexus_file[spec + "timeslice_rollover_bits"][()],
-        test_detector_spec["timeslice_rollover"],
+        test_detector_spec.constants["timeslice_rollover"],
     )
     assert_array_equal(dummy_nexus_file[spec + "detector_tick"][()], 1562.5)
     assert dummy_nexus_file[spec + "detector_tick"].attrs["units"] == b"ps"
     assert dummy_nexus_file[spec + "detector_frequency"].attrs["units"] == b"Hz"
 
 
-def test_write_NXdetector_for_images_without_meta_file(dummy_nexus_file):
+def test_write_NXdetector_for_images_without_meta_file(dummy_nexus_file, mock_eiger):
     det = "/entry/instrument/detector/"
 
     write_NXdetector(
         dummy_nexus_file,
-        test_eiger,
-        ("images", 100),
+        mock_eiger,
+        100,
     )
 
     # Check some general things
-    assert (
-        dummy_nexus_file[det + "description"][()] == test_eiger["description"].encode()
-    )
-    assert dummy_nexus_file[det + "type"][()] == test_eiger["detector_type"].encode()
+    params = mock_eiger.detector_params
+    assert dummy_nexus_file[det + "description"][()] == params.description.encode()
+    assert dummy_nexus_file[det + "type"][()] == params.detector_type.encode()
 
     assert_array_equal(
-        dummy_nexus_file[det + "beam_center_x"][()], test_eiger["beam_center"][0]
+        dummy_nexus_file[det + "beam_center_x"][()], mock_eiger.beam_center[0]
     )
     assert dummy_nexus_file[det + "beam_center_y"].attrs["units"] == b"pixels"
     assert_array_equal(dummy_nexus_file[det + "y_pixel_size"], 7.5e-05)
@@ -423,17 +399,20 @@ def test_write_NXdetector_for_images_without_meta_file(dummy_nexus_file):
     tr = det + "transformations/"
     assert "detector_z" in list(dummy_nexus_file[tr].keys())
     axis_entry = tr + "detector_z/det_z"
-    assert_array_equal(test_eiger["starts"], dummy_nexus_file[axis_entry][()])
+    assert_array_equal(
+        mock_eiger.detector_axes[0].start_pos, dummy_nexus_file[axis_entry][()]
+    )
     assert dummy_nexus_file[axis_entry].attrs["depends_on"] == b"."
     assert dummy_nexus_file[axis_entry].attrs["transformation_type"] == b"translation"
     assert dummy_nexus_file[axis_entry].attrs["units"] == b"mm"
     assert_array_equal(
-        dummy_nexus_file[axis_entry].attrs["vector"][()], test_eiger["vectors"][0]
+        dummy_nexus_file[axis_entry].attrs["vector"][()],
+        mock_eiger.detector_axes[0].vector,
     )
 
     # Check that distance is in meters instead of mm
     assert_array_equal(
-        dummy_nexus_file[det + "distance"], test_eiger["starts"][0] / 1000
+        dummy_nexus_file[det + "distance"], mock_eiger.detector_axes[0].start_pos / 1000
     )
     assert dummy_nexus_file[det + "distance"].attrs["units"] == b"m"
 

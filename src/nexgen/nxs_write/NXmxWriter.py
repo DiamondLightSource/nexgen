@@ -46,23 +46,7 @@ from .write_utils import TSdset, calculate_estimated_end_time
 nxmx_logger = logging.getLogger("nexgen.NXmxFileWriter")
 nxmx_logger.setLevel(logging.DEBUG)
 
-eiger_meta_links = [
-    [
-        "pixel_mask",
-        "pixel_mask_applied",
-        "flatfield",
-        "flatfield_applied",
-        "threshold_energy",
-        "bit_depth_readout",
-        "bit_depth_image",
-        "detector_readout_time",
-        "serial_number",
-    ],
-    ["software_version"],
-]
 
-
-# New Writer goes here
 class NXmxFileWriter:
     """A class to generate NXmx format NeXus files."""
 
@@ -193,8 +177,6 @@ class NXmxFileWriter:
 
         osc, transl = self.goniometer.define_scan_from_goniometer_axes()
 
-        link_list = eiger_meta_links if "eiger" in det["description"].lower() else None
-
         with h5py.File(self.filename, write_mode) as nxs:
             # NXentry and NXmx definition
             write_NXentry(nxs)
@@ -230,10 +212,9 @@ class NXmxFileWriter:
             # NXdetector: entry/instrument/detector
             write_NXdetector(
                 nxs,
-                det,
-                ("images", self.tot_num_imgs),
+                self.detector,
+                self.tot_num_imgs,
                 metafile,
-                link_list,
             )
 
             # NXmodule: entry/instrument/detector/module
@@ -404,9 +385,8 @@ class EventNXmxFileWriter(NXmxFileWriter):
             # NXdetector: entry/instrument/detector
             write_NXdetector(
                 nxs,
-                det,
-                ("events", None),
-                metafile,
+                self.detector,
+                meta=metafile,
             )
 
             # NXmodule: entry/instrument/detector/module
@@ -567,8 +547,8 @@ class EDNXmxFileWriter(NXmxFileWriter):
             # NXdetector: entry/instrument/detector
             write_NXdetector(
                 nxs,
-                det,
-                ("images", self.tot_num_imgs),
+                self.detector,
+                self.tot_num_imgs,
             )
 
             # NXmodule: entry/instrument/detector/module

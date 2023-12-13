@@ -9,6 +9,8 @@ from nexgen.nxs_utils import (
     Attenuator,
     Axis,
     Beam,
+    Detector,
+    EigerDetector,
     Goniometer,
     Source,
     TransformationType,
@@ -49,6 +51,27 @@ def mock_beam() -> Beam:
 @pytest.fixture
 def mock_attenuator() -> Attenuator:
     return Attenuator(transmission=10.0)
+
+
+@pytest.fixture
+def mock_eiger() -> Detector:
+    eiger_params = EigerDetector(
+        "Eiger 2X 9M",
+        [3262, 3108],
+        "CdTe",
+        50649,
+        -1,
+    )
+    det_axes = [
+        Axis("det_z", ".", TransformationType.TRANSLATION, (0, 0, 1), start_pos=500),
+    ]
+    return Detector(
+        eiger_params,
+        det_axes,
+        [1590.7, 1643.7],
+        0.01,
+        [(1, 0, 0), (0, 1, 0)],
+    )
 
 
 @pytest.fixture

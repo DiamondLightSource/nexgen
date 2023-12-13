@@ -226,6 +226,14 @@ class Detector:
     def get_detector_description(self) -> str:
         return self.detector_params.description
 
+    def get_detector_mode(self) -> str:
+        """Data type collected by the detector.
+        If no mode specified in detector parameters, defaults to images.
+        """
+        if "mode" in self.detector_params.__dataclass_fields__:
+            return self.detector_params.mode
+        return "images"
+
     def to_dict(self):
         """Write the detector information to a dictionary."""
         return self._generate_detector_dict()
