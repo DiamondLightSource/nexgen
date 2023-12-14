@@ -1,0 +1,17 @@
+[run]
+omit = 
+    */test_*
+    **/conftest.py
+data_file = /tmp/nexgen.coverage
+
+[report]
+exclude_also = 
+    if TYPE_CHECKING:
+    def __repr__
+    raise NotImplementedError
+
+[paths]
+# Tests are run from installed location, map back to the src directory
+source =
+    src
+    **/site-packages/
