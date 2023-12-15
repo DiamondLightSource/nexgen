@@ -758,7 +758,7 @@ def write_with_meta_cli(args):
             phil2dict(source.__dict__),
             phil2dict(beam.__dict__),
             phil2dict(attenuator.__dict__),
-            metafile=metafile,
+            metafile=True,
             timestamps=timestamps,
             notes=pump_info,
         )

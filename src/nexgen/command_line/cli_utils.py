@@ -23,7 +23,7 @@ from ..nxs_utils import (
     TransformationType,
     TristanDetector,
 )
-from ..nxs_utils.Detector import UnknownDetectorTypeError
+from ..nxs_utils.Detector import EIGER_CONST, UnknownDetectorTypeError
 from ..nxs_write.NXmxWriter import EventNXmxFileWriter, NXmxFileWriter
 from ..utils import coerce_to_path, coord2mcstas, imgcif2mcstas
 
@@ -178,21 +178,31 @@ def reframe_arrays(
                 ]
 
 
-def set_detector_params(det_name: str, **params) -> DetectorType:
+def _update_detector_constants(det_params: DetectorType, params: Dict):
+    for k in list(det_params.constants.keys()):
+        if k in list(params.keys()):
+            det_params[k] = params[k]
+
+
+def set_detector_params(
+    det_name: str, use_meta: bool = False, **params
+) -> DetectorType:
     """Set up the detector parameters from parsed input
 
     Args:
         det_name (str): Detector name.
+        use_meta (bool, optional): Whether a meta file is present. Mostly important for Eiger links.
 
     Keyword Args:
         Required parameters to set up detector.
         For Eiger: {"description", "image_size", "sensor_material", "overload", "underload"}
         For Tristan: {"description", "image_size"}
+        Plus any additional arguments fo overwrite constants.
 
     Raises:
-        ValueError: _description_
-        ValueError: _description_
-        UnknownDetectorTypeError: _description_
+        ValueError: When missing required tristan kwargs.
+        ValueError: When missing required eiger kwargs.
+        UnknownDetectorTypeError: Id a detector drifferent from tristan or eiger has been requested.
 
     Returns:
         DetectorType: Parameters which define the detector in use.
@@ -203,6 +213,8 @@ def set_detector_params(det_name: str, **params) -> DetectorType:
             logger.error("Missing detector parameters information for Tristan.")
             raise ValueError("Missing tristan information.")
         det_params = TristanDetector(params["description"], params["image_size"])
+        if len(params.keys()) > 2:
+            _update_detector_constants(det_params, params)
     elif "eiger" in det_name.lower():
         required_params = {
             "description",
@@ -221,6 +233,11 @@ def set_detector_params(det_name: str, **params) -> DetectorType:
             params["overload"],
             params["underload"],
         )
+        if use_meta is False and len(params.keys()) > 5:
+            _update_detector_constants(det_params, params)
+        if use_meta is False and len(params.keys()) == 5:
+            for k in list(det_params.constants.keys()):
+                det_params.constants[k] = None
     else:
         error_msg = "This CLI functionality is currently only available for Eiger and Tristan detectors."
         logger.error(error_msg)
@@ -240,7 +257,7 @@ def call_writers(
     source: Dict[str, Any],
     beam: Dict[str, Any],
     attenuator: Dict[str, Any],
-    metafile: Path | str = None,
+    metafile: bool = False,
     timestamps: Tuple[str, str] = None,
     notes: Dict[str, Any] = None,
 ):
@@ -258,7 +275,7 @@ def call_writers(
         source (Dict[str, Any]): Facility information.
         beam (Dict[str, Any]): Beam properties.
         attenuator (Dict[str, Any]): Attenuator properties.
-        metafile (Path | str, optional): File containing the metadata. Defaults to None.
+        metafile (bool, optional): Whether a metafile is present. Defaults to False.
         timestamps (Tuple[str], optional): Start and end collection timestamps in ISO format. Defaults to None.
         notes (Dict, optional): Any additional information to write as NXnote. Defaults to None.
     """
@@ -276,9 +293,6 @@ def call_writers(
     # Check that filenames are paths
     datafiles = [coerce_to_path(f) for f in datafiles]
 
-    if metafile:
-        metafile = coerce_to_path(metafile)
-
     # Set up Source, Beam, Attenuator
     attenuator_new = Attenuator(attenuator["transmission"])
     beam_new = Beam(beam["wavelength"], beam["flux"])
@@ -287,13 +301,25 @@ def call_writers(
     )
     source_new = Source(source["beamline_name"], facility, source["probe"])
 
+    # Other params that might have been passed
+    if "eiger" in detector["description"].lower():
+        contants = {
+            k: detector[k]
+            for k in list(EIGER_CONST.keys())
+            if k in list(detector.keys())
+        }
+    else:
+        contants = {}
+
     # Set up detector
     detector_params = set_detector_params(
         detector["description"],
+        metafile,
         image_size=detector["image_size"],
         sensor_material=detector["sensor_material"],
         overload=detector["overload"],
         underload=["underload"],
+        **contants,
     )
     det_axes = []
     for idx, ax in enumerate(detector["axes"]):
