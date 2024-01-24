@@ -490,12 +490,13 @@ def write_NXdetector(
                     # Software version should go in detectorSpecific (NXcollection)
                     break
                 nxdetector[k] = h5py.ExternalLink(meta_link, v)
-        NXclass_logger.warning(
-            """
-            Meta file for Eiger detector hasn't been specified.
-            No links will be written. Pixel mask and flatfield information missing.
-            """
-        )
+        else:
+            NXclass_logger.warning(
+                """
+                Meta file for Eiger detector hasn't been specified.
+                No links will be written. Pixel mask and flatfield information missing.
+                """
+            )
     else:
         # If it's an eiger mask and flatfield will be in the links along with other info.
         # If it isn't, the mask and flatfield info still needs to go in
