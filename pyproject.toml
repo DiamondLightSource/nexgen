@@ -96,9 +96,8 @@ ignore_missing_imports = true # Ignore missing stubs in imported modules
 [tool.pytest.ini_options]
 addopts = """
     -ra
+    --cov=nexgen --cov-report=xml --cov-branch
     """
-    #--cov=nexgen --cov-report=xml --cov-branch
-    #"""
 junit_family = "xunit2"
 testpaths = "src tests"
 
