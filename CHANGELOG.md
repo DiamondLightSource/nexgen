@@ -5,7 +5,7 @@
 ## 0.8.0
 
 ### Changed
-- The NXclass writers are ot using phil-like dictionaries anymore
+- The NXclass writers are not using phil-like dictionaries anymore.
 - Utilities for the CLI simplified.
 
 
