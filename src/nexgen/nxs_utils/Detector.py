@@ -199,7 +199,7 @@ class Detector:
             "Detector axes: \n\t"
         )
         for ax in self.detector_axes:
-            det_msg += f"{ax.name}: {ax.start_pos} => {ax.transformation_type} on {ax.depends} \n\t"
+            det_msg += f"{ax.name}: {ax.start_pos} => {ax.transformation_type.value} on {ax.depends} \n\t"
         det_msg += (
             "Detector module axes: \n\t"
             f"Fast axis: {self.module.fast_axis} \n\t Slow axis: {self.module.slow_axis}\n"
