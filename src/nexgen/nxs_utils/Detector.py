@@ -161,6 +161,19 @@ class JungfrauDetector(DataClassJsonMixin):
 DetectorType = Union[EigerDetector, TristanDetector, SinglaDetector, JungfrauDetector]
 
 
+@dataclass
+class DetectorModule(DataClassJsonMixin):
+    fast_axis: Tuple[float] | Point3D
+    slow_axis: Tuple[float] | Point3D
+    module_offset: str = "1"
+
+    def __post_init__(self):
+        if isinstance(self.fast_axis, Point3D):
+            self.fast_axis = (self.fast_axis.x, self.fast_axis.y, self.fast_axis.z)
+        if isinstance(self.slow_axis, Point3D):
+            self.slow_axis = (self.slow_axis.x, self.slow_axis.y, self.slow_axis.z)
+
+
 class Detector:
     """Detector definition."""
 
@@ -176,14 +189,7 @@ class Detector:
         self.detector_axes = detector_axes
         self.beam_center = beam_center
         self.exp_time = exposure_time
-        if type(module_vectors[0]) is Point3D:
-            self.fast_axis = module_vectors[0]
-        else:
-            self.fast_axis = Point3D(*module_vectors[0])
-        if type(module_vectors[1]) is Point3D:
-            self.slow_axis = module_vectors[1]
-        else:
-            self.slow_axis = Point3D(*module_vectors[1])
+        self.module = DetectorModule(module_vectors[0], module_vectors[1])
 
     def __repr__(self) -> str:
         det_msg = (
@@ -193,43 +199,25 @@ class Detector:
             "Detector axes: \n\t"
         )
         for ax in self.detector_axes:
-            det_msg += f"{ax.name}: {ax.start_pos} => {ax.transformation_type} on {ax.depends} \n\t"
+            det_msg += f"{ax.name}: {ax.start_pos} => {ax.transformation_type.value} on {ax.depends} \n\t"
+        det_msg += (
+            "Detector module axes: \n\t"
+            f"Fast axis: {self.module.fast_axis} \n\t Slow axis: {self.module.slow_axis}\n"
+        )
         return f"Detector description: {det_msg}"
 
-    def _generate_detector_dict(self):
-        detector = self.detector_params.__dict__
-        detector["axes"] = [ax.name for ax in self.detector_axes]
-        detector["depends"] = [ax.depends for ax in self.detector_axes]
-        detector["vectors"] = [ax.vector for ax in self.detector_axes]
-        detector["starts"] = [ax.start_pos for ax in self.detector_axes]
-        detector["units"] = [ax.units for ax in self.detector_axes]
-        detector["types"] = [ax.transformation_type for ax in self.detector_axes]
-        if "tristan" not in self.detector_params.description.lower():
-            # Mode is already in params
-            detector["mode"] = "images"
-        if "eiger" in self.detector_params.description.lower():
-            # In this case sensor thickess is a property, and depends on material
-            detector["sensor_thickness"] = self.detector_params.sensor_thickness
-        detector.update(self.detector_params.constants)
-        detector["beam_center"] = self.beam_center
-        detector["exposure_time"] = self.exp_time
-        return detector
-
-    def _generate_module_dict(self):
-        module = {
-            "module_offset": "1",
-            "fast_axis": [self.fast_axis.x, self.fast_axis.y, self.fast_axis.z],
-            "slow_axis": [self.slow_axis.x, self.slow_axis.y, self.slow_axis.z],
-        }
-        return module
-
     def get_detector_description(self) -> str:
+        """Get detector description string."""
         return self.detector_params.description
 
-    def to_dict(self):
-        """Write the detector information to a dictionary."""
-        return self._generate_detector_dict()
+    def get_detector_mode(self) -> str:
+        """Data type collected by the detector.
+        If no mode specified in detector parameters, defaults to images.
+        """
+        if "mode" in self.detector_params.__dataclass_fields__:
+            return self.detector_params.mode
+        return "images"
 
-    def to_module_dict(self):
+    def get_module_info(self):
         """Write the module information to a dictionary."""
-        return self._generate_module_dict()
+        return self.module.to_dict()

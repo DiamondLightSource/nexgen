@@ -4,6 +4,7 @@ from numpy.testing import assert_array_equal
 from nexgen.nxs_utils import (
     Axis,
     Detector,
+    DetectorModule,
     EigerDetector,
     JungfrauDetector,
     SinglaDetector,
@@ -74,46 +75,32 @@ def test_get_detector_description():
     assert eig.get_detector_description() == test_eiger.description
 
 
-def test_eiger_detector_to_dict():
+def test_get_detector_mode():
     eig = Detector(
         test_eiger, det_axes, [100, 200], 0.1, [(0, 0, 1), Point3D(0, -1, 0)]
-    ).to_dict()
-    assert "pixel_mask" in list(eig.keys())
-    assert "threshold_energy" in list(eig.keys())
-    assert "sensor_thickness" in list(eig.keys())
-    assert "mode" in list(eig.keys()) and eig["mode"] == "images"
+    )
+    assert eig.get_detector_mode() == "images"
 
-
-def tristan_detector_to_dict():
-    trist = Detector(
+    tr = Detector(
         test_tristan, det_axes, [100, 200], 0.1, [(0, 0, 1), Point3D(0, -1, 0)]
-    ).to_dict()
-    assert "timeslice_rollover" in list(trist.keys())
-    assert "sensor_thickness" in list(trist.keys())
-    assert "mode" in list(trist.keys()) and trist["mode"] == "events"
-
-
-def test_jungfrau_detector_to_dict():
-    jf = Detector(
-        test_jungfrau, det_axes, [100, 200], 0.1, [(0, 0, 1), Point3D(0, -1, 0)]
-    ).to_dict()
-    assert "mode" in list(jf.keys()) and jf["mode"] == "images"
-    assert_array_equal(jf["beam_center"], [100, 200])
+    )
+    assert tr.get_detector_mode() == "events"
 
 
 def test_detector_to_module_dict():
     mod = Detector(
         test_eiger, det_axes, [100, 200], 0.1, [(0, 0, 1), Point3D(0, -1, 0)]
-    ).to_module_dict()
+    ).get_module_info()
     assert isinstance(mod, dict)
     assert mod["module_offset"] == "1"
-    assert_array_equal(mod["fast_axis"], [0, 0, 1])
-    assert_array_equal(mod["slow_axis"], [0, -1, 0])
+    assert_array_equal(mod["fast_axis"], (0, 0, 1))
+    assert_array_equal(mod["slow_axis"], (0, -1, 0))
 
 
 def test_fast_slow_axis_input():
-    det = Detector(
-        test_eiger, det_axes, [100, 200], 0.1, [(0, 0, 1), Point3D(0, -1, 0)]
-    )
-    assert type(det.fast_axis) is Point3D and type(det.slow_axis) is Point3D
-    assert det.fast_axis == Point3D(0, 0, 1)
+    mod = DetectorModule((0, 0, 1), Point3D(0, -1, 0))
+
+    assert isinstance(mod.fast_axis, tuple) and isinstance(mod.slow_axis, tuple)
+    assert mod.fast_axis == (0, 0, 1)
+    assert mod.slow_axis == (0, -1, 0)
+    assert mod.module_offset == "1"

@@ -37,7 +37,7 @@ class Goniometer:
     def __repr__(self) -> str:
         msg = ""
         for ax in self.axes_list:
-            msg += f"{ax.name}: {ax.start_pos} => {ax.transformation_type} on {ax.depends} \n\t"
+            msg += f"{ax.name}: {ax.start_pos} => {ax.transformation_type.value} on {ax.depends} \n\t"
         if self.scan:
             msg += f"Scan axis/axes: {list(self.scan.keys())}. \n"
         return f"Goniometer information: \n\t{msg}"
@@ -62,19 +62,6 @@ class Goniometer:
         if len(idx) == 0:
             return None
         return idx[0]
-
-    def _generate_goniometer_dict(self):
-        goniometer = {
-            "axes": [ax.name for ax in self.axes_list],
-            "depends": [ax.depends for ax in self.axes_list],
-            "types": [ax.transformation_type for ax in self.axes_list],
-            "units": [ax.units for ax in self.axes_list],
-            "vectors": [ax.vector for ax in self.axes_list],
-            "starts": [ax.start_pos for ax in self.axes_list],
-            "increments": [abs(ax.increment) for ax in self.axes_list],
-            "ends": [ax.end_pos for ax in self.axes_list],
-        }
-        return goniometer
 
     def define_scan_from_goniometer_axes(
         self,
@@ -118,7 +105,6 @@ class Goniometer:
 
         if len(transl_axes) == 0:
             # Take care of rotations in both directions
-            # TODO it would be much much better if axes were passed correctly already.
             self.axes_list[osc_idx].increment = (
                 self.axes_list[osc_idx].increment * scan_direction.value
             )
@@ -183,7 +169,3 @@ class Goniometer:
         axis_name = list(scan.keys())[0]
         scan_length = len(scan[axis_name])
         return scan_length
-
-    def to_dict(self):
-        """Write the goniometer information to a dictionary."""
-        return self._generate_goniometer_dict()

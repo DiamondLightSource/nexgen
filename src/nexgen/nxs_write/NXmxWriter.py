@@ -46,23 +46,7 @@ from .write_utils import TSdset, calculate_estimated_end_time
 nxmx_logger = logging.getLogger("nexgen.NXmxFileWriter")
 nxmx_logger.setLevel(logging.DEBUG)
 
-eiger_meta_links = [
-    [
-        "pixel_mask",
-        "pixel_mask_applied",
-        "flatfield",
-        "flatfield_applied",
-        "threshold_energy",
-        "bit_depth_readout",
-        "bit_depth_image",
-        "detector_readout_time",
-        "serial_number",
-    ],
-    ["software_version"],
-]
 
-
-# New Writer goes here
 class NXmxFileWriter:
     """A class to generate NXmx format NeXus files."""
 
@@ -121,14 +105,6 @@ class NXmxFileWriter:
         datafiles = [Path(template % i) for i in range(1, num_files + 1)]
         nxmx_logger.debug(f"Number of datafiles to be written: {len(datafiles)}.")
         return datafiles
-
-    def _unpack_dictionaries(self) -> Tuple[Dict]:
-        return (
-            self.goniometer.to_dict(),
-            self.detector.to_dict(),
-            self.detector.to_module_dict(),
-            self.source.to_dict(),
-        )
 
     def update_timestamps(
         self, timestamp: datetime | str, dset_name: TSdset = "end_time"
@@ -189,11 +165,9 @@ class NXmxFileWriter:
             else self._get_data_files_list(image_filename)
         )
 
-        gonio, det, module, source = self._unpack_dictionaries()
+        module = self.detector.get_module_info()
 
         osc, transl = self.goniometer.define_scan_from_goniometer_axes()
-
-        link_list = eiger_meta_links if "eiger" in det["description"].lower() else None
 
         with h5py.File(self.filename, write_mode) as nxs:
             # NXentry and NXmx definition
@@ -213,7 +187,7 @@ class NXmxFileWriter:
             write_NXdata(
                 nxs,
                 datafiles,
-                gonio,
+                self.goniometer.axes_list,
                 "images",
                 osc,
                 transl,
@@ -222,19 +196,17 @@ class NXmxFileWriter:
             # NXinstrument: entry/instrument
             write_NXinstrument(
                 nxs,
-                self.beam.to_dict(),
-                self.attenuator.to_dict(),
-                source,
-                self.source.set_instrument_name(),
+                self.beam,
+                self.attenuator,
+                self.source,
             )
 
             # NXdetector: entry/instrument/detector
             write_NXdetector(
                 nxs,
-                det,
-                ("images", self.tot_num_imgs),
+                self.detector,
+                self.tot_num_imgs,
                 metafile,
-                link_list,
             )
 
             # NXmodule: entry/instrument/detector/module
@@ -247,12 +219,12 @@ class NXmxFileWriter:
             )
 
             # NXsource: entry/source
-            write_NXsource(nxs, source)
+            write_NXsource(nxs, self.source)
 
             # NXsample: entry/sample
             write_NXsample(
                 nxs,
-                gonio,
+                self.goniometer.axes_list,
                 "images",
                 osc,
                 transl,
@@ -370,8 +342,7 @@ class EventNXmxFileWriter(NXmxFileWriter):
         # No data files, just link to meta
         metafile = super()._get_meta_file()
 
-        # Unpack
-        gonio, det, module, source = super()._unpack_dictionaries()
+        module = self.detector.get_module_info()
 
         # Get scan info
         # Here no scan, just get (start, stop) from omega/phi as osc and None as transl
@@ -389,7 +360,7 @@ class EventNXmxFileWriter(NXmxFileWriter):
             write_NXdata(
                 nxs,
                 [metafile],
-                gonio,
+                self.goniometer.axes_list,
                 "events",
                 osc,
             )
@@ -397,18 +368,16 @@ class EventNXmxFileWriter(NXmxFileWriter):
             # NXinstrument: entry/instrument
             write_NXinstrument(
                 nxs,
-                self.beam.to_dict(),
-                self.attenuator.to_dict(),
-                source,
-                self.source.set_instrument_name(),
+                self.beam,
+                self.attenuator,
+                self.source,
             )
 
             # NXdetector: entry/instrument/detector
             write_NXdetector(
                 nxs,
-                det,
-                ("events", None),
-                metafile,
+                self.detector,
+                meta=metafile,
             )
 
             # NXmodule: entry/instrument/detector/module
@@ -421,12 +390,12 @@ class EventNXmxFileWriter(NXmxFileWriter):
             )
 
             # NXsource: entry/source
-            write_NXsource(nxs, source)
+            write_NXsource(nxs, self.source)
 
             # NXsample: entry/sample
             write_NXsample(
                 nxs,
-                gonio,
+                self.goniometer.axes_list,
                 "events",
                 osc,
                 sample_depends_on=None,  # TODO
@@ -514,8 +483,7 @@ class EDNXmxFileWriter(NXmxFileWriter):
         # Get data files
         datafiles = image_datafiles if image_datafiles else [self._get_data_filename()]
 
-        # Unpack
-        gonio, det, module, source = self._unpack_dictionaries()
+        module = self.detector.get_module_info()
 
         # Scans
         osc, _ = self.goniometer.define_scan_from_goniometer_axes()
@@ -551,7 +519,7 @@ class EDNXmxFileWriter(NXmxFileWriter):
             write_NXdata(
                 nxs,
                 datafiles,
-                gonio,
+                self.goniometer.axes_list,
                 "images",
                 osc,
                 entry_key=data_entry_key,
@@ -560,17 +528,17 @@ class EDNXmxFileWriter(NXmxFileWriter):
             # NXinstrument: entry/instrument
             write_NXinstrument(
                 nxs,
-                self.beam.to_dict(),
-                self.attenuator.to_dict(),
-                source,
-                instrument_name=instrument_name,
+                self.beam,
+                self.attenuator,
+                self.source,
+                reset_instrument_name=True,
             )
 
             # NXdetector: entry/instrument/detector
             write_NXdetector(
                 nxs,
-                det,
-                ("images", self.tot_num_imgs),
+                self.detector,
+                self.tot_num_imgs,
             )
 
             # NXmodule: entry/instrument/detector/module
@@ -583,12 +551,12 @@ class EDNXmxFileWriter(NXmxFileWriter):
             )
 
             # NXsource: entry/source
-            write_NXsource(nxs, source)
+            write_NXsource(nxs, self.source)
 
             # NXsample: entry/sample
             write_NXsample(
                 nxs,
-                gonio,
+                self.goniometer.axes_list,
                 "images",
                 osc,
             )

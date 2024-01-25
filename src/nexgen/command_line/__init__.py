@@ -101,24 +101,3 @@ tristan_group.add_argument(
     help="Number of binnes images",
     type=int,
 )
-
-
-def add_tristan_spec(detector, tristanSpec):
-    """
-    Add metadata specific to LATRD Tristan to detector scope.
-
-    Args:
-        detector (scope_extract):      Scope defining the detector
-        tristanSpec (scope_extract):   Scope defining Tristan specific input
-    """
-    for k, v in tristanSpec.__dict__.items():
-        if "__phil" in k:
-            continue
-        detector.__inject__(k, v)
-
-
-def phil2dict(D):
-    l = [k for k in D.keys() if "__phil_" in k]
-    for i in l:
-        D.__delitem__(i)
-    return D

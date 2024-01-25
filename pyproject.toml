@@ -50,9 +50,9 @@ dev = [
 ]
 
 [project.urls]
-GitHub = "https://github.com/dials/nexgen"
+GitHub = "https://github.com/DiamondLightSource/nexgen"
 Documentation = "https://nexgen.readthedocs.io/"
-Bug-Tracker = "https://github.com/dials/nexgen/issues"
+Bug-Tracker = "https://github.com/DiamondLightSource/nexgen/issues"
 
 #[[project.authors]]
 #email = "data_analysis@diamond.ac.uk"
@@ -100,6 +100,10 @@ addopts = """
     """
 junit_family = "xunit2"
 testpaths = "src tests"
+
+[tool.coverage.paths]
+# Tests are run from installed location, map back to the src directory
+source = ["src", "**/site-packages/"]
 
 # tox must currently be configured via an embedded ini string
 # See: https://github.com/tox-dev/tox/issues/999
