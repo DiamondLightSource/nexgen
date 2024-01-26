@@ -37,7 +37,7 @@ class Goniometer:
     def __repr__(self) -> str:
         msg = ""
         for ax in self.axes_list:
-            msg += f"{ax.name}: {ax.start_pos} => {ax.transformation_type.value} on {ax.depends} \n\t"
+            msg += f"{ax.name}: {ax.start_pos} => {ax.transformation_type} on {ax.depends} \n\t"
         if self.scan:
             msg += f"Scan axis/axes: {list(self.scan.keys())}. \n"
         return f"Goniometer information: \n\t{msg}"
