@@ -1,5 +1,5 @@
 Sphinx==7.2.6
-sphinx-rtd-theme==1.2.2
+sphinx-rtd-theme==2.0.0
 numpy==1.26.3
 pint==0.23
 h5py==3.10.0
