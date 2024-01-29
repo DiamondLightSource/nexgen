@@ -15,7 +15,7 @@ Next Generation Nexus Generator
         :target: https://nexgen.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
 
-.. image:: https://codecov.io/gh/DiamondLightSource/nexgen/graph/badge.svg?token=S1gm0Uf95F 
+.. image:: https://codecov.io/gh/DiamondLightSource/nexgen/graph/badge.svg
  :target: https://codecov.io/gh/DiamondLightSource/nexgen
         :alt: Test coverage
 
