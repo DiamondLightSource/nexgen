@@ -182,7 +182,6 @@ def create_virtual_layout(datasets: List[Dataset], data_type: DTypeLike):
             ".", "/entry/data/" + dataset.name, shape=dataset.source_shape
         )
 
-        print(dataset.start_index, dataset.stop_index)
         layout[dest_start:dest_end, :, :] = vsource[
             dataset.start_index : dataset.stop_index, :, :
         ]
