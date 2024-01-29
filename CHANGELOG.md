@@ -7,11 +7,12 @@
 ### Changed
 - The NXclass writers are not using phil-like dictionaries anymore.
 - Utilities for the CLI simplified.
-
+- Minimal changes to eiger_writer for I19-2 to make it possible to write VDS if different offsets - current use case: grid scan.
 
 ### Removed
-- Removed obsolete writer from phil scope
-- Removed obsolete scan calculation tools for cli (ScanReader, calculate_scan_range)
+- Removed obsolete writer from phil scope.
+- Removed obsolete metafile tools using dictionaries.
+- Removed obsolete scan calculation tools for cli (ScanReader, calculate_scan_range).
 
 
 ## 0.7.3

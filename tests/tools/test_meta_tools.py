@@ -3,7 +3,6 @@ import tempfile
 import h5py
 import numpy as np
 import pytest
-from numpy.testing import assert_array_equal
 
 from nexgen.nxs_utils import Axis, TransformationType
 from nexgen.tools.Metafile import DectrisMetafile, TristanMetafile
@@ -11,8 +10,6 @@ from nexgen.tools.MetaReader import (
     define_vds_data_type,
     overwrite_beam,
     update_axes_from_meta,
-    update_detector_axes,
-    update_goniometer,
 )
 
 axes_list = [
@@ -26,7 +23,6 @@ axes_list = [
 test_detector_size = (512, 1028)  # slow, fast
 test_beam = {"wavelength": 0.0}
 
-test_goniometer = {"axes": ["omega", "phi", "sam_x"]}
 test_detector = {"axes": ["two_theta", "det_z"]}
 
 dummy_config = """{
@@ -91,6 +87,8 @@ def test_Eiger_meta_file(dummy_eiger_meta_file):
         "bit_depth_image": 32,
     }
     assert meta.get_number_of_images() == 10
+    assert meta.get_number_of_triggers() == 1
+    assert meta.get_full_number_of_images() == 10
     assert meta.get_detector_size() == test_detector_size
     assert meta.hasConfig
     assert meta.read_config_dset() == {
@@ -106,22 +104,6 @@ def test_Eiger_meta_file(dummy_eiger_meta_file):
 def test_overwrite_beam(dummy_eiger_meta_file):
     overwrite_beam(dummy_eiger_meta_file, "Eiger", test_beam)
     assert test_beam["wavelength"] == 0.6
-
-
-def test_update_goniometer(dummy_eiger_meta_file):
-    update_goniometer(dummy_eiger_meta_file, test_goniometer)
-    assert "starts" in test_goniometer.keys()
-    assert len(test_goniometer["starts"]) == len(test_goniometer["axes"])
-    assert_array_equal(test_goniometer["starts"], [90.0, 0.0, 0.0])
-    assert_array_equal(test_goniometer["increments"], [0.0, 0.1, 0.0])
-    assert_array_equal(test_goniometer["ends"], [90.0, 1.0, 0.0])
-
-
-def test_update_detector_axes(dummy_eiger_meta_file):
-    update_detector_axes(dummy_eiger_meta_file, test_detector)
-    assert len(test_detector["starts"]) == len(test_detector["axes"])
-    assert_array_equal(test_detector["starts"], test_detector["ends"])
-    assert_array_equal(test_detector["starts"], [0.0, 190.0])
 
 
 def test_define_vds_shape(dummy_eiger_meta_file):

@@ -168,93 +168,6 @@ def overwrite_detector(
     return link_list
 
 
-def update_goniometer(meta_file: h5py.File, goniometer: Dict):
-    """
-    Read the axes values from the _dectris/ grouo in the meta file and update the goniometer.
-
-    Args:
-        meta_file (h5py.File): Handle to Dectris-shaped meta.h5 file.
-        goniometer (Dict): Dictionary containing all the goniometer axes information.
-    """
-    overwrite_logger.info(
-        "Get goniometer axes values from meta file for Eiger detector."
-    )
-    meta = DectrisMetafile(meta_file)
-
-    if meta.hasDectrisGroup is True:
-        config = meta.read_dectris_config()
-        num = meta.get_number_of_images()
-
-        goniometer["starts"] = []
-        goniometer["ends"] = []
-        goniometer["increments"] = []
-
-        for ax in goniometer["axes"]:
-            if f"{ax}_start" in config.keys():
-                s = config[f"{ax}_start"]
-                goniometer["starts"].append(s)
-                overwrite_logger.info(f"Start value for axis {ax}: {s}.")
-                inc = (
-                    config[f"{ax}_increment"]
-                    if f"{ax}_increment" in config.keys()
-                    else 0.0
-                )
-                goniometer["increments"].append(inc)
-                overwrite_logger.info(f"Increment value for axis {ax}: {inc}.")
-                e = s + inc * num
-                goniometer["ends"].append(e)
-                overwrite_logger.info(f"End value for axis {ax}: {e}.")
-            else:
-                goniometer["starts"].append(0.0)
-                goniometer["ends"].append(0.0)
-                goniometer["increments"].append(0.0)
-                overwrite_logger.info(f"Axis {ax} not in meta file, values set to 0.0.")
-    else:
-        overwrite_logger.warning(
-            "No _dectris/ group found in meta file. Goniometer axes value couldn't be updated from here."
-        )
-        return
-
-
-def update_detector_axes(meta_file: h5py.File, detector: Dict):
-    """
-    Read the axes values from the _dectris/ group in the meta file and update the detector.
-
-    Args:
-        meta_file (h5py.File): Handle to Dectris-shaped meta.h5 file.
-        detector (Dict): Dictionary containing all the detector information.
-    """
-    overwrite_logger.info("Get detector axes values from meta file for Eiger detector.")
-    meta = DectrisMetafile(meta_file)
-
-    if meta.hasDectrisGroup is True:
-        config = meta.read_dectris_config()
-        dist = units_of_length(
-            meta.get_detector_distance()
-        )  # If Dectris file is correct, this is m.
-
-        detector["starts"] = []
-        detector["ends"] = []
-
-        # First look for two_theta, then append det_z
-        # For the moment, assume the detector doesn't move.
-        for ax in detector["axes"]:
-            if f"{ax}_start" in config.keys():
-                s = config[f"{ax}_start"]
-                detector["starts"].append(s)
-                overwrite_logger.info(f"Position of axis {ax}: {s}.")
-
-        detector["starts"].append(dist.to("mm").magnitude)
-        overwrite_logger.info(f"Position of axis det_z: {dist.to('mm')}.")
-
-        detector["ends"] = detector["starts"]
-    else:
-        overwrite_logger.warning(
-            "No _dectris/ group found in meta file. Detector axes value couldn't be updated from here."
-        )
-        return
-
-
 def define_vds_data_type(meta_file: DectrisMetafile) -> DTypeLike:
     """Define the data type for the VDS from the bit_depth defined in the meta file.
 
@@ -304,7 +217,7 @@ def update_axes_from_meta(
         config = meta_file.read_config_dset()
     else:
         config = meta_file.read_dectris_config()
-    num = meta_file.get_number_of_images()
+    num = meta_file.get_full_number_of_images()
 
     for ax in axes_list:
         if f"{ax.name}_start" in config.keys():

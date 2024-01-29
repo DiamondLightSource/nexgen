@@ -41,7 +41,7 @@ Some useful type definitions to use with these methods:
 
 
 
-.. autoclass:: nexgen.beamlines.I19_2_nxs.tr_collect
+.. autoclass:: nexgen.beamlines.I19_2_nxs.CollectionParameters
     :members:
 
 

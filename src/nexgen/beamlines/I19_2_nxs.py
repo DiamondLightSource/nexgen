@@ -7,10 +7,11 @@ import logging
 from collections import namedtuple
 from datetime import datetime
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Optional, Sequence, Tuple, Union
 
 import h5py
 import numpy as np
+from pydantic import BaseModel
 
 from .. import log
 from ..nxs_utils import (
@@ -30,6 +31,30 @@ from ..utils import find_in_dict, get_iso_timestamp, get_nexus_filename
 from .beamline_utils import collection_summary_log
 
 
+class CollectionParams(BaseModel):
+    """Parameters passed as input from the beamline.
+
+    Args:
+        metafile: Path to _meta.h5 file.
+        detector_name: Name of the detector in use for current experiment.
+        exposure_time: Exposure time, in s.
+        beam_center: Beam center (x,y) position, in pixels.
+        wavelength: Incident beam wavelength, in A.
+        transmission: Attenuator transmission, in %.
+        tot_num_images: Total number of frames in a collection.
+        scan_axis: Rotation scan axis. Must be passed for Tristan.
+    """
+
+    metafile: Union[Path, str]
+    detector_name: str
+    exposure_time: float
+    beam_center: Sequence[float]
+    wavelength: Optional[float]
+    transmission: Optional[float]
+    tot_num_images: Optional[int]
+    scan_axis: Optional[str]
+
+
 class ExperimentTypeError(Exception):
     pass
 
@@ -45,37 +70,9 @@ det_axes = namedtuple("det_axes", ("id", "start"), defaults=(None, 0.0))
 det_axes.__doc__ = """Detector axis name and position."""
 
 
-# Define experiment metadata
-tr_collect = namedtuple(
-    "tr_collect",
-    [
-        "meta_file",
-        "detector_name",
-        "exposure_time",
-        "transmission",
-        "wavelength",
-        "beam_center",
-        "start_time",
-        "stop_time",
-        "scan_axis",
-    ],
-)
-
-tr_collect.__doc__ = """Parameters passed as input from the beamline."""
-tr_collect.meta_file.__doc__ = "Path to _meta.h5 file."
-tr_collect.detector_name.__doc__ = "Name of the detector in use for current experiment."
-tr_collect.exposure_time.__doc__ = "Exposure time, in s."
-tr_collect.transmission.__doc__ = "Attenuator transmission, in %."
-tr_collect.wavelength.__doc__ = "Incident beam wavelength, in A."
-tr_collect.beam_center.__doc__ = "Beam center (x,y) position, in pixels."
-tr_collect.start_time.__doc__ = "Collection start time."
-tr_collect.stop_time.__doc__ = "Collection end time."
-tr_collect.scan_axis.__doc__ = "Rotation scan axis. Must be passed for Tristan."
-
-
 def tristan_writer(
     master_file: Path,
-    TR: tr_collect,
+    TR: CollectionParams,
     timestamps: Tuple[str, str] = (None, None),
     axes_pos: List[axes] = None,
     det_pos: List[det_axes] = None,
@@ -85,7 +82,7 @@ def tristan_writer(
 
     Args:
         master_file (Path): Path to nexus file to be written.
-        TR (tr_collect): Parameters passed from the beamline.
+        TR (CollectionParams): Parameters passed from the beamline.
         timestamps (Tuple[str, str], optional): Collection start and end time. Defaults to (None, None).
         axes_pos (List[axes], optional): List of (axis_name, start, end) values for the \
             goniometer, passed from command line. Defaults to None.
@@ -175,12 +172,13 @@ def tristan_writer(
 
 def eiger_writer(
     master_file: Path,
-    TR: tr_collect,
+    TR: CollectionParams,
     timestamps: Tuple[str, str] = (None, None),
     use_meta: bool = False,
     n_frames: int | None = None,
     axes_pos: List[axes] = None,
     det_pos: List[det_axes] = None,
+    vds_offset: int = 0,
 ):
     """
     A function to call the NXmx nexus file writer for Eiger 2X 4M detector.
@@ -190,29 +188,41 @@ def eiger_writer(
 
     Args:
         master_file (Path): Path to nexus file to be written.
-        TR (tr_collect): Parameters passed from the beamline.
+        TR (CollectionParams): Parameters passed from the beamline.
         timestamps (Tuple[str, str], optional): Collection start and end time. Defaults to (None, None).
         use_meta (bool, optional): If True, metadata such as axes positions, wavelength etc. \
             will be updated using the meta.h5 file. Defaults to False.
-        num_frames (int, optional): Total number of images to be collected. Defaults to None.
+        num_frames (int, optional): Number of images for the nexus file. Not necessary if same as the \
+            tot_num_images from the CollectionParameters. If different, the VDS will onlu contain the \
+            number of frames specified here. Defaults to None.
         axes_pos (List[axes], optional): List of (axis_name, start, inc) values for the \
             goniometer, passed from command line. Defaults to None.
         det_pos (List[det_axes], optional): List of (axis_name, start) values for the \
             detector, passed from command line. Defaults to None.
+        vds_offset (int, optional): Start index for the vds writer. Defaults to 0.
 
     Raises:
         ValueError: If use_meta is set to False but axes_pos and det_pos haven't been passed.
         IOError: If the axes positions can't be read from the metafile (missing config or broken links).
     """
     if not use_meta:
-        if axes_pos is None or det_pos is None or n_frames is None:
+        if axes_pos is None or det_pos is None:
             logger.error(
                 """
                 If not using the meta file, please pass the complete axis information for goniometer
-                and/or detector. Also make sure that the number of frames was passed.
+                and/or detector.
                 """
             )
-            raise ValueError("Missing at least one of axes_pos, det_pos, n_frames.")
+            raise ValueError("Missing at least one of axes_pos or det_pos.")
+        if n_frames is None and TR.tot_num_images is None:
+            logger.error(
+                """
+                If not using the meta file, please make sure either the total number of images is passed \
+                or the number of frames has been passed. These values could be the same for a standard \
+                collection, or different if the vds needs to only point to part of the dataset.
+                """
+            )
+            raise ValueError("Missing number of images.")
 
     source = Source("I19-2")
     from .I19_2_params import I19_2Eiger as axes_params
@@ -239,10 +249,17 @@ def eiger_writer(
     # Update axes
     if use_meta:
         logger.info("User requested to update metadata using meta file.")
-        with h5py.File(TR.meta_file, "r", libver="latest", swmr=True) as mh:
+        with h5py.File(TR.metafile, "r", libver="latest", swmr=True) as mh:
             meta = DectrisMetafile(mh)
-            n_frames = meta.get_number_of_images()
-            logger.info(f"Number of images found in meta file: {n_frames}.")
+            TR.tot_num_images = meta.get_full_number_of_images()
+            logger.info(
+                f"Total number of images for this collection found in meta file: {TR.tot_num_images}."
+            )
+            if not n_frames:
+                n_frames = TR.tot_num_images
+                logger.info(
+                    "No specific numnber of frames requested, VDS will contain the full dataset."
+                )
             vds_dtype = define_vds_data_type(meta)
             update_axes_from_meta(
                 meta, gonio_axes, osc_axis=TR.scan_axis, use_config=True
@@ -282,6 +299,17 @@ def eiger_writer(
             det_axes[idx].start_pos = dax.start
             logger.info(
                 "Goniometer and detector axes positions have been updated with values passed by the user."
+            )
+
+        if not n_frames:
+            n_frames = TR.tot_num_images
+        if not TR.tot_num_images:
+            TR.tot_num_images = n_frames
+            logger.warning(
+                """
+                As the total number of images was not set in the collection parameters, it has been set to \
+                the requested number of frames.
+                """
             )
 
     scan_axis = identify_osc_axis(gonio_axes)
@@ -328,6 +356,7 @@ def eiger_writer(
 
     # Write
     try:
+        image_filename = TR.metafile.as_posix().replace("_meta.h5", "")
         NXmx_writer = NXmxFileWriter(
             master_file,
             goniometer,
@@ -335,10 +364,11 @@ def eiger_writer(
             source,
             beam,
             attenuator,
-            n_frames,
+            TR.tot_num_images,
         )
-        NXmx_writer.write(start_time=timestamps[0])
+        NXmx_writer.write(image_filename=image_filename, start_time=timestamps[0])
         NXmx_writer.write_vds(
+            vds_offset=vds_offset,
             vds_shape=(n_frames, *detector.detector_params.image_size),
             vds_dtype=vds_dtype,
         )
@@ -395,19 +425,18 @@ def nexus_writer(
             "Pleas look into SSX_Eiger or SSX_Tristan for this functionality."
         )
 
-    TR = tr_collect(
-        meta_file=Path(meta_file).expanduser().resolve(),
+    TR = CollectionParams(
+        metafile=Path(meta_file).expanduser().resolve(),
         detector_name=detector_name.lower(),
         exposure_time=exposure_time,
-        transmission=params["transmission"]
-        if find_in_dict("transmission", params)
-        else None,
-        wavelength=params["wavelength"] if find_in_dict("wavelength", params) else None,
         beam_center=params["beam_center"]
         if find_in_dict("beam_center", params)
         else (0, 0),
-        start_time=start_time.strftime("%Y-%m-%dT%H:%M:%S") if start_time else None,
-        stop_time=stop_time.strftime("%Y-%m-%dT%H:%M:%S") if stop_time else None,
+        wavelength=params["wavelength"] if find_in_dict("wavelength", params) else None,
+        transmission=params["transmission"]
+        if find_in_dict("transmission", params)
+        else None,
+        tot_num_images=params["n_imgs"] if find_in_dict("n_imgs", params) else None,
         scan_axis=scan_axis,
     )
 
@@ -415,7 +444,7 @@ def nexus_writer(
     if find_in_dict("outdir", params) and params["outdir"]:
         wdir = Path(params["outdir"]).expanduser().resolve()
     else:
-        wdir = TR.meta_file.parent
+        wdir = TR.metafile.parent
 
     # Define a file handler
     logfile = wdir / "I19_2_nxs_writer.log"
@@ -424,19 +453,21 @@ def nexus_writer(
 
     logger.info("NeXus file writer for beamline I19-2 at DLS.")
     logger.info(f"Detector in use for this experiment: {TR.detector_name}.")
-    logger.info(f"Current collection directory: {TR.meta_file.parent}")
+    logger.info(f"Current collection directory: {TR.metafile.parent}")
 
     # Add some information to logger
-    logger.info("Creating a NeXus file for %s ..." % TR.meta_file.name)
+    logger.info("Creating a NeXus file for %s ..." % TR.metafile.name)
     # Get NeXus filename
-    master_file = get_nexus_filename(TR.meta_file)
+    master_file = get_nexus_filename(TR.metafile)
     master_file = wdir / master_file.name
     logger.info("NeXus file will be saved as %s" % master_file)
 
     # Get timestamps in the correct format if they aren't already
+    start_time = start_time.strftime("%Y-%m-%dT%H:%M:%S") if start_time else None
+    stop_time = stop_time.strftime("%Y-%m-%dT%H:%M:%S") if stop_time else None
     timestamps = (
-        get_iso_timestamp(TR.start_time),
-        get_iso_timestamp(TR.stop_time),
+        get_iso_timestamp(start_time),
+        get_iso_timestamp(stop_time),
     )
 
     if not find_in_dict("gonio_pos", params):
