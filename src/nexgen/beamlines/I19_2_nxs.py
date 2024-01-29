@@ -463,8 +463,8 @@ def nexus_writer(
     logger.info("NeXus file will be saved as %s" % master_file)
 
     # Get timestamps in the correct format if they aren't already
-    start_time = (start_time.strftime("%Y-%m-%dT%H:%M:%S") if start_time else None,)
-    stop_time = (stop_time.strftime("%Y-%m-%dT%H:%M:%S") if stop_time else None,)
+    start_time = start_time.strftime("%Y-%m-%dT%H:%M:%S") if start_time else None
+    stop_time = stop_time.strftime("%Y-%m-%dT%H:%M:%S") if stop_time else None
     timestamps = (
         get_iso_timestamp(start_time),
         get_iso_timestamp(stop_time),
