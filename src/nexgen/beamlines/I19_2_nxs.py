@@ -192,7 +192,9 @@ def eiger_writer(
         timestamps (Tuple[str, str], optional): Collection start and end time. Defaults to (None, None).
         use_meta (bool, optional): If True, metadata such as axes positions, wavelength etc. \
             will be updated using the meta.h5 file. Defaults to False.
-        num_frames (int, optional): Total number of images to be collected. Defaults to None.
+        num_frames (int, optional): Number of images for the nexus file. Not necessary if same as the \
+            tot_num_images from the CollectionParameters. If different, the VDS will onlu contain the \
+            number of frames specified here. Defaults to None.
         axes_pos (List[axes], optional): List of (axis_name, start, inc) values for the \
             goniometer, passed from command line. Defaults to None.
         det_pos (List[det_axes], optional): List of (axis_name, start) values for the \
@@ -218,7 +220,7 @@ def eiger_writer(
                 If not using the meta file, please make sure either the total number of images is passed \
                 or the number of frames has been passed. These values could be the same for a standard \
                 collection, or different if the vds needs to only point to part of the dataset.
-            """
+                """
             )
             raise ValueError("Missing number of images.")
 
@@ -249,8 +251,15 @@ def eiger_writer(
         logger.info("User requested to update metadata using meta file.")
         with h5py.File(TR.metafile, "r", libver="latest", swmr=True) as mh:
             meta = DectrisMetafile(mh)
-            n_frames = meta.get_number_of_images()
-            logger.info(f"Number of images found in meta file: {n_frames}.")
+            TR.tot_num_images = meta.get_full_number_of_images()
+            logger.info(
+                f"Total number of images for this collection found in meta file: {TR.tot_num_images}."
+            )
+            if not n_frames:
+                n_frames = TR.tot_num_images
+                logger.info(
+                    "No specific numnber of frames requested, VDS will contain the full dataset."
+                )
             vds_dtype = define_vds_data_type(meta)
             update_axes_from_meta(
                 meta, gonio_axes, osc_axis=TR.scan_axis, use_config=True
@@ -292,6 +301,17 @@ def eiger_writer(
                 "Goniometer and detector axes positions have been updated with values passed by the user."
             )
 
+        if not n_frames:
+            n_frames = TR.tot_num_images
+        if not TR.tot_num_images:
+            TR.tot_num_images = n_frames
+            logger.warning(
+                """
+                As the total number of images was not set in the collection parameters, it has been set to \
+                the requested number of frames.
+                """
+            )
+
     scan_axis = identify_osc_axis(gonio_axes)
     # Check that found scan_axis matches
     if scan_axis != TR.scan_axis:
@@ -301,8 +321,7 @@ def eiger_writer(
         )
         scan_axis = TR.scan_axis
     scan_idx = [n for n, ax in enumerate(gonio_axes) if ax.name == scan_axis][0]
-    if n_frames:
-        gonio_axes[scan_idx].num_steps = n_frames
+    gonio_axes[scan_idx].num_steps = n_frames
     OSC = calculate_scan_points(
         gonio_axes[scan_idx],
         rotation=True,
@@ -345,7 +364,7 @@ def eiger_writer(
             source,
             beam,
             attenuator,
-            n_frames,
+            TR.tot_num_images,
         )
         NXmx_writer.write(image_filename=image_filename, start_time=timestamps[0])
         NXmx_writer.write_vds(
