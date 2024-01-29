@@ -7,7 +7,7 @@ import logging
 from collections import namedtuple
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional, Sequence, Tuple
+from typing import List, Optional, Sequence, Tuple, Union
 
 import h5py
 import numpy as np
@@ -45,7 +45,7 @@ class CollectionParams(BaseModel):
         scan_axis: Rotation scan axis. Must be passed for Tristan.
     """
 
-    metafile: Path | str
+    metafile: Union[Path, str]
     detector_name: str
     exposure_time: float
     beam_center: Sequence[float]
