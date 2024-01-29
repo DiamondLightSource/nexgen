@@ -10,6 +10,7 @@
 - Minimal changes to eiger_writer for I19-2 to make it possible to write VDS if different offsets - current use case: grid scan.
 
 ### Removed
+- Removed python 3.8 support.
 - Removed obsolete writer from phil scope.
 - Removed obsolete metafile tools using dictionaries.
 - Removed obsolete scan calculation tools for cli (ScanReader, calculate_scan_range).
