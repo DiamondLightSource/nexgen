@@ -34,13 +34,15 @@ from .beamline_utils import collection_summary_log
 class CollectionParams(BaseModel):
     """Parameters passed as input from the beamline.
 
-    metafile: Path to _meta.h5 file.
-    detector_name: Name of the detector in use for current experiment.
-    exposure_time: Exposure time, in s.
-    beam_center: Beam center (x,y) position, in pixels.
-    wavelength: Incident beam wavelength, in A.
-    transmission: Attenuator transmission, in %.
-    scan_axis: Rotation scan axis. Must be passed for Tristan.
+    Args:
+        metafile: Path to _meta.h5 file.
+        detector_name: Name of the detector in use for current experiment.
+        exposure_time: Exposure time, in s.
+        beam_center: Beam center (x,y) position, in pixels.
+        wavelength: Incident beam wavelength, in A.
+        transmission: Attenuator transmission, in %.
+        tot_num_images: Total number of frames in a collection.
+        scan_axis: Rotation scan axis. Must be passed for Tristan.
     """
 
     metafile: Path | str
@@ -49,6 +51,7 @@ class CollectionParams(BaseModel):
     beam_center: Sequence[float]
     wavelength: Optional[float]
     transmission: Optional[float]
+    tot_num_images: Optional[int]
     scan_axis: Optional[str]
 
 
@@ -201,14 +204,23 @@ def eiger_writer(
         IOError: If the axes positions can't be read from the metafile (missing config or broken links).
     """
     if not use_meta:
-        if axes_pos is None or det_pos is None or n_frames is None:
+        if axes_pos is None or det_pos is None:
             logger.error(
                 """
                 If not using the meta file, please pass the complete axis information for goniometer
-                and/or detector. Also make sure that the number of frames was passed.
+                and/or detector.
                 """
             )
-            raise ValueError("Missing at least one of axes_pos, det_pos, n_frames.")
+            raise ValueError("Missing at least one of axes_pos or det_pos.")
+        if n_frames is None and TR.tot_num_images is None:
+            logger.error(
+                """
+                If not using the meta file, please make sure either the total number of images is passed \
+                or the number of frames has been passed. These values could be the same for a standard \
+                collection, or different if the vds needs to only point to part of the dataset.
+            """
+            )
+            raise ValueError("Missing number of images.")
 
     source = Source("I19-2")
     from .I19_2_params import I19_2Eiger as axes_params
@@ -289,7 +301,8 @@ def eiger_writer(
         )
         scan_axis = TR.scan_axis
     scan_idx = [n for n, ax in enumerate(gonio_axes) if ax.name == scan_axis][0]
-    gonio_axes[scan_idx].num_steps = n_frames
+    if n_frames:
+        gonio_axes[scan_idx].num_steps = n_frames
     OSC = calculate_scan_points(
         gonio_axes[scan_idx],
         rotation=True,
@@ -404,6 +417,7 @@ def nexus_writer(
         transmission=params["transmission"]
         if find_in_dict("transmission", params)
         else None,
+        tot_num_images=params["n_imgs"] if find_in_dict("n_imgs", params) else None,
         scan_axis=scan_axis,
     )
 
