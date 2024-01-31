@@ -101,3 +101,20 @@ def test_given_scan_gonio_positions_correctly_updated():
     assert axes_list[Yidx].start_pos == 0.0 and axes_list[Yidx].end_pos == 0.8
     assert axes_list[Yidx].increment == 0.2 and axes_list[Xidx].increment == 1.0
     assert axes_list[Xidx].num_steps == 2 and axes_list[Yidx].num_steps == 5
+
+
+def test_gonio_axes_have_correct_values_if_given_forward_or_reverse_rotation_scan():
+    # Forward scan
+    scan_fw = {"omega": np.arange(1, 2, 0.1)}
+    gonio_fw = Goniometer(axes_list, scan_fw)
+    # Omega first acxis in list
+    assert gonio_fw.axes_list[0].start_pos == 1.0
+    assert gonio_fw.axes_list[0].increment == 0.1
+    assert gonio_fw.axes_list[0].num_steps == 10
+
+    # Reverse scan
+    scan_rw = {"omega": np.arange(7.5, 7, -0.1)}
+    gonio_rw = Goniometer(axes_list, scan_rw)
+    assert gonio_rw.axes_list[0].start_pos == 7.5
+    assert gonio_rw.axes_list[0].increment == -0.1
+    assert gonio_rw.axes_list[0].num_steps == 5

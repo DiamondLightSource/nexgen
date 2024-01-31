@@ -2,6 +2,13 @@
 
 
 
+## 0.8.1
+
+### Fixed
+- Bug when updating goniometer axes from reverse rotation scan: in this case, it changed the increment to positive leading to
+the wrong value for `axis_end` in NXsample.  
+
+
 ## 0.8.0
 
 ### Changed

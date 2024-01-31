@@ -10,6 +10,7 @@ from nexgen.nxs_utils import (
     Axis,
     EigerDetector,
     Facility,
+    Goniometer,
     Source,
     TransformationType,
     TristanDetector,
@@ -146,6 +147,37 @@ def test_given_scan_axis_when_write_NXsample_then_scan_axis_data_copied_from_dat
     assert_array_equal(dummy_nexus_file[axis_entry + "_increment_set"][()], 1)
     # assert_array_equal(dummy_nexus_file[axis_entry + "_increment_set"][:], [1] * 3)
     assert dummy_nexus_file[axis_entry + "_end"][1] == 2
+
+
+def test_given_reverse_rotation_scan_increment_set_and_axis_end_written_correctly(
+    dummy_nexus_file,
+):
+    test_axis = Axis("phi", ".", TransformationType.ROTATION, (0, 0, -1))
+    test_rw_scan = {"phi": np.arange(10, 8, -0.5)}
+    test_gonio = Goniometer([test_axis], test_rw_scan)
+
+    # Doing this to write the scan axis data into the data group
+    write_NXdata(
+        dummy_nexus_file,
+        [Path("tmp")],
+        test_gonio.axes_list,
+        "images",
+        test_gonio.scan,
+    )
+
+    write_NXsample(
+        dummy_nexus_file,
+        test_gonio.axes_list,
+        "images",
+        test_rw_scan,
+        sample_depends_on=test_axis.name,
+    )
+
+    axis_entry = f"/entry/sample/sample_{test_axis.name}/{test_axis.name}"
+
+    assert_array_equal(dummy_nexus_file[axis_entry][()], [10.0, 9.5, 9.0, 8.5])
+    assert_array_equal(dummy_nexus_file[axis_entry + "_increment_set"][()], -0.5)
+    assert_array_equal(dummy_nexus_file[axis_entry + "_end"][()], [9.5, 9.0, 8.5, 8.0])
 
 
 def test_sample_depends_on_written_correctly_in_NXsample(
