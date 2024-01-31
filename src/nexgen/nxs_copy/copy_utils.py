@@ -120,7 +120,9 @@ def identify_tristan_scan_axis(nxs_in: h5py.File) -> Tuple[str | None, Dict[str,
     return None, {}
 
 
-def convert_scan_axis(nxsample: h5py.Group, nxdata: h5py.Group, ax: str):
+def convert_scan_axis(
+    nxsample: h5py.Group, nxdata: h5py.Group, ax: str, ax_range: ArrayLike | None = None
+):
     """
     Modify all instances of scan_axis present in NeXus file NXsample group.
 
@@ -128,6 +130,8 @@ def convert_scan_axis(nxsample: h5py.Group, nxdata: h5py.Group, ax: str):
         nxsample (h5py.Group): NXsample group of NeXus file to be modified.
         nxdata (h5py.Group): NXdata group of NeXus file to be modified.
         ax (str): Name of scan_axis.
+        ax_range (ArrayLike): Scan points. If passed, axis_increment_set and axis_end will also be written.\
+            Defaults to None
     """
     del nxsample["transformations/" + ax]
     nxsample["transformations/" + ax] = nxdata[ax]
@@ -136,6 +140,10 @@ def convert_scan_axis(nxsample: h5py.Group, nxdata: h5py.Group, ax: str):
     )
     del nxsample[name]
     nxsample[name] = nxdata[ax]
+    if ax_range is not None and "sam" not in ax:
+        increment = round(ax_range[1] - ax_range[0], 3)
+        nxsample["sample_" + ax].create_dataset(ax + "_increment_set", data=increment)
+        nxsample["sample_" + ax].create_dataset(ax + "_end", data=ax_range + increment)
 
 
 def check_and_fix_det_axis(nxs_in: h5py.File):

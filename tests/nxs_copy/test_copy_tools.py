@@ -60,8 +60,15 @@ def test_convert_scan_axis(dummy_nexus_file):
     nxsample["sample_omega"].create_dataset("omega", data=(0, 2))
     nxtr["omega"] = nxsample["sample_omega/omega"]
 
-    convert_scan_axis(nxsample, nxdata, "omega")
+    convert_scan_axis(nxsample, nxdata, "omega", scan_range)
     assert_array_equal(nxsample["sample_omega/omega"], scan_range)
+    assert_array_equal(nxtr["omega"], scan_range)
+    assert (
+        "omega_end" in nxsample["sample_omega"].keys()
+        and "omega_increment_set" in nxsample["sample_omega"].keys()
+    )
+    assert_array_equal(nxsample["sample_omega/omega_increment_set"][()], 0.2)
+    assert_array_equal(nxsample["sample_omega/omega_end"][()], scan_range + 0.2)
 
 
 def test_check_and_fix_det_z(dummy_nexus_file):

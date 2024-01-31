@@ -186,7 +186,7 @@ def multiple_images_nexus(
                 nxdata[ax].attrs.create(key, value)
             # Now fix all other instances of scan_axis in the tree
             nxsample = nxentry["sample"]
-            convert_scan_axis(nxsample, nxdata, ax)
+            convert_scan_axis(nxsample, nxdata, ax, ax_range)
 
     return nxs_filename.as_posix()
 
