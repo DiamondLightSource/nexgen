@@ -6,7 +6,6 @@ from __future__ import annotations
 
 from typing import Dict, List, Tuple
 
-import numpy as np
 from numpy.typing import ArrayLike
 
 from .Axes import Axis
@@ -46,13 +45,15 @@ class Goniometer:
         """Check that the values entered for the goniometer match with the scan."""
         for ax in scan_axes:
             idx = self._find_axis_in_goniometer(ax)
-            if self.axes_list[idx].start_pos != np.min(self.scan[ax]):
-                self.axes_list[idx].start_pos = np.min(self.scan[ax])
-            u = np.unique(self.scan[ax])
+            if self.axes_list[idx].start_pos != self.scan[ax][0]:
+                self.axes_list[idx].start_pos = self.scan[ax][0]
+            u = self._get_unique_scan_point_values(
+                ax
+            )  # Re-order them in case of a reverse scan, as unique auto sorts
             if len(u) == 1:
                 # eg. for a scan that goes back and forth on one line.
                 self.axes_list[idx].increment == 0.0
-            elif self.axes_list[idx].increment != round(u[1] - u[0], 3):
+            if len(u) > 1 and self.axes_list[idx].increment != round(u[1] - u[0], 3):
                 self.axes_list[idx].increment = round(u[1] - u[0], 3)
             self.axes_list[idx].num_steps = len(u)
 
@@ -62,6 +63,17 @@ class Goniometer:
         if len(idx) == 0:
             return None
         return idx[0]
+
+    def _get_unique_scan_point_values(self, ax: str) -> List:
+        """Get the unique values for a scan, in the order they are collected."""
+        # Doing this in place of np.unique which automatically sorts the values, leading to
+        # errors in reverse rotation scans. Nothing should change for grid scans.
+        scan_array = self.scan[ax]
+        val = []
+        for i in scan_array:
+            if i not in val:
+                val.append(i)
+        return val
 
     def define_scan_from_goniometer_axes(
         self,
