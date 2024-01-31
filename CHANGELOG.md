@@ -7,6 +7,7 @@
 ### Fixed
 - Bug when updating goniometer axes from reverse rotation scan: in this case, it changed the increment to positive leading to
 the wrong value for `axis_end` in NXsample.  
+- Added missing `axis_end` and `axis_increment_set` to CopyTristanNexus for multiple binned images.
 
 
 ## 0.8.0
