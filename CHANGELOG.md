@@ -2,6 +2,12 @@
 
 
 
+## 0.8.2
+
+### Fixed
+- I19-2 rotation axis bug. Correct directions in, with workaround for GDA writer where the rotation is the other way around.
+
+
 ## 0.8.1
 
 ### Fixed

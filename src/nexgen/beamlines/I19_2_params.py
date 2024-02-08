@@ -7,11 +7,11 @@ from ..utils import Point3D
 from .beamline_utils import BeamlineAxes
 
 I19_2_gonio = [
-    Axis("omega", ".", TransformationType.ROTATION, Point3D(-1, 0, 0)),
+    Axis("omega", ".", TransformationType.ROTATION, Point3D(1, 0, 0)),
     Axis(
         "kappa", "omega", TransformationType.ROTATION, Point3D(-0.642788, -0.766044, 0)
     ),
-    Axis("phi", "kappa", TransformationType.ROTATION, Point3D(-1, 0, 0)),
+    Axis("phi", "kappa", TransformationType.ROTATION, Point3D(1, 0, 0)),
     Axis("sam_z", "phi", TransformationType.TRANSLATION, Point3D(0, 0, 1)),
     Axis("sam_y", "sam_z", TransformationType.TRANSLATION, Point3D(0, 1, 0)),
     Axis("sam_x", "sam_y", TransformationType.TRANSLATION, Point3D(1, 0, 0)),
