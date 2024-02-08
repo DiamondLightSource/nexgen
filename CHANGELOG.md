@@ -8,6 +8,10 @@
 - I19-2 rotation axis bug. Correct directions in, with workaround for GDA writer where the rotation is the other way around.
 
 
+### Added
+- Docstrings for Goniometer and Detector definitons.
+
+
 ## 0.8.1
 
 ### Fixed

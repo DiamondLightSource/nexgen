@@ -760,7 +760,7 @@ def write_NXdetector_module(
     Args:
         nxsfile (h5py.File): NeXus file handle.
         module (Dict): Dictionary containing the detector module information: fast and slow axes, how many modules.
-        image_size (List | Tuple): Size of the detector.
+        image_size (List | Tuple): Size of the detector, in pixels, passed in the order (slow, fast) axis.
         pixel_size (List | Tuple): Size of the single pixels in fast and slow direction, in mm.
         beam_center (Optional[List | Tuple], optional): Beam center position, needed only if origin needs to be calculated. Defaults to None.
     """

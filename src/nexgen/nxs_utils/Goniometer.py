@@ -21,6 +21,10 @@ from .ScanUtils import (
 class Goniometer:
     """
     Goniometer definition.
+
+    Attributes:
+        axes_list: List of axes making up the goniometer, including their vectors and positions.
+        scan: The scan executed during the collection, could be a rotation or a grid scan. If not passed can be updated from the axes.
     """
 
     def __init__(

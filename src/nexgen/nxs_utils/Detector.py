@@ -59,7 +59,21 @@ SINGLA_CONST = {
 
 @dataclass
 class EigerDetector(DataClassJsonMixin):
-    """Define a Dectris Eiger detector."""
+    """Define a Dectris Eiger detector.
+
+    Attributes:
+        description (str): Detector description.
+        image_size (List | Tuple): Dimensions in pixels, passed in the order (slow, fast) axis.
+        sensor_material (str): Either Si or CdTe, on the material depends the sensor_thickness.
+        overload (int): Saturation value for the detector, data is invalid above this value.
+        underload (int): Lowest value measurable for the detector, data is invalid below this value.
+        pixel_size (List[str], optional): Size of each detector pixel in both directions, order should be (x, y). Defaults to a pixel size of ['0.075mm', '0.075mm']
+        detector_type (str, optional): Description of type of detector. Defaults to 'Pixel'.
+
+    Properties:
+        sensor_thickness (str): Defined depending on the sensor material: 0.450mm for Si, 0.750mm CdTe.
+        constants (Dict): Dictionary of meta file locations to create the external links to fields such as pixel_mask, flatfield and bit_depth_readout.
+    """
 
     description: str
     image_size: List[float] | Tuple[float]
@@ -89,7 +103,20 @@ class EigerDetector(DataClassJsonMixin):
 
 @dataclass
 class TristanDetector(DataClassJsonMixin):
-    """Define a Tristan detector."""
+    """Define a Tristan detector.
+
+    Attributes:
+        description (str): Detector description.
+        image_size (List | Tuple): Dimensions in pixels, passed in the order (slow, fast) axis.
+        sensor_material (str): Sensor material. Defaults to Si.
+        sensor_thickness (str): Sensor thickness. Defaults to 0.5mm
+        pixel_size (List[str], optional): Size of each detector pixel in both directions, order should be (x, y). Defaults to a pixel size of ['5.5e-05m', '5.5e-05m']
+        detector_type (str, optional): Description of type of detector. Defaults to 'Pixel'.
+        mode (str): Acquisition mode for Tristan, either images or events. Defaults to events.
+
+    Properties:
+        constants (Dict): Detector specific constants, such as locations of pixel_mask and flatfield files, and detector tick, frequency and timeslice rollover for event mode.
+    """
 
     description: str
     image_size: List[float] | Tuple[float]
@@ -112,7 +139,21 @@ class TristanDetector(DataClassJsonMixin):
 
 @dataclass
 class SinglaDetector(DataClassJsonMixin):
-    """Define a Dectris Singla detector."""
+    """Define a Dectris Singla detector.
+
+    Attributes:
+        description (str): Detector description.
+        image_size (List | Tuple): Dimensions in pixels, passed in the order (slow, fast) axis.
+        sensor_material (str): Sensor material. Defaults to Si.
+        sensor_thickness (str): Sensor thickness. Defaults to 0.450mm
+        overload (int): Saturation value for the detector, data is invalid above this value. Defaults to 199996.
+        underload (int): Lowest value measurable for the detector, data is invalid below this value. Defaults to -1.
+        pixel_size (List[str], optional): Size of each detector pixel in both directions, order should be (x, y). Defaults to a pixel size of ['0.075mm', '0.075mm']
+        detector_type (str, optional): Description of type of detector. Defaults to 'HPC'.
+
+    Properties:
+        constants (Dict): Dictionary of meta file locations to create the external links to fields such as pixel_mask, flatfield and bit_depth_readout.
+    """
 
     description: str
     image_size: List[float] | Tuple[float]
@@ -136,7 +177,21 @@ class SinglaDetector(DataClassJsonMixin):
 
 @dataclass
 class JungfrauDetector(DataClassJsonMixin):
-    """Define a Dectris Jungfrau detector."""
+    """Define a Dectris Jungfrau detector.
+
+    Attributes:
+        description (str): Detector description.
+        image_size (List | Tuple): Dimensions in pixels, passed in the order (slow, fast) axis.
+        sensor_material (str): Sensor material. Defaults to Si.
+        sensor_thickness (str): Sensor thickness. Defaults to 0.320mm
+        overload (int): Saturation value for the detector, data is invalid above this value. Defaults to 1000000.
+        underload (int): Lowest value measurable for the detector, data is invalid below this value. Defaults to -10.
+        pixel_size (List[str], optional): Size of each detector pixel in both directions, order should be (x, y). Defaults to a pixel size of ['0.075mm', '0.075mm']
+        detector_type (str, optional): Description of type of detector. Defaults to 'Pixel'.
+
+    Properties:
+        constants (Dict): Dictionary of meta file locations to create the external links to fields such as pixel_mask, flatfield and bit_depth_readout.
+    """
 
     description: str
     image_size: List[float] | Tuple[float]
@@ -163,6 +218,13 @@ DetectorType = Union[EigerDetector, TristanDetector, SinglaDetector, JungfrauDet
 
 @dataclass
 class DetectorModule(DataClassJsonMixin):
+    """A class to define the axes of a detector module.
+
+    Attributes:
+        fast_axis (Tuple | Point3D): Vector defining the fast_axis direction.
+        slow_axis (Tuple | Point3D): Vector defining the slow_axis direction.
+    """
+
     fast_axis: Tuple[float] | Point3D
     slow_axis: Tuple[float] | Point3D
     module_offset: str = "1"
@@ -175,7 +237,15 @@ class DetectorModule(DataClassJsonMixin):
 
 
 class Detector:
-    """Detector definition."""
+    """Detector definition.
+
+    Attributes:
+        detector_params: The detector parameters, unique to each detector type.
+        detector_axes: The axes where the detector lays, their start positions and vectors in mcstas coordinates.
+        beam_center: The beam center position, in pixels.
+        exp_time: The collection exposure time, in seconds.
+        module: The detector module definition, with fast_axis and slow_axis directions, in mcstas.
+    """
 
     def __init__(
         self,
@@ -185,6 +255,14 @@ class Detector:
         exposure_time: float,
         module_vectors: List[Point3D] | List[Tuple],
     ):
+        """
+        Args:
+            detector_params (DetectorType): Specific parameters relative to detector in use eg. TristanDetector("Tristan", [100, 200])
+            detector_axes (List[Axes]): List of detector axes.
+            beam_center (List[float]): Beam center position, in pixels.
+            exposure_time (float): Exposure time of each image/collection, in s.
+            module_vectors (List): List of detector module vectors in the order: (fast_axis, slow_axis).
+        """
         self.detector_params = detector_params
         self.detector_axes = detector_axes
         self.beam_center = beam_center
