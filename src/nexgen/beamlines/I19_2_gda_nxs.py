@@ -127,6 +127,10 @@ def tristan_writer(
         # Get correct start positions
         idx = [n for n, ax in enumerate(gonio_axes) if ax.name == k][0]
         gonio_axes[idx].start_pos = v[0]
+    # Change rotation axis direction for phi and omega because gda roation opposite to  epics
+    for ax in gonio_axes:
+        if ax.name in ["phi", "omega"]:
+            ax.vector = (-1, 0, 0)
     goniometer = Goniometer(gonio_axes, OSC)
 
     collection_summary_log(
@@ -208,11 +212,15 @@ def eiger_writer(
     )
 
     # Goniometer
-    gonio_axes = axes_params.det_axes
+    gonio_axes = axes_params.gonio
     for k, v in pos.items():
         # Get correct start positions
         idx = [n for n, ax in enumerate(gonio_axes) if ax.name == k][0]
         gonio_axes[idx].start_pos = v[0]
+    # Change rotation axis direction for phi and omega because gda roation opposite to  epics
+    for ax in gonio_axes:
+        if ax.name in ["phi", "omega"]:
+            ax.vector = (-1, 0, 0)
 
     # Get scan range array
     logger.info("Calculating scan range...")
