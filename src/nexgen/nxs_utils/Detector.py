@@ -76,7 +76,7 @@ class EigerDetector(DataClassJsonMixin):
     """
 
     description: str
-    image_size: List[float] | Tuple[float]
+    image_size: List[int] | Tuple[int, int]
     sensor_material: Literal["Si", "CdTe"]
     overload: int
     underload: int
@@ -119,7 +119,7 @@ class TristanDetector(DataClassJsonMixin):
     """
 
     description: str
-    image_size: List[float] | Tuple[float]
+    image_size: List[int] | Tuple[int, int]
     sensor_material: str = "Si"
     sensor_thickness: str = "0.5mm"
     pixel_size: List[str | float] = field(
@@ -156,7 +156,7 @@ class SinglaDetector(DataClassJsonMixin):
     """
 
     description: str
-    image_size: List[float] | Tuple[float]
+    image_size: List[int] | Tuple[int, int]
     sensor_material: str = "Si"
     sensor_thickness: str = "0.450mm"
     overload: int = 199996
@@ -194,7 +194,7 @@ class JungfrauDetector(DataClassJsonMixin):
     """
 
     description: str
-    image_size: List[float] | Tuple[float]
+    image_size: List[int] | Tuple[int, int]
     sensor_material: str = "Si"
     sensor_thickness: str = "0.320mm"
     overload: int = 1000000
@@ -225,8 +225,8 @@ class DetectorModule(DataClassJsonMixin):
         slow_axis (Tuple | Point3D): Vector defining the slow_axis direction.
     """
 
-    fast_axis: Tuple[float] | Point3D
-    slow_axis: Tuple[float] | Point3D
+    fast_axis: Tuple[float, float, float] | Point3D
+    slow_axis: Tuple[float, float, float] | Point3D
     module_offset: str = "1"
 
     def __post_init__(self):
@@ -253,7 +253,7 @@ class Detector:
         detector_axes: List[Axis],
         beam_center: List[float],
         exposure_time: float,
-        module_vectors: List[Point3D] | List[Tuple],
+        module_vectors: List[Point3D] | List[Tuple[float, float, float]],
     ):
         """
         Args:
