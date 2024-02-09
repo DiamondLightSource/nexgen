@@ -56,6 +56,14 @@ SINGLA_CONST = {
     "software_version": "0.0.0",
 }
 
+CETA_CONST = {
+    "flatfield": None,
+    "flatfield_applied": False,
+    "pixel_mask": None,
+    "pixel_mask_applied": False,
+    "software_version": "0.0.0",
+}
+
 
 @dataclass
 class EigerDetector(DataClassJsonMixin):
@@ -111,6 +119,30 @@ class TristanDetector(DataClassJsonMixin):
 
 
 @dataclass
+class CetaDetector(DataClassJsonMixin):
+    """Define a Ceta-D detector."""
+
+    description: str
+    image_size: List[float] | Tuple[float]
+    pixel_size: List[str | float] = field(
+        default_factory=lambda: ["0.014mm", "0.014mm"]
+    )
+    sensor_material: str = "Si"
+    sensor_thickness: str = "0.00000000000001mm"
+    detector_type: str = "CMOS"
+    overload: int = 1000000
+    underload: int = -1000
+
+    @property
+    def constants(self) -> Dict:
+        return CETA_CONST
+
+    @property
+    def hasMeta(self) -> bool:
+        return False
+
+
+@dataclass
 class SinglaDetector(DataClassJsonMixin):
     """Define a Dectris Singla detector."""
 
@@ -158,7 +190,9 @@ class JungfrauDetector(DataClassJsonMixin):
         return False
 
 
-DetectorType = Union[EigerDetector, TristanDetector, SinglaDetector, JungfrauDetector]
+DetectorType = Union[EigerDetector, TristanDetector,
+                     SinglaDetector, JungfrauDetector,
+                     CetaDetector]
 
 
 class Detector:
