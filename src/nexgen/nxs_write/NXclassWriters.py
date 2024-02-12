@@ -586,7 +586,7 @@ def write_NXdetector(
                 )
                 flatfield = Path(flatfield_file)
                 nxdetector["flatfield"] = h5py.ExternalLink(flatfield.name, "/")
-            elif not flatfield_file:
+            elif not isinstance(flatfield_file, np.ndarray):
                 NXclass_logger.warning(
                     "No copy of the flatfield has been found, either as a file or dataset."
                 )
@@ -604,7 +604,7 @@ def write_NXdetector(
                 )
                 mask = Path(pixel_mask_file)
                 nxdetector["pixel_mask"] = h5py.ExternalLink(mask.name, "/")
-            elif not pixel_mask_file:
+            elif not isinstance(pixel_mask_file, np.ndarray):
                 NXclass_logger.warning(
                     "No copy of the pixel_mask has been found, eithere as a file or dataset."
                 )
