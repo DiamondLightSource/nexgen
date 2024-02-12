@@ -773,9 +773,9 @@ def write_NXdetector_module(
         ("NXdetector_module",),
     )
 
-    nxmodule.create_dataset("data_origin", data=np.array([0, 0]))
-    nxmodule.create_dataset("data_size", data=image_size)
-    nxmodule.create_dataset("data_stride", data=np.array([1, 1]))
+    nxmodule.create_dataset("data_origin", data=np.array([0, 0]), dtype=np.uint16)
+    nxmodule.create_dataset("data_size", data=image_size, dtype=np.uint16)
+    nxmodule.create_dataset("data_stride", data=np.array([1, 1]), dtype=np.uint16)
 
     # Write fast_ and slow_ pixel_direction
     fast_axis = module["fast_axis"]
@@ -899,8 +899,12 @@ def write_NXcollection(
     NXclass_logger.info("Start writing detectorSpecific group as NXcollection.")
     # Create detectorSpecific group
     grp = nxdetector.require_group("detectorSpecific")
-    grp.create_dataset("x_pixels", data=detector_params.image_size[1])  # fast axis
-    grp.create_dataset("y_pixels", data=detector_params.image_size[0])  # slow axis
+    grp.create_dataset(
+        "x_pixels", data=detector_params.image_size[1], dtype=np.uint16
+    )  # fast axis
+    grp.create_dataset(
+        "y_pixels", data=detector_params.image_size[0], dtype=np.uint16
+    )  # slow axis
     if collection_mode == "images":
         grp.create_dataset("nimages", data=num_images)
     if "software_version" in list(detector_params.constants.keys()):
