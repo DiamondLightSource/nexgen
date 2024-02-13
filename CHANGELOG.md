@@ -2,11 +2,13 @@
 
 
 
-## 0.8.#
+## 0.8.3
 
 ### Fixed
 - More strict type hinting on Detector definitions
-- Set dtype for `data_size` and other `x/y_pixels` to nsigned shorts.
+- Set dtype for `data_size` and other `x/y_pixels` to unsigned shorts.
+- Reverted change and workaround for I19 phi/omega axes
+
 
 ## 0.8.2
 
