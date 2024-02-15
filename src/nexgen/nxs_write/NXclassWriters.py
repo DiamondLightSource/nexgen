@@ -905,6 +905,13 @@ def write_NXcollection(
     grp.create_dataset(
         "y_pixels", data=detector_params.image_size[0], dtype=np.uint16
     )  # slow axis
+    # Write these non-spec fields as well because of autoPROC:
+    grp.create_dataset(
+        "x_pixels_in_detector", data=detector_params.image_size[1], dtype=np.uint16
+    )  # fast axis
+    grp.create_dataset(
+        "y_pixels_in_detector", data=detector_params.image_size[0], dtype=np.uint16
+    )  # slow axis
     if collection_mode == "images":
         grp.create_dataset("nimages", data=num_images)
     if "software_version" in list(detector_params.constants.keys()):
