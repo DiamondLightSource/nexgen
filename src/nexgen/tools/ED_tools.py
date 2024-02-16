@@ -75,14 +75,13 @@ class SinglaMaster:
         if len(M) > 0:
             mask_path = [_loc for _loc in M if _loc.split("/")[-1] == "pixel_mask"]
             mask_applied_path = [_loc for _loc in M if "applied" in _loc]
-            if len(mask_applied_path) == 0:
-                return (False, self.__getitem__(mask_path[0])[()])
-            if len(mask_path) == 0:
-                return (self.__getitem__(mask_applied_path[0])[()], None)
-            return (
-                self.__getitem__(mask_applied_path[0])[()],
-                self.__getitem__(mask_path[0])[()],
+            mask_applied = (
+                False
+                if len(mask_applied_path) == 0
+                else self.__getitem__(mask_applied_path[0])[()]
             )
+            mask = None if len(mask_path) == 0 else self.__getitem__(mask_path[0])[()]
+            return (mask_applied, mask)
         return (False, None)
 
     def get_flatfield(self) -> Tuple[bool, ArrayLike]:
@@ -90,14 +89,17 @@ class SinglaMaster:
         if len(F) > 0:
             flatfield_path = [_loc for _loc in F if _loc.split("/")[-1] == "flatfield"]
             flatfield_applied_path = [_loc for _loc in F if "applied" in _loc]
-            if len(flatfield_applied_path) == 0:
-                return (False, self.__getitem__(flatfield_path[0])[()])
-            if len(flatfield_path) == 0:
-                return (self.__getitem__(flatfield_applied_path[0])[()], None)
-            return (
-                self.__getitem__(flatfield_applied_path[0])[()],
-                self.__getitem__(flatfield_path[0])[()],
+            flatfield_applied = (
+                False
+                if len(flatfield_applied_path) == 0
+                else self.__getitem__(flatfield_applied_path[0])[()]
             )
+            flatfield = (
+                None
+                if len(flatfield_path) == 0
+                else self.__getitem__(flatfield_path[0])[()]
+            )
+            return (flatfield_applied, flatfield)
         return (False, None)
 
     def get_bit_bepth_readout(self) -> int:
