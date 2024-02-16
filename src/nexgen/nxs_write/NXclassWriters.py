@@ -32,6 +32,7 @@ from .write_utils import (
     TSdset,
     calculate_origin,
     create_attributes,
+    mask_and_flatfield_writer,
     set_dependency,
     write_compressed_copy,
 )
@@ -579,41 +580,19 @@ def write_NXdetector(
                     )
         else:
             # Flatfield
-            if isinstance(flatfield_file, str):
-                nxdetector.create_dataset(
-                    "flatfield_applied",
-                    data=detector.detector_params.constants["flatfield_applied"],
-                )
-                flatfield = Path(flatfield_file)
-                nxdetector["flatfield"] = h5py.ExternalLink(flatfield.name, "/")
-            elif not flatfield_file:
-                NXclass_logger.warning(
-                    "No copy of the flatfield has been found, either as a file or dataset."
-                )
-            else:
-                nxdetector.create_dataset(
-                    "flatfield_applied",
-                    data=detector.detector_params.constants["flatfield_applied"],
-                )
-                write_compressed_copy(nxdetector, "flatfield", data=flatfield_file)
+            mask_and_flatfield_writer(
+                nxdetector,
+                "flatfield",
+                detector.detector_params.constants["flatfield"],
+                detector.detector_params.constants["flatfield_applied"],
+            )
             # Bad pixel mask
-            if isinstance(pixel_mask_file, str):
-                nxdetector.create_dataset(
-                    "pixel_mask_applied",
-                    data=detector.detector_params.constants["pixel_mask_applied"],
-                )
-                mask = Path(pixel_mask_file)
-                nxdetector["pixel_mask"] = h5py.ExternalLink(mask.name, "/")
-            elif not pixel_mask_file:
-                NXclass_logger.warning(
-                    "No copy of the pixel_mask has been found, eithere as a file or dataset."
-                )
-            else:
-                nxdetector.create_dataset(
-                    "pixel_mask_applied",
-                    data=detector.detector_params.constants["pixel_mask_applied"],
-                )
-                write_compressed_copy(nxdetector, "pixel_mask", data=pixel_mask_file)
+            mask_and_flatfield_writer(
+                nxdetector,
+                "pixel_mask",
+                detector.detector_params.constants["pixel_mask"],
+                detector.detector_params.constants["pixel_mask_applied"],
+            )
 
     # Beam center
     beam_center_x = nxdetector.create_dataset(

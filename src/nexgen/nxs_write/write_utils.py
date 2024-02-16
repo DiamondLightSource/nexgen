@@ -15,6 +15,10 @@ import numpy as np
 from hdf5plugin import Bitshuffle, Blosc
 from numpy.typing import ArrayLike
 
+# Logger
+NXclassUtils_logger = logging.getLogger("nexgen.NXclass_writers.utils")
+NXclassUtils_logger.setLevel(logging.DEBUG)
+
 # Define Timestamp dataset names
 TSdset = Literal["start_time", "end_time", "end_time_estimated"]
 
@@ -130,6 +134,40 @@ def calculate_estimated_end_time(
     return est_end.strftime(time_format)
 
 
+def mask_and_flatfield_writer(
+    nxdet: h5py.File,
+    dset_name: str,
+    dset_data: str | ArrayLike | None,
+    applied_val: bool,
+):
+    if dset_data is None:
+        NXclassUtils_logger.warning(
+            f"""
+            No copy of the {dset_name} has been found, either as a file or dataset.
+            Fields {dset_name} and {dset_name}_applied will not be written to file.
+            """
+        )
+        return
+    nxdet.create_dataset(
+        f"{dset_name}_applied",
+        data=applied_val,
+    )
+    NXclassUtils_logger.debug(f"{dset_name}_applied set to: {applied_val}.")
+    if isinstance(dset_data, str):
+        link_path = Path(dset_data)
+        nxdet[dset_name] = h5py.ExternalLink(link_path.name, "/")
+        NXclassUtils_logger.debug(f"Set external link for {dset_name} to {link_path}.")
+    elif isinstance(dset_data, np.ndarray):
+        NXclassUtils_logger.debug(f"Writing a compressed copy of array in {dset_name}.")
+        write_compressed_copy(nxdet, dset_name, data=dset_data)
+    else:
+        NXclassUtils_logger.debug(
+            f"{dset_name} of type {type(dset_data)}, writing as is."
+        )
+        nxdet.create_dataset(dset_name, data=dset_data)
+    return
+
+
 # Copy and compress a dataset inside a specified NXclass
 def write_compressed_copy(
     nxgroup: h5py.Group,
@@ -164,16 +202,13 @@ def write_compressed_copy(
     Raises:
         ValueError: If both a dataset and a filename have been passed to the function.
     """
-    NXclass_logger = logging.getLogger("nexgen.NXclass_writers")
-    NXclass_logger.setLevel(logging.DEBUG)
-
     if data is not None and filename is not None:
         raise ValueError(
             "The dset and filename arguments are mutually exclusive."
             "Please pass only the one from which the data should be copied."
         )
     if filename and not dset_key:
-        NXclass_logger.warning(
+        NXclassUtils_logger.warning(
             f"Missing key to find the dataset to be copied inside {filename}. {dset_name} will not be written into the NeXus file."
         )
         return
@@ -194,8 +229,10 @@ def write_compressed_copy(
             dset_name, data=data, **Bitshuffle(nelems=block_size, cname="lz4")
         )
     else:
-        NXclass_logger.warning("Unknown filter choice, no dataset will be written.")
+        NXclassUtils_logger.warning(
+            "Unknown filter choice, no dataset will be written."
+        )
         return
-    NXclass_logger.info(
+    NXclassUtils_logger.info(
         f"A compressed copy of the {dset_name} has been written into the NeXus file."
     )
