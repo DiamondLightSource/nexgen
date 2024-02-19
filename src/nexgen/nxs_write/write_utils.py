@@ -197,8 +197,8 @@ def mask_and_flatfield_writer_for_event_data(
     wdir: Path,
     detector_name: str = "tristan",
 ):
-    if not dset_data_file:
-        NXclassUtils_logger(
+    if dset_data_file is None:
+        NXclassUtils_logger.warning(
             f"No {dset_name} data file passed; {dset_name} won't be written."
         )
         return

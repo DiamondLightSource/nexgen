@@ -92,6 +92,21 @@ def test_mask_flatfield_writer_for_events(dummy_nexus_file):
     assert "pixel_mask_applied" in list(dummy_nexus_file[nxdet_path].keys())
 
 
+def test_if_flafield_is_None_nothing_written_for_events(dummy_nexus_file):
+    nxdet_path = "/entry/instrument/detector/"
+    nxdetector = dummy_nexus_file.require_group(nxdet_path)
+
+    mask_and_flatfield_writer_for_event_data(
+        nxdetector,
+        "flatfield",
+        None,
+        False,
+        Path(""),
+    )
+
+    assert "flatfield" not in list(dummy_nexus_file[nxdet_path].keys())
+
+
 def test_write_copy_raises_error_if_both_array_and_file():
     with pytest.raises(ValueError):
         write_compressed_copy("", "", np.array([0.0]), "filename")
