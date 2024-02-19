@@ -15,6 +15,10 @@ import numpy as np
 from hdf5plugin import Bitshuffle, Blosc
 from numpy.typing import ArrayLike
 
+# Logger
+NXclassUtils_logger = logging.getLogger("nexgen.NXclass_writers.utils")
+NXclassUtils_logger.setLevel(logging.DEBUG)
+
 # Define Timestamp dataset names
 TSdset = Literal["start_time", "end_time", "end_time_estimated"]
 
@@ -130,6 +134,100 @@ def calculate_estimated_end_time(
     return est_end.strftime(time_format)
 
 
+def mask_and_flatfield_writer(
+    nxdet_grp: h5py.Group,
+    dset_name: str,
+    dset_data: str | ArrayLike,
+    applied_val: bool,
+):
+    """ Utility function to write mask or flatfield to NXdetector group for image data when not \
+    already linked to the _meta.h5 file.
+    If the pixel_mask/flatfield data is passed as a string, it will be assumed to be a file path and \
+    the writer will try to set up an external link to it.
+
+    Args:
+        nxdet_grp (h5py.Group): Handle to HDF5 NXdetector group.
+        dset_name (str): Name of the new field/dataset to be written.
+        dset_data (str | ArrayLike): Dataset data to be written in the field. Can be a string or an \
+        array-like dataset. If the data type is a numpy ndarray, it will be compressed before writing.
+        applied_val (bool): Value to write to the `{flatfield,pixel_mask}_applied` fields.
+    """
+    if dset_data is None:
+        NXclassUtils_logger.warning(
+            f"""
+            No copy of the {dset_name} has been found, either as a file or dataset.
+            Fields {dset_name} and {dset_name}_applied will not be written to file.
+            """
+        )
+        return
+    nxdet_grp.create_dataset(
+        f"{dset_name}_applied",
+        data=applied_val,
+    )
+    NXclassUtils_logger.debug(f"{dset_name}_applied set to: {applied_val}.")
+    if isinstance(dset_data, str):
+        try:
+            link_path = Path(dset_data)
+            NXclassUtils_logger.debug(
+                f"Setting external link for {dset_name} to {link_path}."
+            )
+            nxdet_grp[dset_name] = h5py.ExternalLink(link_path.name, "/")
+        except Exception as e:
+            NXclassUtils_logger.error(
+                f"Impossible to write external link to {dset_data} for {dset_name}."
+                "Field {dset_name} not written."
+            )
+            NXclassUtils_logger.error(f"{e}", exc_info=1)
+    elif isinstance(dset_data, np.ndarray):
+        NXclassUtils_logger.debug(f"Writing a compressed copy of array in {dset_name}.")
+        write_compressed_copy(nxdet_grp, dset_name, data=dset_data)
+    else:
+        NXclassUtils_logger.debug(
+            f"{dset_name} of type {type(dset_data)}, writing as is."
+        )
+        nxdet_grp.create_dataset(dset_name, data=dset_data)
+    return
+
+
+def mask_and_flatfield_writer_for_event_data(
+    nxdet_grp: h5py.Group,
+    dset_name: str,
+    dset_data_file: str,
+    applied_val: bool,
+    wdir: Path,
+    detector_name: str = "tristan",
+):
+    if dset_data_file is None:
+        NXclassUtils_logger.warning(
+            f"No {dset_name} data file passed; {dset_name} won't be written."
+        )
+        return
+
+    nxdet_grp.create_dataset(f"{dset_name}_applied", data=applied_val)
+    NXclassUtils_logger.info(f"Looking for file {dset_data_file} in {wdir.as_posix()}.")
+    filename = [
+        wdir / dset_data_file for f in wdir.iterdir() if dset_data_file == f.name
+    ]
+    if filename:
+        NXclassUtils_logger.info(f"File {dset_name} found in working directory.")
+        write_compressed_copy(
+            nxdet_grp,
+            dset_name,
+            filename=filename[0],
+            filter_choice="blosc",
+            dset_key="image",
+        )
+    else:
+        NXclassUtils_logger.warning(
+            f"No {dset_name} file found in working directory."
+            "Writing an ExternalLink."
+        )
+        file_loc = Path(dset_data_file)
+        image_key = "image" if "tristan" in detector_name.lower() else "/"
+        nxdet_grp[dset_name] = h5py.ExternalLink(file_loc.name, image_key)
+    return
+
+
 # Copy and compress a dataset inside a specified NXclass
 def write_compressed_copy(
     nxgroup: h5py.Group,
@@ -164,16 +262,13 @@ def write_compressed_copy(
     Raises:
         ValueError: If both a dataset and a filename have been passed to the function.
     """
-    NXclass_logger = logging.getLogger("nexgen.NXclass_writers")
-    NXclass_logger.setLevel(logging.DEBUG)
-
     if data is not None and filename is not None:
         raise ValueError(
             "The dset and filename arguments are mutually exclusive."
             "Please pass only the one from which the data should be copied."
         )
     if filename and not dset_key:
-        NXclass_logger.warning(
+        NXclassUtils_logger.warning(
             f"Missing key to find the dataset to be copied inside {filename}. {dset_name} will not be written into the NeXus file."
         )
         return
@@ -194,8 +289,10 @@ def write_compressed_copy(
             dset_name, data=data, **Bitshuffle(nelems=block_size, cname="lz4")
         )
     else:
-        NXclass_logger.warning("Unknown filter choice, no dataset will be written.")
+        NXclassUtils_logger.warning(
+            "Unknown filter choice, no dataset will be written."
+        )
         return
-    NXclass_logger.info(
+    NXclassUtils_logger.info(
         f"A compressed copy of the {dset_name} has been written into the NeXus file."
     )

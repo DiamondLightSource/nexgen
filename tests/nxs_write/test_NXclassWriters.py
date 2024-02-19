@@ -1,6 +1,6 @@
 from datetime import datetime
 from pathlib import Path
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
@@ -287,6 +287,7 @@ def test_given_module_offset_of_1_when_write_NXdetector_module_then_fast_and_slo
             dummy_nexus_file[module_nexus_path + axis].attrs["depends_on"]
             == b"/entry/instrument/detector/module/module_offset"
         )
+    assert dummy_nexus_file[module_nexus_path + "data_size"].dtype == np.uint16
 
 
 def test_write_NXdatetime_from_ISO8601str(dummy_nexus_file):
@@ -403,7 +404,9 @@ def test_write_NXcollection_for_events(dummy_nexus_file):
     assert dummy_nexus_file[spec + "detector_frequency"].attrs["units"] == b"Hz"
 
 
-def test_write_NXdetector_for_images_without_meta_file(dummy_nexus_file, mock_eiger):
+def test_write_NXdetector_for_eiger_images_without_meta_file(
+    dummy_nexus_file, mock_eiger
+):
     det = "/entry/instrument/detector/"
 
     write_NXdetector(
@@ -450,6 +453,29 @@ def test_write_NXdetector_for_images_without_meta_file(dummy_nexus_file, mock_ei
 
     # Check that detector_z has also been written in /detector
     assert "detector_z" in list(dummy_nexus_file[det].keys())
+
+
+@patch("nexgen.nxs_write.NXclassWriters.write_NXcollection")
+def test_write_NXdetector_for_eiger_images_with_meta_file(
+    mock_nxcoll_writer,
+    dummy_nexus_file,
+    dummy_eiger_meta_file,
+    mock_eiger,
+):
+    det = "/entry/instrument/detector/"
+
+    write_NXdetector(
+        dummy_nexus_file,
+        mock_eiger,
+        90,
+        Path(dummy_eiger_meta_file.name),
+    )
+    assert "pixel_mask" in list(dummy_nexus_file[det].keys())
+    assert "pixel_mask_applied" in list(dummy_nexus_file[det].keys())
+    assert "flatfield" in list(dummy_nexus_file[det].keys())
+    assert "bit_depth_readout" in list(dummy_nexus_file[det].keys())
+
+    mock_nxcoll_writer.assert_called_once()
 
 
 def test_write_NXinstrument(dummy_nexus_file, mock_source, mock_beam, mock_attenuator):

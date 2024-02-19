@@ -32,8 +32,9 @@ from .write_utils import (
     TSdset,
     calculate_origin,
     create_attributes,
+    mask_and_flatfield_writer,
+    mask_and_flatfield_writer_for_event_data,
     set_dependency,
-    write_compressed_copy,
 )
 
 NXclass_logger = logging.getLogger("nexgen.NXclass_writers")
@@ -506,114 +507,38 @@ def write_NXdetector(
         if collection_mode == "events":
             wd = Path(nxsfile.filename).parent
             # Bad pixel mask
-            if pixel_mask_file:
-                nxdetector.create_dataset(
-                    "pixel_mask_applied",
-                    data=detector.detector_params.constants["pixel_mask_applied"],
-                )
-                NXclass_logger.info(
-                    f"Looking for file {pixel_mask_file} in {wd.as_posix()}."
-                )
-                maskfile = [
-                    wd / pixel_mask_file
-                    for f in wd.iterdir()
-                    if pixel_mask_file == f.name
-                ]
-                if maskfile:
-                    NXclass_logger.info("Pixel mask file found in working directory.")
-                    write_compressed_copy(
-                        nxdetector,
-                        "pixel_mask",
-                        filename=maskfile[0],
-                        filter_choice="blosc",
-                        dset_key="image",
-                    )
-                else:
-                    NXclass_logger.warning(
-                        "No pixel mask file found in working directory."
-                        "Writing and ExternalLink."
-                    )
-                    mask = Path(pixel_mask_file)
-                    image_key = (
-                        "image"
-                        if "tristan" in detector.detector_params.description.lower()
-                        else "/"
-                    )
-                    nxdetector["pixel_mask"] = h5py.ExternalLink(mask.name, image_key)
+            mask_and_flatfield_writer_for_event_data(
+                nxdetector,
+                "pixel_mask",
+                pixel_mask_file,
+                detector.detector_params.constants["pixel_mask_applied"],
+                wd,
+                detector.detector_params.description.lower(),
+            )
             # Flatfield
-            if flatfield_file:
-                nxdetector.create_dataset(
-                    "flatfield_applied",
-                    data=detector.detector_params.constants["flatfield_applied"],
-                )
-                NXclass_logger.info(
-                    f"Looking for file {flatfield_file} in {wd.as_posix()}."
-                )
-                flatfieldfile = [
-                    wd / flatfield_file
-                    for f in wd.iterdir()
-                    if flatfield_file == f.name
-                ]
-                if flatfieldfile:
-                    NXclass_logger.info("Flatfield file found in working directory.")
-                    write_compressed_copy(
-                        nxdetector,
-                        "flatfield",
-                        filename=flatfieldfile[0],
-                        filter_choice="blosc",
-                        dset_key="image",
-                    )
-                else:
-                    NXclass_logger.warning(
-                        "No flatfield file found in the working directory."
-                        "Writing an ExternalLink."
-                    )
-                    flatfield = Path(flatfield_file)
-                    image_key = (
-                        "image"
-                        if "tristan" in detector.detector_params.description.lower()
-                        else "/"
-                    )
-                    nxdetector["flatfield"] = h5py.ExternalLink(
-                        flatfield.name, image_key
-                    )
+            mask_and_flatfield_writer_for_event_data(
+                nxdetector,
+                "flatfield",
+                flatfield_file,
+                detector.detector_params.constants["flatfield_applied"],
+                wd,
+                detector.detector_params.description.lower(),
+            )
         else:
             # Flatfield
-            if isinstance(flatfield_file, str):
-                nxdetector.create_dataset(
-                    "flatfield_applied",
-                    data=detector.detector_params.constants["flatfield_applied"],
-                )
-                flatfield = Path(flatfield_file)
-                nxdetector["flatfield"] = h5py.ExternalLink(flatfield.name, "/")
-            elif not flatfield_file:
-                NXclass_logger.warning(
-                    "No copy of the flatfield has been found, either as a file or dataset."
-                )
-            else:
-                nxdetector.create_dataset(
-                    "flatfield_applied",
-                    data=detector.detector_params.constants["flatfield_applied"],
-                )
-                write_compressed_copy(nxdetector, "flatfield", data=flatfield_file)
+            mask_and_flatfield_writer(
+                nxdetector,
+                "flatfield",
+                detector.detector_params.constants["flatfield"],
+                detector.detector_params.constants["flatfield_applied"],
+            )
             # Bad pixel mask
-            if isinstance(pixel_mask_file, str):
-                nxdetector.create_dataset(
-                    "pixel_mask_applied",
-                    data=detector.detector_params.constants["pixel_mask_applied"],
-                )
-                mask = Path(pixel_mask_file)
-                nxdetector["pixel_mask"] = h5py.ExternalLink(mask.name, "/")
-            elif not pixel_mask_file:
-                NXclass_logger.warning(
-                    "No copy of the pixel_mask has been found, eithere as a file or dataset."
-                )
-            else:
-                nxdetector.create_dataset(
-                    "pixel_mask_applied",
-                    data=detector.detector_params.constants["pixel_mask_applied"],
-                )
-                write_compressed_copy(nxdetector, "pixel_mask", data=pixel_mask_file)
+            mask_and_flatfield_writer(
+                nxdetector,
+                "pixel_mask",
+                detector.detector_params.constants["pixel_mask"],
+                detector.detector_params.constants["pixel_mask_applied"],
+            )
 
     # Beam center
     beam_center_x = nxdetector.create_dataset(
@@ -773,9 +698,9 @@ def write_NXdetector_module(
         ("NXdetector_module",),
     )
 
-    nxmodule.create_dataset("data_origin", data=np.array([0, 0]))
-    nxmodule.create_dataset("data_size", data=image_size)
-    nxmodule.create_dataset("data_stride", data=np.array([1, 1]))
+    nxmodule.create_dataset("data_origin", data=np.array([0, 0]), dtype=np.uint16)
+    nxmodule.create_dataset("data_size", data=image_size, dtype=np.uint16)
+    nxmodule.create_dataset("data_stride", data=np.array([1, 1]), dtype=np.uint16)
 
     # Write fast_ and slow_ pixel_direction
     fast_axis = module["fast_axis"]
@@ -899,8 +824,19 @@ def write_NXcollection(
     NXclass_logger.info("Start writing detectorSpecific group as NXcollection.")
     # Create detectorSpecific group
     grp = nxdetector.require_group("detectorSpecific")
-    grp.create_dataset("x_pixels", data=detector_params.image_size[1])  # fast axis
-    grp.create_dataset("y_pixels", data=detector_params.image_size[0])  # slow axis
+    grp.create_dataset(
+        "x_pixels", data=detector_params.image_size[1], dtype=np.uint16
+    )  # fast axis
+    grp.create_dataset(
+        "y_pixels", data=detector_params.image_size[0], dtype=np.uint16
+    )  # slow axis
+    # Write these non-spec fields as well because of autoPROC:
+    grp.create_dataset(
+        "x_pixels_in_detector", data=detector_params.image_size[1], dtype=np.uint16
+    )  # fast axis
+    grp.create_dataset(
+        "y_pixels_in_detector", data=detector_params.image_size[0], dtype=np.uint16
+    )  # slow axis
     if collection_mode == "images":
         grp.create_dataset("nimages", data=num_images)
     if "software_version" in list(detector_params.constants.keys()):

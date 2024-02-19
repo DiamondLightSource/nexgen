@@ -2,6 +2,21 @@
 
 
 
+## 0.8.#
+
+### Added
+- Additional `{x,y}_pixels_in_detector` in the NXcollection group `detectorSpecific` to make autoPROC work.
+- Utility functions to write `pixel_mask/flatfield` fields correctly and avoiding code repetition.
+
+
+## 0.8.3
+
+### Fixed
+- More strict type hinting on Detector definitions
+- Set dtype for `data_size` and other `x/y_pixels` to unsigned shorts.
+- Reverted change and workaround for I19 phi/omega axes
+
+
 ## 0.8.2
 
 ### Fixed
@@ -16,7 +31,7 @@
 
 ### Fixed
 - Bug when updating goniometer axes from reverse rotation scan: in this case, it changed the increment to positive leading to
-the wrong value for `axis_end` in NXsample.  
+the wrong value for `axis_end` in NXsample.
 - Added missing `axis_end` and `axis_increment_set` to CopyTristanNexus for multiple binned images.
 
 
