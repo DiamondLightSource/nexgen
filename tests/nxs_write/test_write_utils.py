@@ -1,5 +1,4 @@
 from datetime import datetime
-from pathlib import Path
 from unittest.mock import patch
 
 import numpy as np
@@ -11,7 +10,6 @@ from nexgen.nxs_write.write_utils import (
     create_attributes,
     find_number_of_images,
     mask_and_flatfield_writer,
-    mask_and_flatfield_writer_for_event_data,
     set_dependency,
     write_compressed_copy,
 )
@@ -74,23 +72,6 @@ def test_flatfield_dataset_writer(fake_copy_write, dummy_nexus_file):
 
     assert dummy_nexus_file[nxdet_path + "flatfield_applied"][()]
     fake_copy_write.assert_called_once()
-
-
-@patch("nexgen.nxs_write.write_utils.write_compressed_copy")
-def test_mask_and_flatfield_writer_for_event_data(
-    fake_copy_write,
-    dummy_nexus_file,
-    dummy_tristan_mask_file,
-):
-    nxdet_path = "/entry/instrument/detector/"
-    nxdetector = dummy_nexus_file.require_group(nxdet_path)
-    mask_and_flatfield_writer_for_event_data(
-        nxdetector,
-        "pixel_mask",
-        dummy_tristan_mask_file.name,
-        False,
-        Path(dummy_tristan_mask_file.name).parent,
-    )
 
 
 def test_write_copy_raises_error_if_both_array_and_file():
