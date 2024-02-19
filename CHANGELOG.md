@@ -2,7 +2,7 @@
 
 
 
-## 0.8.#
+## 0.8.4
 
 ### Added
 - Additional `{x,y}_pixels_in_detector` in the NXcollection group `detectorSpecific` to make autoPROC work.

@@ -39,6 +39,7 @@ dev = [
     "pytest-cov",
     "pytest-random-order",
     "sphinx-autobuild",
+    "bump2version",
     "pipdeptree",
     "ipython",
     "mockito",
