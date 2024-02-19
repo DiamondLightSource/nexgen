@@ -135,11 +135,23 @@ def calculate_estimated_end_time(
 
 
 def mask_and_flatfield_writer(
-    nxdet: h5py.File,
+    nxdet_grp: h5py.Group,
     dset_name: str,
-    dset_data: str | ArrayLike | None,
+    dset_data: str | ArrayLike,
     applied_val: bool,
 ):
+    """ Utility function to write mask or flatfield to NXdetector group for image data when not \
+    already linked to the _meta.h5 file.
+    If the pixel_mask/flatfield data is passed as a string, it will be assumed to be a file path and \
+    the writer will try to set up an external link to it.
+
+    Args:
+        nxdet_grp (h5py.Group): Handle to HDF5 NXdetector group.
+        dset_name (str): Name of the new field/dataset to be written.
+        dset_data (str | ArrayLike): Dataset data to be written in the field. Can be a string or an \
+        array-like dataset. If the data type is a numpy ndarray, it will be compressed before writing.
+        applied_val (bool): Value to write to the `{flatfield,pixel_mask}_applied` fields.
+    """
     if dset_data is None:
         NXclassUtils_logger.warning(
             f"""
@@ -148,23 +160,32 @@ def mask_and_flatfield_writer(
             """
         )
         return
-    nxdet.create_dataset(
+    nxdet_grp.create_dataset(
         f"{dset_name}_applied",
         data=applied_val,
     )
     NXclassUtils_logger.debug(f"{dset_name}_applied set to: {applied_val}.")
     if isinstance(dset_data, str):
-        link_path = Path(dset_data)
-        nxdet[dset_name] = h5py.ExternalLink(link_path.name, "/")
-        NXclassUtils_logger.debug(f"Set external link for {dset_name} to {link_path}.")
+        try:
+            link_path = Path(dset_data)
+            NXclassUtils_logger.debug(
+                f"Setting external link for {dset_name} to {link_path}."
+            )
+            nxdet_grp[dset_name] = h5py.ExternalLink(link_path.name, "/")
+        except Exception as e:
+            NXclassUtils_logger.error(
+                f"Impossible to write external link to {dset_data} for {dset_name}."
+                "Field {dset_name} not written."
+            )
+            NXclassUtils_logger.error(f"{e}", exc_info=1)
     elif isinstance(dset_data, np.ndarray):
         NXclassUtils_logger.debug(f"Writing a compressed copy of array in {dset_name}.")
-        write_compressed_copy(nxdet, dset_name, data=dset_data)
+        write_compressed_copy(nxdet_grp, dset_name, data=dset_data)
     else:
         NXclassUtils_logger.debug(
             f"{dset_name} of type {type(dset_data)}, writing as is."
         )
-        nxdet.create_dataset(dset_name, data=dset_data)
+        nxdet_grp.create_dataset(dset_name, data=dset_data)
     return
 
 
