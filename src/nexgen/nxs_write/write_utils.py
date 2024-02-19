@@ -189,6 +189,45 @@ def mask_and_flatfield_writer(
     return
 
 
+def mask_and_flatfield_writer_for_event_data(
+    nxdet_grp: h5py.Group,
+    dset_name: str,
+    dset_data_file: str,
+    applied_val: bool,
+    wdir: Path,
+    detector_name: str = "tristan",
+):
+    if not dset_data_file:
+        NXclassUtils_logger(
+            f"No {dset_name} data file passed; {dset_name} won't be written."
+        )
+        return
+
+    nxdet_grp.create_dataset(f"{dset_name}_applied", data=applied_val)
+    NXclassUtils_logger.info(f"Looking for file {dset_data_file} in {wdir.as_posix()}.")
+    filename = [
+        wdir / dset_data_file for f in wdir.iterdir() if dset_data_file == f.name
+    ]
+    if filename:
+        NXclassUtils_logger.info(f"File {dset_name} found in working directory.")
+        write_compressed_copy(
+            nxdet_grp,
+            dset_name,
+            filename=filename[0],
+            filter_choice="blosc",
+            dset_key="image",
+        )
+    else:
+        NXclassUtils_logger.warning(
+            f"No {dset_name} file found in working directory."
+            "Writing an ExternalLink."
+        )
+        file_loc = Path(dset_data_file)
+        image_key = "image" if "tristan" in detector_name.lower() else "/"
+        nxdet_grp[dset_name] = h5py.ExternalLink(file_loc.name, image_key)
+    return
+
+
 # Copy and compress a dataset inside a specified NXclass
 def write_compressed_copy(
     nxgroup: h5py.Group,

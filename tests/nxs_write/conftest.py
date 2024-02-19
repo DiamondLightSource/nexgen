@@ -105,6 +105,14 @@ def dummy_eiger_meta_file():
 
 
 @pytest.fixture
+def dummy_tristan_mask_file():
+    test_mask_file = tempfile.NamedTemporaryFile(suffix=".h5", delete=False)
+    with h5py.File(test_mask_file, "w") as mh:
+        mh.create_dataset("image", data=np.zeros([100, 100]))
+    yield test_mask_file
+
+
+@pytest.fixture
 def dummy_nexus_file():
     test_hdf_file = tempfile.TemporaryFile()
     test_nexus_file = h5py.File(test_hdf_file, "w")

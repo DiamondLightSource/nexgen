@@ -33,8 +33,8 @@ from .write_utils import (
     calculate_origin,
     create_attributes,
     mask_and_flatfield_writer,
+    mask_and_flatfield_writer_for_event_data,
     set_dependency,
-    write_compressed_copy,
 )
 
 NXclass_logger = logging.getLogger("nexgen.NXclass_writers")
@@ -507,77 +507,23 @@ def write_NXdetector(
         if collection_mode == "events":
             wd = Path(nxsfile.filename).parent
             # Bad pixel mask
-            if pixel_mask_file:
-                nxdetector.create_dataset(
-                    "pixel_mask_applied",
-                    data=detector.detector_params.constants["pixel_mask_applied"],
-                )
-                NXclass_logger.info(
-                    f"Looking for file {pixel_mask_file} in {wd.as_posix()}."
-                )
-                maskfile = [
-                    wd / pixel_mask_file
-                    for f in wd.iterdir()
-                    if pixel_mask_file == f.name
-                ]
-                if maskfile:
-                    NXclass_logger.info("Pixel mask file found in working directory.")
-                    write_compressed_copy(
-                        nxdetector,
-                        "pixel_mask",
-                        filename=maskfile[0],
-                        filter_choice="blosc",
-                        dset_key="image",
-                    )
-                else:
-                    NXclass_logger.warning(
-                        "No pixel mask file found in working directory."
-                        "Writing and ExternalLink."
-                    )
-                    mask = Path(pixel_mask_file)
-                    image_key = (
-                        "image"
-                        if "tristan" in detector.detector_params.description.lower()
-                        else "/"
-                    )
-                    nxdetector["pixel_mask"] = h5py.ExternalLink(mask.name, image_key)
+            mask_and_flatfield_writer_for_event_data(
+                nxdetector,
+                "pixel_mask",
+                pixel_mask_file,
+                detector.detector_params.constants["pixel_mask_applied"],
+                wd,
+                detector.detector_params.description.lower(),
+            )
             # Flatfield
-            if flatfield_file:
-                nxdetector.create_dataset(
-                    "flatfield_applied",
-                    data=detector.detector_params.constants["flatfield_applied"],
-                )
-                NXclass_logger.info(
-                    f"Looking for file {flatfield_file} in {wd.as_posix()}."
-                )
-                flatfieldfile = [
-                    wd / flatfield_file
-                    for f in wd.iterdir()
-                    if flatfield_file == f.name
-                ]
-                if flatfieldfile:
-                    NXclass_logger.info("Flatfield file found in working directory.")
-                    write_compressed_copy(
-                        nxdetector,
-                        "flatfield",
-                        filename=flatfieldfile[0],
-                        filter_choice="blosc",
-                        dset_key="image",
-                    )
-                else:
-                    NXclass_logger.warning(
-                        "No flatfield file found in the working directory."
-                        "Writing an ExternalLink."
-                    )
-                    flatfield = Path(flatfield_file)
-                    image_key = (
-                        "image"
-                        if "tristan" in detector.detector_params.description.lower()
-                        else "/"
-                    )
-                    nxdetector["flatfield"] = h5py.ExternalLink(
-                        flatfield.name, image_key
-                    )
+            mask_and_flatfield_writer_for_event_data(
+                nxdetector,
+                "flatfield",
+                flatfield_file,
+                detector.detector_params.constants["flatfield_applied"],
+                wd,
+                detector.detector_params.description.lower(),
+            )
         else:
             # Flatfield
             mask_and_flatfield_writer(
