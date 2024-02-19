@@ -2,10 +2,11 @@
 
 
 
-## 0.#.#
+## 0.8.#
 
 ### Added
 - Additional `{x,y}_pixels_in_detector` in the NXcollection group `detectorSpecific` to make autoPROC work.
+- Utility functions to write `pixel_mask/flatfield` fields correctly and avoiding code repetition.
 
 
 ## 0.8.3

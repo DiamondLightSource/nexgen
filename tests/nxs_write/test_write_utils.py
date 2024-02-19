@@ -1,4 +1,6 @@
 from datetime import datetime
+from pathlib import Path
+from unittest.mock import patch
 
 import numpy as np
 import pytest
@@ -8,6 +10,8 @@ from nexgen.nxs_write.write_utils import (
     calculate_origin,
     create_attributes,
     find_number_of_images,
+    mask_and_flatfield_writer,
+    mask_and_flatfield_writer_for_event_data,
     set_dependency,
     write_compressed_copy,
 )
@@ -50,6 +54,57 @@ def test_calculate_origin():
 def test_find_number_of_images_returns_0_if_no_file_passed():
     n_images = find_number_of_images([])
     assert n_images == 0
+
+
+def test_mask_external_link_writer(dummy_nexus_file):
+    nxdet_path = "/entry/instrument/detector/"
+    nxdetector = dummy_nexus_file.require_group(nxdet_path)
+    test_mask = "path/to/mask/filename"
+    mask_and_flatfield_writer(nxdetector, "pixel_mask", test_mask, False)
+
+    assert not dummy_nexus_file[nxdet_path + "pixel_mask_applied"][()]
+
+
+@patch("nexgen.nxs_write.write_utils.write_compressed_copy")
+def test_flatfield_dataset_writer(fake_copy_write, dummy_nexus_file):
+    nxdet_path = "/entry/instrument/detector/"
+    nxdetector = dummy_nexus_file.require_group(nxdet_path)
+    test_flatfield = np.ndarray(shape=(3, 3))
+    mask_and_flatfield_writer(nxdetector, "flatfield", test_flatfield, True)
+
+    assert dummy_nexus_file[nxdet_path + "flatfield_applied"][()]
+    fake_copy_write.assert_called_once()
+
+
+def test_mask_flatfield_writer_for_events(dummy_nexus_file):
+    nxdet_path = "/entry/instrument/detector/"
+    nxdetector = dummy_nexus_file.require_group(nxdet_path)
+
+    mask_and_flatfield_writer_for_event_data(
+        nxdetector,
+        "pixel_mask",
+        "path/to/mask.h5",
+        False,
+        Path(""),
+    )
+
+    assert "pixel_mask" in list(dummy_nexus_file[nxdet_path].keys())
+    assert "pixel_mask_applied" in list(dummy_nexus_file[nxdet_path].keys())
+
+
+def test_if_flafield_is_None_nothing_written_for_events(dummy_nexus_file):
+    nxdet_path = "/entry/instrument/detector/"
+    nxdetector = dummy_nexus_file.require_group(nxdet_path)
+
+    mask_and_flatfield_writer_for_event_data(
+        nxdetector,
+        "flatfield",
+        None,
+        False,
+        Path(""),
+    )
+
+    assert "flatfield" not in list(dummy_nexus_file[nxdet_path].keys())
 
 
 def test_write_copy_raises_error_if_both_array_and_file():
