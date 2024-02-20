@@ -104,7 +104,7 @@ def nexgen_writer(args):
         exposure_time=args.exp_time,
         transmission=args.transmission if args.transmission else None,
         wavelength=args.wavelength if args.wavelength else None,
-        beam_center=args.beam_center if args.beam_center else None,
+        beam_center=args.beam_center if args.beam_center else (0, 0),
         start_time=datetime.strptime(args.start, "%Y-%m-%dT%H:%M:%SZ")
         if args.start
         else None,
