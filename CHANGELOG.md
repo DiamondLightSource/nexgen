@@ -2,10 +2,11 @@
 
 
 
-## 0.#.#
+## 0.8.5
 
 ### Fixed
 - Rotation axis vector for Electron Diffraction.
+- I19 CLI arguments, added number of images, minor bug fixes.
 
 
 ## 0.8.4
