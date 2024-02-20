@@ -112,7 +112,7 @@ def nexgen_writer(args):
         if args.stop
         else None,
         n_imgs=args.num_imgs if args.num_imgs else None,
-        scan_axis=args.scan_axis if args.scan_axis else None,
+        scan_axis=args.scan_axis if args.scan_axis else "phi",
         gonio_pos=axes_list if args.axes else None,
         det_pos=det_list if args.det_axes else None,
         outdir=args.output if args.output else None,
@@ -132,7 +132,12 @@ gonioAx_parser.add_argument(
 gonioAx_parser.add_argument(
     "--ax-end", type=float, nargs="+", help="Eventual axes ends."
 )
-gonioAx_parser.add_argument("--scan-axis", type=str, help="Identify scan axis.")
+gonioAx_parser.add_argument(
+    "--scan-axis",
+    type=str,
+    default="phi",
+    help="Identify scan axis. If not specified, defaults to phi.",
+)
 
 detAx_parser = argparse.ArgumentParser(add_help=False)
 detAx_parser.add_argument(
