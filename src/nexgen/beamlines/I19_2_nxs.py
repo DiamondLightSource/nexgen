@@ -66,8 +66,18 @@ logger = logging.getLogger("nexgen.I19-2_NeXus")
 # Useful axis definitions
 axes = namedtuple("axes", ("id", "start", "inc", "end"), defaults=(None, 0.0, 0.0, 0.0))
 axes.__doc__ = """Goniometer axis name, start and end position, increment."""
+axes.id.__doc__ = "Axis name."
+axes.start.__doc__ = "Axis start position. Defaults fo 0.0."
+axes.inc.__doc__ = (
+    "Axis increment value. Defaults fo 0.0. Only needed for the scan axis."
+)
+axes.end.__doc__ = (
+    "Axis end position. Defaults fo 0.0. Only really needed for Tristan collections."
+)
 det_axes = namedtuple("det_axes", ("id", "start"), defaults=(None, 0.0))
 det_axes.__doc__ = """Detector axis name and position."""
+det_axes.id.__doc__ = "Axis name."
+det_axes.start.__doc__ = "Axis position. Defaults to 0.0."
 
 
 def tristan_writer(

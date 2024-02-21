@@ -104,14 +104,15 @@ def nexgen_writer(args):
         exposure_time=args.exp_time,
         transmission=args.transmission if args.transmission else None,
         wavelength=args.wavelength if args.wavelength else None,
-        beam_center=args.beam_center if args.beam_center else None,
+        beam_center=args.beam_center if args.beam_center else (0, 0),
         start_time=datetime.strptime(args.start, "%Y-%m-%dT%H:%M:%SZ")
         if args.start
         else None,
         stop_time=datetime.strptime(args.stop, "%Y-%m-%dT%H:%M:%SZ")
         if args.stop
         else None,
-        scan_axis=args.scan_axis if args.scan_axis else None,
+        n_imgs=args.num_imgs if args.num_imgs else None,
+        scan_axis=args.scan_axis if args.scan_axis else "phi",
         gonio_pos=axes_list if args.axes else None,
         det_pos=det_list if args.det_axes else None,
         outdir=args.output if args.output else None,
@@ -131,7 +132,12 @@ gonioAx_parser.add_argument(
 gonioAx_parser.add_argument(
     "--ax-end", type=float, nargs="+", help="Eventual axes ends."
 )
-gonioAx_parser.add_argument("--scan-axis", type=str, help="Identify scan axis.")
+gonioAx_parser.add_argument(
+    "--scan-axis",
+    type=str,
+    default="phi",
+    help="Identify scan axis. If not specified, defaults to phi.",
+)
 
 detAx_parser = argparse.ArgumentParser(add_help=False)
 detAx_parser.add_argument(
@@ -205,6 +211,13 @@ parser_nex.add_argument(
     "detector_name", type=str, help="Detector currently in use on beamline."
 )
 parser_nex.add_argument("exp_time", type=float, help="Exposure time, in s.")
+parser_nex.add_argument(
+    "-n",
+    "--num_imgs",
+    type=int,
+    default=None,
+    help="Number of frames collected. Necessary for eiger if not using meta file.",
+)
 parser_nex.add_argument(
     "-tr",
     "--transmission",
