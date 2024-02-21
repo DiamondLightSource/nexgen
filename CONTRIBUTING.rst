@@ -37,20 +37,20 @@ Creating a release using bump2version
 
 From inside a development environment, a release can be created from the command line using bump2version. If not present, tha package can be pip installed.
 
-.. console::
+.. code-block:: console
     pip install bump2version
 
 
 First, choose a release number and run bump2version in "pretend" mode with the to check that the final version will be updated correctly.
 
-.. console::
+.. code-block:: console
     bump2version --dry-run {major,minor,patch} --verbose
 
 
 Once sure of the release number, run bump2version and push the the tags for the new version.
 
 
-.. console::
+.. code-block:: console
     bump2version {major,minor,patch} --verbose
     git push --tags
     git push
