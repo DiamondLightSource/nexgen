@@ -4,6 +4,7 @@ Development environment setup
 1. Clone the nexgen repository
 
 .. code-block:: console
+    
     git clone git@github.com:DiamondLightSource/nexgen.git
     cd nexgen
 
@@ -11,6 +12,7 @@ Development environment setup
 2. Create virtual environment and pip install
 
 .. code-block:: console
+    
     python -m venv .venv
     source .venv/bin/activate
 
@@ -38,12 +40,14 @@ Creating a release using bump2version
 From inside a development environment, a release can be created from the command line using bump2version. If not present, tha package can be pip installed.
 
 .. code-block:: console
+    
     pip install bump2version
 
 
 First, choose a release number and run bump2version in "pretend" mode with the to check that the final version will be updated correctly.
 
 .. code-block:: console
+    
     bump2version --dry-run {major,minor,patch} --verbose
 
 
@@ -51,6 +55,7 @@ Once sure of the release number, run bump2version and push the the tags for the 
 
 
 .. code-block:: console
+    
     bump2version {major,minor,patch} --verbose
     git push --tags
     git push
