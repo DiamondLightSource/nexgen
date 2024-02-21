@@ -214,6 +214,20 @@ Manually generate a NeXus file for a dataset collected on Eiger detector using t
     I19_nexus 2 Expt1_00_meta.h5 eiger 0.02 -tr 100 --use-meta
 
 
+If the `--use-meta` flag is not passed, the writer will not look up the axes/beam_center/wavelength information in the meta file.
+This will then need to be passed from the commang line:
+
+.. code-block:: console
+
+    I19_nexus gen Expt1_00_meta.h5 eiger 0.095 -wl 0.485 -bc 989.8 1419 --det-axes det_z --det-start 140 --axes omega phi --ax-start -90 -130.5 --ax-inc 0 0.1 -tr 5 -n 75
+
+
+.. note::
+    Only the goniometer/detector axes that have values and increments different from 0 need to be passed to the command line.
+    If --scan-axis is not passed, it will default to 'phi'.
+    If -bc (beam_center) is not passed, in the absence of a meta file it will default to (0, 0)
+
+
 SSX CLI
 -------
 
