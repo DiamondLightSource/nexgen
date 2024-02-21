@@ -1,22 +1,41 @@
-Development environment
-=======================
+Development environment setup
+=============================
 
-TBD
+1. Clone the nexgen repository
+
+.. code-block:: console
+    git clone git@github.com:DiamondLightSource/nexgen.git
+    cd nexgen
 
 
-.. console::
+2. Create virtual environment and pip install
+
+.. code-block:: console
     python -m venv .venv
     source .venv/bin/activate
 
     pip install -e .[dev]
 
 
+3. Install pre-commits
+   
+.. code-block:: console
+
+    pre-commit install
+
+
+4. Run pytest
+   
+.. code-block:: console
+
+    pytest .
+
 
 
 Creating a release using bump2version
 =====================================
 
-From indie a development environment, a release can be created from the command line using bump2version. If not present, tha package can be pip installed.
+From inside a development environment, a release can be created from the command line using bump2version. If not present, tha package can be pip installed.
 
 .. console::
     pip install bump2version
@@ -57,3 +76,13 @@ Releases should obviously be versioned higher than the previous latest release. 
     * **Major** - Large code rewrites
     * **Minor** - New features
     * **Patch** - Small changes and bug fixes
+  
+
+Keeping the changelog up to date
+--------------------------------
+
+Please make sure before every release that a few lines are added to the `CHANGELOG.md` file describing the changes.
+    * **Added** - New NXobjects, such as fields or NXgroups, writers or utilities.
+    * **Fixes** - Bug fixes
+    * **Changed** - Code changes/improvements that don't affect output nexus file.
+    * **Removed** - Obsolete functionalities being deleted, old python versions support. 
