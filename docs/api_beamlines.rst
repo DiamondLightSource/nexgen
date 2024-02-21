@@ -42,7 +42,7 @@ Some useful type definitions to use with these methods:
 
 Collection parameters schema for I19-2
 
-.. autopydantic_model:: nexgen.beamlines.I19_2_nxs.CollectionParameters
+.. autopydantic_model:: nexgen.beamlines.I19_2_nxs.CollectionParams
     :model-show-config-summary: False
 
 
