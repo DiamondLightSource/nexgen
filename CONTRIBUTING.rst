@@ -56,7 +56,10 @@ Once sure of the release number, run bump2version and push the the tags for the 
     git push
 
 
-Creating a release from github
+After the second `git push`, the release will be published automatically both to Github and PYPI.
+
+
+Creating a release from Github
 ==============================
 
 1. Create a new branch from main named pre followed by the release version e.g. pre_v0.1.0. The release versions should look like v{major}.{minor}.{patch}.
@@ -86,3 +89,11 @@ Please make sure before every release that a few lines are added to the `CHANGEL
     * **Fixes** - Bug fixes
     * **Changed** - Code changes/improvements that don't affect output nexus file.
     * **Removed** - Obsolete functionalities being deleted, old python versions support. 
+
+
+Updating the documentation
+==========================
+
+The documentation is published on ReadtheDocs `here https://nexgen.readthedocs.io` and written using `sphinx https://www.sphinx-doc.org/en/master/`.
+For every new feature, please add a docstring and update the API page on the documentation to show it.
+If adding new writers or command line tools, please also update the usage page with an explaination on how to use them.
