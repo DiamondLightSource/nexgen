@@ -211,7 +211,7 @@ Manually generate a NeXus file for a dataset collected on Eiger detector using t
 
 .. code-block:: console
 
-    I19_nexus 2 Expt1_00_meta.h5 eiger 0.02 -tr 100
+    I19_nexus 2 Expt1_00_meta.h5 eiger 0.02 -tr 100 --use-meta
 
 
 SSX CLI
