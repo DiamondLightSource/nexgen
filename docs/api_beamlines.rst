@@ -41,7 +41,7 @@ Some useful type definitions to use with these methods:
 
 
 
-.. pydantic:: nexgen.beamlines.I19_2_nxs.CollectionParameters
+.. autopydantic_model:: nexgen.beamlines.I19_2_nxs.CollectionParameters
     :members:
 
 

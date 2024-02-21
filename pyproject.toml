@@ -39,6 +39,7 @@ dev = [
     "pytest-cov",
     "pytest-random-order",
     "sphinx-autobuild",
+    "autodoc_pydantic",     # Needed for pydantic docs
     "bump2version",
     "pipdeptree",
     "ipython",
