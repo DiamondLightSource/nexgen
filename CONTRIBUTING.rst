@@ -81,6 +81,7 @@ Deciding release numbers
 ------------------------
 
 Releases should obviously be versioned higher than the previous latest release. Otherwise you should follow this guide:
+    
     * **Major** - Large code rewrites
     * **Minor** - New features
     * **Patch** - Small changes and bug fixes
@@ -90,6 +91,7 @@ Keeping the changelog up to date
 --------------------------------
 
 Please make sure before every release that a few lines are added to the `CHANGELOG.md` file describing the changes.
+    
     * **Added** - New NXobjects, such as fields or NXgroups, writers or utilities.
     * **Fixes** - Bug fixes
     * **Changed** - Code changes/improvements that don't affect output nexus file.
