@@ -2,6 +2,12 @@
 
 
 
+## 0.#.#
+
+### Fixed
+- Set dtype for `data_size`, `{x,y}_pixels`, etc. to native int to make autoPROC work.
+
+
 ## 0.8.5
 
 ### Fixed
