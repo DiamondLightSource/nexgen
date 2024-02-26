@@ -287,7 +287,7 @@ def test_given_module_offset_of_1_when_write_NXdetector_module_then_fast_and_slo
             dummy_nexus_file[module_nexus_path + axis].attrs["depends_on"]
             == b"/entry/instrument/detector/module/module_offset"
         )
-    assert dummy_nexus_file[module_nexus_path + "data_size"].dtype == np.uint16
+    assert dummy_nexus_file[module_nexus_path + "data_size"].dtype == np.uint32
 
 
 def test_write_NXdatetime_from_ISO8601str(dummy_nexus_file):
