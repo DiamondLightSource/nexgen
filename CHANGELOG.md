@@ -2,13 +2,73 @@
 
 
 
+## 0.#.#
+
+### Fixed
+- Set dtype for `data_size`, `{x,y}_pixels`, etc. to native int to make autoPROC work.
+
+
+## 0.8.5
+
+### Fixed
+- Rotation axis vector for Electron Diffraction.
+- I19 CLI arguments, added number of images, minor bug fixes.
+
+
+## 0.8.4
+
+### Added
+- Additional `{x,y}_pixels_in_detector` in the NXcollection group `detectorSpecific` to make autoPROC work.
+- Utility functions to write `pixel_mask/flatfield` fields correctly and avoiding code repetition.
+
+
+## 0.8.3
+
+### Fixed
+- More strict type hinting on Detector definitions
+- Set dtype for `data_size` and other `x/y_pixels` to unsigned shorts.
+- Reverted change and workaround for I19 phi/omega axes
+
+
+## 0.8.2
+
+### Fixed
+- I19-2 rotation axis bug. Correct directions in, with workaround for GDA writer where the rotation is the other way around.
+
+
+### Added
+- Docstrings for Goniometer and Detector definitons.
+
+
+## 0.8.1
+
+### Fixed
+- Bug when updating goniometer axes from reverse rotation scan: in this case, it changed the increment to positive leading to
+the wrong value for `axis_end` in NXsample.
+- Added missing `axis_end` and `axis_increment_set` to CopyTristanNexus for multiple binned images.
+
+
+## 0.8.0
+
+### Changed
+- The NXclass writers are not using phil-like dictionaries anymore.
+- Utilities for the CLI simplified.
+- Minimal changes to eiger_writer for I19-2 to make it possible to write VDS if different offsets - current use case: grid scan.
+
+### Removed
+- Removed python 3.8 support.
+- Removed obsolete writer from phil scope.
+- Removed obsolete metafile tools using dictionaries.
+- Removed obsolete scan calculation tools for cli (ScanReader, calculate_scan_range).
+
+
 ## 0.7.3
 
 ### Added
 - Added possibility to write `end_time_estimated` field in NXmxWriter and refactored `write_NXdatetime`.
 - A small utility to write a nexus file for electron diffraction and a new command line tool for SINGLA without phil.
 - Choice to avoid using the meta file for I19-2 data, as long as all relevant information is passed.
-- Utilities to extract collection start time and exposure time from singla master file for ED. 
+- Utilities to extract collection start time and exposure time from singla master file for ED.
 
 ### Changed
 - (Temporary) Write a soft link for /entry/instrument/detector/detector_z in NXdetector, for compatibility with autoPROC.

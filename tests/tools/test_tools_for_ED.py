@@ -4,6 +4,7 @@ from datetime import datetime
 import h5py
 import numpy as np
 import pytest
+from numpy.testing import assert_array_equal
 
 from nexgen.tools.DataWriter import build_an_eiger
 from nexgen.tools.ED_tools import (
@@ -62,13 +63,25 @@ def test_isSingla_master_file(dummy_singla_master_file):
     assert SinglaMaster.isDectrisSingla(dummy_singla_master_file.name)
 
 
+def test_SignalMaster_get_mask_and_flatfiled(dummy_singla_master_file):
+    with h5py.File(dummy_singla_master_file.name, "r") as fh:
+        master = SinglaMaster(fh)
+        mask_info = master.get_mask()
+        flatfield_info = master.get_flatfield()
+
+    assert not mask_info[0]  # mask applied is false
+    assert mask_info[1] is None
+    assert not flatfield_info[0]  # Flatfield applied is false
+    assert_array_equal(flatfield_info[1], test_flatfield)
+
+
 def test_get_mask_and_flatfield_from_singla_master_file(dummy_singla_master_file):
     D = extract_detector_info_from_master(dummy_singla_master_file.name)
     assert "pixel_mask" in D.keys() and "flatfield" in D.keys()
     assert D["pixel_mask"] is None
     assert D["pixel_mask_applied"] == 0
     assert np.all(D["flatfield"] == test_flatfield)
-    assert D["flatfield_applied"] is None
+    assert D["flatfield_applied"] is False
 
 
 def test_get_software_version_from_singla_master_file(dummy_singla_master_file):

@@ -15,45 +15,46 @@ jobs:
 
     steps:
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
           architecture: x64
-      
+
       - name: Checkout nexgen
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install python packages
         uses: ./.github/actions/install_requirements
         with:
           requirements_file: requirements-dev-3.x.txt
           install_options: -e .[dev]
-      
+          python_version: '3.10'
+
       - name: Install ruff
         run: pip install ruff
-      
+
       - name: Run ruff
         run: ruff .
-  
+
   test:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
     strategy:
       fail-fast: false
       matrix:
         os: ["ubuntu-latest"] # can add windows-latest, macos-latest
-        python: ["3.9", "3.10", "3.11"]
+        python: ["3.10", "3.11"]
         install: ["-e .[dev]"]
         # Make one version be non-editable to test both paths of version code
         include:
           - os: "ubuntu-latest"
-            python: "3.8"
+            python: "3.9"
             install: ".[dev]"
-    
+
     runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           # Need this to get version number from last tag
           fetch-depth: 0
@@ -73,19 +74,19 @@ jobs:
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        # env:
+        #   CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
           name: ${{ matrix.python }}/${{ matrix.os }}
           files: cov.xml
-  
+
   dist:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: "ubuntu-latest"
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           # Need this to get version number from last tag
           fetch-depth: 0
@@ -114,7 +115,7 @@ jobs:
       - name: Test module --version works using the installed wheel
         # If more than one module in src/ replace with module name to test
         run: python -m nexgen --version
-  
+
   release:
     # upload to PyPI and make a release on every tag
     needs: [lint, dist, test]
@@ -152,4 +153,3 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.PYPI_TOKEN }}
-  

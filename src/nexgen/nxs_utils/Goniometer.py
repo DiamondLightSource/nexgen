@@ -6,7 +6,6 @@ from __future__ import annotations
 
 from typing import Dict, List, Tuple
 
-import numpy as np
 from numpy.typing import ArrayLike
 
 from .Axes import Axis
@@ -22,6 +21,10 @@ from .ScanUtils import (
 class Goniometer:
     """
     Goniometer definition.
+
+    Attributes:
+        axes_list: List of axes making up the goniometer, including their vectors and positions.
+        scan: The scan executed during the collection, could be a rotation or a grid scan. If not passed can be updated from the axes.
     """
 
     def __init__(
@@ -46,13 +49,15 @@ class Goniometer:
         """Check that the values entered for the goniometer match with the scan."""
         for ax in scan_axes:
             idx = self._find_axis_in_goniometer(ax)
-            if self.axes_list[idx].start_pos != np.min(self.scan[ax]):
-                self.axes_list[idx].start_pos = np.min(self.scan[ax])
-            u = np.unique(self.scan[ax])
+            if self.axes_list[idx].start_pos != self.scan[ax][0]:
+                self.axes_list[idx].start_pos = self.scan[ax][0]
+            u = self._get_unique_scan_point_values(
+                ax
+            )  # Re-order them in case of a reverse scan, as unique auto sorts
             if len(u) == 1:
                 # eg. for a scan that goes back and forth on one line.
                 self.axes_list[idx].increment == 0.0
-            elif self.axes_list[idx].increment != round(u[1] - u[0], 3):
+            if len(u) > 1 and self.axes_list[idx].increment != round(u[1] - u[0], 3):
                 self.axes_list[idx].increment = round(u[1] - u[0], 3)
             self.axes_list[idx].num_steps = len(u)
 
@@ -63,18 +68,16 @@ class Goniometer:
             return None
         return idx[0]
 
-    def _generate_goniometer_dict(self):
-        goniometer = {
-            "axes": [ax.name for ax in self.axes_list],
-            "depends": [ax.depends for ax in self.axes_list],
-            "types": [ax.transformation_type for ax in self.axes_list],
-            "units": [ax.units for ax in self.axes_list],
-            "vectors": [ax.vector for ax in self.axes_list],
-            "starts": [ax.start_pos for ax in self.axes_list],
-            "increments": [abs(ax.increment) for ax in self.axes_list],
-            "ends": [ax.end_pos for ax in self.axes_list],
-        }
-        return goniometer
+    def _get_unique_scan_point_values(self, ax: str) -> List:
+        """Get the unique values for a scan, in the order they are collected."""
+        # Doing this in place of np.unique which automatically sorts the values, leading to
+        # errors in reverse rotation scans. Nothing should change for grid scans.
+        scan_array = self.scan[ax]
+        val = []
+        for i in scan_array:
+            if i not in val:
+                val.append(i)
+        return val
 
     def define_scan_from_goniometer_axes(
         self,
@@ -118,7 +121,6 @@ class Goniometer:
 
         if len(transl_axes) == 0:
             # Take care of rotations in both directions
-            # TODO it would be much much better if axes were passed correctly already.
             self.axes_list[osc_idx].increment = (
                 self.axes_list[osc_idx].increment * scan_direction.value
             )
@@ -183,7 +185,3 @@ class Goniometer:
         axis_name = list(scan.keys())[0]
         scan_length = len(scan[axis_name])
         return scan_length
-
-    def to_dict(self):
-        """Write the goniometer information to a dictionary."""
-        return self._generate_goniometer_dict()

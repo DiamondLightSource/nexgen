@@ -10,7 +10,7 @@ from typing import Tuple
 from ..utils import Point3D
 
 
-class TransformationType(Enum):  # StrEnum only from Python 3.11
+class TransformationType(str, Enum):  # StrEnum only from Python 3.11
     """Define axis transformation type
     - ROTATION
     - TRANSLATION
@@ -56,7 +56,6 @@ class Axis:
             self.vector = (self.vector.x, self.vector.y, self.vector.z)
         if type(self.offset) is Point3D:
             self.offset = (self.offset.x, self.offset.y, self.offset.z)
-        self.transformation_type = self.transformation_type.value
 
     @property
     def units(self) -> str:

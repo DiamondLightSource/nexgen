@@ -86,14 +86,21 @@ class DectrisMetafile(Metafile):
     def get_number_of_images(self) -> int:
         if self.hasDectrisGroup:
             config = self.read_dectris_config()
-            if config["nimages"] >= 1 and config["ntrigger"] == 1:
-                return config["nimages"]
-            elif config["nimages"] == 1 and config["ntrigger"] > 1:
-                # For example a "triggered" data collection
-                return config["ntrigger"]
+            return config["nimages"]
         else:
             _loc = [obj for obj in self.walk if "nimages" in obj]
             return self.__getitem__(_loc[0])[0]
+
+    def get_number_of_triggers(self) -> int:
+        if self.hasDectrisGroup:
+            config = self.read_dectris_config()
+            return config["ntrigger"]
+        else:
+            _loc = [obj for obj in self.walk if "ntrigger" in obj]
+            return self.__getitem__(_loc[0])[0]
+
+    def get_full_number_of_images(self) -> int:
+        return self.get_number_of_triggers() * self.get_number_of_images()
 
     def get_detector_size(self) -> Tuple:
         # NB. returns (fast, slow) but data_size in nxs file shoud be recorded (slow, fast)

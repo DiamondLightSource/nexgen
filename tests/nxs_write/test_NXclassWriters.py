@@ -1,12 +1,20 @@
 from datetime import datetime
 from pathlib import Path
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from nexgen.nxs_utils import Axis, TransformationType
+from nexgen.nxs_utils import (
+    Axis,
+    EigerDetector,
+    Facility,
+    Goniometer,
+    Source,
+    TransformationType,
+    TristanDetector,
+)
 from nexgen.nxs_write.NXclassWriters import (
     write_NXcollection,
     write_NXcoordinate_system_set,
@@ -18,62 +26,16 @@ from nexgen.nxs_write.NXclassWriters import (
     write_NXinstrument,
     write_NXnote,
     write_NXsample,
+    write_NXsource,
 )
 
 test_module = {"fast_axis": [1, 0, 0], "slow_axis": [0, 1, 0]}
-
-test_goniometer_axes = {
-    "axes": ["omega", "sam_z", "sam_y"],
-    "depends": [".", "omega", "sam_z"],
-    "vectors": [
-        (-1, 0, 0),
-        (0, -1, 0),
-        (-1, 0, 0),
-    ],
-    "types": [
-        "rotation",
-        "translation",
-        "translation",
-    ],
-    "units": ["deg", "mm", "mm"],
-    "offsets": [(0, 0, 0), (0, 0, 0), (0, 0, 0)],
-    "starts": [0, 0, 0],
-    "ends": [90, 0, 0],
-    "increments": [1, 0, 0],
-}
-
-test_eiger = {
-    "mode": "images",
-    "description": "Eiger 2X 9M",
-    "detector_type": "Pixel",
-    "sensor_material": "CdTe",
-    "sensor_thickness": "0.750mm",
-    "flatfield": None,
-    "pixel_mask": None,
-    "overload": 50649,  # "_dectris/countrate_correction_count_cutoff",
-    "underload": -1,
-    "pixel_size": ["0.075mm", "0.075mm"],
-    "beam_center": [1590.7, 1643.7],
-    "image_size": [3262, 3108],  # (slow, fast)
-    "axes": ["det_z"],
-    "depends": ["."],
-    "vectors": [(0, 0, 1)],
-    "types": ["translation"],
-    "units": ["mm"],
-    "starts": [500],
-    "exposure_time": 0.01,
-}
-
-test_source = {
-    "name": "Diamond Light Source",
-    "short_name": "DLS",
-}
 
 
 def test_given_no_data_files_when_write_NXdata_then_assert_error():
     mock_hdf5_file = MagicMock()
     with pytest.raises(OSError):
-        write_NXdata(mock_hdf5_file, [], {}, "", "", [])
+        write_NXdata(mock_hdf5_file, [], [], "", "", [])
 
 
 def test_write_NXentry(dummy_nexus_file):
@@ -87,49 +49,61 @@ def test_write_NXentry(dummy_nexus_file):
     assert dummy_nexus_file["/entry/definition"][()] == b"NXmx"
 
 
+def test_write_NXSource(dummy_nexus_file, mock_source):
+    write_NXsource(dummy_nexus_file, mock_source)
+
+    assert dummy_nexus_file["/entry/source/name"][()] == b"Diamond Light Source"
+    assert dummy_nexus_file["/entry/source/name"].attrs["short_name"] == b"DLS"
+    assert "probe" not in dummy_nexus_file["/entry/source"].keys()
+
+
+def test_write_NXSource_with_probe(dummy_nexus_file, mock_source):
+    mock_source.probe = "electron"
+    write_NXsource(dummy_nexus_file, mock_source)
+
+    assert dummy_nexus_file["/entry/source/probe"][()] == b"electron"
+
+
 def test_given_no_data_type_specified_when_write_NXdata_then_exception_raised(
-    dummy_nexus_file,
+    dummy_nexus_file, mock_goniometer
 ):
-    osc_scan = {"omega": np.arange(0, 90, 1)}
     with pytest.raises(ValueError):
         write_NXdata(
             dummy_nexus_file,
             [Path("tmp")],
-            test_goniometer_axes,
+            mock_goniometer.axes_list,
             "",
-            osc_scan,
+            mock_goniometer.scan,
         )
 
 
 def test_given_one_data_file_when_write_NXdata_then_data_in_file(
-    dummy_nexus_file,
+    dummy_nexus_file, mock_goniometer
 ):
-    osc_scan = {"omega": np.arange(0, 90, 1)}
     write_NXdata(
         dummy_nexus_file,
         [Path("tmp")],
-        test_goniometer_axes,
+        mock_goniometer.axes_list,
         "images",
-        osc_scan,
+        mock_goniometer.scan,
     )
     assert dummy_nexus_file["/entry/data"].attrs["NX_class"] == b"NXdata"
     assert "data_000001" in dummy_nexus_file["/entry/data"]
 
 
 def test_given_scan_axis_when_write_NXdata_then_axis_in_data_entry_with_correct_data_and_attributes(
-    dummy_nexus_file,
+    dummy_nexus_file, mock_goniometer
 ):
     test_axis = "omega"
     test_scan_range = np.arange(0, 90, 1)
     axis_entry = f"/entry/data/{test_axis}"
-    osc_scan = {test_axis: test_scan_range}
 
     write_NXdata(
         dummy_nexus_file,
         [Path("tmp")],
-        test_goniometer_axes,
+        mock_goniometer.axes_list,
         "images",
-        osc_scan,
+        mock_goniometer.scan,
     )
 
     assert test_axis in dummy_nexus_file["/entry/data"]
@@ -141,7 +115,7 @@ def test_given_scan_axis_when_write_NXdata_then_axis_in_data_entry_with_correct_
 
 
 def test_given_scan_axis_when_write_NXsample_then_scan_axis_data_copied_from_data_group_as_well_as_increment_set_and_end(
-    dummy_nexus_file,
+    dummy_nexus_file, mock_goniometer
 ):
     test_axis = "omega"
     test_scan_range = [0, 1, 2]
@@ -152,14 +126,14 @@ def test_given_scan_axis_when_write_NXsample_then_scan_axis_data_copied_from_dat
     write_NXdata(
         dummy_nexus_file,
         [Path("tmp")],
-        test_goniometer_axes,
+        mock_goniometer.axes_list,
         "images",
         osc_scan,
     )
 
     write_NXsample(
         dummy_nexus_file,
-        test_goniometer_axes,
+        mock_goniometer.axes_list,
         "images",
         osc_scan,
     )
@@ -175,7 +149,40 @@ def test_given_scan_axis_when_write_NXsample_then_scan_axis_data_copied_from_dat
     assert dummy_nexus_file[axis_entry + "_end"][1] == 2
 
 
-def test_sample_depends_on_written_correctly_in_NXsample(dummy_nexus_file):
+def test_given_reverse_rotation_scan_increment_set_and_axis_end_written_correctly(
+    dummy_nexus_file,
+):
+    test_axis = Axis("phi", ".", TransformationType.ROTATION, (0, 0, -1))
+    test_rw_scan = {"phi": np.arange(10, 8, -0.5)}
+    test_gonio = Goniometer([test_axis], test_rw_scan)
+
+    # Doing this to write the scan axis data into the data group
+    write_NXdata(
+        dummy_nexus_file,
+        [Path("tmp")],
+        test_gonio.axes_list,
+        "images",
+        test_gonio.scan,
+    )
+
+    write_NXsample(
+        dummy_nexus_file,
+        test_gonio.axes_list,
+        "images",
+        test_rw_scan,
+        sample_depends_on=test_axis.name,
+    )
+
+    axis_entry = f"/entry/sample/sample_{test_axis.name}/{test_axis.name}"
+
+    assert_array_equal(dummy_nexus_file[axis_entry][()], [10.0, 9.5, 9.0, 8.5])
+    assert_array_equal(dummy_nexus_file[axis_entry + "_increment_set"][()], -0.5)
+    assert_array_equal(dummy_nexus_file[axis_entry + "_end"][()], [9.5, 9.0, 8.5, 8.0])
+
+
+def test_sample_depends_on_written_correctly_in_NXsample(
+    dummy_nexus_file, mock_goniometer
+):
     test_axis = "omega"
     test_scan_range = [0, 1, 2]
     osc_scan = {test_axis: test_scan_range}
@@ -184,14 +191,14 @@ def test_sample_depends_on_written_correctly_in_NXsample(dummy_nexus_file):
     write_NXdata(
         dummy_nexus_file,
         [Path("tmp")],
-        test_goniometer_axes,
+        mock_goniometer.axes_list,
         "images",
-        osc_scan,
+        mock_goniometer.scan,
     )
 
     write_NXsample(
         dummy_nexus_file,
-        test_goniometer_axes,
+        mock_goniometer.axes_list,
         "images",
         osc_scan,
         sample_depends_on=test_axis,
@@ -206,25 +213,26 @@ def test_sample_depends_on_written_correctly_in_NXsample(dummy_nexus_file):
 
 def test_sample_depends_on_written_correctly_in_NXsample_when_value_not_passed(
     dummy_nexus_file,
+    mock_goniometer,
 ):
     test_axis = "omega"
     test_scan_range = [0, 1, 2]
     osc_scan = {test_axis: test_scan_range}
 
-    test_depends = f"/entry/sample/transformations/{test_goniometer_axes['axes'][-1]}"
+    test_depends = f"/entry/sample/transformations/{mock_goniometer.axes_list[-1].name}"
 
     # Doing this to write the scan axis data into the data group
     write_NXdata(
         dummy_nexus_file,
         [Path("tmp")],
-        test_goniometer_axes,
+        mock_goniometer.axes_list,
         "images",
-        osc_scan,
+        mock_goniometer.scan,
     )
 
     write_NXsample(
         dummy_nexus_file,
-        test_goniometer_axes,
+        mock_goniometer.axes_list,
         "images",
         osc_scan,
     )
@@ -233,7 +241,7 @@ def test_sample_depends_on_written_correctly_in_NXsample_when_value_not_passed(
     assert dummy_nexus_file["/entry/sample/depends_on"][()] == test_depends.encode()
 
 
-def test_sample_details_in_NXsample(dummy_nexus_file):
+def test_sample_details_in_NXsample(dummy_nexus_file, mock_goniometer):
 
     test_details = {"name": b"test_sample", "temperature": "25C"}
     test_axis = "omega"
@@ -244,14 +252,14 @@ def test_sample_details_in_NXsample(dummy_nexus_file):
     write_NXdata(
         dummy_nexus_file,
         [Path("tmp")],
-        test_goniometer_axes,
+        mock_goniometer.axes_list,
         "images",
-        osc_scan,
+        mock_goniometer.scan,
     )
 
     write_NXsample(
         dummy_nexus_file,
-        test_goniometer_axes,
+        mock_goniometer.axes_list,
         "images",
         osc_scan,
         sample_details=test_details,
@@ -279,6 +287,7 @@ def test_given_module_offset_of_1_when_write_NXdetector_module_then_fast_and_slo
             dummy_nexus_file[module_nexus_path + axis].attrs["depends_on"]
             == b"/entry/instrument/detector/module/module_offset"
         )
+    assert dummy_nexus_file[module_nexus_path + "data_size"].dtype == np.uint32
 
 
 def test_write_NXdatetime_from_ISO8601str(dummy_nexus_file):
@@ -361,34 +370,26 @@ def test_write_NXcoordinate_system_set(dummy_nexus_file):
 
 def test_write_NXcollection_for_images(dummy_nexus_file):
     nxdet = dummy_nexus_file.require_group("/entry/instrument/detector")
-    test_detector_spec = {
-        "description": "eiger",
-        "image_size": [512, 1028],
-        "software_version": "0.0.0",
-    }
-    write_NXcollection(nxdet, test_detector_spec, ("images", 10))
+    test_detector_spec = EigerDetector("eiger", [512, 1028], "Si", 10000, -1)
+    test_detector_spec.constants["software_version"] = "0.0.0"
+
+    write_NXcollection(nxdet, test_detector_spec, "images", 10)
 
     spec = "/entry/instrument/detector/detectorSpecific/"
     assert dummy_nexus_file[spec + "software_version"][()] == b"0.0.0"
     assert_array_equal(dummy_nexus_file[spec + "nimages"][()], 10)
     assert_array_equal(
-        dummy_nexus_file[spec + "x_pixels"][()], test_detector_spec["image_size"][1]
+        dummy_nexus_file[spec + "x_pixels"][()], test_detector_spec.image_size[1]
     )
     assert_array_equal(
-        dummy_nexus_file[spec + "y_pixels"][()], test_detector_spec["image_size"][0]
+        dummy_nexus_file[spec + "y_pixels"][()], test_detector_spec.image_size[0]
     )
 
 
 def test_write_NXcollection_for_events(dummy_nexus_file):
     nxdet = dummy_nexus_file.require_group("/entry/instrument/detector")
-    test_detector_spec = {
-        "description": "Tristan 1M",
-        "image_size": [515, 2069],
-        "software_version": "0.0.0",
-        "detector_tick": "1562.5ps",
-        "detector_frequency": "6.4e+08Hz",
-        "timeslice_rollover": 18,
-    }
+    test_detector_spec = TristanDetector("Tristan 1M", [515, 2069])
+    test_detector_spec.constants["software_version"] = "0.0.0"
 
     write_NXcollection(nxdet, test_detector_spec, ("events", None))
 
@@ -396,30 +397,31 @@ def test_write_NXcollection_for_events(dummy_nexus_file):
     assert dummy_nexus_file[spec + "software_version"][()] == b"0.0.0"
     assert_array_equal(
         dummy_nexus_file[spec + "timeslice_rollover_bits"][()],
-        test_detector_spec["timeslice_rollover"],
+        test_detector_spec.constants["timeslice_rollover"],
     )
     assert_array_equal(dummy_nexus_file[spec + "detector_tick"][()], 1562.5)
     assert dummy_nexus_file[spec + "detector_tick"].attrs["units"] == b"ps"
     assert dummy_nexus_file[spec + "detector_frequency"].attrs["units"] == b"Hz"
 
 
-def test_write_NXdetector_for_images_without_meta_file(dummy_nexus_file):
+def test_write_NXdetector_for_eiger_images_without_meta_file(
+    dummy_nexus_file, mock_eiger
+):
     det = "/entry/instrument/detector/"
 
     write_NXdetector(
         dummy_nexus_file,
-        test_eiger,
-        ("images", 100),
+        mock_eiger,
+        100,
     )
 
     # Check some general things
-    assert (
-        dummy_nexus_file[det + "description"][()] == test_eiger["description"].encode()
-    )
-    assert dummy_nexus_file[det + "type"][()] == test_eiger["detector_type"].encode()
+    params = mock_eiger.detector_params
+    assert dummy_nexus_file[det + "description"][()] == params.description.encode()
+    assert dummy_nexus_file[det + "type"][()] == params.detector_type.encode()
 
     assert_array_equal(
-        dummy_nexus_file[det + "beam_center_x"][()], test_eiger["beam_center"][0]
+        dummy_nexus_file[det + "beam_center_x"][()], mock_eiger.beam_center[0]
     )
     assert dummy_nexus_file[det + "beam_center_y"].attrs["units"] == b"pixels"
     assert_array_equal(dummy_nexus_file[det + "y_pixel_size"], 7.5e-05)
@@ -432,17 +434,20 @@ def test_write_NXdetector_for_images_without_meta_file(dummy_nexus_file):
     tr = det + "transformations/"
     assert "detector_z" in list(dummy_nexus_file[tr].keys())
     axis_entry = tr + "detector_z/det_z"
-    assert_array_equal(test_eiger["starts"], dummy_nexus_file[axis_entry][()])
+    assert_array_equal(
+        mock_eiger.detector_axes[0].start_pos, dummy_nexus_file[axis_entry][()]
+    )
     assert dummy_nexus_file[axis_entry].attrs["depends_on"] == b"."
     assert dummy_nexus_file[axis_entry].attrs["transformation_type"] == b"translation"
     assert dummy_nexus_file[axis_entry].attrs["units"] == b"mm"
     assert_array_equal(
-        dummy_nexus_file[axis_entry].attrs["vector"][()], test_eiger["vectors"][0]
+        dummy_nexus_file[axis_entry].attrs["vector"][()],
+        mock_eiger.detector_axes[0].vector,
     )
 
     # Check that distance is in meters instead of mm
     assert_array_equal(
-        dummy_nexus_file[det + "distance"], test_eiger["starts"][0] / 1000
+        dummy_nexus_file[det + "distance"], mock_eiger.detector_axes[0].start_pos / 1000
     )
     assert dummy_nexus_file[det + "distance"].attrs["units"] == b"m"
 
@@ -450,16 +455,37 @@ def test_write_NXdetector_for_images_without_meta_file(dummy_nexus_file):
     assert "detector_z" in list(dummy_nexus_file[det].keys())
 
 
-def test_write_NXinstrument(dummy_nexus_file):
-    instr = "/entry/instrument/"
+@patch("nexgen.nxs_write.NXclassWriters.write_NXcollection")
+def test_write_NXdetector_for_eiger_images_with_meta_file(
+    mock_nxcoll_writer,
+    dummy_nexus_file,
+    dummy_eiger_meta_file,
+    mock_eiger,
+):
+    det = "/entry/instrument/detector/"
 
-    test_source["beamline_name"] = "I03"
+    write_NXdetector(
+        dummy_nexus_file,
+        mock_eiger,
+        90,
+        Path(dummy_eiger_meta_file.name),
+    )
+    assert "pixel_mask" in list(dummy_nexus_file[det].keys())
+    assert "pixel_mask_applied" in list(dummy_nexus_file[det].keys())
+    assert "flatfield" in list(dummy_nexus_file[det].keys())
+    assert "bit_depth_readout" in list(dummy_nexus_file[det].keys())
+
+    mock_nxcoll_writer.assert_called_once()
+
+
+def test_write_NXinstrument(dummy_nexus_file, mock_source, mock_beam, mock_attenuator):
+    instr = "/entry/instrument/"
 
     write_NXinstrument(
         dummy_nexus_file,
-        {"wavelength": 0.6, "flux": None},
-        {"transmission": 10},
-        test_source,
+        mock_beam,
+        mock_attenuator,
+        mock_source,
     )
 
     assert "attenuator" in list(dummy_nexus_file[instr].keys())
@@ -468,18 +494,28 @@ def test_write_NXinstrument(dummy_nexus_file):
     assert dummy_nexus_file[instr + "name"].attrs["short_name"] == b"DLS I03"
 
 
-def test_write_NXinstrument_sets_correct_instrument_name(dummy_nexus_file):
+def test_write_NXinstrument_sets_correct_instrument_name(
+    dummy_nexus_file, mock_attenuator, mock_beam
+):
     instr = "/entry/instrument/"
 
-    test_source["beamline_name"] = "eBic"
+    mock_beam.wavelength = 0.001
+    mock_attenuator.transmission = 1.0
+    mock_electron_source = Source(
+        "eBic",
+        Facility(
+            "Diamond Light Source", "DLS", "Electron Source", "DIAMOND MICROSCOPE"
+        ),
+        probe="electron",
+    )
 
     write_NXinstrument(
         dummy_nexus_file,
-        {"wavelength": 0.001, "flux": None},
-        {"transmission": 1},
-        test_source,
-        "DIAMOND MICROSCOPE",
+        mock_beam,
+        mock_attenuator,
+        mock_electron_source,
+        reset_instrument_name=True,
     )
 
-    assert dummy_nexus_file[instr + "name"][()] == b"DIAMOND MICROSCOPE"
+    assert dummy_nexus_file[instr + "name"][()] == b"DIAMOND MICROSCOPE eBic"
     assert dummy_nexus_file[instr + "name"].attrs["short_name"] == b"DLS eBic"

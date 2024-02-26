@@ -40,9 +40,10 @@ Some useful type definitions to use with these methods:
     :members:
 
 
+Collection parameters schema for I19-2
 
-.. autoclass:: nexgen.beamlines.I19_2_nxs.tr_collect
-    :members:
+.. autopydantic_model:: nexgen.beamlines.I19_2_nxs.CollectionParams
+    :model-show-config-summary: False
 
 
 

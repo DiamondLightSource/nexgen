@@ -68,7 +68,7 @@ def collection_summary_log(
     logger.info(f"Attenuation: {attenuator.transmission}")
 
     logger.info(goniometer.__repr__())
-    logger.info(detector.__repr__)
+    logger.info(detector.__repr__())
 
     logger.info(f"Recorded beam center is: {detector.beam_center}.")
     logger.info(f"Recorded exposure time: {detector.exp_time} s.")

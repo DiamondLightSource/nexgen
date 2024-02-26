@@ -119,6 +119,12 @@ Generating new NeXus files
 
         generate_nexus 3 beamline.phil input.metafile=File_meta.h5 input.vds_writer=dataset output.master_filename=/path/to/File.nxs
 
+
+.. note::
+    This functionality will only work properly for Eiger and Tristan detectors.
+
+
+
 Generating NXmx-like NeXus files for Electron Diffraction
 =========================================================
 

@@ -67,10 +67,24 @@ CETA_CONST = {
 
 @dataclass
 class EigerDetector(DataClassJsonMixin):
-    """Define a Dectris Eiger detector."""
+    """Define a Dectris Eiger detector.
+
+    Attributes:
+        description (str): Detector description.
+        image_size (List | Tuple): Dimensions in pixels, passed in the order (slow, fast) axis.
+        sensor_material (str): Either Si or CdTe, on the material depends the sensor_thickness.
+        overload (int): Saturation value for the detector, data is invalid above this value.
+        underload (int): Lowest value measurable for the detector, data is invalid below this value.
+        pixel_size (List[str], optional): Size of each detector pixel in both directions, order should be (x, y). Defaults to a pixel size of ['0.075mm', '0.075mm']
+        detector_type (str, optional): Description of type of detector. Defaults to 'Pixel'.
+
+    Properties:
+        sensor_thickness (str): Defined depending on the sensor material: 0.450mm for Si, 0.750mm CdTe.
+        constants (Dict): Dictionary of meta file locations to create the external links to fields such as pixel_mask, flatfield and bit_depth_readout.
+    """
 
     description: str
-    image_size: List[float] | Tuple[float]
+    image_size: List[int] | Tuple[int, int]
     sensor_material: Literal["Si", "CdTe"]
     overload: int
     underload: int
@@ -97,10 +111,23 @@ class EigerDetector(DataClassJsonMixin):
 
 @dataclass
 class TristanDetector(DataClassJsonMixin):
-    """Define a Tristan detector."""
+    """Define a Tristan detector.
+
+    Attributes:
+        description (str): Detector description.
+        image_size (List | Tuple): Dimensions in pixels, passed in the order (slow, fast) axis.
+        sensor_material (str): Sensor material. Defaults to Si.
+        sensor_thickness (str): Sensor thickness. Defaults to 0.5mm
+        pixel_size (List[str], optional): Size of each detector pixel in both directions, order should be (x, y). Defaults to a pixel size of ['5.5e-05m', '5.5e-05m']
+        detector_type (str, optional): Description of type of detector. Defaults to 'Pixel'.
+        mode (str): Acquisition mode for Tristan, either images or events. Defaults to events.
+
+    Properties:
+        constants (Dict): Detector specific constants, such as locations of pixel_mask and flatfield files, and detector tick, frequency and timeslice rollover for event mode.
+    """
 
     description: str
-    image_size: List[float] | Tuple[float]
+    image_size: List[int] | Tuple[int, int]
     sensor_material: str = "Si"
     sensor_thickness: str = "0.5mm"
     pixel_size: List[str | float] = field(
@@ -144,10 +171,24 @@ class CetaDetector(DataClassJsonMixin):
 
 @dataclass
 class SinglaDetector(DataClassJsonMixin):
-    """Define a Dectris Singla detector."""
+    """Define a Dectris Singla detector.
+
+    Attributes:
+        description (str): Detector description.
+        image_size (List | Tuple): Dimensions in pixels, passed in the order (slow, fast) axis.
+        sensor_material (str): Sensor material. Defaults to Si.
+        sensor_thickness (str): Sensor thickness. Defaults to 0.450mm
+        overload (int): Saturation value for the detector, data is invalid above this value. Defaults to 199996.
+        underload (int): Lowest value measurable for the detector, data is invalid below this value. Defaults to -1.
+        pixel_size (List[str], optional): Size of each detector pixel in both directions, order should be (x, y). Defaults to a pixel size of ['0.075mm', '0.075mm']
+        detector_type (str, optional): Description of type of detector. Defaults to 'HPC'.
+
+    Properties:
+        constants (Dict): Dictionary of meta file locations to create the external links to fields such as pixel_mask, flatfield and bit_depth_readout.
+    """
 
     description: str
-    image_size: List[float] | Tuple[float]
+    image_size: List[int] | Tuple[int, int]
     sensor_material: str = "Si"
     sensor_thickness: str = "0.450mm"
     overload: int = 199996
@@ -168,10 +209,24 @@ class SinglaDetector(DataClassJsonMixin):
 
 @dataclass
 class JungfrauDetector(DataClassJsonMixin):
-    """Define a Dectris Jungfrau detector."""
+    """Define a Dectris Jungfrau detector.
+
+    Attributes:
+        description (str): Detector description.
+        image_size (List | Tuple): Dimensions in pixels, passed in the order (slow, fast) axis.
+        sensor_material (str): Sensor material. Defaults to Si.
+        sensor_thickness (str): Sensor thickness. Defaults to 0.320mm
+        overload (int): Saturation value for the detector, data is invalid above this value. Defaults to 1000000.
+        underload (int): Lowest value measurable for the detector, data is invalid below this value. Defaults to -10.
+        pixel_size (List[str], optional): Size of each detector pixel in both directions, order should be (x, y). Defaults to a pixel size of ['0.075mm', '0.075mm']
+        detector_type (str, optional): Description of type of detector. Defaults to 'Pixel'.
+
+    Properties:
+        constants (Dict): Dictionary of meta file locations to create the external links to fields such as pixel_mask, flatfield and bit_depth_readout.
+    """
 
     description: str
-    image_size: List[float] | Tuple[float]
+    image_size: List[int] | Tuple[int, int]
     sensor_material: str = "Si"
     sensor_thickness: str = "0.320mm"
     overload: int = 1000000
@@ -195,8 +250,36 @@ DetectorType = Union[EigerDetector, TristanDetector,
                      CetaDetector]
 
 
+@dataclass
+class DetectorModule(DataClassJsonMixin):
+    """A class to define the axes of a detector module.
+
+    Attributes:
+        fast_axis (Tuple | Point3D): Vector defining the fast_axis direction.
+        slow_axis (Tuple | Point3D): Vector defining the slow_axis direction.
+    """
+
+    fast_axis: Tuple[float, float, float] | Point3D
+    slow_axis: Tuple[float, float, float] | Point3D
+    module_offset: str = "1"
+
+    def __post_init__(self):
+        if isinstance(self.fast_axis, Point3D):
+            self.fast_axis = (self.fast_axis.x, self.fast_axis.y, self.fast_axis.z)
+        if isinstance(self.slow_axis, Point3D):
+            self.slow_axis = (self.slow_axis.x, self.slow_axis.y, self.slow_axis.z)
+
+
 class Detector:
-    """Detector definition."""
+    """Detector definition.
+
+    Attributes:
+        detector_params: The detector parameters, unique to each detector type.
+        detector_axes: The axes where the detector lays, their start positions and vectors in mcstas coordinates.
+        beam_center: The beam center position, in pixels.
+        exp_time: The collection exposure time, in seconds.
+        module: The detector module definition, with fast_axis and slow_axis directions, in mcstas.
+    """
 
     def __init__(
         self,
@@ -204,20 +287,21 @@ class Detector:
         detector_axes: List[Axis],
         beam_center: List[float],
         exposure_time: float,
-        module_vectors: List[Point3D] | List[Tuple],
+        module_vectors: List[Point3D] | List[Tuple[float, float, float]],
     ):
+        """
+        Args:
+            detector_params (DetectorType): Specific parameters relative to detector in use eg. TristanDetector("Tristan", [100, 200])
+            detector_axes (List[Axes]): List of detector axes.
+            beam_center (List[float]): Beam center position, in pixels.
+            exposure_time (float): Exposure time of each image/collection, in s.
+            module_vectors (List): List of detector module vectors in the order: (fast_axis, slow_axis).
+        """
         self.detector_params = detector_params
         self.detector_axes = detector_axes
         self.beam_center = beam_center
         self.exp_time = exposure_time
-        if type(module_vectors[0]) is Point3D:
-            self.fast_axis = module_vectors[0]
-        else:
-            self.fast_axis = Point3D(*module_vectors[0])
-        if type(module_vectors[1]) is Point3D:
-            self.slow_axis = module_vectors[1]
-        else:
-            self.slow_axis = Point3D(*module_vectors[1])
+        self.module = DetectorModule(module_vectors[0], module_vectors[1])
 
     def __repr__(self) -> str:
         det_msg = (
@@ -227,43 +311,25 @@ class Detector:
             "Detector axes: \n\t"
         )
         for ax in self.detector_axes:
-            det_msg += f"{ax.name}: {ax.start_pos} => {ax.transformation_type} on {ax.depends} \n\t"
+            det_msg += f"{ax.name}: {ax.start_pos} => {ax.transformation_type.value} on {ax.depends} \n\t"
+        det_msg += (
+            "Detector module axes: \n\t"
+            f"Fast axis: {self.module.fast_axis} \n\t Slow axis: {self.module.slow_axis}\n"
+        )
         return f"Detector description: {det_msg}"
 
-    def _generate_detector_dict(self):
-        detector = self.detector_params.__dict__
-        detector["axes"] = [ax.name for ax in self.detector_axes]
-        detector["depends"] = [ax.depends for ax in self.detector_axes]
-        detector["vectors"] = [ax.vector for ax in self.detector_axes]
-        detector["starts"] = [ax.start_pos for ax in self.detector_axes]
-        detector["units"] = [ax.units for ax in self.detector_axes]
-        detector["types"] = [ax.transformation_type for ax in self.detector_axes]
-        if "tristan" not in self.detector_params.description.lower():
-            # Mode is already in params
-            detector["mode"] = "images"
-        if "eiger" in self.detector_params.description.lower():
-            # In this case sensor thickess is a property, and depends on material
-            detector["sensor_thickness"] = self.detector_params.sensor_thickness
-        detector.update(self.detector_params.constants)
-        detector["beam_center"] = self.beam_center
-        detector["exposure_time"] = self.exp_time
-        return detector
-
-    def _generate_module_dict(self):
-        module = {
-            "module_offset": "1",
-            "fast_axis": [self.fast_axis.x, self.fast_axis.y, self.fast_axis.z],
-            "slow_axis": [self.slow_axis.x, self.slow_axis.y, self.slow_axis.z],
-        }
-        return module
-
     def get_detector_description(self) -> str:
+        """Get detector description string."""
         return self.detector_params.description
 
-    def to_dict(self):
-        """Write the detector information to a dictionary."""
-        return self._generate_detector_dict()
+    def get_detector_mode(self) -> str:
+        """Data type collected by the detector.
+        If no mode specified in detector parameters, defaults to images.
+        """
+        if "mode" in self.detector_params.__dataclass_fields__:
+            return self.detector_params.mode
+        return "images"
 
-    def to_module_dict(self):
+    def get_module_info(self):
         """Write the module information to a dictionary."""
-        return self._generate_module_dict()
+        return self.module.to_dict()

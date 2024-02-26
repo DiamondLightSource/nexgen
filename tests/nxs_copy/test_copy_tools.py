@@ -7,6 +7,7 @@ from numpy.testing import assert_array_equal
 
 from nexgen.nxs_copy.copy_utils import (
     check_and_fix_det_axis,
+    convert_scan_axis,
     h5str,
     identify_tristan_scan_axis,
     is_chipmap_in_tristan_nxs,
@@ -45,6 +46,29 @@ def test_identify_tristan_scan_axis(dummy_nexus_file):
     assert len(ax_attrs) > 0
     assert ax_attrs["transformation_type"] == "rotation"
     assert_array_equal(ax_attrs["vector"], [0, 0, 1])
+
+
+def test_convert_scan_axis(dummy_nexus_file):
+    scan_range = np.arange(0, 2, 0.2)
+    nxentry = write_NXentry(dummy_nexus_file)
+    nxdata = nxentry.require_group("data")
+    nxsample = nxentry.require_group("sample")
+    nxtr = nxsample.require_group("transformations")
+    axis = nxdata.create_dataset("omega", data=scan_range)
+    create_attributes(axis, ("transformation_type", "vector"), (b"rotation", [0, 0, 1]))
+    nxsample.require_group("sample_omega")
+    nxsample["sample_omega"].create_dataset("omega", data=(0, 2))
+    nxtr["omega"] = nxsample["sample_omega/omega"]
+
+    convert_scan_axis(nxsample, nxdata, "omega", scan_range)
+    assert_array_equal(nxsample["sample_omega/omega"], scan_range)
+    assert_array_equal(nxtr["omega"], scan_range)
+    assert (
+        "omega_end" in nxsample["sample_omega"].keys()
+        and "omega_increment_set" in nxsample["sample_omega"].keys()
+    )
+    assert_array_equal(nxsample["sample_omega/omega_increment_set"][()], 0.2)
+    assert_array_equal(nxsample["sample_omega/omega_end"][()], scan_range + 0.2)
 
 
 def test_check_and_fix_det_z(dummy_nexus_file):

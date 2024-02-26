@@ -208,7 +208,7 @@ def eiger_writer(
     )
 
     # Goniometer
-    gonio_axes = axes_params.det_axes
+    gonio_axes = axes_params.gonio
     for k, v in pos.items():
         # Get correct start positions
         idx = [n for n, ax in enumerate(gonio_axes) if ax.name == k][0]
