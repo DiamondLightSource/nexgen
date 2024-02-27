@@ -187,6 +187,21 @@ def write_NXdata(
             )
 
 
+# NXtransformations
+def write_NXtransformations(
+    parent_grp: h5py.Group,
+    axis: Axis,
+    scan: Optional[ArrayLike | List] = None,
+):
+    nxtransformations = parent_grp.require_group("transformations")
+    create_attributes(
+        nxtransformations,
+        ("NX_class",),
+        ("NXtransformations",),
+    )
+    pass
+
+
 # NXsample
 def write_NXsample(
     nxsfile: h5py.File,
