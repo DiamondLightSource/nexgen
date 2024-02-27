@@ -189,15 +189,22 @@ def write_NXdata(
 
 # NXtransformations
 def write_NXtransformations(
-    parent_grp: h5py.Group,
+    group: h5py.Group,
     axis: Axis,
     scan: Optional[ArrayLike | List] = None,
+    dep_path: str = "/entry/sample/transformations/",
 ):
-    nxtransformations = parent_grp.require_group("transformations")
+    # Actually... probably easier to have the actual group already set up so I can
+    # reuse from eg NXdata.
+    # Also need link option I guess.
+    # might be easier to have the link in nxdata instead of sample
+    data = scan if scan else axis.start_pos
+    nxax = group.create_dataset(axis.name, data=data)
+    ax_dep = set_dependency(axis.depends, path=dep_path)
     create_attributes(
-        nxtransformations,
-        ("NX_class",),
-        ("NXtransformations",),
+        nxax,
+        ("depends_on", "transformation_type", "units", "vector"),
+        (ax_dep, axis.transformation_type, axis.units, axis.vector),
     )
     pass
 
