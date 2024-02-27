@@ -1,5 +1,4 @@
 import mrcfile
-import sys
 import os
 import h5py
 import numpy as np
@@ -10,23 +9,99 @@ from nexgen.nxs_write.NXmxWriter import EDNXmxFileWriter
 from nexgen.beamlines.ED_params import ED_coord_system, EDCeta, EDSource
 from nexgen.nxs_utils.ScanUtils import calculate_scan_points
 from pathlib import Path
+from argparse import ArgumentParser
 import hdf5plugin
 
 
 def main():
 
-    mrc_files = sys.argv[1:]
+    parser = ArgumentParser(add_help=False)
+    parser.add_argument(
+        "--det_distance",
+        type=float,
+        default=None,
+        help="The sample-detector distance.",
+    )
+    parser.add_argument(
+        "-wl",
+        "--wavelength",
+        type=float,
+        default=None,
+        help="Incident beam wavelength, in A.",
+    )
+    parser.add_argument(
+        "--axis-start",
+        type=float,
+        default=None,
+        help="Rotation axis start position.",
+    )
+    parser.add_argument(
+        "--axis-inc",
+        type=float,
+        default=None,
+        help="Rotation axis increment.",
+    )
+    parser.add_argument(
+        "-e",
+        "--exp-time",
+        type=float,
+        help="Exposure time, in s.",
+    )
+    parser.add_argument(
+        "-bc",
+        "--beam-center",
+        type=float,
+        nargs=2,
+        help="Beam center (x,y) positions.",
+    )
+    parser.add_argument('input_files', nargs='+', help='List of input files')
+
+    args = parser.parse_args()
+
+    for file in args.input_files:
+        if not file.endswith('.mrc'):
+            raise ValueError('Not an mrc file!')
+
+    mrc_files = args.input_files
     tot_imgs, out_file, angles = collect_data(mrc_files)
     mdict = get_metadata(mrc_files[0])
 
     attenuator = Attenuator(transmission=None)
-    beam = Beam(mdict['wavelength'])
 
-    start_angle = angles[0]
+    if args.det_distance is not None:
+        det_distance = args.det_distance
+    else:
+        det_distance = mdict['cameraLength']
+    if args.wavelength is not None:
+        beam = Beam(args.wavelength)
+    else:
+        beam = Beam(mdict['wavelength'])
+    if args.axis_start is not None:
+        start_angle = args.axis_start
+    else:
+        start_angle = angles[0]
+    if args.axis_inc is not None:
+        increment = args.axis_inc
+    else:
+        increment = mdict['tiltPerImage']
+    if args.exp_time is not None:
+        exposure_time = args.exp_time
+    else:
+        exposure_time = mdict['integrationTime']
+    if args.beam_center is not None:
+        if len(args.beam_center) == 2:
+            x, y = args.beam_center
+            beam_center = (x, y)
+        else:
+            msg = 'Beam center requires two arguments'
+            raise ValueError(msg)
+    else:
+        beam_center = (mdict["beamCentreXpx"],
+                       mdict["beamCentreYpx"])
 
     gonio_axes = EDCeta.gonio
     gonio_axes[0].start_pos = start_angle
-    gonio_axes[0].increment = mdict['tiltPerImage']
+    gonio_axes[0].increment = increment
     gonio_axes[0].num_steps = tot_imgs
 
     scan = calculate_scan_points(gonio_axes[0],
@@ -34,8 +109,6 @@ def main():
                                  tot_num_imgs=tot_imgs)
     goniometer = Goniometer(gonio_axes, scan)
     osc, trans = goniometer.define_scan_from_goniometer_axes()
-
-    exposure_time = mdict['integrationTime']
 
     nx = mdict['nx']
     ny = mdict['ny']
@@ -61,11 +134,9 @@ def main():
     extra_params['flatfield_applied'] = 1
     det_params.constants.update(extra_params)
 
-    beam_center = (mdict["beamCentreXpx"],
-                   mdict["beamCentreYpx"])
     det_axes = EDCeta.det_axes
 
-    det_axes[0].start_pos = mdict['cameraLength']
+    det_axes[0].start_pos = det_distance
 
     detector = Detector(det_params, det_axes, beam_center,
                         exposure_time,
@@ -102,9 +173,11 @@ def get_metadata(mrc_image):
     print('Opening ', mrc_image)
     with mrcfile.open(mrc_image, header_only=True) as mrc:
         h = mrc.header
-        # if mrcfile.__version__ == '1.5.0':
-        # xh = mrc.indexed_extended_header
-        xh = mrc.extended_header
+        try:
+            xh = mrc.indexed_extended_header
+        except AttributeError:
+            # For mrcfile versions older than 1.5.0
+            xh = mrc.extended_header
         hd = {}
 
         hd['nx'] = h['nx']
@@ -202,7 +275,11 @@ def collect_data(files):
             print('%0.2d  %s' % (i, file))
             mrc = mrcfile.open(file, mode='r')
             data = np.array(mrc.data, dtype=np.int32)
-            xh = mrc.extended_header
+            try:
+                xh = mrc.indexed_extended_header
+            except AttributeError:
+                xh = mrc.extended_header
+
             angles.append(xh["Alpha tilt"][0])
             dataset[i, :, :] = data
             mrc.close()
