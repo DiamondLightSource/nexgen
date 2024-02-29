@@ -72,10 +72,8 @@ def write_NXentry(nxsfile: h5py.File, definition: str = "NXmx") -> h5py.Group:
 def write_NXdata(
     nxsfile: h5py.File,
     datafiles: List[Path],
-    goniometer_axes: List[Axis],
     data_type: str,
-    osc_scan: Dict[str, ArrayLike],
-    transl_scan: Dict[str, ArrayLike] = None,
+    osc_axis: str = "omega",
     entry_key: str = "data",
 ):
     """
@@ -84,15 +82,13 @@ def write_NXdata(
     Args:
         nxsfile (h5py.File): NeXus file handle.
         datafiles (List[Path]): List of Path objects pointing to HDF5 data files.
-        goniometer_axes (List[Axis]): List of goniometer axes.
         data_type (str): Images or events.
-        osc_scan (Dict[str, ArrayLike]): Rotation scan. If writing events, this is just a (start, end) tuple.
-        transl_scan (Dict[str, ArrayLike], optional): Scan along the xy axes at sample. Defaults to None.
+        osc_scan (str, optional): Rotation scan axis name. Defaults to omega.
         entry_key (str): Entry key to create the external links to the data files. Defaults to data.
 
     Raises:
         OSError: If no data is passed.
-        ValueError: If the data typs is neither "images" nor "events".
+        ValueError: If the data type is neither "images" nor "events".
     """
     NXclass_logger.info("Start writing NXdata.")
     # Check that a valid datafile_list has been passed.
@@ -100,9 +96,6 @@ def write_NXdata(
         raise OSError(
             "No HDF5 data filenames have been found. Please pass at least one."
         )
-
-    # This assumes that a rotation scan is always passed
-    osc_axis, osc_range = list(osc_scan.items())[0]
 
     # Create NXdata group, unless it already exists, in which case just open it.
     nxdata = nxsfile.require_group("/entry/data")
@@ -147,46 +140,6 @@ def write_NXdata(
         raise ValueError(
             "Unknown data type. Please pass one value for data_type from : [images, events]"
         )
-
-    # FIXME this can go, will be created once nxsample is written
-    # This also means I just need to pass the axis name to this writer instead of everything
-    # Write rotation axis dataset
-    ax = nxdata.create_dataset(osc_axis, data=osc_range)
-    idx = [n for n, ax in enumerate(goniometer_axes) if ax.name == osc_axis][0]
-    dep = set_dependency(
-        goniometer_axes[idx].depends, path="/entry/sample/transformations/"
-    )
-
-    # Write attributes for axis
-    create_attributes(
-        ax,
-        ("depends_on", "transformation_type", "units", "vector"),
-        (
-            dep,
-            goniometer_axes[idx].transformation_type,
-            goniometer_axes[idx].units,
-            goniometer_axes[idx].vector,
-        ),
-    )
-
-    # If present, add linear/grid scan details
-    if transl_scan:
-        for k, v in transl_scan.items():
-            ax_dset = nxdata.create_dataset(k, data=v)
-            ax_idx = [n for n, ax in enumerate(goniometer_axes) if ax.name == k][0]
-            ax_dep = set_dependency(
-                goniometer_axes[ax_idx].depends, path="/entry/sample/transformations/"
-            )
-            create_attributes(
-                ax_dset,
-                ("depends_on", "transformation_type", "units", "vector"),
-                (
-                    ax_dep,
-                    goniometer_axes[ax_idx].transformation_type,
-                    goniometer_axes[ax_idx].units,
-                    goniometer_axes[ax_idx].vector,
-                ),
-            )
 
 
 # NXtransformations
