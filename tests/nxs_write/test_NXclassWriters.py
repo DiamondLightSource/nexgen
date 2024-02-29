@@ -476,8 +476,8 @@ def test_write_NXdetector_for_eiger_images_without_meta_file(
 
     # Check detector axis and distance
     tr = det + "transformations/"
-    assert "detector_z" in list(dummy_nexus_file[tr].keys())
-    axis_entry = tr + "detector_z/det_z"
+    assert "det_z" in list(dummy_nexus_file[tr].keys())
+    axis_entry = tr + "det_z"
     assert_array_equal(
         mock_eiger.detector_axes[0].start_pos, dummy_nexus_file[axis_entry][()]
     )
@@ -497,6 +497,7 @@ def test_write_NXdetector_for_eiger_images_without_meta_file(
 
     # Check that detector_z has also been written in /detector
     assert "detector_z" in list(dummy_nexus_file[det].keys())
+    assert "det_z" in list(dummy_nexus_file[det + "detector_z"].keys())
 
 
 @patch("nexgen.nxs_write.NXclassWriters.write_NXcollection")

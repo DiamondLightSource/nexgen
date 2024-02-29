@@ -655,61 +655,38 @@ def write_NXdetector(
     )
 
     # Write NXtransformations: entry/instrument/detector/transformations/detector_z and two_theta
-    nxtransformations = nxdetector.require_group("transformations")
+    write_NXtransformations(nxdetector, detector.detector_axes)
+
+    # NXdetector depends on the last (often only) axis in the list
+    det_dep = set_dependency(
+        detector.detector_axes[-1].name,
+        path="/entry/instrument/detector/transformations",
+    )
+    nxdetector.create_dataset("depends_on", data=det_dep)
+
+    # Just a det_z check
+    if "det_z" not in list(nxdetector["transformations"].keys()):
+        NXclass_logger.error("No det_z field in nexus file.")
+        return
+
+    # Write a soft link for detector_z, workaround for autoPROC
+    # TODO see https://github.com/DiamondLightSource/nexgen/issues/140
+    nxdetector.create_group("detector_z")
     create_attributes(
-        nxtransformations,
+        nxdetector["detector_z"],
         ("NX_class",),
         ("NXtransformations",),
     )
-
-    # Create groups for detector_z and any other detector axis (eg. two_theta) if present
-    # This assumes that the detector axes are fixed.
-    for idx, ax in enumerate(detector.detector_axes):
-        if ax.name == "det_z":
-            grp_name = "detector_z"
-            dist = units_of_length(str(detector.detector_axes[idx].start_pos) + "mm")
-        else:
-            grp_name = ax.name
-
-        # It shouldn't be too much of an issue but just in case ...
-        if detector.detector_axes[idx].depends == "det_z":
-            grp_dep = "detector_z"
-        else:
-            grp_dep = detector.detector_axes[idx].depends
-        _dep = set_dependency(
-            detector.detector_axes[idx].depends,
-            nxtransformations.name + f"/{grp_dep}/",
-        )
-
-        nxgrp_ax = nxtransformations.create_group(grp_name)
-        create_attributes(nxgrp_ax, ("NX_class",), ("NXpositioner",))
-        nxdet_ax = nxgrp_ax.create_dataset(
-            ax.name, data=np.array([detector.detector_axes[idx].start_pos])
-        )
-        create_attributes(
-            nxdet_ax,
-            ("depends_on", "transformation_type", "units", "vector"),
-            (
-                _dep,
-                detector.detector_axes[idx].transformation_type,
-                detector.detector_axes[idx].units,
-                detector.detector_axes[idx].vector,
-            ),
-        )
-        if ax.name == detector.detector_axes[-1].name:
-            # Detector depends_on
-            nxdetector.create_dataset(
-                "depends_on",
-                data=set_dependency(ax.name, path=nxgrp_ax.name),
-            )
-
-    # Write a soft link for detector_z
-    if "detector_z" in list(nxtransformations.keys()):
-        nxdetector["detector_z"] = nxsfile[
-            "/entry/instrument/detector/transformations/detector_z"
-        ]
+    nxdetector["detector_z/det_z"] = nxsfile[
+        "/entry/instrument/detector/transformations/det_z"
+    ]
 
     # Detector distance
+    det_z_idx = [
+        n for n, ax in enumerate(detector.detector_axes) if ax.name == "det_z"
+    ][0]
+    dist = units_of_length(str(detector.detector_axes[det_z_idx].start_pos) + "mm")
+
     nxdetector.create_dataset("distance", data=dist.to("m").magnitude)
     create_attributes(
         nxdetector["distance"], ("units",), (format(dist.to("m").units, "~"))
