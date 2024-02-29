@@ -219,9 +219,6 @@ def write_NXtransformations(
         ("NXtransformations",),
     )
 
-    # Merge the scan dictionaries
-    # scan_axes = osc_scan if transl_scan is None else osc_scan | transl_scan
-
     for ax in axes:
         # Dataset
         data = (
@@ -284,128 +281,33 @@ def write_NXsample(
         ("NXsample",),
     )
 
-    # Create NXtransformations group: /entry/sample/transformations
-    nxtransformations = nxsample.require_group("transformations")
-    create_attributes(
-        nxtransformations,
-        ("NX_class",),
-        ("NXtransformations",),
-    )
+    # Merge the scan dictionaries
+    full_scan = osc_scan if transl_scan is None else osc_scan | transl_scan
 
-    # Get rotation details
-    osc_axis, osc_range = list(osc_scan.items())[0]
+    # Create NXtransformations group: /entry/sample/transformations
+    write_NXtransformations(nxsample, goniometer_axes, full_scan, data_type)
 
     # Save sample depends_on
     if sample_depends_on:
         nxsample.create_dataset(
             "depends_on",
-            data=set_dependency(sample_depends_on, path=nxtransformations.name),
+            data=set_dependency(
+                sample_depends_on, path=nxsample["transformations"].name
+            ),
         )
     else:
         nxsample.create_dataset(
             "depends_on",
-            data=set_dependency(goniometer_axes[-1].name, path=nxtransformations.name),
+            data=set_dependency(
+                goniometer_axes[-1].name, path=nxsample["transformations"].name
+            ),
         )
 
-    # Get xy details if passed
-    scan_axes = []
-    if transl_scan:
-        for k in transl_scan.keys():
-            scan_axes.append(k)
-
-    # Create sample_{axisname} groups
-    for idx, ax in enumerate(goniometer_axes):
-        axis_name = ax.name
-        grp_name = (
-            f"sample_{axis_name[-1]}" if "sam_" in axis_name else f"sample_{axis_name}"
-        )
-        nxsample_ax = nxsample.create_group(grp_name)
-        create_attributes(nxsample_ax, ("NX_class",), ("NXpositioner",))
-        if axis_name == osc_axis:
-            # If we're dealing with the scan axis
-            if (
-                "data" in nxsfile["/entry"].keys()
-                and axis_name in nxsfile["/entry/data"].keys()
-            ):
-                nxsample_ax[axis_name] = nxsfile[nxsfile["/entry/data"][axis_name].name]
-                nxtransformations[axis_name] = nxsfile[
-                    nxsfile["/entry/data"][axis_name].name
-                ]
-            else:
-                nxax = nxsample_ax.create_dataset(axis_name, data=osc_range)
-                _dep = set_dependency(
-                    goniometer_axes[idx].depends, path="/entry/sample/transformations/"
-                )
-                create_attributes(
-                    nxax,
-                    ("depends_on", "transformation_type", "units", "vector"),
-                    (
-                        _dep,
-                        goniometer_axes[idx].transformation_type,
-                        goniometer_axes[idx].units,
-                        goniometer_axes[idx].vector,
-                    ),
-                )
-                nxtransformations[axis_name] = nxsfile[nxax.name]
-            # Write {axisname}_increment_set and {axis_name}_end datasets
-            if data_type == "images":
-                increment_set = np.repeat(
-                    goniometer_axes[idx].increment, len(osc_range)
-                )
-                nxsample_ax.create_dataset(
-                    axis_name + "_increment_set",
-                    data=goniometer_axes[idx].increment,
-                )  # increment_set
-                nxsample_ax.create_dataset(
-                    axis_name + "_end", data=osc_range + increment_set
-                )
-        elif axis_name in scan_axes:
-            # For translations
-            if (
-                "data" in nxsfile["/entry"].keys()
-                and axis_name in nxsfile["/entry/data"].keys()
-            ):
-                nxsample_ax[axis_name] = nxsfile[nxsfile["/entry/data"][axis_name].name]
-                nxtransformations[axis_name] = nxsfile[
-                    nxsfile["/entry/data"][axis_name].name
-                ]
-            else:
-                nxax = nxsample_ax.create_dataset(
-                    axis_name, data=transl_scan[axis_name]
-                )
-                _dep = set_dependency(
-                    goniometer_axes[idx].depends, path="/entry/sample/transformations/"
-                )
-                create_attributes(
-                    nxax,
-                    ("depends_on", "transformation_type", "units", "vector"),
-                    (
-                        _dep,
-                        goniometer_axes[idx].transformation_type,
-                        goniometer_axes[idx].units,
-                        goniometer_axes[idx].vector,
-                    ),
-                )
-                nxtransformations[axis_name] = nxsfile[nxax.name]
-        else:
-            # For all other axes
-            nxax = nxsample_ax.create_dataset(
-                axis_name, data=np.array([goniometer_axes[idx].start_pos])
-            )
-            _dep = set_dependency(
-                goniometer_axes[idx].depends, path="/entry/sample/transformations/"
-            )
-            create_attributes(
-                nxax,
-                ("depends_on", "transformation_type", "units", "vector"),
-                (
-                    _dep,
-                    goniometer_axes[idx].transformation_type,
-                    goniometer_axes[idx].units,
-                    goniometer_axes[idx].vector,
-                ),
-            )
-            nxtransformations[axis_name] = nxsfile[nxax.name]
+    # Add scan axes datasets to NXdata
+    nxdata = nxsfile.require_group("/entry/data")
+    for ax in goniometer_axes:
+        if ax.name in full_scan.keys():
+            nxdata[ax.name] = nxsfile[f"/entry/sample/transformations/{ax.name}"]
 
     # Look for nxbeam in file, if it's there make link
     try:
