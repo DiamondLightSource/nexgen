@@ -193,10 +193,24 @@ def write_NXdata(
 def write_NXtransformations(
     parent_group: h5py.Group,
     axes: List[Axis],
-    osc_scan: Dict[str, ArrayLike],
-    transl_scan: Optional[Dict[str, ArrayLike]] = None,
-    data_type: str = "images",
+    scan: Optional[Dict[str, ArrayLike]] = None,
+    collection_type: str = "images",
 ):
+    """Write NXtransformations group.
+
+    This group coulld be written either in /entry/sample/ for the goniometer or in \
+    /entry/instrument/detector for the detector axes. In the latter case, the scan \
+    should always be None.
+
+    Args:
+        parent_group (h5py.Group): Handle to HDF5 group where NXtransformations \
+            should be written.
+        axes (List[Axis]): List of Axes to write to the NXtransformations group.
+        scan (Optional[Dict[str, ArrayLike]], optional): All the scan axes, both \
+            rotation and translation. Defaults to None.
+        collection_type (str, optional): Collection type, could be images or \
+            events. Defaults to "images".
+    """
     NXclass_logger.debug(f"Start writing NXtransformations group in {parent_group}.")
     nxtransformations = parent_group.require_group("transformations")
     create_attributes(
@@ -206,17 +220,13 @@ def write_NXtransformations(
     )
 
     # Merge the scan dictionaries
-    scan_axes = osc_scan if transl_scan is None else osc_scan | transl_scan
-
-    # FIXME This will be fine for NXsample but NXdetector has no scan! So needs improving.
-    # Could simply merge before calling this in NXsample
-    # And make scan input argument optional. If None, simply have array.
+    # scan_axes = osc_scan if transl_scan is None else osc_scan | transl_scan
 
     for ax in axes:
         # Dataset
         data = (
-            scan_axes[ax.name]
-            if ax.name in scan_axes.keys()
+            scan[ax.name]
+            if scan and ax.name in scan.keys()
             else np.array([ax.start_pos])
         )
         # Dependency
@@ -230,16 +240,16 @@ def write_NXtransformations(
         )
 
         # Write _increment_set and _end for rotation axis
-        if ax.name in scan_axes.keys() and ax.transformation_type == "rotation":
-            if data_type == "images":
+        if scan and collection_type == "images":
+            if ax.name in scan.keys() and ax.transformation_type == "rotation":
                 NXclass_logger.debug(
                     f"Adding increment_set and end for axis {ax.name}."
                 )
                 nxtransformations.create_dataset(
                     f"{ax.name}_increment_set", data=ax.increment
                 )
-                increment_set = np.repeat(ax.increment, len(osc_scan))
-                ax_end = scan_axes[ax.name] + increment_set
+                increment_set = np.repeat(ax.increment, len(scan[ax.name]))
+                ax_end = scan[ax.name] + increment_set
                 nxtransformations.create_dataset(f"{ax.name}_end", data=ax_end)
 
 

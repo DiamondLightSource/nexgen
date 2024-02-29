@@ -27,6 +27,7 @@ from nexgen.nxs_write.NXclassWriters import (
     write_NXnote,
     write_NXsample,
     write_NXsource,
+    write_NXtransformations,
 )
 
 test_module = {"fast_axis": [1, 0, 0], "slow_axis": [0, 1, 0]}
@@ -62,6 +63,49 @@ def test_write_NXSource_with_probe(dummy_nexus_file, mock_source):
     write_NXsource(dummy_nexus_file, mock_source)
 
     assert dummy_nexus_file["/entry/source/probe"][()] == b"electron"
+
+
+def test_write_NXtransformations_for_detector_axes(dummy_nexus_file):
+    det_axes = [
+        Axis("two_theta", ".", "rotation", (0, 0, -1), start_pos=90),
+        Axis("det_z", "Two_theta", "translation", (0, 0, 1), start_pos=500),
+    ]
+    nxdet = dummy_nexus_file.require_group("/entry/instrument/detector/")
+    write_NXtransformations(nxdet, det_axes)
+
+    assert "transformations" in nxdet.keys()
+    assert (
+        "det_z" in nxdet["transformations"].keys()
+        and "two_theta" in nxdet["transformations"].keys()
+    )
+    assert_array_equal(nxdet["transformations/det_z"][()], 500)
+    assert_array_equal(nxdet["transformations/two_theta"][()], 90)
+
+
+def test_write_NXtransformations_for_sample_with_rotation_scan(
+    dummy_nexus_file, mock_goniometer
+):
+    nxsample = dummy_nexus_file.require_group("/entry/sample/")
+    write_NXtransformations(nxsample, mock_goniometer.axes_list, mock_goniometer.scan)
+
+    assert "transformations" in nxsample.keys()
+    assert_array_equal(nxsample["transformations/omega"][()], np.arange(0, 90, 1))
+    assert (
+        "omega_increment_set" in nxsample["transformations"].keys()
+        and "omega_end" in nxsample["transformations"].keys()
+    )
+    assert_array_equal(nxsample["transformations/sam_z"][()], 0.0)
+
+
+def test_write_NXtransformations_for_sample_for_events(dummy_nexus_file):
+    axes_list = [Axis("phi", ".", "rotation", (0, 0, -1), start_pos=10)]
+    test_scan = {"phi": (10, 12)}
+    test_gonio = Goniometer(axes_list, test_scan)
+    nxsample = dummy_nexus_file.require_group("/entry/sample/")
+    write_NXtransformations(nxsample, test_gonio.axes_list, test_gonio.scan, "events")
+
+    assert "phi_end" not in nxsample["transformations"].keys()
+    assert_array_equal(nxsample["transformations/phi"], test_scan["phi"])
 
 
 def test_given_no_data_type_specified_when_write_NXdata_then_exception_raised(
