@@ -334,7 +334,8 @@ def ssx_eiger_writer(
             attenuator,
             tot_num_imgs,
         )
-        NXmx_Writer.write(start_time=timestamps[0])
+        image_filename = metafile.as_posix().replace("_meta.h5", "")
+        NXmx_Writer.write(image_filename=image_filename, start_time=timestamps[0])
         if pump_status is True:
             logger.info("Write pump information to file.")
             NXmx_Writer.add_NXnote(
