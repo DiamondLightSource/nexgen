@@ -282,9 +282,7 @@ def ssx_eiger_writer(
 
         # Define chipmap if needed
         chipmapfile = (
-            "fullchip"
-            if SSX.chipmap is None
-            else Path(SSX.chipmap).expanduser().resolve()
+            None if SSX.chipmap is None else Path(SSX.chipmap).expanduser().resolve()
         )
 
         SCAN, pump_info = run_fixed_target(
