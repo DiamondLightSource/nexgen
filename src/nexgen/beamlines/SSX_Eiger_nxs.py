@@ -77,6 +77,8 @@ def ssx_eiger_writer(
         pump_exp (float): Pump exposure time, in s.
         pump_delay (float): Pump delay time, in s.
         osc_axis (str): Oscillation axis. Always omega on I24. If not passed it will default to phi for I19-2.
+        outdir (str): Directory where to save the file. Only specify if different \
+            from meta_file directory.
 
     Raises:
         ValueError: If an invalid beamline name is passed.
@@ -122,13 +124,20 @@ def ssx_eiger_writer(
 
     visitpath = Path(visitpath).expanduser().resolve()
 
+    if find_in_dict("outdir", ssx_params) and ssx_params["outdir"]:
+        wdir = Path(ssx_params["outdir"]).expanduser().resolve()
+    else:
+        wdir = visitpath
+
     # Configure logging
-    logfile = visitpath / f"{beamline}_EigerSSX_nxs_writer.log"
+    logfile = wdir / f"{beamline}_EigerSSX_nxs_writer.log"
     log.config(logfile.as_posix())
 
     logger.info(f"Current collection directory: {visitpath.as_posix()}")
+    if wdir != visitpath:
+        logger.warning(f"Nexus file will be saved in a different directory: {wdir}")
     # Get NeXus filename
-    master_file = visitpath / f"{filename}.nxs"
+    master_file = wdir / f"{filename}.nxs"
     logger.info("NeXus file will be saved as %s" % master_file.as_posix())
 
     # Get parameters depending on beamline
@@ -325,7 +334,8 @@ def ssx_eiger_writer(
             attenuator,
             tot_num_imgs,
         )
-        NXmx_Writer.write(start_time=timestamps[0])
+        image_filename = metafile.as_posix().replace("_meta.h5", "")
+        NXmx_Writer.write(image_filename=image_filename, start_time=timestamps[0])
         if pump_status is True:
             logger.info("Write pump information to file.")
             NXmx_Writer.add_NXnote(

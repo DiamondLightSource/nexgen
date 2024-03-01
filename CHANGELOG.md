@@ -2,10 +2,13 @@
 
 
 
-## 0.#.#
+## 0.8.6
 
 ### Fixed
 - Set dtype for `data_size`, `{x,y}_pixels`, etc. to native int to make autoPROC work.
+
+### Added
+- Possibility to write serial nexus to different directories from collection.
 
 
 ## 0.8.5
