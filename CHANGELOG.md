@@ -2,6 +2,11 @@
 
 
 
+## 0.8.7
+
+## Fixed
+- Typos in SSX scripts
+
 ## 0.8.6
 
 ### Fixed
