@@ -8,9 +8,9 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 import numpy as np
+
 from nexgen.beamlines.ED_params import ED_coord_system, EDCeta, EDSource
-from nexgen.nxs_utils import (Attenuator, Beam, CetaDetector, Detector,
-                              Goniometer)
+from nexgen.nxs_utils import Attenuator, Beam, CetaDetector, Detector, Goniometer
 from nexgen.nxs_utils.ScanUtils import calculate_scan_points
 from nexgen.nxs_write.NXmxWriter import EDNXmxFileWriter
 from nexgen.tools.MRC_tools import collect_data, get_metadata
