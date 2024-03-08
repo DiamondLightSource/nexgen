@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from .Axes import Axis, TransformationType
 from .Detector import (
+    CetaDetector,
     Detector,
     DetectorModule,
     DetectorType,
@@ -9,7 +10,6 @@ from .Detector import (
     JungfrauDetector,
     SinglaDetector,
     TristanDetector,
-    CetaDetector
 )
 from .Goniometer import Goniometer
 from .Sample import Sample
