@@ -1,16 +1,21 @@
-import mrcfile
+"""
+A script to convert a series of individual MRC images into a Nexus format.
+"""
+
+import logging
 import os
-import h5py
-import numpy as np
-from math import sqrt
-from nexgen.nxs_utils import Attenuator, Beam, Detector, Goniometer
-from nexgen.nxs_utils import CetaDetector
-from nexgen.nxs_write.NXmxWriter import EDNXmxFileWriter
-from nexgen.beamlines.ED_params import ED_coord_system, EDCeta, EDSource
-from nexgen.nxs_utils.ScanUtils import calculate_scan_points
-from pathlib import Path
 from argparse import ArgumentParser
-import hdf5plugin
+from pathlib import Path
+
+import numpy as np
+from nexgen.beamlines.ED_params import ED_coord_system, EDCeta, EDSource
+from nexgen.nxs_utils import (Attenuator, Beam, CetaDetector, Detector,
+                              Goniometer)
+from nexgen.nxs_utils.ScanUtils import calculate_scan_points
+from nexgen.nxs_write.NXmxWriter import EDNXmxFileWriter
+from nexgen.tools.MRC_tools import collect_data, get_metadata
+
+logger = logging.getLogger('nexgen.ED_mrc_to_nexus')
 
 
 def main():
@@ -58,36 +63,81 @@ def main():
 
     args = parser.parse_args()
 
+    logger.info('Starting MRC to Nexus conversion')
+
     for file in args.input_files:
         if not file.endswith('.mrc'):
-            raise ValueError('Not an mrc file!')
+            raise ValueError('Not an MRC file: %s' % file)
 
     mrc_files = args.input_files
+    full_mrc_path = os.path.abspath(mrc_files[0])
+    logger.info('Collecting MRC data into a h5 file')
     tot_imgs, out_file, angles = collect_data(mrc_files)
+
     mdict = get_metadata(mrc_files[0])
 
     attenuator = Attenuator(transmission=None)
 
     if args.det_distance is not None:
         det_distance = args.det_distance
-    else:
+    elif 'cameraLength' in mdict:
         det_distance = mdict['cameraLength']
+        msg = 'Reading detector distance from '
+        msg += 'the MRC files: %.1f' % det_distance
+        logger.info(msg)
+    else:
+        msg = 'No detector distance in the MRC metadata. '
+        msg += 'You can set it with -det_distance option.'
+        raise ValueError(msg)
+
     if args.wavelength is not None:
         beam = Beam(args.wavelength)
-    else:
+    elif 'wavelength' in mdict:
         beam = Beam(mdict['wavelength'])
+        msg = ('Reading wavelength from the MRC files: %f' %
+               mdict['wavelength'])
+        logger.info(msg)
+    else:
+        msg = 'No wavelength in the MRC metadata. '
+        msg += 'You can set it with --wavelength option.'
+        raise ValueError(msg)
+
     if args.axis_start is not None:
         start_angle = args.axis_start
-    else:
+    elif angles[0] is not None:
         start_angle = angles[0]
+        msg = ('Reading starting angle from the MRC files: %.2f' %
+               start_angle)
+        logger.info(msg)
+    else:
+        msg = 'No starting angle in the MRC metadata. '
+        msg += 'You can set it with --axis_start option.'
+        raise ValueError(msg)
+
     if args.axis_inc is not None:
         increment = args.axis_inc
-    else:
+    elif 'tiltPerImage' in mdict:
         increment = mdict['tiltPerImage']
+        msg = ('Reading angle increment from the MRC files: %f' %
+               increment)
+        logger.info(msg)
+    else:
+        msg = 'No angle increment in the MRC metadata. '
+        msg += 'You can set it with --axis_inc option.'
+        raise ValueError(msg)
+
     if args.exp_time is not None:
         exposure_time = args.exp_time
-    else:
+    elif 'integrationTime' in mdict:
         exposure_time = mdict['integrationTime']
+        msg = ('Reading exposure time from the MRC files: %f' %
+               exposure_time)
+        logger.info(msg)
+    else:
+        msg = 'No exposure time in the MRC metadata. '
+        msg += 'You can set it with --exp_time option.'
+        raise ValueError(msg)
+
     if args.beam_center is not None:
         if len(args.beam_center) == 2:
             x, y = args.beam_center
@@ -95,9 +145,16 @@ def main():
         else:
             msg = 'Beam center requires two arguments'
             raise ValueError(msg)
-    else:
+    elif ('beamCentreXpx' in mdict) and ('beamCentreYpx' in mdict):
         beam_center = (mdict["beamCentreXpx"],
                        mdict["beamCentreYpx"])
+        msg = ('Reading beam center from the MRC files: (%.1f, %.1f)' %
+               beam_center)
+        logger.info(msg)
+    else:
+        msg = 'No beam center in the MRC metadata. '
+        msg += 'You can set it with --beam_center option.'
+        raise ValueError(msg)
 
     gonio_axes = EDCeta.gonio
     gonio_axes[0].start_pos = start_angle
@@ -108,7 +165,6 @@ def main():
                                  rotation=True,
                                  tot_num_imgs=tot_imgs)
     goniometer = Goniometer(gonio_axes, scan)
-    osc, trans = goniometer.define_scan_from_goniometer_axes()
 
     nx = mdict['nx']
     ny = mdict['ny']
@@ -146,12 +202,14 @@ def main():
     source = EDSource
     source.beamline = 'Ceta'
 
-    script_dir = os.getcwd()
+    script_dir = os.path.dirname(full_mrc_path)
     file_name = out_file.replace('h5', 'nxs')
     full_path = os.path.join(script_dir, file_name)
     data_path = os.path.join(script_dir, out_file)
     data_path = Path(data_path)
 
+    msg = 'Writing the Nexus file %s' % full_path
+    logger.info(msg)
     writer = EDNXmxFileWriter(
          full_path,
          goniometer,
@@ -166,125 +224,4 @@ def main():
     writer.write(datafiles, '/entry/data/data')
     writer.write_vds(vds_dtype=np.int32,
                      datafiles=datafiles)
-
-
-def get_metadata(mrc_image):
-
-    print('Opening ', mrc_image)
-    with mrcfile.open(mrc_image, header_only=True) as mrc:
-        h = mrc.header
-        try:
-            xh = mrc.indexed_extended_header
-        except AttributeError:
-            # For mrcfile versions older than 1.5.0
-            xh = mrc.extended_header
-        hd = {}
-
-        hd['nx'] = h['nx']
-        hd['ny'] = h['ny']
-        hd['nz'] = h['nz']
-        hd['mx'] = h['mx']
-        hd['my'] = h['my']
-        hd['mz'] = h['mz']
-
-        hd["alphaTilt"] = xh["Alpha tilt"][0]
-        hd["integrationTime"] = xh["Integration time"][0]
-        hd["tilt_axis"] = xh["Tilt axis angle"][0]
-        hd["pixelSpacing"] = xh["Pixel size X"][0]
-        hd["acceleratingVoltage"] = xh["HT"][0]
-        hd["camera"] = xh["Camera name"][0]
-        hd["binning"] = xh["Binning Width"][0]
-        hd["noiseReduction"] = xh["Ceta noise reduction"][0]
-        hd["physicalPixel"] = 14e-6
-        hd["wavelength"] = cal_wavelength(hd["acceleratingVoltage"])
-        hd["cameraLength"] = (hd["physicalPixel"] * hd["binning"]
-                              ) / (hd["pixelSpacing"]
-                                   * hd["wavelength"] * 1e-10) * 1000.
-        hd["scanRotation"] = xh["Scan rotation"][0]
-        hd["diffractionPatternRotation"] = xh[
-            "Diffraction pattern rotation"][0]
-        hd["imageRotation"] = xh["Image rotation"][0]
-        hd["scanModeEnum"] = xh["Scan mode enumeration"][0]
-        hd["acquisitionTimeStamp"] = xh["Acquisition time stamp"][0]
-        hd["detectorCommercialName"] = xh["Detector commercial name"][0]
-        hd["startTiltAngle"] = xh["Start tilt angle"][0]
-        hd["endTiltAngle"] = xh["End tilt angle"][0]
-        hd["tiltPerImage"] = xh["Tilt per image"][0]
-        hd["tiltSpeed"] = xh["Tilt speed"][0]
-        hd["beamCentreXpx"] = xh["Beam center X pixel"][0]
-        hd["beamCentreYpx"] = xh["Beam center Y pixel"][0]
-        hd["cfegFlashTimestamp"] = xh["CFEG flash timestamp"][0]
-        hd["phasePlatePositionIndex"] = xh["Phase plate position index"][0]
-        hd["objectiveApertureName"] = xh["Objective aperture name"][0]
-
-        # Check if binning is correct
-        assert hd['binning'] == 4096 / hd['nx']
-
-        return hd
-
-
-def cal_wavelength(V0):
-    h = 6.626e-34  # Js, Planck's constant
-    m = 9.109e-31  # kg, electron mass
-    e = 1.6021766208e-19  # C, electron charge
-    c = 3e8  # m/s^2, speed
-
-    # Default to e-wavelength at 200 keV if voltage set to zero
-    if V0 == 0:
-        V0 = 200000
-    wlen = h / sqrt(2*m*e*V0 * (1 + e*V0 / (2*m*c*c))) * 1e10
-    return wlen       # return wavelength in Angstrom
-
-
-def collect_data(files):
-
-    out_file = files[0].rsplit('_', 1)[0] + '.h5'
-    mrc_files = []
-    angles = []
-    for file in files:
-        path = os.path.abspath(file)
-        if path.endswith('.mrc'):
-            mrc_files.append(file)
-
-    n = len(mrc_files)
-
-    test_file = mrcfile.open(mrc_files[0], mode='r')
-    data_shape = test_file.data.shape
-    test_file.close()
-    if len(data_shape) != 2:
-        msg = 'The converter works only with single mrc images'
-        raise ValueError(msg)
-
-    with h5py.File(out_file, 'w') as hdf5_file:
-        dataset_shape = (n, data_shape[0], data_shape[1])
-        dataset = hdf5_file.create_dataset('data_temp',
-                                           shape=dataset_shape,
-                                           dtype=np.int32)
-
-        group = hdf5_file.create_group("entry")
-        group.attrs["NX_class"] = np.string_('NXentry')
-        data_group = group.create_group('data')
-        data_group.attrs["NX_class"] = np.string_("NXdata")
-
-        compressed_data = hdf5_file.create_dataset('/entry/data/data',
-                                                   shape=dataset_shape,
-                                                   dtype=np.int32,
-                                                   **hdf5plugin.LZ4())
-
-        for i, file in enumerate(mrc_files):
-            print('%0.2d  %s' % (i, file))
-            mrc = mrcfile.open(file, mode='r')
-            data = np.array(mrc.data, dtype=np.int32)
-            try:
-                xh = mrc.indexed_extended_header
-            except AttributeError:
-                xh = mrc.extended_header
-
-            angles.append(xh["Alpha tilt"][0])
-            dataset[i, :, :] = data
-            mrc.close()
-
-        compressed_data[...] = dataset[...]
-        del hdf5_file['data_temp']
-
-        return n, out_file, np.array(angles)
+    logger.info('MRC images converted to Nexus.')

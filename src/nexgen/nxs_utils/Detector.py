@@ -155,7 +155,7 @@ class CetaDetector(DataClassJsonMixin):
         default_factory=lambda: ["0.014mm", "0.014mm"]
     )
     sensor_material: str = "Si"
-    sensor_thickness: str = "0.00000000000001mm"
+    sensor_thickness: str = "0.014mm"
     detector_type: str = "CMOS"
     overload: int = 1000000
     underload: int = -1000
