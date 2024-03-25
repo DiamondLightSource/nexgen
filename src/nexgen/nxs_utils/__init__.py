@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from .Axes import Axis, TransformationType
 from .Detector import (
+    CetaDetector,
     Detector,
     DetectorModule,
     DetectorType,
@@ -31,4 +32,5 @@ __all__ = [
     "Sample",
     "TransformationType",
     "Facility",
+    'CetaDetector'
 ]
