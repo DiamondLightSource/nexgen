@@ -68,6 +68,7 @@ copy_nexus = "nexgen.command_line.copy_nexus:main"
 nexgen_phil = "nexgen.command_line.phil_files_cli:main"
 I19_nexus = "nexgen.command_line.I19_2_cli:main"
 ED_nexus = "nexgen.command_line.ED_nexus:main"
+ED_mrc_to_nexus = "nexgen.command_line.ED_mrc_to_nexus:main"
 SSX_nexus = "nexgen.command_line.SSX_cli:main"
 
 [tool.setuptools.packages.find]
