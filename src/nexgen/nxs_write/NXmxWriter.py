@@ -187,10 +187,8 @@ class NXmxFileWriter:
             write_NXdata(
                 nxs,
                 datafiles,
-                self.goniometer.axes_list,
                 "images",
-                osc,
-                transl,
+                list(osc.keys())[0],  # TODO improve
             )
 
             # NXinstrument: entry/instrument
