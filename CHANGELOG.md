@@ -2,6 +2,17 @@
 
 
 
+## 0.#.#
+
+### Changed
+- Removed non-standard NXPositioner fields for axes in NXSample and NXdetector.
+
+
+### Added
+- Command line tool to convert mrc files from Ceta detector for Electron Diffraction.
+- Detector definition for Ceta detector.
+
+
 ## 0.8.7
 
 ## Fixed
