@@ -188,7 +188,7 @@ class NXmxFileWriter:
                 nxs,
                 datafiles,
                 "images",
-                list(osc.keys())[0],  # TODO improve
+                list(osc.keys())[0],
             )
 
             # NXinstrument: entry/instrument
@@ -358,9 +358,8 @@ class EventNXmxFileWriter(NXmxFileWriter):
             write_NXdata(
                 nxs,
                 [metafile],
-                self.goniometer.axes_list,
                 "events",
-                osc,
+                list(osc.keys())[0],
             )
 
             # NXinstrument: entry/instrument
@@ -517,9 +516,8 @@ class EDNXmxFileWriter(NXmxFileWriter):
             write_NXdata(
                 nxs,
                 datafiles,
-                self.goniometer.axes_list,
                 "images",
-                osc,
+                list(osc.keys())[0],
                 entry_key=data_entry_key,
             )
 
