@@ -622,7 +622,7 @@ def write_NXdetector_module(
             "vector",
         ),
         (
-            "/entry/instrument/detector/transformations/detector_z/det_z",
+            "/entry/instrument/detector/transformations/det_z",
             offsets[0],
             "mm",
             "translation",
