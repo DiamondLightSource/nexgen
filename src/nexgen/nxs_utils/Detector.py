@@ -27,7 +27,6 @@ EIGER_CONST = {
     "threshold_energy": "_dectris/threshold_energy",
     "software_version": "_dectris/software_version",
     "serial_number": "_dectris/detector_number",
-    "detector_number": "_dectris/detector_number",
 }
 
 TRISTAN_CONST = {

@@ -648,7 +648,7 @@ def write_NXdetector(
 
     # Check if there are any remaining datasets to be written (usually from the meta file but not always)
     others_with_units = {"detector_readout_time":"s", "threshold_energy":"eV"}
-    others = ["bit_depth_image", "detector_number", "photon_energy", *others_with_units.keys()]
+    others = ["bit_depth_image", "serial_number", "photon_energy", *others_with_units.keys()]
     for dset in others:
         if (
             nxdetector.__contains__(dset) is False
