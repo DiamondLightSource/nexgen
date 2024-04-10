@@ -21,6 +21,7 @@ from ..nxs_utils import (
     EigerDetector,
     Source,
 )
+from ..nxs_utils.Detector import EIGER_CONST
 from ..utils import (
     MAX_SUFFIX_DIGITS,
     get_iso_timestamp,
@@ -854,7 +855,10 @@ def write_NXcollection(
                 "software_version",
                 data=np.string_(detector_params.constants["software_version"]),
             )
-    if "TRISTAN" in detector_params.description.upper():
+    if "EIGER" in detector_params.description.upper() and meta:
+        for k, v in EIGER_CONST:
+            grp[k] = h5py.ExternalLink(meta.name, v)
+    elif "TRISTAN" in detector_params.description.upper():
         tick = ureg.Quantity(detector_params.constants["detector_tick"])
         grp.create_dataset("detector_tick", data=tick.magnitude)
         grp["detector_tick"].attrs["units"] = np.string_(format(tick.units, "~"))
