@@ -1,6 +1,7 @@
 """
 Writer for NeXus format files.
 """
+
 from __future__ import annotations
 
 import logging

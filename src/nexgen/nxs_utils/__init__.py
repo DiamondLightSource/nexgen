@@ -32,5 +32,5 @@ __all__ = [
     "Sample",
     "TransformationType",
     "Facility",
-    'CetaDetector'
+    "CetaDetector",
 ]

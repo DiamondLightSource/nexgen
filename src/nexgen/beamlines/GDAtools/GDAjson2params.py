@@ -1,6 +1,7 @@
 """
 Tools to extract goniometer and detector parameters from GDA JSON files.
 """
+
 from __future__ import annotations
 
 import json

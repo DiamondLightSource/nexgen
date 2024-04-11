@@ -1,4 +1,5 @@
 """ Helper functions for the MRC to Nexus converter """
+
 import os
 from math import sqrt
 
@@ -24,16 +25,16 @@ def cal_wavelength(V0):
     is 200 keV (set by default if V0 is zero).
     """
 
-    h = 6.626e-34           # Planck's constant [J*s]
-    m = 9.109e-31           # Electron mass [kg]
-    e = 1.6021766208e-19    # Electron charge [C]
-    c = 3e8                 # Speed of light  [m/s]
+    h = 6.626e-34  # Planck's constant [J*s]
+    m = 9.109e-31  # Electron mass [kg]
+    e = 1.6021766208e-19  # Electron charge [C]
+    c = 3e8  # Speed of light  [m/s]
 
     # Default to wavelength at 200 keV if voltage set to zero
     if V0 == 0:
         V0 = 200000
-    wlen = h / sqrt(2*m*e*V0 * (1 + e*V0 / (2*m*c*c))) * 1e10
-    return wlen             # Electron wavelength in Angstroms
+    wlen = h / sqrt(2 * m * e * V0 * (1 + e * V0 / (2 * m * c * c))) * 1e10
+    return wlen  # Electron wavelength in Angstroms
 
 
 def get_metadata(mrc_image, verbatim=True):
@@ -60,16 +61,16 @@ def get_metadata(mrc_image, verbatim=True):
             xh = mrc.extended_header
         hd = {}
 
-        hd['nx'] = h['nx']
-        hd['ny'] = h['ny']
-        hd['nz'] = h['nz']
-        hd['mx'] = h['mx']
-        hd['my'] = h['my']
-        hd['mz'] = h['mz']
+        hd["nx"] = h["nx"]
+        hd["ny"] = h["ny"]
+        hd["nz"] = h["nz"]
+        hd["mx"] = h["mx"]
+        hd["my"] = h["my"]
+        hd["mz"] = h["mz"]
 
-        h_ext_type = h['exttyp'].item()
-        is_FEI = h_ext_type.startswith(b'FEI')
-        is_FEI2 = h_ext_type.startswith(b'FEI2')
+        h_ext_type = h["exttyp"].item()
+        is_FEI = h_ext_type.startswith(b"FEI")
+        is_FEI2 = h_ext_type.startswith(b"FEI2")
 
         if not is_FEI:
             return hd
@@ -79,7 +80,7 @@ def get_metadata(mrc_image, verbatim=True):
         hd["tilt_axis"] = xh["Tilt axis angle"][0]
         hd["pixelSpacing"] = xh["Pixel size X"][0]
 
-        if hd['pixelSpacing'] == 0:
+        if hd["pixelSpacing"] == 0:
             raise ValueError("Incorrect extended header")
 
         hd["acceleratingVoltage"] = xh["HT"][0]
@@ -88,16 +89,17 @@ def get_metadata(mrc_image, verbatim=True):
         hd["noiseReduction"] = xh["Ceta noise reduction"][0]
         hd["physicalPixel"] = 14e-6
         hd["wavelength"] = cal_wavelength(hd["acceleratingVoltage"])
-        hd["cameraLength"] = (hd["physicalPixel"] * hd["binning"]
-                              ) / (hd["pixelSpacing"]
-                                   * hd["wavelength"] * 1e-10) * 1000.
+        hd["cameraLength"] = (
+            (hd["physicalPixel"] * hd["binning"])
+            / (hd["pixelSpacing"] * hd["wavelength"] * 1e-10)
+            * 1000.0
+        )
 
         if not is_FEI2:
             return hd
 
         hd["scanRotation"] = xh["Scan rotation"][0]
-        hd["diffractionPatternRotation"] = xh[
-            "Diffraction pattern rotation"][0]
+        hd["diffractionPatternRotation"] = xh["Diffraction pattern rotation"][0]
         hd["imageRotation"] = xh["Image rotation"][0]
         hd["scanModeEnum"] = xh["Scan mode enumeration"][0]
         hd["acquisitionTimeStamp"] = xh["Acquisition time stamp"][0]
@@ -113,7 +115,7 @@ def get_metadata(mrc_image, verbatim=True):
         hd["objectiveApertureName"] = xh["Objective aperture name"][0]
 
         # Check if binning is correct
-        assert hd['binning'] == 4096 / hd['nx']
+        assert hd["binning"] == 4096 / hd["nx"]
 
         return hd
 
@@ -146,49 +148,48 @@ def collect_data(files):
     in which case the data is saved in 'basename.h5'.
     """
 
-    out_file = files[0].rsplit('_', 1)[0] + '.h5'
+    out_file = files[0].rsplit("_", 1)[0] + ".h5"
     mrc_files = []
     angles = []
     for file in files:
         path = os.path.abspath(file)
-        if path.endswith('.mrc'):
+        if path.endswith(".mrc"):
             mrc_files.append(file)
 
     n = len(mrc_files)
 
-    test_file = mrcfile.open(mrc_files[0], mode='r')
+    test_file = mrcfile.open(mrc_files[0], mode="r")
     data_shape = test_file.data.shape
     test_file.close()
     if len(data_shape) != 2:
-        msg = 'The converter works only with individual MRC images'
+        msg = "The converter works only with individual MRC images"
         raise ValueError(msg)
 
-    with h5py.File(out_file, 'w') as hdf5_file:
+    with h5py.File(out_file, "w") as hdf5_file:
         dataset_shape = (n, data_shape[0], data_shape[1])
-        dataset = hdf5_file.create_dataset('data_temp',
-                                           shape=dataset_shape,
-                                           dtype=np.int32)
+        dataset = hdf5_file.create_dataset(
+            "data_temp", shape=dataset_shape, dtype=np.int32
+        )
 
         group = hdf5_file.create_group("entry")
-        group.attrs["NX_class"] = np.string_('NXentry')
-        data_group = group.create_group('data')
+        group.attrs["NX_class"] = np.string_("NXentry")
+        data_group = group.create_group("data")
         data_group.attrs["NX_class"] = np.string_("NXdata")
 
-        compressed_data = hdf5_file.create_dataset('/entry/data/data',
-                                                   shape=dataset_shape,
-                                                   dtype=np.int32,
-                                                   **hdf5plugin.LZ4())
+        compressed_data = hdf5_file.create_dataset(
+            "/entry/data/data", shape=dataset_shape, dtype=np.int32, **hdf5plugin.LZ4()
+        )
 
         for i, file in enumerate(mrc_files):
-            print(' Reading image %d:  %s' % (i, file))
-            mrc = mrcfile.open(file, mode='r')
+            print(" Reading image %d:  %s" % (i, file))
+            mrc = mrcfile.open(file, mode="r")
             data = np.array(mrc.data, dtype=np.int32)
             try:
                 xh = mrc.indexed_extended_header
             except AttributeError:
                 xh = mrc.extended_header
 
-            if 'Alpha tilt' in xh.dtype.names:
+            if "Alpha tilt" in xh.dtype.names:
                 angles.append(xh["Alpha tilt"][0])
             else:
                 angles.append(None)
@@ -196,6 +197,6 @@ def collect_data(files):
             mrc.close()
 
         compressed_data[...] = dataset[...]
-        del hdf5_file['data_temp']
+        del hdf5_file["data_temp"]
 
         return n, out_file, np.array(angles)

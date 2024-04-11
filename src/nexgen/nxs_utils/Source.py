@@ -1,6 +1,7 @@
 """
 Object definition for Source, Beam and Attenuator
 """
+
 from __future__ import annotations
 
 from collections import namedtuple

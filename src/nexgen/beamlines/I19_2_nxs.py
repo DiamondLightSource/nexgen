@@ -1,6 +1,7 @@
 """
 Create a NeXus file for time-resolved collections on I19-2.
 """
+
 from __future__ import annotations
 
 import logging
@@ -439,13 +440,13 @@ def nexus_writer(
         metafile=Path(meta_file).expanduser().resolve(),
         detector_name=detector_name.lower(),
         exposure_time=exposure_time,
-        beam_center=params["beam_center"]
-        if find_in_dict("beam_center", params)
-        else (0, 0),
+        beam_center=(
+            params["beam_center"] if find_in_dict("beam_center", params) else (0, 0)
+        ),
         wavelength=params["wavelength"] if find_in_dict("wavelength", params) else None,
-        transmission=params["transmission"]
-        if find_in_dict("transmission", params)
-        else None,
+        transmission=(
+            params["transmission"] if find_in_dict("transmission", params) else None
+        ),
         tot_num_images=params["n_imgs"] if find_in_dict("n_imgs", params) else None,
         scan_axis=scan_axis,
     )

@@ -1,6 +1,7 @@
 """
 Tools for copying the metadata from Tristan NeXus files.
 """
+
 from __future__ import annotations
 
 import logging

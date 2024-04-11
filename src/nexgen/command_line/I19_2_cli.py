@@ -38,12 +38,12 @@ def gda_writer(args):
             float(args.beam_center_x),
             float(args.beam_center_y),
         ],
-        start_time=datetime.strptime(args.start, "%Y-%m-%dT%H:%M:%SZ")
-        if args.start
-        else None,
-        stop_time=datetime.strptime(args.stop, "%Y-%m-%dT%H:%M:%SZ")
-        if args.stop
-        else None,  # datetime.now(),
+        start_time=(
+            datetime.strptime(args.start, "%Y-%m-%dT%H:%M:%SZ") if args.start else None
+        ),
+        stop_time=(
+            datetime.strptime(args.stop, "%Y-%m-%dT%H:%M:%SZ") if args.stop else None
+        ),  # datetime.now(),
         geometry_json=args.geom if args.geom else None,
         detector_json=args.det if args.det else None,
     )
@@ -105,12 +105,12 @@ def nexgen_writer(args):
         transmission=args.transmission if args.transmission else None,
         wavelength=args.wavelength if args.wavelength else None,
         beam_center=args.beam_center if args.beam_center else (0, 0),
-        start_time=datetime.strptime(args.start, "%Y-%m-%dT%H:%M:%SZ")
-        if args.start
-        else None,
-        stop_time=datetime.strptime(args.stop, "%Y-%m-%dT%H:%M:%SZ")
-        if args.stop
-        else None,
+        start_time=(
+            datetime.strptime(args.start, "%Y-%m-%dT%H:%M:%SZ") if args.start else None
+        ),
+        stop_time=(
+            datetime.strptime(args.stop, "%Y-%m-%dT%H:%M:%SZ") if args.stop else None
+        ),
         n_imgs=args.num_imgs if args.num_imgs else None,
         scan_axis=args.scan_axis if args.scan_axis else "phi",
         gonio_pos=axes_list if args.axes else None,

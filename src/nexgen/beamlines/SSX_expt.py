@@ -4,6 +4,7 @@ Experiment definitions for SSX collections:
     - fixed target
     - 3D grid scan
 """
+
 from __future__ import annotations
 
 import logging

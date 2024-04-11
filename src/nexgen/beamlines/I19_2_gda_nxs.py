@@ -1,6 +1,7 @@
 """
 Create a NeXus file for time-resolved collections on I19-2 using parameters passed from GDA.
 """
+
 from __future__ import annotations
 
 import logging
@@ -287,20 +288,24 @@ def write_nxs(**tr_params):
         exposure_time=tr_params["exposure_time"],
         wavelength=tr_params["wavelength"],
         beam_center=tr_params["beam_center"],
-        start_time=tr_params["start_time"].strftime("%Y-%m-%dT%H:%M:%S")  #
-        if tr_params["start_time"]
-        else None,  # This should be datetiem type
-        stop_time=tr_params["stop_time"].strftime(
-            "%Y-%m-%dT%H:%M:%S"
-        )  # .strftime("%Y-%m-%dT%H:%M:%S")
-        if tr_params["stop_time"]
-        else None,  # idem.
-        geometry_json=tr_params["geometry_json"]
-        if tr_params["geometry_json"]
-        else None,
-        detector_json=tr_params["detector_json"]
-        if tr_params["detector_json"]
-        else None,
+        start_time=(
+            tr_params["start_time"].strftime("%Y-%m-%dT%H:%M:%S")  #
+            if tr_params["start_time"]
+            else None
+        ),  # This should be datetiem type
+        stop_time=(
+            tr_params["stop_time"].strftime(
+                "%Y-%m-%dT%H:%M:%S"
+            )  # .strftime("%Y-%m-%dT%H:%M:%S")
+            if tr_params["stop_time"]
+            else None
+        ),  # idem.
+        geometry_json=(
+            tr_params["geometry_json"] if tr_params["geometry_json"] else None
+        ),
+        detector_json=(
+            tr_params["detector_json"] if tr_params["detector_json"] else None
+        ),
     )
 
     # Define a file handler

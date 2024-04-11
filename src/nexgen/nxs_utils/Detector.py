@@ -1,6 +1,7 @@
 """
 Object definition for detectors.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -245,9 +246,9 @@ class JungfrauDetector(DataClassJsonMixin):
         return False
 
 
-DetectorType = Union[EigerDetector, TristanDetector,
-                     SinglaDetector, JungfrauDetector,
-                     CetaDetector]
+DetectorType = Union[
+    EigerDetector, TristanDetector, SinglaDetector, JungfrauDetector, CetaDetector
+]
 
 
 @dataclass

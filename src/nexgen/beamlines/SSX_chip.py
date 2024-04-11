@@ -1,6 +1,7 @@
 """
 Tools to read a chip and compute the coordinates of a Serial Crystallography collection.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field

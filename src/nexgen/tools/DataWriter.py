@@ -1,6 +1,7 @@
 """
 General tools for blank data writing.
 """
+
 from __future__ import annotations
 
 import logging
