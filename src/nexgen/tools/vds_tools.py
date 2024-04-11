@@ -16,7 +16,7 @@ import numpy as np
 from numpy.typing import DTypeLike
 
 from ..utils import MAX_FRAMES_PER_DATASET
-from .Constants import jungfrau_fill_value, jungfrau_gap_size, jungfrau_mod_size
+from .constants import jungfrau_fill_value, jungfrau_gap_size, jungfrau_mod_size
 
 vds_logger = logging.getLogger("nexgen.VDSWriter")
 

@@ -15,7 +15,7 @@ from nexgen.nxs_utils import (
     Source,
     TransformationType,
 )
-from nexgen.nxs_write.NXmxWriter import NXmxFileWriter
+from nexgen.nxs_write.nx_mx_writer import NXmxFileWriter
 
 dummy_config = """{
     "nimages": 90,

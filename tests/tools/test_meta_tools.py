@@ -5,8 +5,8 @@ import numpy as np
 import pytest
 
 from nexgen.nxs_utils import Axis, TransformationType
-from nexgen.tools.Metafile import DectrisMetafile, TristanMetafile
-from nexgen.tools.MetaReader import (
+from nexgen.tools.metafile import DectrisMetafile, TristanMetafile
+from nexgen.tools.meta_reader import (
     define_vds_data_type,
     overwrite_beam,
     update_axes_from_meta,

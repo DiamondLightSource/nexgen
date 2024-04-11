@@ -15,8 +15,8 @@ import h5py
 import numpy as np
 
 from .. import log
-from ..tools.DataWriter import generate_event_files, generate_image_files
-from ..tools.MetaReader import overwrite_beam, overwrite_detector
+from ..tools.data_writer import generate_event_files, generate_image_files
+from ..tools.meta_reader import overwrite_beam, overwrite_detector
 from ..utils import (
     get_filename_template,
     get_iso_timestamp,

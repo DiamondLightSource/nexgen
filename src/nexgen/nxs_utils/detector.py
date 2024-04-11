@@ -10,7 +10,7 @@ from typing import Dict, List, Literal, Tuple, Union
 from dataclasses_json import DataClassJsonMixin
 
 from ..utils import Point3D
-from .Axes import Axis
+from .axes import Axis
 
 
 class UnknownDetectorTypeError(Exception):

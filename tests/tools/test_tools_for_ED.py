@@ -6,8 +6,8 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from nexgen.tools.DataWriter import build_an_eiger
-from nexgen.tools.ED_tools import (
+from nexgen.tools.data_writer import build_an_eiger
+from nexgen.tools.ed_tools import (
     SinglaMaster,
     centroid_max,
     extract_detector_info_from_master,

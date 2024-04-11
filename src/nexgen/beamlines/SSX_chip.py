@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
-from ..nxs_utils.ScanUtils import ScanDirection
+from ..nxs_utils.scan_utils import ScanDirection
 
 # I24 chip tools
 

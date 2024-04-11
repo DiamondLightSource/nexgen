@@ -15,7 +15,7 @@ from nexgen.nxs_utils import (
     TransformationType,
     TristanDetector,
 )
-from nexgen.nxs_write.NXclassWriters import (
+from nexgen.nxs_write.nx_class_writers import (
     write_NXcollection,
     write_NXcoordinate_system_set,
     write_NXdata,
@@ -455,7 +455,7 @@ def test_write_NXdetector_for_eiger_images_without_meta_file(
     assert "detector_z" in list(dummy_nexus_file[det].keys())
 
 
-@patch("nexgen.nxs_write.NXclassWriters.write_NXcollection")
+@patch("nexgen.nxs_write.nx_class_writers.write_NXcollection")
 def test_write_NXdetector_for_eiger_images_with_meta_file(
     mock_nxcoll_writer,
     dummy_nexus_file,

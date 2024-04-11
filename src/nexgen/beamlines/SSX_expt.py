@@ -14,7 +14,7 @@ from typing import Dict, List, Tuple
 import numpy as np
 
 from ..nxs_utils import Axis, TransformationType
-from ..nxs_utils.ScanUtils import calculate_scan_points
+from ..nxs_utils.scan_utils import calculate_scan_points
 from .beamline_utils import PumpProbe
 from .SSX_chip import (
     Chip,
