@@ -1,6 +1,7 @@
 """
 Tools to extract metadata for Electron Diffraction.
 """
+
 from __future__ import annotations
 
 import logging

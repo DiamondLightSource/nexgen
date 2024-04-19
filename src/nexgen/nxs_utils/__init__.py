@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from .Axes import Axis, TransformationType
-from .Detector import (
+from .axes import Axis, TransformationType
+from .detector import (
     CetaDetector,
     Detector,
     DetectorModule,
@@ -11,9 +11,9 @@ from .Detector import (
     SinglaDetector,
     TristanDetector,
 )
-from .Goniometer import Goniometer
-from .Sample import Sample
-from .Source import Attenuator, Beam, Facility, Source
+from .goniometer import Goniometer
+from .sample import Sample
+from .source import Attenuator, Beam, Facility, Source
 
 __all__ = [
     "Axis",
@@ -32,5 +32,5 @@ __all__ = [
     "Sample",
     "TransformationType",
     "Facility",
-    'CetaDetector'
+    "CetaDetector",
 ]

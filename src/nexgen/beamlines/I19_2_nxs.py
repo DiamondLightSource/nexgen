@@ -1,6 +1,7 @@
 """
 Create a NeXus file for time-resolved collections on I19-2.
 """
+
 from __future__ import annotations
 
 import logging
@@ -23,10 +24,10 @@ from ..nxs_utils import (
     Source,
     TristanDetector,
 )
-from ..nxs_utils.ScanUtils import calculate_scan_points, identify_osc_axis
-from ..nxs_write.NXmxWriter import EventNXmxFileWriter, NXmxFileWriter
-from ..tools.Metafile import DectrisMetafile
-from ..tools.MetaReader import define_vds_data_type, update_axes_from_meta
+from ..nxs_utils.scan_utils import calculate_scan_points, identify_osc_axis
+from ..nxs_write.nxmx_writer import EventNXmxFileWriter, NXmxFileWriter
+from ..tools.meta_reader import define_vds_data_type, update_axes_from_meta
+from ..tools.metafile import DectrisMetafile
 from ..utils import find_in_dict, get_iso_timestamp, get_nexus_filename
 from .beamline_utils import collection_summary_log
 
@@ -439,13 +440,13 @@ def nexus_writer(
         metafile=Path(meta_file).expanduser().resolve(),
         detector_name=detector_name.lower(),
         exposure_time=exposure_time,
-        beam_center=params["beam_center"]
-        if find_in_dict("beam_center", params)
-        else (0, 0),
+        beam_center=(
+            params["beam_center"] if find_in_dict("beam_center", params) else (0, 0)
+        ),
         wavelength=params["wavelength"] if find_in_dict("wavelength", params) else None,
-        transmission=params["transmission"]
-        if find_in_dict("transmission", params)
-        else None,
+        transmission=(
+            params["transmission"] if find_in_dict("transmission", params) else None
+        ),
         tot_num_images=params["n_imgs"] if find_in_dict("n_imgs", params) else None,
         scan_axis=scan_axis,
     )

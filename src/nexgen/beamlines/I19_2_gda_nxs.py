@@ -1,6 +1,7 @@
 """
 Create a NeXus file for time-resolved collections on I19-2 using parameters passed from GDA.
 """
+
 from __future__ import annotations
 
 import logging
@@ -21,9 +22,9 @@ from ..nxs_utils import (
     Source,
     TristanDetector,
 )
-from ..nxs_utils.Detector import DetectorType, UnknownDetectorTypeError
-from ..nxs_utils.ScanUtils import calculate_scan_points
-from ..nxs_write.NXmxWriter import EventNXmxFileWriter, NXmxFileWriter
+from ..nxs_utils.detector import DetectorType, UnknownDetectorTypeError
+from ..nxs_utils.scan_utils import calculate_scan_points
+from ..nxs_write.nxmx_writer import EventNXmxFileWriter, NXmxFileWriter
 from ..utils import get_iso_timestamp, get_nexus_filename
 from .beamline_utils import BeamlineAxes, collection_summary_log
 from .GDAtools.ExtendedRequest import (
@@ -287,20 +288,24 @@ def write_nxs(**tr_params):
         exposure_time=tr_params["exposure_time"],
         wavelength=tr_params["wavelength"],
         beam_center=tr_params["beam_center"],
-        start_time=tr_params["start_time"].strftime("%Y-%m-%dT%H:%M:%S")  #
-        if tr_params["start_time"]
-        else None,  # This should be datetiem type
-        stop_time=tr_params["stop_time"].strftime(
-            "%Y-%m-%dT%H:%M:%S"
-        )  # .strftime("%Y-%m-%dT%H:%M:%S")
-        if tr_params["stop_time"]
-        else None,  # idem.
-        geometry_json=tr_params["geometry_json"]
-        if tr_params["geometry_json"]
-        else None,
-        detector_json=tr_params["detector_json"]
-        if tr_params["detector_json"]
-        else None,
+        start_time=(
+            tr_params["start_time"].strftime("%Y-%m-%dT%H:%M:%S")  #
+            if tr_params["start_time"]
+            else None
+        ),  # This should be datetiem type
+        stop_time=(
+            tr_params["stop_time"].strftime(
+                "%Y-%m-%dT%H:%M:%S"
+            )  # .strftime("%Y-%m-%dT%H:%M:%S")
+            if tr_params["stop_time"]
+            else None
+        ),  # idem.
+        geometry_json=(
+            tr_params["geometry_json"] if tr_params["geometry_json"] else None
+        ),
+        detector_json=(
+            tr_params["detector_json"] if tr_params["detector_json"] else None
+        ),
     )
 
     # Define a file handler

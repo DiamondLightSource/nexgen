@@ -13,7 +13,7 @@ from numpy.typing import DTypeLike
 
 from ..nxs_utils import Axis
 from ..utils import ScopeExtract, units_of_length
-from .Metafile import DectrisMetafile, TristanMetafile
+from .metafile import DectrisMetafile, TristanMetafile
 
 # TODO actually define the type for scope extract and replace Any with Union
 overwrite_logger = logging.getLogger("nexgen.MetaReader")

@@ -6,8 +6,8 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from nexgen.tools.DataWriter import build_an_eiger
-from nexgen.tools.ED_tools import (
+from nexgen.tools.data_writer import build_an_eiger
+from nexgen.tools.ed_tools import (
     SinglaMaster,
     centroid_max,
     extract_detector_info_from_master,
@@ -49,9 +49,9 @@ def dummy_singla_master_file():
         ] = "2023-12-06T10:30:42.039+02:00"
         test_master_file["/entry/instrument/detector/description/"] = b"Dectris Singla"
         test_master_file["/entry/instrument/detector/pixel_mask_applied"] = False
-        test_master_file[
-            "/entry/instrument/detector/detectorSpecific/flatfield"
-        ] = test_flatfield
+        test_master_file["/entry/instrument/detector/detectorSpecific/flatfield"] = (
+            test_flatfield
+        )
         test_master_file[
             "/entry/instrument/detector/detectorSpecific/software_version"
         ] = b"0.0.0"

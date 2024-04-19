@@ -1,6 +1,7 @@
 """
 Writer functions for different groups of a NeXus file.
 """
+
 from __future__ import annotations
 
 import logging
@@ -494,6 +495,9 @@ def write_NXdetector(
     # Count time
     exp_time = units_of_time(detector.exp_time)
     nxdetector.create_dataset("count_time", data=exp_time.magnitude)
+    create_attributes(
+        nxdetector["count_time"], ("units",), (format(exp_time.units, "~"),)
+    )
 
     # If detector mode is images write overload and underload
     if collection_mode == "images":
@@ -548,12 +552,12 @@ def write_NXdetector(
     )
 
     # Check if there are any remaining datasets to be written (usually from the meta file but not always)
+    others_with_units = {"detector_readout_time": "s", "threshold_energy": "eV"}
     others = [
-        "threshold_energy",
         "bit_depth_image",
-        "detector_number",
-        "detector_readout_time",
+        "serial_number",
         "photon_energy",
+        *others_with_units.keys(),
     ]
     for dset in others:
         if (
@@ -567,6 +571,10 @@ def write_NXdetector(
             )
             if val is not None:
                 nxdetector.create_dataset(dset, data=val)
+                if dset in others_with_units.keys():
+                    create_attributes(
+                        nxdetector[dset], ("units",), (others_with_units[dset],)
+                    )
 
 
 # NXdetector_module writer
@@ -752,7 +760,14 @@ def write_NXcollection(
                 "software_version",
                 data=np.string_(detector_params.constants["software_version"]),
             )
-    if "TRISTAN" in detector_params.description.upper():
+    if "EIGER" in detector_params.description.upper() and meta:
+        for k, v in {
+            "data_collection_date": "/_dectris/data_collection_date",
+            "eiger_fw_version": "/_dectris/eiger_fw_version",
+            "ntrigger": "/_dectris/ntrigger",
+        }:
+            grp[k] = h5py.ExternalLink(meta.name, v)
+    elif "TRISTAN" in detector_params.description.upper():
         tick = ureg.Quantity(detector_params.constants["detector_tick"])
         grp.create_dataset("detector_tick", data=tick.magnitude)
         grp["detector_tick"].attrs["units"] = np.string_(format(tick.units, "~"))

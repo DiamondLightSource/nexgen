@@ -1,6 +1,7 @@
 """
 A writer for NXmx format NeXus Files.
 """
+
 from __future__ import annotations
 
 import logging
@@ -13,10 +14,10 @@ import h5py
 import numpy as np
 from numpy.typing import DTypeLike
 
-from ..nxs_utils.Detector import Detector
-from ..nxs_utils.Goniometer import Goniometer
-from ..nxs_utils.Source import Attenuator, Beam, Source
-from ..tools.VDS_tools import (
+from ..nxs_utils.detector import Detector
+from ..nxs_utils.goniometer import Goniometer
+from ..nxs_utils.source import Attenuator, Beam, Source
+from ..tools.vds_tools import (
     clean_unused_links,
     image_vds_writer,
     jungfrau_vds_writer,
@@ -28,7 +29,7 @@ from ..utils import (
     coord2mcstas,
     get_filename_template,
 )
-from .NXclassWriters import (
+from .nxclass_writers import (
     write_NXcoordinate_system_set,
     write_NXdata,
     write_NXdatetime,

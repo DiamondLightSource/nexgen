@@ -1,6 +1,7 @@
 """
 General tools for blank data writing.
 """
+
 from __future__ import annotations
 
 import logging
@@ -13,7 +14,7 @@ import numpy as np
 from hdf5plugin import Bitshuffle
 from numpy.typing import ArrayLike
 
-from .Constants import (
+from .constants import (
     clock_freq,
     eiger_gap_size,
     eiger_mod_size,

@@ -5,7 +5,7 @@ from nexgen.command_line.cli_utils import (
     set_detector_params,
     split_arrays,
 )
-from nexgen.nxs_utils.Detector import UnknownDetectorTypeError
+from nexgen.nxs_utils.detector import UnknownDetectorTypeError
 
 test_goniometer_small = {
     "axes": ["alpha", "sam_z"],

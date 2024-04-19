@@ -1,6 +1,7 @@
 """
 Create a NeXus file for serial crystallography datasets collected on Tristan10M detector either on I19-2 or I24 beamlines.
 """
+
 from __future__ import annotations
 
 import logging
@@ -9,7 +10,7 @@ from pathlib import Path
 
 from .. import log
 from ..nxs_utils import Attenuator, Beam, Detector, Goniometer, Source, TristanDetector
-from ..nxs_write.NXmxWriter import EventNXmxFileWriter
+from ..nxs_write.nxmx_writer import EventNXmxFileWriter
 from ..utils import Point3D, find_in_dict, get_iso_timestamp
 from .beamline_utils import collection_summary_log
 
@@ -71,31 +72,45 @@ def ssx_tristan_writer(
 
     # Get info from the beamline
     SSX_TR = ssx_tr_collect(
-        exposure_time=float(ssx_params["exp_time"])
-        if find_in_dict("exp_time", ssx_params)
-        else None,
-        detector_distance=float(ssx_params["det_dist"])
-        if find_in_dict("det_dist", ssx_params)
-        else None,
-        beam_center=ssx_params["beam_center"]
-        if find_in_dict("beam_center", ssx_params)
-        else (0, 0),
-        transmission=float(ssx_params["transmission"])
-        if find_in_dict("transmission", ssx_params)
-        else None,
-        wavelength=float(ssx_params["wavelength"])
-        if find_in_dict("wavelength", ssx_params)
-        else None,
-        start_time=ssx_params["start_time"].strftime("%Y-%m-%dT%H:%M:%S")
-        if ssx_params["start_time"]
-        else None,  # This should be datetiem type
-        stop_time=ssx_params["stop_time"].strftime("%Y-%m-%dT%H:%M:%S")
-        if ssx_params["stop_time"]
-        else None,  # idem.
+        exposure_time=(
+            float(ssx_params["exp_time"])
+            if find_in_dict("exp_time", ssx_params)
+            else None
+        ),
+        detector_distance=(
+            float(ssx_params["det_dist"])
+            if find_in_dict("det_dist", ssx_params)
+            else None
+        ),
+        beam_center=(
+            ssx_params["beam_center"]
+            if find_in_dict("beam_center", ssx_params)
+            else (0, 0)
+        ),
+        transmission=(
+            float(ssx_params["transmission"])
+            if find_in_dict("transmission", ssx_params)
+            else None
+        ),
+        wavelength=(
+            float(ssx_params["wavelength"])
+            if find_in_dict("wavelength", ssx_params)
+            else None
+        ),
+        start_time=(
+            ssx_params["start_time"].strftime("%Y-%m-%dT%H:%M:%S")
+            if ssx_params["start_time"]
+            else None
+        ),  # This should be datetiem type
+        stop_time=(
+            ssx_params["stop_time"].strftime("%Y-%m-%dT%H:%M:%S")
+            if ssx_params["stop_time"]
+            else None
+        ),  # idem.
         chipmap=ssx_params["chipmap"] if find_in_dict("chipmap", ssx_params) else None,
-        chip_info=ssx_params["chip_info"]
-        if find_in_dict("chip_info", ssx_params)
-        else None,
+        chip_info=(
+            ssx_params["chip_info"] if find_in_dict("chip_info", ssx_params) else None
+        ),
     )
 
     visitpath = Path(visitpath).expanduser().resolve()

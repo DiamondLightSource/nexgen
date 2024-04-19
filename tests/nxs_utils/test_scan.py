@@ -2,8 +2,8 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
 
-from nexgen.nxs_utils.Axes import Axis, TransformationType
-from nexgen.nxs_utils.ScanUtils import (
+from nexgen.nxs_utils.axes import Axis, TransformationType
+from nexgen.nxs_utils.scan_utils import (
     ScanAxisError,
     ScanAxisNotFoundError,
     calculate_scan_points,

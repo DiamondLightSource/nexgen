@@ -1,6 +1,7 @@
 """
 Utilities for axes definition
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass

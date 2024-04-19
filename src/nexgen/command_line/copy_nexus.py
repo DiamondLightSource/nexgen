@@ -10,7 +10,7 @@ from pathlib import Path
 import freephil
 
 from .. import log
-from ..nxs_copy import CopyNexus, CopyTristanNexus
+from ..nxs_copy import copy_nexus, copy_tristan_nexus
 from . import config_parser, full_copy_parser, tristan_copy_parser, version_parser
 
 # Define a logger object and a formatter
@@ -102,14 +102,14 @@ def copy_nexus(args):
         )
     try:
         if params.input.data_type == "images":
-            new_nxs = CopyNexus.images_nexus(
+            new_nxs = copy_nexus.images_nexus(
                 data_file,
                 nexus_file,
                 simple_copy=params.input.simple_copy,
                 skip_group=params.input.skip,
             )
         elif params.input.data_type == "events":
-            new_nxs = CopyNexus.pseudo_events_nexus(
+            new_nxs = copy_nexus.pseudo_events_nexus(
                 data_file,
                 nexus_file,
             )
@@ -147,7 +147,7 @@ def copy_tristan_nexus(args):
                 "This means either a single image or a pump-probe experiment.\n"
                 "The 'scan_axis' will be a single scalar."
             )
-            nxs_img = CopyTristanNexus.single_image_nexus(
+            nxs_img = copy_tristan_nexus.single_image_nexus(
                 data_file[0],
                 nexus_file,
                 params.input.write_mode,
@@ -172,7 +172,7 @@ def copy_tristan_nexus(args):
                 )
 
             for filename in data_file:
-                nxs_img = CopyTristanNexus.multiple_images_nexus(
+                nxs_img = copy_tristan_nexus.multiple_images_nexus(
                     filename,
                     nexus_file,
                     params.input.write_mode,
