@@ -13,7 +13,7 @@ from numpy.typing import ArrayLike
 from ..beamlines.beamline_utils import PumpProbe
 from ..beamlines.SSX_chip import Chip, compute_goniometer
 from ..nxs_utils import Axis, TransformationType
-from ..nxs_utils.ScanUtils import calculate_scan_points
+from ..nxs_utils.scan_utils import calculate_scan_points
 from ..nxs_write.write_utils import create_attributes
 from ..utils import units_of_length, walk_nxs
 

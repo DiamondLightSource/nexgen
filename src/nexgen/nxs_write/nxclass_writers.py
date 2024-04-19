@@ -1,6 +1,7 @@
 """
 Writer functions for different groups of a NeXus file.
 """
+
 from __future__ import annotations
 
 import logging

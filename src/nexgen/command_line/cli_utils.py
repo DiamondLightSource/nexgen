@@ -1,6 +1,7 @@
 """
 Writer for NeXus format files.
 """
+
 from __future__ import annotations
 
 import logging
@@ -23,8 +24,8 @@ from ..nxs_utils import (
     TransformationType,
     TristanDetector,
 )
-from ..nxs_utils.Detector import EIGER_CONST, UnknownDetectorTypeError
-from ..nxs_write.NXmxWriter import EventNXmxFileWriter, NXmxFileWriter
+from ..nxs_utils.detector import EIGER_CONST, UnknownDetectorTypeError
+from ..nxs_write.nxmx_writer import EventNXmxFileWriter, NXmxFileWriter
 from ..utils import coerce_to_path, coord2mcstas, imgcif2mcstas
 
 logger = logging.getLogger("nexgen.cli_utils")

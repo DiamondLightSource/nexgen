@@ -10,10 +10,10 @@ from typing import Dict, List
 
 from .. import log
 from ..nxs_utils import Attenuator, Beam, Detector, Goniometer, SinglaDetector
-from ..nxs_utils.ScanUtils import calculate_scan_points
-from ..nxs_write.NXmxWriter import EDNXmxFileWriter
+from ..nxs_utils.scan_utils import calculate_scan_points
+from ..nxs_write.nxmx_writer import EDNXmxFileWriter
 from ..nxs_write.write_utils import find_number_of_images
-from ..tools.ED_tools import (
+from ..tools.ed_tools import (
     extract_detector_info_from_master,
     extract_exposure_time_from_master,
     extract_start_time_from_master,

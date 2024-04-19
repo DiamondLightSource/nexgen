@@ -1,6 +1,7 @@
 """
 General tools useful to create NeXus format files.
 """
+
 from __future__ import annotations
 
 __author__ = "Diamond Light Source - Scientific Software"

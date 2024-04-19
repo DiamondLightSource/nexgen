@@ -1,6 +1,7 @@
 """
 Create a NeXus file for serial crystallography datasets collected on Eiger detector either on I19-2 or I24 beamlines.
 """
+
 from __future__ import annotations
 
 import logging
@@ -11,9 +12,9 @@ import h5py
 
 from .. import log
 from ..nxs_utils import Attenuator, Beam, Detector, EigerDetector, Goniometer, Source
-from ..nxs_write.NXmxWriter import NXmxFileWriter
-from ..tools.Metafile import DectrisMetafile
-from ..tools.MetaReader import define_vds_data_type, update_axes_from_meta
+from ..nxs_write.nxmx_writer import NXmxFileWriter
+from ..tools.meta_reader import define_vds_data_type, update_axes_from_meta
+from ..tools.metafile import DectrisMetafile
 from ..utils import find_in_dict, get_iso_timestamp
 from .beamline_utils import PumpProbe, collection_summary_log
 
@@ -91,31 +92,39 @@ def ssx_eiger_writer(
 
     SSX = ssx_collect(
         num_imgs=int(num_imgs),
-        exposure_time=ssx_params["exp_time"]
-        if find_in_dict("exp_time", ssx_params)
-        else None,
-        detector_distance=ssx_params["det_dist"]
-        if find_in_dict("det_dist", ssx_params)
-        else None,
-        beam_center=ssx_params["beam_center"]
-        if find_in_dict("beam_center", ssx_params)
-        else (0, 0),
-        transmission=ssx_params["transmission"]
-        if find_in_dict("transmission", ssx_params)
-        else None,
-        wavelength=ssx_params["wavelength"]
-        if find_in_dict("wavelength", ssx_params)
-        else None,
+        exposure_time=(
+            ssx_params["exp_time"] if find_in_dict("exp_time", ssx_params) else None
+        ),
+        detector_distance=(
+            ssx_params["det_dist"] if find_in_dict("det_dist", ssx_params) else None
+        ),
+        beam_center=(
+            ssx_params["beam_center"]
+            if find_in_dict("beam_center", ssx_params)
+            else (0, 0)
+        ),
+        transmission=(
+            ssx_params["transmission"]
+            if find_in_dict("transmission", ssx_params)
+            else None
+        ),
+        wavelength=(
+            ssx_params["wavelength"] if find_in_dict("wavelength", ssx_params) else None
+        ),
         flux=ssx_params["flux"] if find_in_dict("flux", ssx_params) else None,
-        start_time=ssx_params["start_time"].strftime("%Y-%m-%dT%H:%M:%S")
-        if ssx_params["start_time"]
-        else None,
-        stop_time=ssx_params["stop_time"].strftime("%Y-%m-%dT%H:%M:%S")
-        if ssx_params["stop_time"]
-        else None,
-        chip_info=ssx_params["chip_info"]
-        if find_in_dict("chip_info", ssx_params)
-        else None,
+        start_time=(
+            ssx_params["start_time"].strftime("%Y-%m-%dT%H:%M:%S")
+            if ssx_params["start_time"]
+            else None
+        ),
+        stop_time=(
+            ssx_params["stop_time"].strftime("%Y-%m-%dT%H:%M:%S")
+            if ssx_params["stop_time"]
+            else None
+        ),
+        chip_info=(
+            ssx_params["chip_info"] if find_in_dict("chip_info", ssx_params) else None
+        ),
         chipmap=ssx_params["chipmap"] if find_in_dict("chipmap", ssx_params) else None,
     )
 

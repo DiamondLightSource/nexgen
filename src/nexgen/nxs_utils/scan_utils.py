@@ -14,7 +14,7 @@ from scanspec.core import Path as ScanPath
 from scanspec.specs import Line
 
 from .. import log
-from .Axes import Axis
+from .axes import Axis
 
 scan_logger = logging.getLogger("nexgen.ScanUtils")
 log.config()

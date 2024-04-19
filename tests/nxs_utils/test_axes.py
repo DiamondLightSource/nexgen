@@ -1,6 +1,6 @@
 from numpy.testing import assert_array_equal
 
-from nexgen.nxs_utils.Axes import Axis, TransformationType
+from nexgen.nxs_utils.axes import Axis, TransformationType
 from nexgen.utils import Point3D
 
 test_rot_axis = Axis("omega", ".", TransformationType.ROTATION, Point3D(0, 0, -1), -90)

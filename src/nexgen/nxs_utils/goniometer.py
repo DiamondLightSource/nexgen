@@ -8,8 +8,8 @@ from typing import Dict, List, Tuple
 
 from numpy.typing import ArrayLike
 
-from .Axes import Axis
-from .ScanUtils import (
+from .axes import Axis
+from .scan_utils import (
     GridScanOptions,
     ScanDirection,
     calculate_scan_points,

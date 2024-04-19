@@ -1,13 +1,14 @@
 """
 Tools to read a chip and compute the coordinates of a Serial Crystallography collection.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
-from ..nxs_utils.ScanUtils import ScanDirection
+from ..nxs_utils.scan_utils import ScanDirection
 
 # I24 chip tools
 

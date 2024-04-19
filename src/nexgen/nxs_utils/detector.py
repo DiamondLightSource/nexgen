@@ -1,6 +1,7 @@
 """
 Object definition for detectors.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -9,7 +10,7 @@ from typing import Dict, List, Literal, Tuple, Union
 from dataclasses_json import DataClassJsonMixin
 
 from ..utils import Point3D
-from .Axes import Axis
+from .axes import Axis
 
 
 class UnknownDetectorTypeError(Exception):
@@ -245,9 +246,9 @@ class JungfrauDetector(DataClassJsonMixin):
         return False
 
 
-DetectorType = Union[EigerDetector, TristanDetector,
-                     SinglaDetector, JungfrauDetector,
-                     CetaDetector]
+DetectorType = Union[
+    EigerDetector, TristanDetector, SinglaDetector, JungfrauDetector, CetaDetector
+]
 
 
 @dataclass

@@ -5,7 +5,7 @@ import h5py
 import numpy as np
 import pytest
 
-from nexgen.tools.VDS_tools import (
+from nexgen.tools.vds_tools import (
     Dataset,
     create_virtual_layout,
     find_datasets_in_file,

@@ -1,6 +1,7 @@
 """
 Tools to extract goniometer and detector parameters from GDA JSON files.
 """
+
 from __future__ import annotations
 
 import json
@@ -8,7 +9,7 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 
 from nexgen.nxs_utils import Axis, EigerDetector, TransformationType, TristanDetector
-from nexgen.nxs_utils.Detector import DetectorType, UnknownDetectorTypeError
+from nexgen.nxs_utils.detector import DetectorType, UnknownDetectorTypeError
 from nexgen.utils import Point3D
 
 

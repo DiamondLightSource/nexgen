@@ -1,6 +1,7 @@
 """
 Define a Metafile object to describe the _meta.h5 file and get the necessary information from it.
 """
+
 from __future__ import annotations
 
 import re

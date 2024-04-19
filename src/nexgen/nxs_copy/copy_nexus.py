@@ -1,6 +1,7 @@
 """
 General tools to copy metadata from NeXus files.
 """
+
 from __future__ import annotations
 
 import logging

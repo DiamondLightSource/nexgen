@@ -1,6 +1,6 @@
 import pytest
 
-from nexgen.nxs_utils.Source import Attenuator, Beam, Facility, Source
+from nexgen.nxs_utils.source import Attenuator, Beam, Facility, Source
 
 test_beam = Beam(0.6)
 
