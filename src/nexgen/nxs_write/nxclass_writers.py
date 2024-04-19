@@ -515,7 +515,6 @@ def write_NXdetector(
 
     # Write NXtransformations: entry/instrument/detector/transformations/detector_z and two_theta
     write_NXtransformations(nxdetector, detector.detector_axes)
-
     # NXdetector depends on the last (often only) axis in the list
     det_dep = set_dependency(
         detector.detector_axes[-1].name,
@@ -765,7 +764,7 @@ def write_NXcollection(
             "data_collection_date": "/_dectris/data_collection_date",
             "eiger_fw_version": "/_dectris/eiger_fw_version",
             "ntrigger": "/_dectris/ntrigger",
-        }:
+        }.items():
             grp[k] = h5py.ExternalLink(meta.name, v)
     elif "TRISTAN" in detector_params.description.upper():
         tick = ureg.Quantity(detector_params.constants["detector_tick"])
