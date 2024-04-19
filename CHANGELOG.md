@@ -7,6 +7,10 @@
 ## Fixed
 - Typos in SSX scripts
 
+
+## Added
+- Added missing NXdetector fields for Eiger
+
 ## 0.8.6
 
 ### Fixed
