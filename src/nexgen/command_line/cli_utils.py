@@ -25,7 +25,7 @@ from ..nxs_utils import (
     TristanDetector,
 )
 from ..nxs_utils.detector import EIGER_CONST, UnknownDetectorTypeError
-from ..nxs_write.nx_mx_writer import EventNXmxFileWriter, NXmxFileWriter
+from ..nxs_write.nxmx_writer import EventNXmxFileWriter, NXmxFileWriter
 from ..utils import coerce_to_path, coord2mcstas, imgcif2mcstas
 
 logger = logging.getLogger("nexgen.cli_utils")

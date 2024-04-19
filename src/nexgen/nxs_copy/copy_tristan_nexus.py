@@ -10,7 +10,7 @@ from pathlib import Path
 import h5py
 import numpy as np
 
-from ..nxs_write.nx_class_writers import write_NXnote
+from ..nxs_write.nxclass_writers import write_NXnote
 from ..nxs_write.write_utils import create_attributes
 from .copy_utils import (
     check_and_fix_det_axis,

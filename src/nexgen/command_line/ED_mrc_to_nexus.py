@@ -12,7 +12,7 @@ import numpy as np
 from nexgen.beamlines.ED_params import ED_coord_system, EDCeta, EDSource
 from nexgen.nxs_utils import Attenuator, Beam, CetaDetector, Detector, Goniometer
 from nexgen.nxs_utils.scan_utils import calculate_scan_points
-from nexgen.nxs_write.nx_mx_writer import EDNXmxFileWriter
+from nexgen.nxs_write.nxmx_writer import EDNXmxFileWriter
 from nexgen.tools.mrc_tools import collect_data, get_metadata
 
 logger = logging.getLogger("nexgen.ED_mrc_to_nexus")

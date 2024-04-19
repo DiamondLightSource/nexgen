@@ -12,7 +12,7 @@ import h5py
 
 from .. import log
 from ..nxs_utils import Attenuator, Beam, Detector, EigerDetector, Goniometer, Source
-from ..nxs_write.nx_mx_writer import NXmxFileWriter
+from ..nxs_write.nxmx_writer import NXmxFileWriter
 from ..tools.meta_reader import define_vds_data_type, update_axes_from_meta
 from ..tools.metafile import DectrisMetafile
 from ..utils import find_in_dict, get_iso_timestamp

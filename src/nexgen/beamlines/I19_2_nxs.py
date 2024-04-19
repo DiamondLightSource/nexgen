@@ -25,7 +25,7 @@ from ..nxs_utils import (
     TristanDetector,
 )
 from ..nxs_utils.scan_utils import calculate_scan_points, identify_osc_axis
-from ..nxs_write.nx_mx_writer import EventNXmxFileWriter, NXmxFileWriter
+from ..nxs_write.nxmx_writer import EventNXmxFileWriter, NXmxFileWriter
 from ..tools.meta_reader import define_vds_data_type, update_axes_from_meta
 from ..tools.metafile import DectrisMetafile
 from ..utils import find_in_dict, get_iso_timestamp, get_nexus_filename

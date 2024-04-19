@@ -29,7 +29,7 @@ from ..utils import (
     coord2mcstas,
     get_filename_template,
 )
-from .nx_class_writers import (
+from .nxclass_writers import (
     write_NXcoordinate_system_set,
     write_NXdata,
     write_NXdatetime,
