@@ -7,6 +7,9 @@
 ### Changed
 - Small CI updates
 
+### Removed
+- Dropped Python 3.9 support
+
 
 ## 0.9.0
 
