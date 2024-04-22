@@ -16,7 +16,7 @@ runs:
 
   steps:
     - name: Setup python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ inputs.python_version }}
 
@@ -26,19 +26,19 @@ runs:
         # -c uses requirements.txt as constraints, see 'Validate requirements file'
         pip install -c ${{ inputs.requirements_file }} ${{ inputs.install_options }}
       shell: bash
-    
+
     - name: Create lockfile
       run: |
         mkdir -p lockfiles
         pip freeze --exclude-editable > lockfiles/${{ inputs.requirements_file }}
         # delete the self referencing line and make sure it isn't blank
-        sed -i '/file:/d' lockfiles/${{ inputs.requirements_file }}
+        sed -i'' -e ' '/file:/d' lockfiles/${{ inputs.requirements_file }}
       shell: bash
 
     - name: Upload lockfiles
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4.0.0
       with:
-        name: lockfiles
+        name: lockfiles-${{ inputs.python_version }}-${{ inputs.artifact_name }}-${{ github.sha }}
         path: lockfiles
 
     # This eliminates the class of problems where the requirements being given no
