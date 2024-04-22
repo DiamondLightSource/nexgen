@@ -7,19 +7,13 @@ import argparse
 import logging
 import shutil
 import sys
+from importlib.resources import files
 from pathlib import Path
 
 import freephil
 
 from .. import log, templates
 from . import config_parser, nexus_parser, version_parser
-
-try:
-    from importlib.resources import files
-except ImportError:
-    # Python < 3.9 compatibility
-    from importlib_resources import files
-
 
 # Define a logger object
 logger = logging.getLogger("nexgen.NeXusGenerator")
