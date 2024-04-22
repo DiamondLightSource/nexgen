@@ -139,7 +139,7 @@ jobs:
 
       - name: Rename lockfiles and dist
         run: |
-          mv lockfiles-${{ env.CONTAINER_PYTHON }}-dist-${{ github.sha }} lockfiles
+          mv lockfiles-${{ env.CONTAINER_PYTHON }}-${{ github.sha }} lockfiles
           mv ${{ env.DIST_WHEEL_PATH }} dist
 
       - name: Fixup blank lockfiles
