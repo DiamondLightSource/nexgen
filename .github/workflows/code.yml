@@ -6,6 +6,9 @@ on:
   schedule:
     # Run weekly to check latest versions of dependencies
     - cron: "0 8 * * WED"
+env:
+  CONTAINER_PYTHON: '3.10'
+  DIST_WHEEL_PATH: dist-${{ github.sha }}
 
 jobs:
   lint:
@@ -42,12 +45,12 @@ jobs:
       fail-fast: false
       matrix:
         os: ["ubuntu-latest"] # can add windows-latest, macos-latest
-        python: ["3.10", "3.11"]
+        python: ["3.11"]
         install: ["-e .[dev]"]
         # Make one version be non-editable to test both paths of version code
         include:
           - os: "ubuntu-latest"
-            python: "3.9"
+            python: "3.10"
             install: ".[dev]"
 
     runs-on: ${{ matrix.os }}
@@ -97,9 +100,9 @@ jobs:
           pipx run build
 
       - name: Upload sdist and wheel as artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.3.1
         with:
-          name: dist
+          name: ${{ env.DIST_WHEEL_PATH }}
           path: dist
 
       - name: Check for packaging errors
@@ -111,6 +114,7 @@ jobs:
           python_version: '3.10'
           requirements_file: requirements.txt
           install_options: dist/*.whl
+          artifact_name: dist
 
       - name: Test module --version works using the installed wheel
         # If more than one module in src/ replace with module name to test
@@ -119,7 +123,7 @@ jobs:
   release:
     # upload to PyPI and make a release on every tag
     needs: [lint, dist, test]
-    if: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags') }}
+    if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
     runs-on: ubuntu-latest
     env:
       HAS_PYPI_TOKEN: ${{ secrets.PYPI_TOKEN != '' }}
@@ -129,7 +133,15 @@ jobs:
       url: https://pypi.org/p/nexgen
 
     steps:
-      - uses: actions/download-artifact@v4
+      - name: Download wheel and lockfiles
+        uses: actions/download-artifact@v4.1.0
+        with:
+          pattern: "*dist*"
+
+      - name: Rename lockfiles and dist
+        run: |
+          mv lockfiles-${{ env.CONTAINER_PYTHON }}-dist-${{ github.sha }} lockfiles
+          mv ${{ env.DIST_WHEEL_PATH }} dist
 
       - name: Fixup blank lockfiles
         # Github release artifacts can't be blank
@@ -138,7 +150,7 @@ jobs:
       - name: Github Release
         # We pin to the SHA, not the tag, for security reasons.
         # https://docs.github.com/en/actions/learn-github-actions/security-hardening-for-github-actions#using-third-party-actions
-        uses: softprops/action-gh-release@d99959edae48b5ffffd7b00da66dcdb0a33a52ee # v0.1.15
+        uses: softprops/action-gh-release@9d7c94cfd0a1f3ed45544c887983e9fa900f0564 # v0.1.15
         with:
           prerelease: ${{ contains(github.ref_name, 'a') || contains(github.ref_name, 'b') || contains(github.ref_name, 'rc') }}
           files: |

@@ -1,14 +1,28 @@
 # CHANGELOG
 
 
-
 ## 0.#.#
 
 ### Changed
 - Removed non-standard NXPositioner fields for axes in NXSample and NXdetector.
 
 
+## 0.9.1
+
+### Changed
+- Small CI updates
+
+### Removed
+- Dropped Python 3.9 support
+
+
+## 0.9.0
+
+### Changed
+- Module names refactored to follow python conventions
+
 ### Added
+- Added missing NXdetector fields for Eiger
 - Command line tool to convert mrc files from Ceta detector for Electron Diffraction.
 - Detector definition for Ceta detector.
 
@@ -18,9 +32,6 @@
 ## Fixed
 - Typos in SSX scripts
 
-
-## Added
-- Added missing NXdetector fields for Eiger
 
 ## 0.8.6
 
