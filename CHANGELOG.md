@@ -2,14 +2,22 @@
 
 
 
+## 0.9.0
+
+### Changed
+- Module names refactored to follow python conventions
+
+### Added
+- Added missing NXdetector fields for Eiger
+- Command line tool to convert mrc files from Ceta detector for Electron Diffraction.
+- Detector definition for Ceta detector.
+
+
 ## 0.8.7
 
 ## Fixed
 - Typos in SSX scripts
 
-
-## Added
-- Added missing NXdetector fields for Eiger
 
 ## 0.8.6
 
