@@ -74,7 +74,7 @@ def ssx_eiger_writer(
         chip_info (Dict): For a grid scan, dictionary containing basic chip information.
             At least it should contain: x/y_start, x/y number of blocks and block size, x/y number of steps and number of exposures.
         chipmap (Path | str): Path to the chipmap file corresponding to the experiment,
-            or 'fullchip' indicating that the whole chip is being scanned.
+            if None for a fixed target experiment, it indicates that the fullchip is being scanned.
         pump_exp (float): Pump exposure time, in s.
         pump_delay (float): Pump delay time, in s.
         osc_axis (str): Oscillation axis. Always omega on I24. If not passed it will default to phi for I19-2.
