@@ -2,6 +2,12 @@
 
 
 
+## 0.9.1
+
+### Changed
+- Small CI updates
+
+
 ## 0.9.0
 
 ### Changed
