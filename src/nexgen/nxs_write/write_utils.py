@@ -334,7 +334,7 @@ def add_sample_axis_groups(nxsample: h5py.Group, axis_list: List[Axis]):
         nx_ax = nxsample.require_group(grp_name)
         # NOTE: if NX_class here could be NXtransformations it would be a small step closer to standard
         # TO BE TESTED
-        create_attributes(nx_ax, ("NX_class",), ("NXpositioner",))
+        create_attributes(nx_ax, ("NX_class",), ("NXtransformations",))
         nx_ax[ax.name] = nxtransf[ax.name]
         if f"{ax.name}_end" in nxtransf.keys():
             nx_ax[f"{ax.name}_end"] = nxtransf[f"{ax.name}_end"]
