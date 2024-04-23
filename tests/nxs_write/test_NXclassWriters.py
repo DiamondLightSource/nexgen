@@ -159,7 +159,7 @@ def test_given_scan_axis_when_write_NXsample_then_scan_axis_data_written_and_lin
     assert f"{test_axis}" in dummy_nexus_file["/entry/data"]
 
 
-def test_given_reverse_rotation_scan_increment_set_and_axis_end_written_correctly(
+def test_given_reverse_rotation_scan_increment_set_and_axis_end_written_correctly_and_old_fields_not_added(
     dummy_nexus_file,
 ):
     test_axis = Axis("phi", ".", TransformationType.ROTATION, (0, 0, -1))
@@ -172,6 +172,7 @@ def test_given_reverse_rotation_scan_increment_set_and_axis_end_written_correctl
         "images",
         test_rw_scan,
         sample_depends_on=test_axis.name,
+        add_old_fields=False,
     )
 
     axis_entry = f"/entry/sample/transformations/{test_axis.name}"
@@ -179,6 +180,8 @@ def test_given_reverse_rotation_scan_increment_set_and_axis_end_written_correctl
     assert_array_equal(dummy_nexus_file[axis_entry][()], [10.0, 9.5, 9.0, 8.5])
     assert_array_equal(dummy_nexus_file[axis_entry + "_increment_set"][()], -0.5)
     assert_array_equal(dummy_nexus_file[axis_entry + "_end"][()], [9.5, 9.0, 8.5, 8.0])
+
+    assert "sample_phi" not in dummy_nexus_file["/entry/sample"].keys()
 
 
 def test_sample_depends_on_written_correctly_in_NXsample(
@@ -222,6 +225,37 @@ def test_sample_depends_on_written_correctly_in_NXsample_when_value_not_passed(
 
     assert "depends_on" in dummy_nexus_file["/entry/sample"]
     assert dummy_nexus_file["/entry/sample/depends_on"][()] == test_depends.encode()
+
+
+def test_old_sample_groups_added_correctly_to_NXsample_for_rotation_scan(
+    dummy_nexus_file,
+):
+    test_axes = [
+        Axis("phi", ".", TransformationType.ROTATION, (0, 0, -1)),
+        Axis("sam_z", "phi", TransformationType.TRANSLATION, (0, 0, 1)),
+    ]
+    test_scan = {"phi": np.arange(0, 1, 0.1)}
+    test_gonio = Goniometer(test_axes, test_scan)
+
+    write_NXsample(
+        dummy_nexus_file,
+        test_gonio.axes_list,
+        "images",
+        test_scan,
+        sample_depends_on=test_axes[0].name,
+    )
+
+    sample_path = "/entry/sample/"
+
+    assert "sample_phi" in dummy_nexus_file[sample_path].keys()
+    assert (
+        "sample_z" in dummy_nexus_file[sample_path].keys()
+        and "sam_z" in dummy_nexus_file[sample_path]["sample_z"].keys()
+    )
+    assert_array_equal(
+        dummy_nexus_file[sample_path]["transformations/phi"],
+        dummy_nexus_file[sample_path]["sample_phi/phi"][()],
+    )
 
 
 def test_sample_details_in_NXsample(dummy_nexus_file, mock_goniometer):

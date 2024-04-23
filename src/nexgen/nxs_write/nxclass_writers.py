@@ -31,7 +31,7 @@ from ..utils import (
 )
 from .write_utils import (
     TSdset,
-    # add_sample_axis_groups,
+    add_sample_axis_groups,
     calculate_origin,
     create_attributes,
     mask_and_flatfield_writer,
@@ -214,6 +214,7 @@ def write_NXsample(
     transl_scan: Dict[str, ArrayLike] = None,
     sample_depends_on: str = None,
     sample_details: Dict[str, Any] = None,
+    add_old_fields: bool = True,
 ):
     """
     Write NXsample group at /entry/sample.
@@ -224,8 +225,11 @@ def write_NXsample(
         data_type (str): Images or events.
         osc_scan (Dict[str, ArrayLike]): Rotation scan. If writing events, this is just a (start, end) tuple.
         transl_scan (Dict[str, ArrayLike], optional): Scan along the xy axes at sample. Defaults to None.
-        sample_depends_on (str, optional): Axis on which the sample depends on. If absent, the depends_on field will be set to the last axis listed in the goniometer. Defaults to None.
+        sample_depends_on (str, optional): Axis on which the sample depends on. If absent, the depends_on field \
+            will be set to the last axis listed in the goniometer. Defaults to None.
         sample_details (Dict[str, Any], optional): General information about the sample, eg. name, temperature.
+        add_old_fields (bool, optional): Choose whether to add the old "sample_{x,phi,...}/{x,phi,...}" to the group. \
+            These fields are non-standard but may be needed for processing to run. Defaults to True.
     """
     NXclass_logger.info("Start writing NXsample.")
     # Create NXsample group, unless it already exists, in which case just open it.
@@ -241,6 +245,8 @@ def write_NXsample(
 
     # Create NXtransformations group: /entry/sample/transformations
     write_NXtransformations(nxsample, goniometer_axes, full_scan, data_type)
+    if add_old_fields:
+        add_sample_axis_groups(nxsample, goniometer_axes)
 
     # Save sample depends_on
     if sample_depends_on:
