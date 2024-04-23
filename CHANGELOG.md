@@ -4,7 +4,7 @@
 ## 0.#.#
 
 ### Changed
-- Removed non-standard NXPositioner fields for axes in NXSample and NXdetector.
+- Non-standard "sample_{phi,omega,...}" groups in NXsample made optional.
 
 
 ## 0.9.1
