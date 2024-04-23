@@ -5,7 +5,9 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 
+from nexgen.nxs_write.nxclass_writers import write_NXtransformations
 from nexgen.nxs_write.write_utils import (
+    add_sample_axis_groups,
     calculate_estimated_end_time,
     calculate_origin,
     create_attributes,
@@ -122,3 +124,16 @@ def test_calculate_estimated_end_time_from_datetime():
     timestamp = datetime.strptime("2023-11-15T10:30:42", "%Y-%m-%dT%H:%M:%S")
     est_end_time = calculate_estimated_end_time(timestamp, 20)
     assert est_end_time == "2023-11-15T10:31:02Z"
+
+
+def test_add_non_standard_fields_to_NXsample(dummy_nexus_file, mock_goniometer):
+    nxsample_path = "/entry/sample"
+    nxsample = dummy_nexus_file.require_group(nxsample_path)
+    write_NXtransformations(nxsample, mock_goniometer.axes_list, mock_goniometer.scan)
+    add_sample_axis_groups(nxsample, mock_goniometer.axes_list)
+
+    assert "sample_omega" in list(dummy_nexus_file[nxsample_path].keys())
+    assert "sample_z" in list(dummy_nexus_file[nxsample_path].keys())
+    assert "omega_increment_set" in list(
+        dummy_nexus_file[nxsample_path]["sample_omega"]
+    )
