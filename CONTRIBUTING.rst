@@ -69,6 +69,7 @@ automatically update all the version strings but without pushing the tags. This 
 
 
 .. code-block:: console
+    
     bump2version {major,minor,patch} --no-tag --verbose
     git push
 
