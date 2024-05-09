@@ -69,6 +69,7 @@ jobs:
           python_version: ${{ matrix.python }}
           requirements_file: requirements-test-${{ matrix.os }}-${{ matrix.python }}.txt
           install_options: ${{ matrix.install }}
+          artifact_name: tests
 
       - name: List dependency tree
         run: pipdeptree
@@ -77,7 +78,7 @@ jobs:
         run: pytest
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v3
         # env:
         #   CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:

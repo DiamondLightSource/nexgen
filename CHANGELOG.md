@@ -2,6 +2,14 @@
 
 
 
+## 0.#.#
+
+### Changed
+- Temporarily disabled external links in NXdetector and detectorSpecific groups which may have wrong data type in meta file.
+Currently unavailable fields: `serial_number`, `data_collection_date`, `eiger_fw_version`.
+- More CI fixes
+
+
 ## 0.9.1
 
 ### Changed
@@ -17,7 +25,7 @@
 - Module names refactored to follow python conventions
 
 ### Added
-- Added missing NXdetector fields for Eiger
+- Added missing NXdetector fields for Eiger.
 - Command line tool to convert mrc files from Ceta detector for Electron Diffraction.
 - Detector definition for Ceta detector.
 
