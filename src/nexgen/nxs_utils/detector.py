@@ -29,7 +29,11 @@ EIGER_CONST = {
     "photon_energy": "_dectris/photon_energy",
     "software_version": "_dectris/software_version",
     "ntrigger": "/_dectris/ntrigger",
+    # "serial_number": "/_dectris/detector_number",
+    # "eiger_fw_version": "/_dectris/eiger_fw_version",
+    # "data_collection_date": "/_dectris/data_collection_date",
 }
+# TODO see https://github.com/DiamondLightSource/nexgen/issues/236
 
 TRISTAN_CONST = {
     "flatfield": "Tristan10M_flat_field_coeff_with_Mo_17.479keV.h5",

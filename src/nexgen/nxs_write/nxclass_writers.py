@@ -491,12 +491,14 @@ def write_NXdetector(
                 if k in [
                     "software_version",
                     "ntrigger",
+                    "data_collection_date",
                     "eiger_fw_version",
                     "serial_number",
                 ]:
-                    # NOTE: Software version & ntrigger should go in detectorSpecific (NXcollection)
-                    # eiger_fw_version and serial_number as they are in the meta file will
-                    # kill processing.
+                    # NOTE: Software version, eiger_fw_version ntrigger & date should
+                    # go in detectorSpecific (NXcollection)
+                    # TODO re-enable eiger_fw_version, date & serial_number
+                    # see https://github.com/DiamondLightSource/nexgen/issues/236
                     continue
                 nxdetector[k] = h5py.ExternalLink(meta_link, v)
         else:
@@ -841,9 +843,9 @@ def write_NXcollection(
                 data=np.string_(detector_params.constants["software_version"]),
             )
     if "EIGER" in detector_params.description.upper() and meta:
-        grp["ntrigger"] = h5py.ExternalLink(
-            meta.name, detector_params.constants["ntrigger"]
-        )
+        for field in ["ntrigger"]:  # "data_collection_date", "eiger_fw_version"]
+            # TODO See https://github.com/DiamondLightSource/nexgen/issues/236
+            grp[field] = h5py.ExternalLink(meta.name, detector_params.constants[field])
     elif "TRISTAN" in detector_params.description.upper():
         tick = ureg.Quantity(detector_params.constants["detector_tick"])
         grp.create_dataset("detector_tick", data=tick.magnitude)
