@@ -2,7 +2,7 @@
 
 
 
-## 0.#.#
+## 0.9.2
 
 ### Changed
 - Temporarily disabled external links in NXdetector and detectorSpecific groups which may have wrong data type in meta file.
