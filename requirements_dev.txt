@@ -6,6 +6,6 @@ pint==0.23
 scanspec==0.6.6
 pydantic==1.10.14
 importlib_resources==6.1.1
-pytest==8.1.1
+pytest==8.2.0
 pytest-cov==5.0.0
 pytest-random-order==1.1.1
