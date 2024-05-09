@@ -172,7 +172,7 @@ def test_given_reverse_rotation_scan_increment_set_and_axis_end_written_correctl
         "images",
         test_rw_scan,
         sample_depends_on=test_axis.name,
-        add_old_fields=False,
+        add_nonstandard_fields=False,
     )
 
     axis_entry = f"/entry/sample/transformations/{test_axis.name}"
