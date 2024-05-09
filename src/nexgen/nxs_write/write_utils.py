@@ -321,7 +321,8 @@ def write_compressed_copy(
 
 def add_sample_axis_groups(nxsample: h5py.Group, axis_list: List[Axis]):
     """
-    Add non-standard "sample_{phi,omega,...}" groups to NXsample.
+    Add non-standard "sample_{phi,omega,...}" groups to NXsample. These may be needed for \
+    some autoprocessing tools to work correctly.
 
     Args:
         nxsample (h5py.Group): NeXus NXsample group.

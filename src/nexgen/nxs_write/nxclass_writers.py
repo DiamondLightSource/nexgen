@@ -214,7 +214,7 @@ def write_NXsample(
     transl_scan: Dict[str, ArrayLike] = None,
     sample_depends_on: str = None,
     sample_details: Dict[str, Any] = None,
-    add_old_fields: bool = True,
+    add_nonstandard_fields: bool = True,
 ):
     """
     Write NXsample group at /entry/sample.
@@ -228,7 +228,7 @@ def write_NXsample(
         sample_depends_on (str, optional): Axis on which the sample depends on. If absent, the depends_on field \
             will be set to the last axis listed in the goniometer. Defaults to None.
         sample_details (Dict[str, Any], optional): General information about the sample, eg. name, temperature.
-        add_old_fields (bool, optional): Choose whether to add the old "sample_{x,phi,...}/{x,phi,...}" to the group. \
+        add_nonstandard_fields (bool, optional): Choose whether to add the old "sample_{x,phi,...}/{x,phi,...}" to the group. \
             These fields are non-standard but may be needed for processing to run. Defaults to True.
     """
     NXclass_logger.info("Start writing NXsample.")
@@ -245,7 +245,7 @@ def write_NXsample(
 
     # Create NXtransformations group: /entry/sample/transformations
     write_NXtransformations(nxsample, goniometer_axes, full_scan, data_type)
-    if add_old_fields:
+    if add_nonstandard_fields:
         add_sample_axis_groups(nxsample, goniometer_axes)
 
     # Save sample depends_on
