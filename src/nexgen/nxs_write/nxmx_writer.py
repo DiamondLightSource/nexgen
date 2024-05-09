@@ -17,7 +17,6 @@ from numpy.typing import DTypeLike
 from ..nxs_utils.detector import Detector
 from ..nxs_utils.goniometer import Goniometer
 from ..nxs_utils.source import Attenuator, Beam, Source
-from ..tools.metafile import DectrisMetafile
 from ..tools.vds_tools import (
     clean_unused_links,
     image_vds_writer,
@@ -121,30 +120,6 @@ class NXmxFileWriter:
         with h5py.File(self.filename, "r+") as nxs:
             write_NXdatetime(nxs, timestamp, dset_name)
         nxmx_logger.info(f"{dset_name} timestamp for collection updated.")
-
-    def update_detectorSpec(self, image_filename: str | None = None):
-        """"Update the nexus file post-collection with detector specific fields \
-        that need to be read and copied from the meta file.
-
-        Args:
-            image_filename (str | None, optional): Filename stem to use to look for image files. \
-                Needed in case it doesn't match the NeXus file name. Format: filename_runnumber. \
-                Defaults to None.
-        """
-        metafile = self._get_meta_file(image_filename)
-        with h5py.File(metafile, "r", libver="latest", swmr=True) as fh:
-            serial_number = DectrisMetafile(fh).get_serial_number()
-            fw_version = DectrisMetafile(fh).get_fw_version()
-            date = DectrisMetafile(fh).get_data_collection_date()
-        with h5py.File(self.filename, "r+") as nxs:
-            nxdet = nxs["/entry/instrument/detector"]
-            nxdet.create_dataset("serial_number", data=np.string_(serial_number))
-            nxspec = nxdet["detectorSpecific"]
-            nxspec.create_dataset("eiger_fw_version", data=np.string_(fw_version))
-            nxspec.create_dataset("data_collection_date", data=np.string_(date))
-        nxmx_logger.info(
-            "Nexus file updated with data_collection_date, eiger_fw_version and serial_number"
-        )
 
     def add_NXnote(self, notes: Dict, loc: str = "/entry/notes"):
         """Save any additional information as NXnote at the end of the collection.
