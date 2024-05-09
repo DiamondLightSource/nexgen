@@ -488,9 +488,18 @@ def write_NXdetector(
                 else meta.as_posix()
             )
             for k, v in detector.detector_params.constants.items():
-                if k == "software_version":
-                    # Software version should go in detectorSpecific (NXcollection)
-                    break
+                if k in [
+                    "software_version",
+                    "ntrigger",
+                    "data_collection_date",
+                    "eiger_fw_version",
+                    "serial_number",
+                ]:
+                    # NOTE: Software version, eiger_fw_version ntrigger & date should
+                    # go in detectorSpecific (NXcollection)
+                    # TODO re-enable eiger_fw_version, date & serial_number
+                    # see https://github.com/DiamondLightSource/nexgen/issues/236
+                    continue
                 nxdetector[k] = h5py.ExternalLink(meta_link, v)
         else:
             NXclass_logger.warning(
@@ -648,31 +657,6 @@ def write_NXdetector(
     create_attributes(
         nxdetector["distance"], ("units",), (format(dist.to("m").units, "~"))
     )
-
-    # Check if there are any remaining datasets to be written (usually from the meta file but not always)
-    others_with_units = {"detector_readout_time": "s", "threshold_energy": "eV"}
-    others = [
-        "bit_depth_image",
-        "serial_number",
-        "photon_energy",
-        *others_with_units.keys(),
-    ]
-    for dset in others:
-        if (
-            nxdetector.__contains__(dset) is False
-            and dset in detector.detector_params.constants.keys()
-        ):
-            val = (
-                np.string_(detector.detector_params.constants[dset])
-                if isinstance(detector.detector_params.constants[dset], str)
-                else detector.detector_params.constants[dset]
-            )
-            if val is not None:
-                nxdetector.create_dataset(dset, data=val)
-                if dset in others_with_units.keys():
-                    create_attributes(
-                        nxdetector[dset], ("units",), (others_with_units[dset],)
-                    )
 
 
 # NXdetector_module writer
@@ -859,12 +843,9 @@ def write_NXcollection(
                 data=np.string_(detector_params.constants["software_version"]),
             )
     if "EIGER" in detector_params.description.upper() and meta:
-        for k, v in {
-            "data_collection_date": "/_dectris/data_collection_date",
-            "eiger_fw_version": "/_dectris/eiger_fw_version",
-            "ntrigger": "/_dectris/ntrigger",
-        }.items():
-            grp[k] = h5py.ExternalLink(meta.name, v)
+        for field in ["ntrigger"]:  # "data_collection_date", "eiger_fw_version"]
+            # TODO See https://github.com/DiamondLightSource/nexgen/issues/236
+            grp[field] = h5py.ExternalLink(meta.name, detector_params.constants[field])
     elif "TRISTAN" in detector_params.description.upper():
         tick = ureg.Quantity(detector_params.constants["detector_tick"])
         grp.create_dataset("detector_tick", data=tick.magnitude)

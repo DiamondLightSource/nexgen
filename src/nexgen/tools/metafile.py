@@ -159,8 +159,45 @@ class DectrisMetafile(Metafile):
             self.__getitem__(_loc_thickness[0])[0],
         )
 
-    def get_bit_depth_image(self):
+    def get_bit_depth_image(self) -> int:
         _loc = [obj for obj in self.walk if "bit_depth_image" in obj]
+        if len(_loc) == 0:
+            return None
+        return self.__getitem__(_loc[0])[0]
+
+    def get_data_collection_date(self) -> str:
+        if self.hasDectrisGroup:
+            config = self.read_dectris_config()
+            return config["data_collection_date"]
+        if self.hasConfig:
+            config = self.read_config_dset()
+            return config["data_collection_date"]
+        _loc = [obj for obj in self.walk if "data_collection_date" in obj]
+        if len(_loc) == 0:
+            return None
+        return self.__getitem__(_loc[0])[0]
+
+    def get_fw_version(self) -> str:
+        if self.hasDectrisGroup:
+            config = self.read_dectris_config()
+            return config["eiger_fw_version"]
+        if self.hasConfig:
+            config = self.read_config_dset()
+            return config["eiger_fw_version"]
+        _loc = [obj for obj in self.walk if "eiger_fw_version" in obj]
+        if len(_loc) == 0:
+            return None
+        return self.__getitem__(_loc[0])[0]
+
+    def get_serial_number(self) -> str:
+        # Stored in meta file as "detector_number"
+        if self.hasDectrisGroup:
+            config = self.read_dectris_config()
+            return config["detector_number"]
+        if self.hasConfig:
+            config = self.read_config_dset()
+            return config["detector_number"]
+        _loc = [obj for obj in self.walk if "detector_number" in obj]
         if len(_loc) == 0:
             return None
         return self.__getitem__(_loc[0])[0]

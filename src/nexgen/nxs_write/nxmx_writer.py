@@ -125,8 +125,10 @@ class NXmxFileWriter:
         """Save any additional information as NXnote at the end of the collection.
 
         Args:
-            notes (Dict): Dictionary of (key, value) pairs where key represents the dataset name and value its data.
-            loc (str, optional): Location in the NeXus file to save metadata. Defaults to "/entry/notes".
+            notes (Dict): Dictionary of (key, value) pairs where key represents the \
+                dataset name and value its data.
+            loc (str, optional): Location in the NeXus file to save metadata. \
+                Defaults to "/entry/notes".
         """
         with h5py.File(self.filename, "r+") as nxs:
             write_NXnote(nxs, loc, notes)
@@ -145,16 +147,18 @@ class NXmxFileWriter:
         This function calls the writers for the main NXclass objects.
 
         Args:
-            image_datafiles (List | None, optional): List of image data files. If not passed, the program will look for \
-                files with the stem_######.h5 in the target directory. Defaults to None.
-            image_filename (str | None, optional): Filename stem to use to look for image files. Needed in case it doesn't match \
-                the NeXus file name. Format: filename_runnumber. Defaults to None.
-            start_time (datetime | str, optional): Collection start time if available, in the format "%Y-%m-%dT%H:%M:%SZ".\
+            image_datafiles (List | None, optional): List of image data files. If not passed, \
+                the program will look for files with the stem_######.h5 in the target directory. \
                 Defaults to None.
-            est_end_time (datetime | str, optional): Collection estimated end time if available, in the format "%Y-%m-%dT%H:%M:%SZ".\
+            image_filename (str | None, optional): Filename stem to use to look for image files. \
+                Needed in case it doesn't match the NeXus file name. Format: filename_runnumber. \
                 Defaults to None.
-            write_mode (str, optional): String indicating writing mode for the output NeXus file. Accepts any valid \
-                h5py file opening mode. Defaults to "x".
+            start_time (datetime | str, optional): Collection start time if available, in the \
+                format "%Y-%m-%dT%H:%M:%SZ".Defaults to None.
+            est_end_time (datetime | str, optional): Collection estimated end time if available, \
+                in the format "%Y-%m-%dT%H:%M:%SZ". Defaults to None.
+            write_mode (str, optional): String indicating writing mode for the output NeXus file. \
+                Accepts any valid h5py file opening mode. Defaults to "x".
         """
         metafile = self._get_meta_file(image_filename)
         if metafile:
