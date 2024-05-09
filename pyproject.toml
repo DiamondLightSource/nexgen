@@ -39,7 +39,7 @@ dev = [
     "pytest-random-order",
     "sphinx-autobuild",
     "sphinx-rtd-theme",
-    "autodoc_pydantic<2.0.0",     # Needed for pydantic docs
+    "autodoc_pydantic",     # Needed for pydantic docs
     "bump2version",
     "pipdeptree",
     "ipython",
