@@ -549,7 +549,7 @@ def write_NXdetector(
     create_attributes(
         nxdetector["detector_z"],
         ("NX_class",),
-        ("NXtransformations",),  # FIXME it would be better to be NXtransformations
+        ("NXtransformations",),  # NXtransformations instead of NXpositioner. TOBETESTED
     )
     nxdetector["detector_z/det_z"] = nxsfile[
         "/entry/instrument/detector/transformations/det_z"
