@@ -7,10 +7,6 @@
 - Non-standard "sample_{phi,omega,...}" groups in NXsample made optional and NXclass now set to NXtransformations instead of NXpositioner.
 
 
-### Removed
-- Pydantic un-pinned from version<2.0
-
-
 ## 0.9.2
 
 ### Changed
