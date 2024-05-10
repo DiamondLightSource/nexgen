@@ -132,7 +132,7 @@ class NXmxFileWriter:
         """
         with h5py.File(self.filename, "r+") as nxs:
             write_NXnote(nxs, loc, notes)
-        nxmx_logger.info(f"Notes saved in {loc}.")
+        nxmx_logger.debug(f"Notes saved in {loc}.")
 
     def write(
         self,
@@ -273,7 +273,7 @@ class NXmxFileWriter:
                     Resetting it to match the number of frames indicated by the scan."
                 )
 
-        nxmx_logger.info(f"VDS shape set to {vds_shape}.")
+        nxmx_logger.debug(f"VDS shape set to {vds_shape}.")
 
         with h5py.File(self.filename, "r+") as nxs:
             if "jungfrau" in self.detector.detector_params.description.lower():
@@ -591,7 +591,7 @@ class EDNXmxFileWriter(NXmxFileWriter):
         """
         with h5py.File(self.filename, "r+") as nxs:
             if writer_type == "dataset":
-                nxmx_logger.info(
+                nxmx_logger.debug(
                     "Writing vds dataset as /entry/data/data in nexus file."
                 )
                 image_vds_writer(
