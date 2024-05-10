@@ -5,6 +5,8 @@
 
 ### Changed
 - Non-standard "sample_{phi,omega,...}" groups in NXsample made optional and NXclass now set to NXtransformations instead of NXpositioner.
+- Set level of most logs in the NXclass and Nexus writers to DEBUG.
+- Console logs level set to INFO, DEBUG logs only written to file.
 
 
 ## 0.9.2

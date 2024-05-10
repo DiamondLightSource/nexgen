@@ -130,7 +130,7 @@ def split_datasets(
         vds_logger.warning("VDS start index not passed as int, will attempt to cast")
 
     if vds_shape is None:
-        vds_logger.info(
+        vds_logger.debug(
             "VDS shape not chosen, it will be calculated from the full data shape and the chosen start index."
         )
         vds_shape = (data_shape[0] - start_idx, *data_shape[1:])
@@ -211,7 +211,7 @@ def image_vds_writer(
         data_type (DTypeLike, optional): The type of the input data. Defaults to np.uint16.
         entry_key (str, optional): Entry key for the Virtual DataSet name. Defaults to data.
     """
-    vds_logger.info("Start creating VDS ...")
+    vds_logger.debug("Start creating VDS ...")
     # Where the vds will go
     nxdata = nxsfile["/entry/data"]
     dset_names = find_datasets_in_file(nxdata)
@@ -241,7 +241,7 @@ def image_vds_writer(
 
     # Writea Virtual Dataset in NeXus file
     nxdata.create_virtual_dataset(entry_key, layout, fillvalue=-1)
-    vds_logger.info("VDS written to NeXus file.")
+    vds_logger.debug("VDS correctly written to NeXus file.")
 
 
 def jungfrau_vds_writer(
@@ -295,7 +295,7 @@ def vds_file_writer(
         data_type (DTypeLike, optional): Dtype. Defaults to np.uint16.
         entry_key (str): Entry key for the Virtual DataSet name. Defaults to data.
     """
-    vds_logger.info("Start creating VDS ...")
+    vds_logger.debug("Start creating VDS file ...")
     # Where the vds will go
     nxdata = nxsfile["/entry/data"]
     # entry_key = "data"
@@ -323,7 +323,7 @@ def vds_file_writer(
     with h5py.File(vds_filename, "w") as vds:
         vds.create_virtual_dataset("data", layout, fillvalue=-1)
     nxdata["data"] = h5py.ExternalLink(vds_filename.name, "data")
-    vds_logger.info(f"{vds_filename} written and link added to NeXus file.")
+    vds_logger.debug(f"{vds_filename} written and link added to NeXus file.")
 
 
 def clean_unused_links(
@@ -339,25 +339,25 @@ def clean_unused_links(
         vds_shape (Tuple | List): Actual shape of the VDS dataset, usually defined as (num_frames, *image_size).
         start_index(int): The start point for the source data. Defaults to 0.
     """
-    vds_logger.info("Cleaning links unused in VDS ...")
+    vds_logger.debug("Cleaning links unused in VDS ...")
     # Location of the VDS
     nxdata = nxsfile["/entry/data"]
     dataset_names = find_datasets_in_file(nxdata)
     if len(dataset_names) == 1:
-        vds_logger.info("Only one linked file, no need to remove it.")
+        vds_logger.debug("Only one linked file, no need to remove it.")
         return
     datasets = [nxdata[name] for name in dataset_names]
     dataset_lengths = [d.shape[0] for d in datasets]
     if sum(dataset_lengths) == vds_shape[0]:
-        vds_logger.info("All links are used in VDS, no need to remove any.")
+        vds_logger.debug("All links are used in VDS, no need to remove any.")
         return
     for i, _ in enumerate(datasets):
         # unlink datasets before the start of VDS
         if sum(dataset_lengths[0 : i + 1]) < start_index:
-            vds_logger.info(f"Removing {dataset_names[i]} link.")
+            vds_logger.debug(f"Removing {dataset_names[i]} link.")
             del nxdata[dataset_names[i]]
         # unlink datasets after the end of VDS
         if sum(dataset_lengths[0:i]) > start_index + vds_shape[0]:
-            vds_logger.info(f"Removing {dataset_names[i]} link.")
+            vds_logger.debug(f"Removing {dataset_names[i]} link.")
             del nxdata[dataset_names[i]]
-    vds_logger.info("Links unused in VDS removed from NeXus file.")
+    vds_logger.debug("Links unused in VDS removed from NeXus file.")

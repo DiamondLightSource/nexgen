@@ -92,7 +92,7 @@ def write_NXdata(
         OSError: If no data is passed.
         ValueError: If the data type is neither "images" nor "events".
     """
-    NXclass_logger.info("Start writing NXdata.")
+    NXclass_logger.debug("Start writing NXdata.")
     # Check that a valid datafile_list has been passed.
     if len(datafiles) == 0:
         raise OSError(
@@ -231,7 +231,7 @@ def write_NXsample(
         add_nonstandard_fields (bool, optional): Choose whether to add the old "sample_{x,phi,...}/{x,phi,...}" to the group. \
             These fields are non-standard but may be needed for processing to run. Defaults to True.
     """
-    NXclass_logger.info("Start writing NXsample.")
+    NXclass_logger.debug("Start writing NXsample.")
     # Create NXsample group, unless it already exists, in which case just open it.
     nxsample = nxsfile.require_group("/entry/sample")
     create_attributes(
@@ -304,7 +304,7 @@ def write_NXinstrument(
         reset_instrument_name (bool, optional): If True, a string with the name of the \
             instrument used. Otherwise, it will be set to 'DIAMOND BEAMLINE Ixx'. Defaults to False.
     """
-    NXclass_logger.info("Start writing NXinstrument.")
+    NXclass_logger.debug("Start writing NXinstrument.")
     # Create NXinstrument group, unless it already exists, in which case just open it.
     nxinstrument = nxsfile.require_group("/entry/instrument")
     create_attributes(
@@ -314,7 +314,7 @@ def write_NXinstrument(
     )
 
     # Write /name field and relative attribute
-    NXclass_logger.info(f"{source.short_name} {source.beamline}")
+    NXclass_logger.debug(f"{source.short_name} {source.beamline}")
     name_str = (
         source.set_instrument_name()
         if reset_instrument_name
@@ -327,7 +327,7 @@ def write_NXinstrument(
         (f"{source.short_name} {source.beamline}",),
     )
 
-    NXclass_logger.info("Write NXattenuator and NXbeam.")
+    NXclass_logger.debug("Write NXattenuator and NXbeam.")
     # Write NXattenuator group: entry/instrument/attenuator
     nxatt = nxinstrument.require_group("attenuator")
     create_attributes(nxatt, ("NX_class",), ("NXattenuator",))
@@ -356,7 +356,7 @@ def write_NXsource(nxsfile: h5py.File, source: Source):
         nxsfile (h5py.File): NeXus file handle.
         source (Source): Source definition, containing the facility information.
     """
-    NXclass_logger.info("Start writing NXsource.")
+    NXclass_logger.debug("Start writing NXsource.")
     nxsource = nxsfile.require_group("/entry/source")
     create_attributes(
         nxsource,
@@ -387,7 +387,7 @@ def write_NXdetector(
         num_images (int, optional): Total number of images in collections. Defaults to None
         meta (Path, optional): Path to _meta.h5 file. Defaults to None.
     """
-    NXclass_logger.info("Start writing NXdetector.")
+    NXclass_logger.debug("Start writing NXdetector.")
     # Create NXdetector group, unless it already exists, in which case just open it.
     nxdetector = nxsfile.require_group("/entry/instrument/detector")
     create_attributes(
@@ -409,7 +409,7 @@ def write_NXdetector(
     # If there is a meta file, a lot of information will be linked instead of copied
     if isinstance(detector.detector_params, EigerDetector):
         if meta:
-            NXclass_logger.info(f"Found metadata in {meta.as_posix()} file.")
+            NXclass_logger.debug(f"Found metadata in {meta.as_posix()} file.")
             meta_link = (
                 meta.name
                 if meta.parent == Path(nxsfile.filename).parent
@@ -432,7 +432,7 @@ def write_NXdetector(
         else:
             NXclass_logger.warning(
                 """
-                Meta file for Eiger detector hasn't been specified.
+                Meta file for Eiger detector hasn't been specified or found.
                 No links will be written. Pixel mask and flatfield information missing.
                 """
             )
@@ -585,7 +585,7 @@ def write_NXdetector_module(
         pixel_size (List | Tuple): Size of the single pixels in fast and slow direction, in mm.
         beam_center (Optional[List | Tuple], optional): Beam center position, needed only if origin needs to be calculated. Defaults to None.
     """
-    NXclass_logger.info("Start writing NXdetector_module.")
+    NXclass_logger.debug("Start writing NXdetector_module.")
     # Create NXdetector_module group, unless it already exists, in which case just open it.
     nxmodule = nxsfile.require_group("/entry/instrument/detector/module")
     create_attributes(
@@ -717,7 +717,7 @@ def write_NXcollection(
         num_images (int, optional): Total number of images collected. Defaults to None.
         meta (Path, optional): Path to _meta.h5 file. Defaults to None.
     """
-    NXclass_logger.info("Start writing detectorSpecific group as NXcollection.")
+    NXclass_logger.debug("Start writing detectorSpecific group as NXcollection.")
     # Create detectorSpecific group
     grp = nxdetector.require_group("detectorSpecific")
     grp.create_dataset(
@@ -812,7 +812,7 @@ def write_NXnote(nxsfile: h5py.File, loc: str, info: Dict):
         loc (str): Location inside the NeXus file to write NXnote group.
         info (Dict): Dictionary of datasets to be written to NXnote.
     """
-    NXclass_logger.info("Start writing NXnote.")
+    NXclass_logger.debug("Start writing NXnote.")
     # Create the NXnote group in the specified location
     nxnote = nxsfile.require_group(loc)
     create_attributes(
@@ -827,7 +827,7 @@ def write_NXnote(nxsfile: h5py.File, loc: str, info: Dict):
             if isinstance(v, str):
                 v = np.string_(v)
             nxnote.create_dataset(k, data=v)
-            NXclass_logger.info(f"{k} dataset written in {loc}.")
+            NXclass_logger.debug(f"{k} dataset written in {loc}.")
 
 
 def write_NXcoordinate_system_set(
@@ -876,7 +876,7 @@ def write_NXcoordinate_system_set(
     transf.create_dataset("origin", data=origin)
 
     # Base vectors
-    NXclass_logger.info(
+    NXclass_logger.debug(
         "Base vectors: \n"
         f"x: {base_vectors['x'].vector} \n"
         f"y: {base_vectors['y'].vector} \n"

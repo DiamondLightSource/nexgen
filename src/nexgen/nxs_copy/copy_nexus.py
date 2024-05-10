@@ -40,10 +40,8 @@ def images_nexus(
     data_file = [Path(d).expanduser().resolve() for d in data_file]
     original_nexus = Path(original_nexus).expanduser().resolve()
     nxs_filename = get_nexus_filename(data_file[0], copy=True)
-    copy_logger.info(f"New NeXus file name: {nxs_filename}")
-    with h5py.File(original_nexus, "r") as nxs_in, h5py.File(
-        nxs_filename, "x"
-    ) as nxs_out:
+    copy_logger.debug(f"New NeXus file name: {nxs_filename}")
+    with h5py.File(original_nexus, "r") as nxs_in, h5py.File(nxs_filename, "x") as nxs_out:
         if simple_copy is True:
             # Copy the whole tree
             get_nexus_tree(nxs_in, nxs_out, skip=False)
@@ -54,7 +52,7 @@ def images_nexus(
             nxs_out.attrs["default"] = "entry"
             # Copy the whole tree except for nxdata and whatever other group was passed.
             nxentry = get_nexus_tree(nxs_in, nxs_out, skip=True, skip_obj=skip_group)
-            copy_logger.info(f"Re write NXdata with link to {data_file[0]}.")
+            copy_logger.debug(f"Re write NXdata with link to {data_file[0]}.")
             if "NXdata" in skip_group:  # it always is...
                 # Create nxdata group
                 nxdata = nxentry.create_group("data")
@@ -93,7 +91,7 @@ def pseudo_events_nexus(
     data_file = [Path(d).expanduser().resolve() for d in data_file]
     original_nexus = Path(original_nexus).expanduser().resolve()
     nxs_filename = get_nexus_filename(data_file[0], copy=True)
-    copy_logger.info(f"New NeXus file name: {nxs_filename}")
+    copy_logger.debug(f"New NeXus file name: {nxs_filename}")
     with h5py.File(original_nexus, "r") as nxs_in, h5py.File(
         nxs_filename, "x"
     ) as nxs_out:
