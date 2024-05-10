@@ -89,11 +89,11 @@ def calculate_origin(
         fast_axis_vector (Tuple): Fast axis vector.
         slow_axis_vector (Tuple): Slow axis vector.
         mode (str, optional): Decide how origin should be calculated.
-                            If set to "1" the displacement vector is un-normalized \
-                                and the offset value set to 1.0.
-                            If set to "2" the displacement is normalized and the \
-                                offset value is set to the magnitude of the displacement.
-                            Defaults to "1".
+            If set to "1" the displacement vector is un-normalized \
+                and the offset value set to 1.0.
+            If set to "2" the displacement is normalized and the \
+                offset value is set to the magnitude of the displacement.
+            Defaults to "1".
 
     Returns:
         det_origin (List): Displacement of beam center, vector attribute of module_offset.
@@ -218,12 +218,14 @@ def mask_and_flatfield_writer_for_event_data(
         return
 
     nxdet_grp.create_dataset(f"{dset_name}_applied", data=applied_val)
-    NXclassUtils_logger.info(f"Looking for file {dset_data_file} in {wdir.as_posix()}.")
+    NXclassUtils_logger.debug(
+        f"Looking for file {dset_data_file} in {wdir.as_posix()}."
+    )
     filename = [
         wdir / dset_data_file for f in wdir.iterdir() if dset_data_file == f.name
     ]
     if filename:
-        NXclassUtils_logger.info(f"File {dset_name} found in working directory.")
+        NXclassUtils_logger.debug(f"File {dset_name} found in working directory.")
         write_compressed_copy(
             nxdet_grp,
             dset_name,
@@ -288,6 +290,7 @@ def write_compressed_copy(
             "The dset and filename arguments are mutually exclusive."
             "Please pass only the one from which the data should be copied."
         )
+
     if filename and not dset_key:
         NXclassUtils_logger.warning(
             f"Missing key to find the dataset to be copied inside {filename}. {dset_name} will not be written into the NeXus file."
