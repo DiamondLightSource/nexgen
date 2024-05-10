@@ -15,7 +15,7 @@ def dummy_logger():
 def test_basic_logging_config(dummy_logger):
     assert dummy_logger.hasHandlers() is True
     assert len(dummy_logger.handlers) == 1
-    assert dummy_logger.handlers[0].level == logging.DEBUG
+    assert dummy_logger.handlers[0].level == logging.INFO
 
 
 def test_logging_config_with_filehandler(dummy_logger):
