@@ -27,6 +27,7 @@ from nexgen.nxs_write.nxclass_writers import (
     write_NXnote,
     write_NXsample,
     write_NXsource,
+    write_NXtransformations,
 )
 
 test_module = {"fast_axis": [1, 0, 0], "slow_axis": [0, 1, 0]}
@@ -35,7 +36,7 @@ test_module = {"fast_axis": [1, 0, 0], "slow_axis": [0, 1, 0]}
 def test_given_no_data_files_when_write_NXdata_then_assert_error():
     mock_hdf5_file = MagicMock()
     with pytest.raises(OSError):
-        write_NXdata(mock_hdf5_file, [], [], "", "", [])
+        write_NXdata(mock_hdf5_file, [], "")
 
 
 def test_write_NXentry(dummy_nexus_file):
@@ -64,72 +65,80 @@ def test_write_NXSource_with_probe(dummy_nexus_file, mock_source):
     assert dummy_nexus_file["/entry/source/probe"][()] == b"electron"
 
 
-def test_given_no_data_type_specified_when_write_NXdata_then_exception_raised(
+def test_write_NXtransformations_for_detector_axes(dummy_nexus_file):
+    det_axes = [
+        Axis("two_theta", ".", "rotation", (0, 0, -1), start_pos=90),
+        Axis("det_z", "Two_theta", "translation", (0, 0, 1), start_pos=500),
+    ]
+    nxdet = dummy_nexus_file.require_group("/entry/instrument/detector/")
+    write_NXtransformations(nxdet, det_axes)
+
+    assert "transformations" in nxdet.keys()
+    assert (
+        "det_z" in nxdet["transformations"].keys()
+        and "two_theta" in nxdet["transformations"].keys()
+    )
+    assert_array_equal(nxdet["transformations/det_z"][()], 500)
+    assert_array_equal(nxdet["transformations/two_theta"][()], 90)
+
+
+def test_write_NXtransformations_for_sample_with_rotation_scan(
     dummy_nexus_file, mock_goniometer
+):
+    nxsample = dummy_nexus_file.require_group("/entry/sample/")
+    write_NXtransformations(nxsample, mock_goniometer.axes_list, mock_goniometer.scan)
+
+    assert "transformations" in nxsample.keys()
+    assert_array_equal(nxsample["transformations/omega"][()], np.arange(0, 90, 1))
+    assert (
+        "omega_increment_set" in nxsample["transformations"].keys()
+        and "omega_end" in nxsample["transformations"].keys()
+    )
+    assert_array_equal(nxsample["transformations/sam_z"][()], 0.0)
+
+
+def test_write_NXtransformations_for_sample_for_events(dummy_nexus_file):
+    axes_list = [Axis("phi", ".", "rotation", (0, 0, -1), start_pos=10)]
+    test_scan = {"phi": (10, 12)}
+    test_gonio = Goniometer(axes_list, test_scan)
+    nxsample = dummy_nexus_file.require_group("/entry/sample/")
+    write_NXtransformations(nxsample, test_gonio.axes_list, test_gonio.scan, "events")
+
+    assert "phi_end" not in nxsample["transformations"].keys()
+    assert_array_equal(nxsample["transformations/phi"], test_scan["phi"])
+
+
+def test_given_no_data_type_specified_when_write_NXdata_then_exception_raised(
+    dummy_nexus_file,
 ):
     with pytest.raises(ValueError):
         write_NXdata(
             dummy_nexus_file,
             [Path("tmp")],
-            mock_goniometer.axes_list,
             "",
-            mock_goniometer.scan,
         )
 
 
-def test_given_one_data_file_when_write_NXdata_then_data_in_file(
-    dummy_nexus_file, mock_goniometer
-):
+def test_given_one_data_file_when_write_NXdata_then_data_in_file(dummy_nexus_file):
     write_NXdata(
         dummy_nexus_file,
         [Path("tmp")],
-        mock_goniometer.axes_list,
         "images",
-        mock_goniometer.scan,
+        "omega",
     )
     assert dummy_nexus_file["/entry/data"].attrs["NX_class"] == b"NXdata"
+    assert dummy_nexus_file["/entry/data"].attrs["axes"] == b"omega"
+    assert dummy_nexus_file["/entry/data"].attrs["omega_indices"] == [0]
     assert "data_000001" in dummy_nexus_file["/entry/data"]
 
 
-def test_given_scan_axis_when_write_NXdata_then_axis_in_data_entry_with_correct_data_and_attributes(
-    dummy_nexus_file, mock_goniometer
-):
-    test_axis = "omega"
-    test_scan_range = np.arange(0, 90, 1)
-    axis_entry = f"/entry/data/{test_axis}"
-
-    write_NXdata(
-        dummy_nexus_file,
-        [Path("tmp")],
-        mock_goniometer.axes_list,
-        "images",
-        mock_goniometer.scan,
-    )
-
-    assert test_axis in dummy_nexus_file["/entry/data"]
-    assert_array_equal(test_scan_range, dummy_nexus_file[axis_entry][:])
-    assert dummy_nexus_file[axis_entry].attrs["depends_on"] == b"."
-    assert dummy_nexus_file[axis_entry].attrs["transformation_type"] == b"rotation"
-    assert dummy_nexus_file[axis_entry].attrs["units"] == b"deg"
-    assert_array_equal(dummy_nexus_file[axis_entry].attrs["vector"][:], [-1.0, 0.0, 0])
-
-
-def test_given_scan_axis_when_write_NXsample_then_scan_axis_data_copied_from_data_group_as_well_as_increment_set_and_end(
+def test_given_scan_axis_when_write_NXsample_then_scan_axis_data_written_and_link_to_NXdata_created(
     dummy_nexus_file, mock_goniometer
 ):
     test_axis = "omega"
     test_scan_range = [0, 1, 2]
-    axis_entry = f"/entry/sample/sample_{test_axis}/{test_axis}"
+    axis_entry = f"/entry/sample/transformations/{test_axis}"
     osc_scan = {test_axis: test_scan_range}
-
-    # Doing this to write the scan axis data into the data group
-    write_NXdata(
-        dummy_nexus_file,
-        [Path("tmp")],
-        mock_goniometer.axes_list,
-        "images",
-        osc_scan,
-    )
 
     write_NXsample(
         dummy_nexus_file,
@@ -138,7 +147,7 @@ def test_given_scan_axis_when_write_NXsample_then_scan_axis_data_copied_from_dat
         osc_scan,
     )
 
-    assert f"sample_{test_axis}" in dummy_nexus_file["/entry/sample"]
+    assert "transformations" in dummy_nexus_file["/entry/sample"]
     assert_array_equal(test_scan_range, dummy_nexus_file[axis_entry][:])
     assert dummy_nexus_file[axis_entry].attrs["depends_on"] == b"."
     assert dummy_nexus_file[axis_entry].attrs["transformation_type"] == b"rotation"
@@ -147,23 +156,15 @@ def test_given_scan_axis_when_write_NXsample_then_scan_axis_data_copied_from_dat
     assert_array_equal(dummy_nexus_file[axis_entry + "_increment_set"][()], 1)
     # assert_array_equal(dummy_nexus_file[axis_entry + "_increment_set"][:], [1] * 3)
     assert dummy_nexus_file[axis_entry + "_end"][1] == 2
+    assert f"{test_axis}" in dummy_nexus_file["/entry/data"]
 
 
-def test_given_reverse_rotation_scan_increment_set_and_axis_end_written_correctly(
+def test_given_reverse_rotation_scan_increment_set_and_axis_end_written_correctly_and_old_fields_not_added(
     dummy_nexus_file,
 ):
     test_axis = Axis("phi", ".", TransformationType.ROTATION, (0, 0, -1))
     test_rw_scan = {"phi": np.arange(10, 8, -0.5)}
     test_gonio = Goniometer([test_axis], test_rw_scan)
-
-    # Doing this to write the scan axis data into the data group
-    write_NXdata(
-        dummy_nexus_file,
-        [Path("tmp")],
-        test_gonio.axes_list,
-        "images",
-        test_gonio.scan,
-    )
 
     write_NXsample(
         dummy_nexus_file,
@@ -171,13 +172,16 @@ def test_given_reverse_rotation_scan_increment_set_and_axis_end_written_correctl
         "images",
         test_rw_scan,
         sample_depends_on=test_axis.name,
+        add_nonstandard_fields=False,
     )
 
-    axis_entry = f"/entry/sample/sample_{test_axis.name}/{test_axis.name}"
+    axis_entry = f"/entry/sample/transformations/{test_axis.name}"
 
     assert_array_equal(dummy_nexus_file[axis_entry][()], [10.0, 9.5, 9.0, 8.5])
     assert_array_equal(dummy_nexus_file[axis_entry + "_increment_set"][()], -0.5)
     assert_array_equal(dummy_nexus_file[axis_entry + "_end"][()], [9.5, 9.0, 8.5, 8.0])
+
+    assert "sample_phi" not in dummy_nexus_file["/entry/sample"].keys()
 
 
 def test_sample_depends_on_written_correctly_in_NXsample(
@@ -186,15 +190,6 @@ def test_sample_depends_on_written_correctly_in_NXsample(
     test_axis = "omega"
     test_scan_range = [0, 1, 2]
     osc_scan = {test_axis: test_scan_range}
-
-    # Doing this to write the scan axis data into the data group
-    write_NXdata(
-        dummy_nexus_file,
-        [Path("tmp")],
-        mock_goniometer.axes_list,
-        "images",
-        mock_goniometer.scan,
-    )
 
     write_NXsample(
         dummy_nexus_file,
@@ -221,15 +216,6 @@ def test_sample_depends_on_written_correctly_in_NXsample_when_value_not_passed(
 
     test_depends = f"/entry/sample/transformations/{mock_goniometer.axes_list[-1].name}"
 
-    # Doing this to write the scan axis data into the data group
-    write_NXdata(
-        dummy_nexus_file,
-        [Path("tmp")],
-        mock_goniometer.axes_list,
-        "images",
-        mock_goniometer.scan,
-    )
-
     write_NXsample(
         dummy_nexus_file,
         mock_goniometer.axes_list,
@@ -241,21 +227,43 @@ def test_sample_depends_on_written_correctly_in_NXsample_when_value_not_passed(
     assert dummy_nexus_file["/entry/sample/depends_on"][()] == test_depends.encode()
 
 
+def test_old_sample_groups_added_correctly_to_NXsample_for_rotation_scan(
+    dummy_nexus_file,
+):
+    test_axes = [
+        Axis("phi", ".", TransformationType.ROTATION, (0, 0, -1)),
+        Axis("sam_z", "phi", TransformationType.TRANSLATION, (0, 0, 1)),
+    ]
+    test_scan = {"phi": np.arange(0, 1, 0.1)}
+    test_gonio = Goniometer(test_axes, test_scan)
+
+    write_NXsample(
+        dummy_nexus_file,
+        test_gonio.axes_list,
+        "images",
+        test_scan,
+        sample_depends_on=test_axes[0].name,
+    )
+
+    sample_path = "/entry/sample/"
+
+    assert "sample_phi" in dummy_nexus_file[sample_path].keys()
+    assert (
+        "sample_z" in dummy_nexus_file[sample_path].keys()
+        and "sam_z" in dummy_nexus_file[sample_path]["sample_z"].keys()
+    )
+    assert_array_equal(
+        dummy_nexus_file[sample_path]["transformations/phi"],
+        dummy_nexus_file[sample_path]["sample_phi/phi"][()],
+    )
+
+
 def test_sample_details_in_NXsample(dummy_nexus_file, mock_goniometer):
 
     test_details = {"name": b"test_sample", "temperature": "25C"}
     test_axis = "omega"
     test_scan_range = [0, 1, 2]
     osc_scan = {test_axis: test_scan_range}
-
-    # Doing this to write the scan axis data into the data group
-    write_NXdata(
-        dummy_nexus_file,
-        [Path("tmp")],
-        mock_goniometer.axes_list,
-        "images",
-        mock_goniometer.scan,
-    )
 
     write_NXsample(
         dummy_nexus_file,
@@ -432,8 +440,8 @@ def test_write_NXdetector_for_eiger_images_without_meta_file(
 
     # Check detector axis and distance
     tr = det + "transformations/"
-    assert "detector_z" in list(dummy_nexus_file[tr].keys())
-    axis_entry = tr + "detector_z/det_z"
+    assert "det_z" in list(dummy_nexus_file[tr].keys())
+    axis_entry = tr + "det_z"
     assert_array_equal(
         mock_eiger.detector_axes[0].start_pos, dummy_nexus_file[axis_entry][()]
     )
@@ -453,6 +461,7 @@ def test_write_NXdetector_for_eiger_images_without_meta_file(
 
     # Check that detector_z has also been written in /detector
     assert "detector_z" in list(dummy_nexus_file[det].keys())
+    assert "det_z" in list(dummy_nexus_file[det + "detector_z"].keys())
 
 
 @patch("nexgen.nxs_write.nxclass_writers.write_NXcollection")

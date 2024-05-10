@@ -133,17 +133,25 @@ def convert_scan_axis(
         ax_range (ArrayLike): Scan points. If passed, axis_increment_set and axis_end will also be written.\
             Defaults to None
     """
-    del nxsample["transformations/" + ax]
-    nxsample["transformations/" + ax] = nxdata[ax]
-    name = (
-        "sample_" + ax + "/" + ax if "sam" not in ax else "sample_" + ax[-1] + "/" + ax
-    )
-    del nxsample[name]
-    nxsample[name] = nxdata[ax]
+    del nxsample[f"transformations/{ax}"]
+    nxsample[f"transformations/{ax}"] = nxdata[ax]
+    grp_name = f"sample_{ax}" if "sam" not in ax else f"sample_{ax[-1]}"
+    old_exists = grp_name in list(nxsample.keys())
+    if old_exists:
+        del nxsample[grp_name]
+        nxsample[f"{grp_name}/{ax}"] = nxdata[ax]
     if ax_range is not None and "sam" not in ax:
         increment = round(ax_range[1] - ax_range[0], 3)
-        nxsample["sample_" + ax].create_dataset(ax + "_increment_set", data=increment)
-        nxsample["sample_" + ax].create_dataset(ax + "_end", data=ax_range + increment)
+        end = ax_range + increment
+        nxsample["transformations"].create_dataset(
+            f"{ax}_increment_set", data=increment
+        )
+        nxsample["transformations"].create_dataset(f"{ax}_end", data=end)
+        if old_exists:
+            nxsample[f"{grp_name}/{ax}_increment_set"] = nxsample[
+                f"transformations/{ax}_increment_set"
+            ]
+            nxsample[f"{grp_name}/{ax}_end"] = nxsample[f"transformations/{ax}_end"]
 
 
 def check_and_fix_det_axis(nxs_in: h5py.File):

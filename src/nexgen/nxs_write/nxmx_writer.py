@@ -141,6 +141,7 @@ class NXmxFileWriter:
         start_time: datetime | str | None = None,
         est_end_time: datetime | str | None = None,
         write_mode: str = "x",
+        add_non_standard: bool = True,
     ):
         """Write the NXmx format NeXus file.
 
@@ -159,6 +160,8 @@ class NXmxFileWriter:
                 in the format "%Y-%m-%dT%H:%M:%SZ". Defaults to None.
             write_mode (str, optional): String indicating writing mode for the output NeXus file. \
                 Accepts any valid h5py file opening mode. Defaults to "x".
+            add_non_standard (bool, optional): Flag if non-standard NXsample fields should be added \
+                for processing to work. Defaults to True, will change in the future.
         """
         metafile = self._get_meta_file(image_filename)
         if metafile:
@@ -192,10 +195,8 @@ class NXmxFileWriter:
             write_NXdata(
                 nxs,
                 datafiles,
-                self.goniometer.axes_list,
                 "images",
-                osc,
-                transl,
+                list(osc.keys())[0],
             )
 
             # NXinstrument: entry/instrument
@@ -234,6 +235,7 @@ class NXmxFileWriter:
                 osc,
                 transl,
                 sample_depends_on=None,  # TODO
+                add_nonstandard_fields=add_non_standard,
             )
 
     def write_vds(
@@ -332,6 +334,7 @@ class EventNXmxFileWriter(NXmxFileWriter):
         self,
         start_time: datetime | str | None = None,
         write_mode: str = "x",
+        add_non_standard: bool = False,
     ):
         """Write a NXmx-like NeXus file for event mode data collections.
 
@@ -342,6 +345,8 @@ class EventNXmxFileWriter(NXmxFileWriter):
                 Defaults to None.
             write_mode (str, optional): String indicating writing mode for the output NeXus file. Accepts any valid \
                 h5py file opening mode. Defaults to "x".
+            add_non_standard (bool, optional): Flag if non-standard NXsample fields should be added \
+                for processing to work. Defaults to False.
         """
         # Get metafile
         # No data files, just link to meta
@@ -365,9 +370,8 @@ class EventNXmxFileWriter(NXmxFileWriter):
             write_NXdata(
                 nxs,
                 [metafile],
-                self.goniometer.axes_list,
                 "events",
-                osc,
+                list(osc.keys())[0],
             )
 
             # NXinstrument: entry/instrument
@@ -404,6 +408,7 @@ class EventNXmxFileWriter(NXmxFileWriter):
                 "events",
                 osc,
                 sample_depends_on=None,  # TODO
+                add_nonstandard_fields=add_non_standard,
             )
 
 
@@ -524,9 +529,8 @@ class EDNXmxFileWriter(NXmxFileWriter):
             write_NXdata(
                 nxs,
                 datafiles,
-                self.goniometer.axes_list,
                 "images",
-                osc,
+                list(osc.keys())[0],
                 entry_key=data_entry_key,
             )
 

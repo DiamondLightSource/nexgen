@@ -31,6 +31,7 @@ from ..utils import (
 )
 from .write_utils import (
     TSdset,
+    add_sample_axis_groups,
     calculate_origin,
     create_attributes,
     mask_and_flatfield_writer,
@@ -73,10 +74,8 @@ def write_NXentry(nxsfile: h5py.File, definition: str = "NXmx") -> h5py.Group:
 def write_NXdata(
     nxsfile: h5py.File,
     datafiles: List[Path],
-    goniometer_axes: List[Axis],
     data_type: str,
-    osc_scan: Dict[str, ArrayLike],
-    transl_scan: Dict[str, ArrayLike] = None,
+    osc_axis: str = "omega",
     entry_key: str = "data",
 ):
     """
@@ -85,15 +84,13 @@ def write_NXdata(
     Args:
         nxsfile (h5py.File): NeXus file handle.
         datafiles (List[Path]): List of Path objects pointing to HDF5 data files.
-        goniometer_axes (List[Axis]): List of goniometer axes.
         data_type (str): Images or events.
-        osc_scan (Dict[str, ArrayLike]): Rotation scan. If writing events, this is just a (start, end) tuple.
-        transl_scan (Dict[str, ArrayLike], optional): Scan along the xy axes at sample. Defaults to None.
+        osc_scan (str, optional): Rotation scan axis name. Defaults to omega.
         entry_key (str): Entry key to create the external links to the data files. Defaults to data.
 
     Raises:
         OSError: If no data is passed.
-        ValueError: If the data typs is neither "images" nor "events".
+        ValueError: If the data type is neither "images" nor "events".
     """
     NXclass_logger.info("Start writing NXdata.")
     # Check that a valid datafile_list has been passed.
@@ -101,9 +98,6 @@ def write_NXdata(
         raise OSError(
             "No HDF5 data filenames have been found. Please pass at least one."
         )
-
-    # This assumes that a rotation scan is always passed
-    osc_axis, osc_range = list(osc_scan.items())[0]
 
     # Create NXdata group, unless it already exists, in which case just open it.
     nxdata = nxsfile.require_group("/entry/data")
@@ -149,43 +143,66 @@ def write_NXdata(
             "Unknown data type. Please pass one value for data_type from : [images, events]"
         )
 
-    # Write rotation axis dataset
-    ax = nxdata.create_dataset(osc_axis, data=osc_range)
-    idx = [n for n, ax in enumerate(goniometer_axes) if ax.name == osc_axis][0]
-    dep = set_dependency(
-        goniometer_axes[idx].depends, path="/entry/sample/transformations/"
-    )
 
-    # Write attributes for axis
+# NXtransformations
+def write_NXtransformations(
+    parent_group: h5py.Group,
+    axes: List[Axis],
+    scan: Optional[Dict[str, ArrayLike]] = None,
+    collection_type: str = "images",
+):
+    """Write NXtransformations group.
+
+    This group coulld be written either in /entry/sample/ for the goniometer or in \
+    /entry/instrument/detector for the detector axes. In the latter case, the scan \
+    should always be None.
+
+    Args:
+        parent_group (h5py.Group): Handle to HDF5 group where NXtransformations \
+            should be written.
+        axes (List[Axis]): List of Axes to write to the NXtransformations group.
+        scan (Optional[Dict[str, ArrayLike]], optional): All the scan axes, both \
+            rotation and translation. Defaults to None.
+        collection_type (str, optional): Collection type, could be images or \
+            events. Defaults to "images".
+    """
+    NXclass_logger.debug(f"Start writing NXtransformations group in {parent_group}.")
+    nxtransformations = parent_group.require_group("transformations")
     create_attributes(
-        ax,
-        ("depends_on", "transformation_type", "units", "vector"),
-        (
-            dep,
-            goniometer_axes[idx].transformation_type,
-            goniometer_axes[idx].units,
-            goniometer_axes[idx].vector,
-        ),
+        nxtransformations,
+        ("NX_class",),
+        ("NXtransformations",),
     )
 
-    # If present, add linear/grid scan details
-    if transl_scan:
-        for k, v in transl_scan.items():
-            ax_dset = nxdata.create_dataset(k, data=v)
-            ax_idx = [n for n, ax in enumerate(goniometer_axes) if ax.name == k][0]
-            ax_dep = set_dependency(
-                goniometer_axes[ax_idx].depends, path="/entry/sample/transformations/"
-            )
-            create_attributes(
-                ax_dset,
-                ("depends_on", "transformation_type", "units", "vector"),
-                (
-                    ax_dep,
-                    goniometer_axes[ax_idx].transformation_type,
-                    goniometer_axes[ax_idx].units,
-                    goniometer_axes[ax_idx].vector,
-                ),
-            )
+    for ax in axes:
+        # Dataset
+        data = (
+            scan[ax.name]
+            if scan and ax.name in scan.keys()
+            else np.array([ax.start_pos])
+        )
+        # Dependency
+        ax_dep = set_dependency(ax.depends, path=nxtransformations.name)
+
+        nxax = nxtransformations.create_dataset(ax.name, data=data)
+        create_attributes(
+            nxax,
+            ("depends_on", "transformation_type", "units", "vector"),
+            (ax_dep, ax.transformation_type, ax.units, ax.vector),
+        )
+
+        # Write _increment_set and _end for rotation axis
+        if scan and collection_type == "images":
+            if ax.name in scan.keys() and ax.transformation_type == "rotation":
+                NXclass_logger.debug(
+                    f"Adding increment_set and end for axis {ax.name}."
+                )
+                nxtransformations.create_dataset(
+                    f"{ax.name}_increment_set", data=ax.increment
+                )
+                increment_set = np.repeat(ax.increment, len(scan[ax.name]))
+                ax_end = scan[ax.name] + increment_set
+                nxtransformations.create_dataset(f"{ax.name}_end", data=ax_end)
 
 
 # NXsample
@@ -197,6 +214,7 @@ def write_NXsample(
     transl_scan: Dict[str, ArrayLike] = None,
     sample_depends_on: str = None,
     sample_details: Dict[str, Any] = None,
+    add_nonstandard_fields: bool = True,
 ):
     """
     Write NXsample group at /entry/sample.
@@ -207,10 +225,13 @@ def write_NXsample(
         data_type (str): Images or events.
         osc_scan (Dict[str, ArrayLike]): Rotation scan. If writing events, this is just a (start, end) tuple.
         transl_scan (Dict[str, ArrayLike], optional): Scan along the xy axes at sample. Defaults to None.
-        sample_depends_on (str, optional): Axis on which the sample depends on. If absent, the depends_on field will be set to the last axis listed in the goniometer. Defaults to None.
+        sample_depends_on (str, optional): Axis on which the sample depends on. If absent, the depends_on field \
+            will be set to the last axis listed in the goniometer. Defaults to None.
         sample_details (Dict[str, Any], optional): General information about the sample, eg. name, temperature.
+        add_nonstandard_fields (bool, optional): Choose whether to add the old "sample_{x,phi,...}/{x,phi,...}" to the group. \
+            These fields are non-standard but may be needed for processing to run. Defaults to True.
     """
-    NXclass_logger.info("Start writing NXsample and NXtransformations.")
+    NXclass_logger.info("Start writing NXsample.")
     # Create NXsample group, unless it already exists, in which case just open it.
     nxsample = nxsfile.require_group("/entry/sample")
     create_attributes(
@@ -219,128 +240,35 @@ def write_NXsample(
         ("NXsample",),
     )
 
-    # Create NXtransformations group: /entry/sample/transformations
-    nxtransformations = nxsample.require_group("transformations")
-    create_attributes(
-        nxtransformations,
-        ("NX_class",),
-        ("NXtransformations",),
-    )
+    # Merge the scan dictionaries
+    full_scan = osc_scan if transl_scan is None else osc_scan | transl_scan
 
-    # Get rotation details
-    osc_axis, osc_range = list(osc_scan.items())[0]
+    # Create NXtransformations group: /entry/sample/transformations
+    write_NXtransformations(nxsample, goniometer_axes, full_scan, data_type)
+    if add_nonstandard_fields:
+        add_sample_axis_groups(nxsample, goniometer_axes)
 
     # Save sample depends_on
     if sample_depends_on:
         nxsample.create_dataset(
             "depends_on",
-            data=set_dependency(sample_depends_on, path=nxtransformations.name),
+            data=set_dependency(
+                sample_depends_on, path=nxsample["transformations"].name
+            ),
         )
     else:
         nxsample.create_dataset(
             "depends_on",
-            data=set_dependency(goniometer_axes[-1].name, path=nxtransformations.name),
+            data=set_dependency(
+                goniometer_axes[-1].name, path=nxsample["transformations"].name
+            ),
         )
 
-    # Get xy details if passed
-    scan_axes = []
-    if transl_scan:
-        for k in transl_scan.keys():
-            scan_axes.append(k)
-
-    # Create sample_{axisname} groups
-    for idx, ax in enumerate(goniometer_axes):
-        axis_name = ax.name
-        grp_name = (
-            f"sample_{axis_name[-1]}" if "sam_" in axis_name else f"sample_{axis_name}"
-        )
-        nxsample_ax = nxsample.create_group(grp_name)
-        create_attributes(nxsample_ax, ("NX_class",), ("NXpositioner",))
-        if axis_name == osc_axis:
-            # If we're dealing with the scan axis
-            if (
-                "data" in nxsfile["/entry"].keys()
-                and axis_name in nxsfile["/entry/data"].keys()
-            ):
-                nxsample_ax[axis_name] = nxsfile[nxsfile["/entry/data"][axis_name].name]
-                nxtransformations[axis_name] = nxsfile[
-                    nxsfile["/entry/data"][axis_name].name
-                ]
-            else:
-                nxax = nxsample_ax.create_dataset(axis_name, data=osc_range)
-                _dep = set_dependency(
-                    goniometer_axes[idx].depends, path="/entry/sample/transformations/"
-                )
-                create_attributes(
-                    nxax,
-                    ("depends_on", "transformation_type", "units", "vector"),
-                    (
-                        _dep,
-                        goniometer_axes[idx].transformation_type,
-                        goniometer_axes[idx].units,
-                        goniometer_axes[idx].vector,
-                    ),
-                )
-                nxtransformations[axis_name] = nxsfile[nxax.name]
-            # Write {axisname}_increment_set and {axis_name}_end datasets
-            if data_type == "images":
-                increment_set = np.repeat(
-                    goniometer_axes[idx].increment, len(osc_range)
-                )
-                nxsample_ax.create_dataset(
-                    axis_name + "_increment_set",
-                    data=goniometer_axes[idx].increment,
-                )  # increment_set
-                nxsample_ax.create_dataset(
-                    axis_name + "_end", data=osc_range + increment_set
-                )
-        elif axis_name in scan_axes:
-            # For translations
-            if (
-                "data" in nxsfile["/entry"].keys()
-                and axis_name in nxsfile["/entry/data"].keys()
-            ):
-                nxsample_ax[axis_name] = nxsfile[nxsfile["/entry/data"][axis_name].name]
-                nxtransformations[axis_name] = nxsfile[
-                    nxsfile["/entry/data"][axis_name].name
-                ]
-            else:
-                nxax = nxsample_ax.create_dataset(
-                    axis_name, data=transl_scan[axis_name]
-                )
-                _dep = set_dependency(
-                    goniometer_axes[idx].depends, path="/entry/sample/transformations/"
-                )
-                create_attributes(
-                    nxax,
-                    ("depends_on", "transformation_type", "units", "vector"),
-                    (
-                        _dep,
-                        goniometer_axes[idx].transformation_type,
-                        goniometer_axes[idx].units,
-                        goniometer_axes[idx].vector,
-                    ),
-                )
-                nxtransformations[axis_name] = nxsfile[nxax.name]
-        else:
-            # For all other axes
-            nxax = nxsample_ax.create_dataset(
-                axis_name, data=np.array([goniometer_axes[idx].start_pos])
-            )
-            _dep = set_dependency(
-                goniometer_axes[idx].depends, path="/entry/sample/transformations/"
-            )
-            create_attributes(
-                nxax,
-                ("depends_on", "transformation_type", "units", "vector"),
-                (
-                    _dep,
-                    goniometer_axes[idx].transformation_type,
-                    goniometer_axes[idx].units,
-                    goniometer_axes[idx].vector,
-                ),
-            )
-            nxtransformations[axis_name] = nxsfile[nxax.name]
+    # Add scan axes datasets to NXdata
+    nxdata = nxsfile.require_group("/entry/data")
+    for ax in goniometer_axes:
+        if ax.name in full_scan.keys():
+            nxdata[ax.name] = nxsfile[f"/entry/sample/transformations/{ax.name}"]
 
     # Look for nxbeam in file, if it's there make link
     try:
@@ -602,57 +530,37 @@ def write_NXdetector(
     )
 
     # Write NXtransformations: entry/instrument/detector/transformations/detector_z and two_theta
-    nxtransformations = nxdetector.require_group("transformations")
-    create_attributes(nxtransformations, ("NX_class",), ("NXtransformations",))
+    write_NXtransformations(nxdetector, detector.detector_axes)
+    # NXdetector depends on the last (often only) axis in the list
+    det_dep = set_dependency(
+        detector.detector_axes[-1].name,
+        path="/entry/instrument/detector/transformations",
+    )
+    nxdetector.create_dataset("depends_on", data=det_dep)
 
-    # Create groups for detector_z and any other detector axis (eg. two_theta) if present
-    # This assumes that the detector axes are fixed.
-    for idx, ax in enumerate(detector.detector_axes):
-        if ax.name == "det_z":
-            grp_name = "detector_z"
-            dist = units_of_length(str(detector.detector_axes[idx].start_pos) + "mm")
-        else:
-            grp_name = ax.name
+    # Just a det_z check
+    if "det_z" not in list(nxdetector["transformations"].keys()):
+        NXclass_logger.error("No det_z field in nexus file.")
+        return
 
-        # It shouldn't be too much of an issue but just in case ...
-        if detector.detector_axes[idx].depends == "det_z":
-            grp_dep = "detector_z"
-        else:
-            grp_dep = detector.detector_axes[idx].depends
-        _dep = set_dependency(
-            detector.detector_axes[idx].depends,
-            nxtransformations.name + f"/{grp_dep}/",
-        )
-
-        nxgrp_ax = nxtransformations.create_group(grp_name)
-        create_attributes(nxgrp_ax, ("NX_class",), ("NXpositioner",))
-        nxdet_ax = nxgrp_ax.create_dataset(
-            ax.name, data=np.array([detector.detector_axes[idx].start_pos])
-        )
-        create_attributes(
-            nxdet_ax,
-            ("depends_on", "transformation_type", "units", "vector"),
-            (
-                _dep,
-                detector.detector_axes[idx].transformation_type,
-                detector.detector_axes[idx].units,
-                detector.detector_axes[idx].vector,
-            ),
-        )
-        if ax.name == detector.detector_axes[-1].name:
-            # Detector depends_on
-            nxdetector.create_dataset(
-                "depends_on",
-                data=set_dependency(ax.name, path=nxgrp_ax.name),
-            )
-
-    # Write a soft link for detector_z
-    if "detector_z" in list(nxtransformations.keys()):
-        nxdetector["detector_z"] = nxsfile[
-            "/entry/instrument/detector/transformations/detector_z"
-        ]
+    # Write a soft link for detector_z, workaround for autoPROC
+    # TODO see https://github.com/DiamondLightSource/nexgen/issues/140
+    nxdetector.create_group("detector_z")
+    create_attributes(
+        nxdetector["detector_z"],
+        ("NX_class",),
+        ("NXtransformations",),  # NXtransformations instead of NXpositioner. TOBETESTED
+    )
+    nxdetector["detector_z/det_z"] = nxsfile[
+        "/entry/instrument/detector/transformations/det_z"
+    ]
 
     # Detector distance
+    det_z_idx = [
+        n for n, ax in enumerate(detector.detector_axes) if ax.name == "det_z"
+    ][0]
+    dist = units_of_length(str(detector.detector_axes[det_z_idx].start_pos) + "mm")
+
     nxdetector.create_dataset("distance", data=dist.to("m").magnitude)
     create_attributes(
         nxdetector["distance"], ("units",), (format(dist.to("m").units, "~"))
@@ -712,7 +620,7 @@ def write_NXdetector_module(
             "vector",
         ),
         (
-            "/entry/instrument/detector/transformations/detector_z/det_z",
+            "/entry/instrument/detector/transformations/det_z",
             offsets[0],
             "mm",
             "translation",
@@ -776,7 +684,7 @@ def write_NXdetector_module(
                 "vector",
             ),
             (
-                "/entry/instrument/detector/transformations/detector_z/det_z",
+                "/entry/instrument/detector/transformations/det_z",
                 [0, 0, 0],
                 "mm",
                 "translation",
