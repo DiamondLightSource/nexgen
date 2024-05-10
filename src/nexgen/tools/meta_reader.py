@@ -37,7 +37,7 @@ def overwrite_beam(meta_file: h5py.File, name: str, beam: Dict | ScopeExtract):
         meta = DectrisMetafile(meta_file)
         wl = meta.get_wavelength()
         if wl is None:
-            overwrite_logger.info("No wavelength information found in meta file.")
+            overwrite_logger.warning("No wavelength information found in meta file.")
             return
     else:
         raise ValueError("Unknown detector: please pass a valid detector description.")
@@ -90,14 +90,14 @@ def overwrite_detector(
         meta = DectrisMetafile(meta_file)
         overwrite_logger.info("Looking through meta file for Eiger detector.")
         if meta.hasMask is True:
-            overwrite_logger.info("Mask has been located in meta file")
+            overwrite_logger.debug("Mask has been located in meta file")
             mask_info = meta.find_mask()
             new_values["pixel_mask"] = mask_info[0]
             new_values["pixel_mask_applied"] = mask_info[1]
             link_list[0].append("pixel_mask")
             link_list[0].append("pixel_mask_applied")
         if meta.hasFlatfield is True:
-            overwrite_logger.info("Flatfield has been located in meta file")
+            overwrite_logger.debug("Flatfield has been located in meta file")
             flatfield_info = meta.find_flatfield()
             new_values["flatfield"] = flatfield_info[0]
             new_values["flatfield_applied"] = flatfield_info[1]
@@ -120,29 +120,29 @@ def overwrite_detector(
                 units_of_length(pix[1]),
             ]
             overwrite_logger.warning("Pixel_size will be overwritten.")
-            overwrite_logger.info(
+            overwrite_logger.debug(
                 f"Values for x and y pixel size found in meta file: {pix[0]}, {pix[1]}"
             )
             new_values["beam_center"] = meta.get_beam_center()
             overwrite_logger.warning("Beam_center will be overwritten.")
-            overwrite_logger.info(
+            overwrite_logger.debug(
                 f"Values for x and y beam center position found in meta file: "
                 f"{new_values['beam_center']}"
             )
             sensor_info = meta.get_sensor_information()
             new_values["sensor_material"] = sensor_info[0]
             overwrite_logger.warning("Sensor material will be overwritten.")
-            overwrite_logger.info(
+            overwrite_logger.debug(
                 f"Value for sensor material found in meta file: {sensor_info[0]}"
             )
             new_values["sensor_thickness"] = units_of_length(sensor_info[1])
             overwrite_logger.warning("Sensor thickness will be overwritten.")
-            overwrite_logger.info(
+            overwrite_logger.debug(
                 f"Value for sensor thickness found in meta file: {sensor_info[1]}"
             )
             new_values["overload"] = meta.get_saturation_value()
             overwrite_logger.warning("Saturation value (overload) will be overwritten.")
-            overwrite_logger.info(
+            overwrite_logger.debug(
                 f"Value for overload found in meta file: {new_values['overload']}"
             )
     else:
@@ -177,11 +177,11 @@ def define_vds_data_type(meta_file: DectrisMetafile) -> DTypeLike:
     Returns:
         DTypeLike: Data type as np.uint##.
     """
-    overwrite_logger.info("Define dtype for VDS creating from bit_depth_image.")
+    overwrite_logger.debug("Define dtype for VDS creating from bit_depth_image.")
     # meta = DectrisMetafile(meta_file)
 
     nbits = meta_file.get_bit_depth_image()
-    overwrite_logger.info(f"Found value for bit_depth_image: {nbits}.")
+    overwrite_logger.debug(f"Found value for bit_depth_image: {nbits}.")
     if nbits == 32:
         return np.uint32
     elif nbits == 8:
@@ -206,7 +206,7 @@ def update_axes_from_meta(
         use_config (bool, optional): If passed read from config dataset in meta file instead of _dectris\
             group. Defaults to False.
     """
-    overwrite_logger.info("Updating axes list with values saved to _dectris group.")
+    overwrite_logger.debug("Updating axes list with values saved to _dectris group.")
     if meta_file.hasDectrisGroup is False:
         overwrite_logger.warning(
             "No Dectris group in meta file. No values will be updated."
@@ -222,10 +222,10 @@ def update_axes_from_meta(
     for ax in axes_list:
         if f"{ax.name}_start" in config.keys():
             ax.start_pos = config[f"{ax.name}_start"]
-            overwrite_logger.info(f"Start value for axis {ax.name}: {ax.start_pos}.")
+            overwrite_logger.debug(f"Start value for axis {ax.name}: {ax.start_pos}.")
             if f"{ax.name}_increment" in config.keys():
                 ax.increment = config[f"{ax.name}_increment"]
-                overwrite_logger.info(
+                overwrite_logger.debug(
                     f"Increment value for axis {ax.name}: {ax.increment}."
                 )
         if osc_axis and ax.name == osc_axis:
@@ -234,4 +234,4 @@ def update_axes_from_meta(
         if ax.name == "det_z":
             dist = units_of_length(meta_file.get_detector_distance())
             ax.start_pos = dist.to("mm").magnitude
-            overwrite_logger.info(f"Start value for axis {ax.name}: {ax.start_pos}.")
+            overwrite_logger.debug(f"Start value for axis {ax.name}: {ax.start_pos}.")
