@@ -13,11 +13,9 @@ from numpy.typing import ArrayLike
 from scanspec.core import Path as ScanPath
 from scanspec.specs import Line
 
-from .. import log
 from .axes import Axis
 
 scan_logger = logging.getLogger("nexgen.ScanUtils")
-log.config()
 
 # Some options for grid scans
 GridScanOptions = namedtuple("GridScanOptions", ("axes_order", "snaked"))
