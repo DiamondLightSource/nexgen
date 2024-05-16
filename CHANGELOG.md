@@ -1,7 +1,7 @@
 # CHANGELOG
 
 
-## 0.#.#
+## 0.9.3
 
 ### Changed
 - Non-standard "sample_{phi,omega,...}" groups in NXsample made optional and NXclass now set to NXtransformations instead of NXpositioner.
