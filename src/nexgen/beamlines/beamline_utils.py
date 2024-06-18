@@ -6,12 +6,43 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import List, Optional, Tuple
+from pathlib import Path
+from typing import List, Optional, Sequence, Tuple
 
 from dataclasses_json import DataClassJsonMixin
+from pydantic import BaseModel
 
 from nexgen.nxs_utils import Attenuator, Axis, Beam, Detector, Goniometer, Source
 from nexgen.utils import Point3D
+
+
+class CollectionParams(BaseModel):
+    """Parameters passed as input from the beamline.
+
+    Args:
+        metafile: Path to _meta.h5 file.
+        detector_name: Name of the detector in use for current experiment.
+        exposure_time: Exposure time, in s.
+        beam_center: Beam center (x,y) position, in pixels.
+        wavelength: Incident beam wavelength, in A.
+        flux: Total flux.
+        transmission: Attenuator transmission, in %.
+        tot_num_images: Total number of frames in a collection.
+        scan_axis: Rotation scan axis. Must be passed for Tristan.
+    """
+
+    metafile: Path | str
+    detector_name: str
+    exposure_time: float
+    beam_center: Sequence[float]
+    wavelength: Optional[float]
+    transmission: Optional[float]
+    flux: Optional[float]
+    tot_num_images: Optional[int]
+    scan_axis: Optional[str]
+
+
+class SerialParams(BaseModel): ...
 
 
 @dataclass

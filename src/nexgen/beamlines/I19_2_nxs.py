@@ -8,11 +8,10 @@ import logging
 from collections import namedtuple
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional, Sequence, Tuple, Union
+from typing import List, Tuple
 
 import h5py
 import numpy as np
-from pydantic import BaseModel
 
 from .. import log
 from ..nxs_utils import (
@@ -29,31 +28,7 @@ from ..nxs_write.nxmx_writer import EventNXmxFileWriter, NXmxFileWriter
 from ..tools.meta_reader import define_vds_data_type, update_axes_from_meta
 from ..tools.metafile import DectrisMetafile
 from ..utils import find_in_dict, get_iso_timestamp, get_nexus_filename
-from .beamline_utils import collection_summary_log
-
-
-class CollectionParams(BaseModel):
-    """Parameters passed as input from the beamline.
-
-    Args:
-        metafile: Path to _meta.h5 file.
-        detector_name: Name of the detector in use for current experiment.
-        exposure_time: Exposure time, in s.
-        beam_center: Beam center (x,y) position, in pixels.
-        wavelength: Incident beam wavelength, in A.
-        transmission: Attenuator transmission, in %.
-        tot_num_images: Total number of frames in a collection.
-        scan_axis: Rotation scan axis. Must be passed for Tristan.
-    """
-
-    metafile: Union[Path, str]
-    detector_name: str
-    exposure_time: float
-    beam_center: Sequence[float]
-    wavelength: Optional[float]
-    transmission: Optional[float]
-    tot_num_images: Optional[int]
-    scan_axis: Optional[str]
+from .beamline_utils import CollectionParams, collection_summary_log
 
 
 class ExperimentTypeError(Exception):
