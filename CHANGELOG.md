@@ -1,6 +1,13 @@
 # CHANGELOG
 
 
+## #.#.#
+
+### Fixed
+- Numpy2.0 compatibility - stop using deprecated np.string_ alias for fixed-width bytestrings.
+
+
+
 ## 0.9.3
 
 ### Changed
