@@ -60,14 +60,14 @@ def build_an_eiger(
             :,
             i * eiger_mod_size[1]
             + (i - 1) * eiger_gap_size[1] : i * (eiger_mod_size[1] + eiger_gap_size[1]),
-        ] = -1
+        ] = 65535
     # Vertical modules
     for j in range(1, n_modules[1] + 1):
         IM[
             j * eiger_mod_size[0]
             + (j - 1) * eiger_gap_size[0] : j * (eiger_mod_size[0] + eiger_gap_size[0]),
             :,
-        ] = -1
+        ] = 65535
 
     # Intra module gap
     mid = []
@@ -76,7 +76,7 @@ def build_an_eiger(
             int(eiger_mod_size[1] / 2) + n * (eiger_mod_size[1] + eiger_gap_size[1])
         )
     for m in mid:
-        IM[:, (m - 1) : (m + 1)] = -1
+        IM[:, (m - 1) : (m + 1)] = 65535
 
     return IM
 
@@ -109,7 +109,7 @@ def build_a_tristan(
             + (i - 1)
             * tristan_gap_size[1] : i
             * (tristan_mod_size[1] + tristan_gap_size[1]),
-        ] = -1
+        ] = 65535
     # Vertical modules
     for j in range(1, n_modules[1] + 1):
         IM[
@@ -118,7 +118,7 @@ def build_a_tristan(
             * tristan_gap_size[0] : j
             * (tristan_mod_size[0] + tristan_gap_size[0]),
             :,
-        ] = -1
+        ] = 65535
 
     return IM
 

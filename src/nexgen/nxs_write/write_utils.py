@@ -29,6 +29,9 @@ def create_attributes(nxs_obj: h5py.Group | h5py.Dataset, names: Tuple, values: 
     """
     Create or overwrite attributes with additional metadata information.
 
+    If any of the values are strings, these will first be converted into fixed-width \
+    bytesrings.
+
     Args:
         nxs_obj (h5py.Group | h5py.Dataset): NeXus object to which the \
             attributes should be attached.
@@ -37,12 +40,12 @@ def create_attributes(nxs_obj: h5py.Group | h5py.Dataset, names: Tuple, values: 
     """
     for n, v in zip(names, values):
         if isinstance(v, str):
-            # If a string, convert to numpy.string_
-            v = np.string_(v)
+            # If a string, convert to a numpy bytestring
+            v = np.bytes_(v)
         h5py.AttributeManager.create(nxs_obj, name=n, data=v)
 
 
-def set_dependency(dep_info: str, path: str = None):
+def set_dependency(dep_info: str, path: str = None) -> np.bytes_:
     """
     Define value for "depends_on" attribute.
     If the attribute points to the head of the dependency chain, simply pass \
@@ -54,16 +57,17 @@ def set_dependency(dep_info: str, path: str = None):
         path (str): Where the transformation is. Set to None, if passed it \
             points to location in the NeXus tree.
     Returns:
-        The value to be passed to the attribute "depends_on"
+        The value to be passed to the attribute "depends_on" as a fixed-width \
+            bytestring.
     """
     if dep_info == ".":
-        return np.string_(".")
+        return np.bytes_(".")
     if path:
         if path.endswith("/") is False:
             path += "/"
-        return np.string_(path + dep_info)
+        return np.bytes_(path + dep_info)
     else:
-        return np.string_(dep_info)
+        return np.bytes_(dep_info)
 
 
 def calculate_origin(

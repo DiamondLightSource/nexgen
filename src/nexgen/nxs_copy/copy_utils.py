@@ -18,7 +18,7 @@ from ..nxs_write.write_utils import create_attributes
 from ..utils import units_of_length, walk_nxs
 
 
-def h5str(h5_value: str | np.string_ | bytes) -> str:
+def h5str(h5_value: str | np.bytes_ | bytes) -> str:
     """
     Convert a value returned an h5py attribute to str.
 
@@ -27,12 +27,12 @@ def h5str(h5_value: str | np.string_ | bytes) -> str:
     fixed or variable length. This function collapses the two to str.
 
     Args:
-        h5_value (str | np.string_ | bytes): Original attribute value.
+        h5_value (str | np.bytes_ | bytes): Original attribute value.
 
     Returns:
-        str: Attribute value collapsed to str.
+        str: Attribute value collapsed to a str.
     """
-    if isinstance(h5_value, (np.string_, bytes)):
+    if isinstance(h5_value, (np.bytes_, bytes)):
         return h5_value.decode("utf-8")
     return h5_value
 
@@ -52,7 +52,7 @@ def get_skip_list(nxentry: h5py.Group, skip_obj: List[str]) -> List[str]:
     skip_list = []
     for obj in obj_list:
         try:
-            if nxentry[obj].attrs["NX_class"] in np.string_(skip_obj):
+            if nxentry[obj].attrs["NX_class"] in np.bytes_(skip_obj):
                 skip_list.append(obj)
         except Exception:
             pass
@@ -174,7 +174,7 @@ def check_and_fix_det_axis(nxs_in: h5py.File):
             "distance", data=dist.to("m").magnitude
         )
         nxs_in["/entry/instrument/detector/distance"].attrs.create(
-            "units", np.string_("m")
+            "units", np.bytes_("m")
         )
     else:
         return
