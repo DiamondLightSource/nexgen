@@ -98,7 +98,7 @@ def dummy_eiger_meta_file():
     test_meta_file["_dectris/detector_distance"] = np.array([0.19])
     test_meta_file["_dectris/bit_depth_readout"] = np.array([32])
     test_meta_file["flatfield"] = np.array([[0, 0, 0]])
-    test_meta_file["_dectris/software_version"] = np.string_("0.0.0")
+    test_meta_file["_dectris/software_version"] = np.bytes_("0.0.0")
     test_meta_file["mask"] = np.array([[0, 1, 1], [1, 0, 0]])
     test_meta_file["_dectris/pixel_mask_applied"] = False
     yield test_meta_file
