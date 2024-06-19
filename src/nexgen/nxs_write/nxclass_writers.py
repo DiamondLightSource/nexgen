@@ -66,7 +66,7 @@ def write_NXentry(nxsfile: h5py.File, definition: str = "NXmx") -> h5py.Group:
     )
 
     # Application definition: /entry/definition
-    nxentry.create_dataset("definition", data=np.string_(definition))
+    nxentry.create_dataset("definition", data=np.bytes_(definition))
     return nxentry
 
 
@@ -281,7 +281,7 @@ def write_NXsample(
     if sample_details:
         for k, v in sample_details.items():
             if isinstance(v, str):
-                v = np.string_(v)
+                v = np.bytes_(v)
             nxsample.create_dataset(k, data=v)
 
 
@@ -320,7 +320,7 @@ def write_NXinstrument(
         if reset_instrument_name
         else f"DIAMOND BEAMLINE {source.beamline}"
     )
-    nxinstrument.create_dataset("name", data=np.string_(name_str))
+    nxinstrument.create_dataset("name", data=np.bytes_(name_str))
     create_attributes(
         nxinstrument["name"],
         ("short_name",),
@@ -364,11 +364,11 @@ def write_NXsource(nxsfile: h5py.File, source: Source):
         ("NXsource",),
     )
 
-    nxsource.create_dataset("name", data=np.string_(source.name))
+    nxsource.create_dataset("name", data=np.bytes_(source.name))
     create_attributes(nxsource["name"], ("short_name",), (source.short_name,))
-    nxsource.create_dataset("type", data=np.string_(source.facility_type))
+    nxsource.create_dataset("type", data=np.bytes_(source.facility_type))
     if source.probe:
-        nxsource.create_dataset("probe", data=np.string_(source.probe))
+        nxsource.create_dataset("probe", data=np.bytes_(source.probe))
 
 
 # NXdetector writer
@@ -398,10 +398,10 @@ def write_NXdetector(
 
     # Detector description
     nxdetector.create_dataset(
-        "description", data=np.string_(detector.detector_params.description)
+        "description", data=np.bytes_(detector.detector_params.description)
     )
     nxdetector.create_dataset(
-        "type", data=np.string_(detector.detector_params.detector_type)
+        "type", data=np.bytes_(detector.detector_params.detector_type)
     )
 
     collection_mode = detector.get_detector_mode()
@@ -498,7 +498,7 @@ def write_NXdetector(
 
     # Sensor material, sensor thickness in m
     nxdetector.create_dataset(
-        "sensor_material", data=np.string_(detector.detector_params.sensor_material)
+        "sensor_material", data=np.bytes_(detector.detector_params.sensor_material)
     )
     sensor_thickness = units_of_length(detector.detector_params.sensor_thickness, True)
     nxdetector.create_dataset("sensor_thickness", data=sensor_thickness.magnitude)
@@ -739,7 +739,7 @@ def write_NXcollection(
         if not detector_params.hasMeta or collection_mode == "events":
             grp.create_dataset(
                 "software_version",
-                data=np.string_(detector_params.constants["software_version"]),
+                data=np.bytes_(detector_params.constants["software_version"]),
             )
         elif detector_params.hasMeta and meta:
             grp["software_version"] = h5py.ExternalLink(
@@ -748,7 +748,7 @@ def write_NXcollection(
         else:
             grp.create_dataset(
                 "software_version",
-                data=np.string_(detector_params.constants["software_version"]),
+                data=np.bytes_(detector_params.constants["software_version"]),
             )
     if "EIGER" in detector_params.description.upper() and meta:
         for field in ["ntrigger"]:  # "data_collection_date", "eiger_fw_version"]
@@ -757,10 +757,10 @@ def write_NXcollection(
     elif "TRISTAN" in detector_params.description.upper():
         tick = ureg.Quantity(detector_params.constants["detector_tick"])
         grp.create_dataset("detector_tick", data=tick.magnitude)
-        grp["detector_tick"].attrs["units"] = np.string_(format(tick.units, "~"))
+        grp["detector_tick"].attrs["units"] = np.bytes_(format(tick.units, "~"))
         freq = ureg.Quantity(detector_params.constants["detector_frequency"])
         grp.create_dataset("detector_frequency", data=freq.magnitude)
-        grp["detector_frequency"].attrs["units"] = np.string_(format(freq.units, "~"))
+        grp["detector_frequency"].attrs["units"] = np.bytes_(format(freq.units, "~"))
         grp.create_dataset(
             "timeslice_rollover_bits",
             data=detector_params.constants["timeslice_rollover"],
@@ -798,7 +798,7 @@ def write_NXdatetime(
     if type(timestamp) is datetime:
         timestamp = timestamp.strftime("%Y-%m-%dT%H:%M:%S")
     timestamp = get_iso_timestamp(timestamp)
-    nxentry.create_dataset(dset_name, data=np.string_(timestamp))
+    nxentry.create_dataset(dset_name, data=np.bytes_(timestamp))
 
 
 # NXnote writer
@@ -825,7 +825,7 @@ def write_NXnote(nxsfile: h5py.File, loc: str, info: Dict):
     for k, v in info.items():
         if v:  # Just in case one value is not recorded and set as None
             if isinstance(v, str):
-                v = np.string_(v)
+                v = np.bytes_(v)
             nxnote.create_dataset(k, data=v)
             NXclass_logger.debug(f"{k} dataset written in {loc}.")
 
@@ -872,7 +872,7 @@ def write_NXcoordinate_system_set(
     )
 
     # Needs at least: 3 base vectors, depends_on ("." probably?), origin
-    transf.create_dataset("depends_on", data=np.string_("."))  # To be checked
+    transf.create_dataset("depends_on", data=np.bytes_("."))  # To be checked
     transf.create_dataset("origin", data=origin)
 
     # Base vectors

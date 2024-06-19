@@ -172,9 +172,9 @@ def collect_data(files):
         )
 
         group = hdf5_file.create_group("entry")
-        group.attrs["NX_class"] = np.string_("NXentry")
+        group.attrs["NX_class"] = np.bytes_("NXentry")
         data_group = group.create_group("data")
-        data_group.attrs["NX_class"] = np.string_("NXdata")
+        data_group.attrs["NX_class"] = np.bytes_("NXdata")
 
         compressed_data = hdf5_file.create_dataset(
             "/entry/data/data", shape=dataset_shape, dtype=np.int32, **hdf5plugin.LZ4()
