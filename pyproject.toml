@@ -24,7 +24,7 @@ dependencies = [
     "importlib_resources>=1.1",
     "scanspec",
     "dataclasses-json",
-    "pydantic<2.0",
+    "pydantic<3.0",
 ]
 license.file = "LICENSE"
 readme = "README.rst"
