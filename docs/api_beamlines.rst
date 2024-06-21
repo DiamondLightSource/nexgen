@@ -80,6 +80,13 @@ Serial crystallography: Tristan writers
 .. autofunction:: nexgen.beamlines.SSX_Tristan_nxs.ssx_tristan_writer
 
 
+Collection parameters schema for SSX using Tristan
+
+.. autopydantic_model:: nexgen.beamlines.SSX_Eiger_nxs.TimeResolvedSerialParams
+    :model-show-config-summary: False
+
+
+
 Serial crystallography: chip tools
 ----------------------------------
 
