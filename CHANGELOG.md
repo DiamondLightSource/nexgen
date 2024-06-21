@@ -5,7 +5,7 @@
 
 ### Fixed
 - Numpy2.0 compatibility - stop using deprecated np.string_ alias for fixed-width bytestrings.
-
+- External links to eiger meta file in NXdetector and detectorSpecific groups re-enabled.
 
 
 ## 0.9.3
