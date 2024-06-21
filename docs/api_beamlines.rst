@@ -82,7 +82,7 @@ Serial crystallography: Tristan writers
 
 Collection parameters schema for SSX using Tristan
 
-.. autopydantic_model:: nexgen.beamlines.SSX_Eiger_nxs.TimeResolvedSerialParams
+.. autopydantic_model:: nexgen.beamlines.SSX_Tristan_nxs.TimeResolvedSerialParams
     :model-show-config-summary: False
 
 
