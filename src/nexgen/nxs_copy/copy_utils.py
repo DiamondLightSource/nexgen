@@ -307,7 +307,7 @@ def compute_ssx_axes(
             }
 
         # Update pump probe
-        pump_info = pp.to_dict()
+        pump_info = pp.dict()
         pump_info["n_exposures"] = N_EXP
         return OSC, TRANSL, pump_info, None
     else:
@@ -315,4 +315,4 @@ def compute_ssx_axes(
         # Do not set N_EXP, there should be no repeat here
         # Find out how many consecutive windows are binned together.
         windows_per_bin = (num_blocks * chip.tot_windows_per_block()) // nbins
-        return OSC, {}, pp.to_dict(), windows_per_bin
+        return OSC, {}, pp.dict(), windows_per_bin

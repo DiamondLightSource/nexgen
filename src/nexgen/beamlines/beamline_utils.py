@@ -8,7 +8,6 @@ import logging
 from dataclasses import dataclass
 from typing import List, Optional, Sequence, Tuple
 
-from dataclasses_json import DataClassJsonMixin
 from pydantic import BaseModel
 
 from nexgen.nxs_utils import Attenuator, Axis, Beam, Detector, Goniometer, Source
@@ -33,26 +32,21 @@ class GeneralParams(BaseModel):
     flux: Optional[float]
 
 
-@dataclass
-class PumpProbe(DataClassJsonMixin):
+class PumpProbe(BaseModel):
     """
     Define pump probe parameters for a serial experiment on I24.
 
     Args:
-        pump_status (bool): Pump on/off
+        pump_status (bool, optional): Pump probe on/off.
         pump_exposure (float, optional): Pump exposure time, in s.
         pump_delay (float, optional): Pump delay, in s.
         pump_repeat (int, optional): Repeat mode.
     """
 
-    pump_status: bool = False
+    pump_status: Optional[bool] = False
     pump_exposure: Optional[float] = None
     pump_delay: Optional[float] = None
     pump_repeat: Optional[int] = 0
-
-    def __post_init__(self):
-        if self.pump_exposure:
-            self.pump_status = True
 
 
 @dataclass
