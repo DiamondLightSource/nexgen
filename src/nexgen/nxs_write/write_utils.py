@@ -24,6 +24,9 @@ NXclassUtils_logger.setLevel(logging.DEBUG)
 # Define Timestamp dataset names
 TSdset = Literal["start_time", "end_time", "end_time_estimated"]
 
+# Define HDF5 ascii variable-length string
+HDF5STR = h5py.string_dtype(encoding="ascii", length=None)
+
 
 def create_attributes(nxs_obj: h5py.Group | h5py.Dataset, names: Tuple, values: Tuple):
     """
