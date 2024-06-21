@@ -5,10 +5,11 @@ Create a NeXus file for serial crystallography datasets collected on Eiger detec
 from __future__ import annotations
 
 import logging
-from collections import namedtuple
 from pathlib import Path
+from typing import Optional, Sequence
 
 import h5py
+from pydantic import BaseModel
 
 from .. import log
 from ..nxs_utils import Attenuator, Beam, Detector, EigerDetector, Goniometer, Source
@@ -21,25 +22,29 @@ from .beamline_utils import PumpProbe, collection_summary_log
 # Define logger
 logger = logging.getLogger("nexgen.SSX_Eiger")
 
-# Define a namedtuple for collection parameters
-ssx_collect = namedtuple(
-    "ssx_collect",
-    [
-        "num_imgs",
-        "exposure_time",
-        "detector_distance",
-        "beam_center",
-        "transmission",
-        "wavelength",
-        "flux",
-        "start_time",
-        "stop_time",
-        "chip_info",
-        "chipmap",
-    ],
-)
 
-ssx_collect.__doc__ = """Serial collection parameters"""
+class SerialParams(BaseModel):
+    """PArameters passed as input from the beamline
+
+    Args:
+        num_imgs: Total number of frames in a collection.
+        exposure_time: Exposure time, in s.
+        detector_distance: Distance between sample and deterctor, in mm.
+        experiment_type: Type of collection.
+        beam_center: Beam center (x,y) position, in pixels.
+        wavelength: Incident beam wavelength, in A.
+        flux: Total flux.
+        transmission: Attenuator transmission, in %.
+    """
+
+    num_imgs: int
+    exposure_time: float
+    detector_distance: float
+    experiment_type: str
+    beam_center: Sequence[float]
+    wavelength: Optional[float]
+    transmission: Optional[float]
+    flux: Optional[float]
 
 
 def ssx_eiger_writer(
@@ -85,48 +90,36 @@ def ssx_eiger_writer(
         ValueError: If an invalid beamline name is passed.
         ValueError: If an invalid experiment type is passed.
     """
-    if not find_in_dict("start_time", ssx_params):
-        ssx_params["start_time"] = None
-    if not find_in_dict("stop_time", ssx_params):
-        ssx_params["stop_time"] = None
-
-    SSX = ssx_collect(
+    # Collect some of the params
+    SSX = SerialParams(
         num_imgs=int(num_imgs),
         exposure_time=(
-            ssx_params["exp_time"] if find_in_dict("exp_time", ssx_params) else None
+            ssx_params["exp_time"] if find_in_dict("exp_time", ssx_params) else 0.0
         ),
         detector_distance=(
-            ssx_params["det_dist"] if find_in_dict("det_dist", ssx_params) else None
+            ssx_params["det_dist"] if find_in_dict("det_dist", ssx_params) else 0.0
         ),
+        experiment_type=expt_type,
         beam_center=(
             ssx_params["beam_center"]
             if find_in_dict("beam_center", ssx_params)
             else (0, 0)
+        ),
+        wavelength=(
+            ssx_params["wavelength"] if find_in_dict("wavelength", ssx_params) else None
         ),
         transmission=(
             ssx_params["transmission"]
             if find_in_dict("transmission", ssx_params)
             else None
         ),
-        wavelength=(
-            ssx_params["wavelength"] if find_in_dict("wavelength", ssx_params) else None
-        ),
         flux=ssx_params["flux"] if find_in_dict("flux", ssx_params) else None,
-        start_time=(
-            ssx_params["start_time"].strftime("%Y-%m-%dT%H:%M:%S")
-            if ssx_params["start_time"]
-            else None
-        ),
-        stop_time=(
-            ssx_params["stop_time"].strftime("%Y-%m-%dT%H:%M:%S")
-            if ssx_params["stop_time"]
-            else None
-        ),
-        chip_info=(
-            ssx_params["chip_info"] if find_in_dict("chip_info", ssx_params) else None
-        ),
-        chipmap=ssx_params["chipmap"] if find_in_dict("chipmap", ssx_params) else None,
     )
+
+    chip_info = (
+        ssx_params["chip_info"] if find_in_dict("chip_info", ssx_params) else None
+    )
+    chipmap = ssx_params["chipmap"] if find_in_dict("chipmap", ssx_params) else None
 
     if expt_type.lower() not in ["extruder", "fixed-target", "3Dgridscan"]:
         raise ValueError("Unknown experiment type.")
@@ -205,12 +198,22 @@ def ssx_eiger_writer(
         logger.info(f"Recorded pump exposure time: {pump_probe.pump_exposure}")
         logger.info(f"Recorded pump delay time: {pump_probe.pump_delay}")
         if expt_type == "fixed-target":
-            pump_probe.pump_repeat = int(SSX.chip_info["PUMP_REPEAT"][1])
+            pump_probe.pump_repeat = int(chip_info["PUMP_REPEAT"][1])
 
     # Get timestamps in the correct format
+    _start_time = (
+        ssx_params["start_time"].strftime("%Y-%m-%dT%H:%M:%S")
+        if find_in_dict("start_time", ssx_params)
+        else None
+    )
+    _stop_time = (
+        ssx_params["stop_time"].strftime("%Y-%m-%dT%H:%M:%S")
+        if find_in_dict("stop_time", ssx_params)
+        else None
+    )
     timestamps = (
-        get_iso_timestamp(SSX.start_time),
-        get_iso_timestamp(SSX.stop_time),
+        get_iso_timestamp(_start_time),
+        get_iso_timestamp(_stop_time),
     )
 
     # Find metafile in directory and get info from it
@@ -290,13 +293,11 @@ def ssx_eiger_writer(
         from .SSX_expt import run_fixed_target
 
         # Define chipmap if needed
-        chipmapfile = (
-            None if SSX.chipmap is None else Path(SSX.chipmap).expanduser().resolve()
-        )
+        chipmapfile = None if chipmap is None else Path(chipmap).expanduser().resolve()
 
         SCAN, pump_info = run_fixed_target(
             gonio_axes,
-            SSX.chip_info,
+            chip_info,
             chipmapfile,
             pump_probe,
             ["sam_y", "sam_x"],

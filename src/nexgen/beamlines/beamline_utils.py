@@ -42,9 +42,6 @@ class CollectionParams(BaseModel):
     scan_axis: Optional[str]
 
 
-class SerialParams(BaseModel): ...
-
-
 @dataclass
 class PumpProbe(DataClassJsonMixin):
     """
