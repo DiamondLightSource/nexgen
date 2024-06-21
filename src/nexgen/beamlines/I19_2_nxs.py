@@ -8,7 +8,7 @@ import logging
 from collections import namedtuple
 from datetime import datetime
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import h5py
 import numpy as np
@@ -28,11 +28,29 @@ from ..nxs_write.nxmx_writer import EventNXmxFileWriter, NXmxFileWriter
 from ..tools.meta_reader import define_vds_data_type, update_axes_from_meta
 from ..tools.metafile import DectrisMetafile
 from ..utils import find_in_dict, get_iso_timestamp, get_nexus_filename
-from .beamline_utils import CollectionParams, collection_summary_log
+from .beamline_utils import GeneralParams, collection_summary_log
 
 
 class ExperimentTypeError(Exception):
     pass
+
+
+class CollectionParams(GeneralParams):
+    """Collection parameters for beamline I19-2.
+
+    Args:
+        GeneralParams (Basemodel): General collection parameters common to \
+            multiple beamlines/experiments, such as exposure time, wavelength, ...
+        metafile (Path | str): Path to _meta.h5 file.
+        detector_name (str): Name of the detector in use for current experiment.
+        tot_num_images (int, optional): Total number of frames in a collection.
+        scan_axis (str, optional): Rotation scan axis. Must be passed for Tristan.
+    """
+
+    metafile: Path | str
+    detector_name: str
+    tot_num_images: Optional[int]
+    scan_axis: Optional[str]
 
 
 # Define a logger object

@@ -6,10 +6,8 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Optional, Sequence
 
 import h5py
-from pydantic import BaseModel
 
 from .. import log
 from ..nxs_utils import Attenuator, Beam, Detector, EigerDetector, Goniometer, Source
@@ -17,34 +15,26 @@ from ..nxs_write.nxmx_writer import NXmxFileWriter
 from ..tools.meta_reader import define_vds_data_type, update_axes_from_meta
 from ..tools.metafile import DectrisMetafile
 from ..utils import find_in_dict, get_iso_timestamp
-from .beamline_utils import PumpProbe, collection_summary_log
+from .beamline_utils import GeneralParams, PumpProbe, collection_summary_log
 
 # Define logger
 logger = logging.getLogger("nexgen.SSX_Eiger")
 
 
-class SerialParams(BaseModel):
-    """PArameters passed as input from the beamline
+class SerialParams(GeneralParams):
+    """Collection parameters for a serial crystallography experiment.
 
     Args:
-        num_imgs: Total number of frames in a collection.
-        exposure_time: Exposure time, in s.
-        detector_distance: Distance between sample and deterctor, in mm.
-        experiment_type: Type of collection.
-        beam_center: Beam center (x,y) position, in pixels.
-        wavelength: Incident beam wavelength, in A.
-        flux: Total flux.
-        transmission: Attenuator transmission, in %.
+        GeneralParams (Basemodel): General collection parameters common to \
+            multiple beamlines/experiments, such as exposure time, wavelength, ...
+        num_imgs (int): Total number of frames in a collection.
+        detector_distance (float): Distance between sample and deterctor, in mm.
+        experiment_type (str): Type of collection.
     """
 
     num_imgs: int
-    exposure_time: float
     detector_distance: float
     experiment_type: str
-    beam_center: Sequence[float]
-    wavelength: Optional[float]
-    transmission: Optional[float]
-    flux: Optional[float]
 
 
 def ssx_eiger_writer(
@@ -121,7 +111,7 @@ def ssx_eiger_writer(
     )
     chipmap = ssx_params["chipmap"] if find_in_dict("chipmap", ssx_params) else None
 
-    if expt_type.lower() not in ["extruder", "fixed-target", "3Dgridscan"]:
+    if SSX.experiment_type.lower() not in ["extruder", "fixed-target", "3Dgridscan"]:
         raise ValueError("Unknown experiment type.")
 
     visitpath = Path(visitpath).expanduser().resolve()
@@ -175,12 +165,12 @@ def ssx_eiger_writer(
         )
 
     # Define what to do based on experiment type
-    if expt_type not in ["extruder", "fixed-target", "3Dgridscan"]:
+    if SSX.experiment_type not in ["extruder", "fixed-target", "3Dgridscan"]:
         raise ValueError(
             "Please pass a valid experiment type.\n"
             "Accepted values: extruder, fixed-target, 3Dgridscan."
         )
-    logger.info(f"Running {expt_type} collection.")
+    logger.info(f"Running {SSX.experiment_type} collection.")
 
     # Get pump information
     pump_probe = PumpProbe()
@@ -197,7 +187,7 @@ def ssx_eiger_writer(
 
         logger.info(f"Recorded pump exposure time: {pump_probe.pump_exposure}")
         logger.info(f"Recorded pump delay time: {pump_probe.pump_delay}")
-        if expt_type == "fixed-target":
+        if SSX.experiment_type == "fixed-target":
             pump_probe.pump_repeat = int(chip_info["PUMP_REPEAT"][1])
 
     # Get timestamps in the correct format
@@ -280,7 +270,7 @@ def ssx_eiger_writer(
     tot_num_imgs = SSX.num_imgs
 
     # Run experiment type
-    if expt_type == "extruder":
+    if SSX.experiment_type == "extruder":
         from .SSX_expt import run_extruder
 
         gonio_axes, SCAN, pump_info = run_extruder(
@@ -289,7 +279,7 @@ def ssx_eiger_writer(
             pump_probe,
             osc_axis,
         )
-    elif expt_type == "fixed-target":
+    elif SSX.experiment_type == "fixed-target":
         from .SSX_expt import run_fixed_target
 
         # Define chipmap if needed
