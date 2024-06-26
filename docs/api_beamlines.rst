@@ -61,6 +61,12 @@ Collection parameters schema for I19-2
 .. autofunction:: nexgen.beamlines.I19_2_gda_nxs.eiger_writer
 
 
+Collection parameters schema for I19-2 from GDA
+
+.. autopydantic_model:: nexgen.beamlines.I19_2_gda_nxs.GDACollectionParams
+    :model-show-config-summary: False
+
+
 Serial crystallography: Eiger writers
 -------------------------------------
 
