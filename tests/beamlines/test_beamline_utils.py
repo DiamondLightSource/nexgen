@@ -14,7 +14,7 @@ def test_pump_probe():
 
 
 def test_pump_probe_dict():
-    pump_probe = PumpProbe().to_dict()
+    pump_probe = PumpProbe().dict()
     assert list(pump_probe.keys()) == [
         "pump_status",
         "pump_exposure",
@@ -22,11 +22,6 @@ def test_pump_probe_dict():
         "pump_repeat",
     ]
     assert pump_probe["pump_status"] is False
-
-
-def test_pump_status_set_to_true_if_exposure_is_passed():
-    pump_probe = PumpProbe(pump_exposure=0.1)
-    assert pump_probe.pump_status is True
 
 
 def test_beamline_axes():

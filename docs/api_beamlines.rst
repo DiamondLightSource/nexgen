@@ -9,8 +9,12 @@ General utilities
     :members:
 
 
-.. autoclass:: nexgen.beamlines.beamline_utils.PumpProbe
-    :members:
+.. autopydantic_model:: nexgen.beamlines.beamline_utils.GeneralParams
+    :model-show-config-summary: False
+
+
+.. autopydantic_model:: nexgen.beamlines.beamline_utils.PumpProbe
+    :model-show-config-summary: False
 
 I19-2
 -----
@@ -57,15 +61,36 @@ Collection parameters schema for I19-2
 .. autofunction:: nexgen.beamlines.I19_2_gda_nxs.eiger_writer
 
 
+Collection parameters schema for I19-2 from GDA
+
+.. autopydantic_model:: nexgen.beamlines.I19_2_gda_nxs.GDACollectionParams
+    :model-show-config-summary: False
+
+
 Serial crystallography: Eiger writers
 -------------------------------------
 
 .. autofunction:: nexgen.beamlines.SSX_Eiger_nxs.ssx_eiger_writer
 
+
+Collection parameters schema for SSX
+
+.. autopydantic_model:: nexgen.beamlines.SSX_Eiger_nxs.SerialParams
+    :model-show-config-summary: False
+
+
+
 Serial crystallography: Tristan writers
 ---------------------------------------
 
 .. autofunction:: nexgen.beamlines.SSX_Tristan_nxs.ssx_tristan_writer
+
+
+Collection parameters schema for SSX using Tristan
+
+.. autopydantic_model:: nexgen.beamlines.SSX_Tristan_nxs.TimeResolvedSerialParams
+    :model-show-config-summary: False
+
 
 
 Serial crystallography: chip tools
