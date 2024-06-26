@@ -6,34 +6,47 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import List, Optional, Tuple
+from typing import List, Optional, Sequence, Tuple
 
-from dataclasses_json import DataClassJsonMixin
+from pydantic import BaseModel
 
 from nexgen.nxs_utils import Attenuator, Axis, Beam, Detector, Goniometer, Source
 from nexgen.utils import Point3D
 
 
-@dataclass
-class PumpProbe(DataClassJsonMixin):
-    """
-    Define pump probe parameters.
+class GeneralParams(BaseModel):
+    """Parameters passed as input from the beamline.
 
     Args:
-        pump_status (bool): Pump on/off
+        exposure_time (float): Exposure time, in s.
+        beam_center (Sequence[float]): Beam center (x,y) position, in pixels.
+        wavelength (float, optional): Incident beam wavelength, in A.
+        transmission (float, optional): Attenuator transmission, in %.
+        flux (float, optional): Total flux.
+    """
+
+    exposure_time: float
+    beam_center: Sequence[float]
+    wavelength: Optional[float]
+    transmission: Optional[float]
+    flux: Optional[float]
+
+
+class PumpProbe(BaseModel):
+    """
+    Define pump probe parameters for a serial experiment on I24.
+
+    Args:
+        pump_status (bool, optional): Pump probe on/off.
         pump_exposure (float, optional): Pump exposure time, in s.
         pump_delay (float, optional): Pump delay, in s.
         pump_repeat (int, optional): Repeat mode.
     """
 
-    pump_status: bool = False
+    pump_status: Optional[bool] = False
     pump_exposure: Optional[float] = None
     pump_delay: Optional[float] = None
     pump_repeat: Optional[int] = 0
-
-    def __post_init__(self):
-        if self.pump_exposure:
-            self.pump_status = True
 
 
 @dataclass
@@ -62,16 +75,16 @@ def collection_summary_log(
     timestamps: Tuple[str],
 ):
     """General function to log a collection summary."""
-    logger.info("--- COLLECTION SUMMARY ---")
-    logger.info(source.__repr__())
+    logger.debug("--- COLLECTION SUMMARY ---")
+    logger.debug(source.__repr__())
 
-    logger.info(f"Incident beam wavelength: {beam.wavelength}")
-    logger.info(f"Attenuation: {attenuator.transmission}")
+    logger.debug(f"Incident beam wavelength: {beam.wavelength}")
+    logger.debug(f"Attenuation: {attenuator.transmission}")
 
-    logger.info(goniometer.__repr__())
-    logger.info(detector.__repr__())
+    logger.debug(goniometer.__repr__())
+    logger.debug(detector.__repr__())
 
-    logger.info(f"Recorded beam center is: {detector.beam_center}.")
-    logger.info(f"Recorded exposure time: {detector.exp_time} s.")
+    logger.debug(f"Recorded beam center is: {detector.beam_center}.")
+    logger.debug(f"Recorded exposure time: {detector.exp_time} s.")
 
-    logger.info(f"Timestamps recorded: {timestamps}")
+    logger.debug(f"Timestamps recorded: {timestamps}")

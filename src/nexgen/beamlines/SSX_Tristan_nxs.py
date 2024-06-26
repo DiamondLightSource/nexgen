@@ -5,36 +5,34 @@ Create a NeXus file for serial crystallography datasets collected on Tristan10M 
 from __future__ import annotations
 
 import logging
-from collections import namedtuple
 from pathlib import Path
+from typing import Optional
 
 from .. import log
 from ..nxs_utils import Attenuator, Beam, Detector, Goniometer, Source, TristanDetector
 from ..nxs_write.nxmx_writer import EventNXmxFileWriter
 from ..utils import Point3D, find_in_dict, get_iso_timestamp
-from .beamline_utils import collection_summary_log
+from .beamline_utils import GeneralParams, collection_summary_log
 
 # Define a logger object and a formatter
 logger = logging.getLogger("nexgen.SSX_Tristan")
 
-ssx_tr_collect = namedtuple(
-    "ssx_collect",
-    [
-        "exposure_time",
-        "detector_distance",
-        "beam_center",
-        "transmission",
-        "wavelength",
-        "start_time",
-        "stop_time",
-        "chipmap",
-        "chip_info",
-    ],
-)
 
-ssx_tr_collect.__doc__ = (
-    """Parameters that define a serial collection using a Tristan detector."""
-)
+class TimeResolvedSerialParams(GeneralParams):
+    """Collection parameters for a serial crystallography experiment using \
+        Tristan 10M detector.
+
+    Args:
+        GeneralParams (Basemodel): General collection parameters common to \
+            multiple beamlines/experiments, such as exposure time, wavelength, ...
+        detector_distance (float): Distance between sample and deterctor, in mm.
+        experiment_type (str, optional): Type of collection.
+        location (str, optional): Beamline.
+    """
+
+    detector_distance: float
+    experiment_type: Optional[str]
+    location: Optional[str]
 
 
 def ssx_tristan_writer(
@@ -65,22 +63,17 @@ def ssx_tristan_writer(
         chipmap (Path | str): Path to the chipmap file corresponding to the experiment,
             or 'fullchip' indicating that the whole chip is being scanned.
     """
-    if not find_in_dict("start_time", ssx_params):
-        ssx_params["start_time"] = None
-    if not find_in_dict("stop_time", ssx_params):
-        ssx_params["stop_time"] = None
-
     # Get info from the beamline
-    SSX_TR = ssx_tr_collect(
+    SSX_TR = TimeResolvedSerialParams(
         exposure_time=(
             float(ssx_params["exp_time"])
             if find_in_dict("exp_time", ssx_params)
-            else None
+            else 0.0
         ),
         detector_distance=(
             float(ssx_params["det_dist"])
             if find_in_dict("det_dist", ssx_params)
-            else None
+            else 0.0
         ),
         beam_center=(
             ssx_params["beam_center"]
@@ -97,26 +90,18 @@ def ssx_tristan_writer(
             if find_in_dict("wavelength", ssx_params)
             else None
         ),
-        start_time=(
-            ssx_params["start_time"].strftime("%Y-%m-%dT%H:%M:%S")
-            if ssx_params["start_time"]
-            else None
-        ),  # This should be datetiem type
-        stop_time=(
-            ssx_params["stop_time"].strftime("%Y-%m-%dT%H:%M:%S")
-            if ssx_params["stop_time"]
-            else None
-        ),  # idem.
-        chipmap=ssx_params["chipmap"] if find_in_dict("chipmap", ssx_params) else None,
-        chip_info=(
-            ssx_params["chip_info"] if find_in_dict("chip_info", ssx_params) else None
-        ),
+        location=beamline,
+    )
+
+    chipmap = ssx_params["chipmap"] if find_in_dict("chipmap", ssx_params) else None
+    chip_info = (
+        ssx_params["chip_info"] if find_in_dict("chip_info", ssx_params) else None
     )
 
     visitpath = Path(visitpath).expanduser().resolve()
     filename = ssx_params["filename"]
 
-    logfile = SSX_TR.visitpath / f"{beamline}_TristanSSX_nxs_writer.log"
+    logfile = visitpath / f"{beamline}_TristanSSX_nxs_writer.log"
     # Configure logging
     log.config(logfile.as_posix())
 
@@ -200,9 +185,19 @@ def ssx_tristan_writer(
     goniometer = Goniometer(gonio_axes, OSC)
 
     # Get timestamps in the correct format
+    _start_time = (
+        ssx_params["start_time"].strftime("%Y-%m-%dT%H:%M:%S")
+        if find_in_dict("start_time", ssx_params)
+        else None
+    )
+    _stop_time = (
+        ssx_params["stop_time"].strftime("%Y-%m-%dT%H:%M:%S")
+        if find_in_dict("stop_time", ssx_params)
+        else None
+    )
     timestamps = (
-        get_iso_timestamp(SSX_TR.start_time),
-        get_iso_timestamp(SSX_TR.stop_time),
+        get_iso_timestamp(_start_time),
+        get_iso_timestamp(_stop_time),
     )
 
     collection_summary_log(
@@ -230,24 +225,24 @@ def ssx_tristan_writer(
             EventFileWriter.update_timestamps(timestamps[1], "end_time")
 
         # Save chipmap (list of city blocks)
-        if SSX_TR.chipmap:
+        if chipmap:
             # Assuming 8x8 fast chip
             from .SSX_chip import read_chip_map
 
-            chip = read_chip_map(SSX_TR.chipmap, 8, 8)
+            chip = read_chip_map(chipmap, 8, 8)
             mapping = {"chipmap": str(chip)}
             logger.info(
-                f"Chipmap read from {SSX_TR.chipmap}, saving in '/entry/source/notes/chipmap'."
+                f"Chipmap read from {chipmap}, saving in '/entry/source/notes/chipmap'."
             )
             EventFileWriter.add_NXnote(mapping, "/entry/source/notes/")
             # To read this: eval(dset[()])
 
         # Save chip info if passed. If not save I24-like chip info plus warning message
         logger.info("Save chip information in /entry/source/notes/chip")
-        if SSX_TR.chip_info:
+        if chip_info:
             # Make chip info more readable
-            chip_info = {k: v[1] for k, v in SSX_TR.chip_info.items()}
-            chipdef = {"chip": str(chip_info)}
+            new_chip_info = {k: v[1] for k, v in chip_info.items()}
+            chipdef = {"chip": str(new_chip_info)}
             EventFileWriter.add_NXnote(chipdef, "/entry/source/notes/")
         else:
             logger.warning(
