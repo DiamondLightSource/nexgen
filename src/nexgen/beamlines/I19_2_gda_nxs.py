@@ -5,9 +5,8 @@ Create a NeXus file for time-resolved collections on I19-2 using parameters pass
 from __future__ import annotations
 
 import logging
-from collections import namedtuple
 from pathlib import Path
-from typing import Tuple
+from typing import Optional, Tuple
 
 import numpy as np
 from numpy.typing import DTypeLike
@@ -25,8 +24,8 @@ from ..nxs_utils import (
 from ..nxs_utils.detector import DetectorType, UnknownDetectorTypeError
 from ..nxs_utils.scan_utils import calculate_scan_points
 from ..nxs_write.nxmx_writer import EventNXmxFileWriter, NXmxFileWriter
-from ..utils import get_iso_timestamp, get_nexus_filename
-from .beamline_utils import BeamlineAxes, collection_summary_log
+from ..utils import find_in_dict, get_iso_timestamp, get_nexus_filename
+from .beamline_utils import BeamlineAxes, GeneralParams, collection_summary_log
 from .GDAtools.ExtendedRequest import (
     ExtendedRequestIO,
     read_det_position_from_xml,
@@ -37,44 +36,32 @@ from .GDAtools.GDAjson2params import JSONParamsIO
 # Define a logger object and a formatter
 logger = logging.getLogger("nexgen.I19-2_NeXus_gda")
 
-tr_collect = namedtuple(
-    "tr_collect",
-    [
-        "meta_file",
-        "xml_file",
-        "detector_name",
-        "exposure_time",
-        "wavelength",
-        "beam_center",
-        "start_time",
-        "stop_time",
-        "geometry_json",  # Define these 2 as None
-        "detector_json",
-    ],
-)
 
-tr_collect.__doc__ = (
-    """Information extracted from GDA containing collection parameters."""
-)
-tr_collect.meta_file.__doc__ = "Path to _meta.h5 file."
-tr_collect.xml_file.__doc__ = "Path to GDA-generated xml file."
-tr_collect.detector_name.__doc__ = "Name of the detector in use for current experiment."
-tr_collect.exposure_time.__doc__ = "Exposure time, in s."
-tr_collect.wavelength.__doc__ = "Incident beam wavelength, in A."
-tr_collect.beam_center.__doc__ = "Beam center (x,y) position, in pixels."
-tr_collect.start_time.__doc__ = "Collection start time."
-tr_collect.stop_time.__doc__ = "Collection end time."
-tr_collect.geometry_json.__doc__ = (
-    "Path to GDA-generated JSON file describing the beamline geometry."
-)
-tr_collect.detector_json.__doc__ = (
-    "Path to GDA-generated JSON file describing the detector."
-)
+class GDACollectionParams(GeneralParams):
+    """Collection parameters for I19-2 with information extracted from GDA.
+
+    Args:
+        GeneralParams (Basemodel): General collection parameters common to \
+            multiple beamlines/experiments, such as exposure time, wavelength, ...
+        meta_file (Path | str): Path to _meta.h5 file.
+        xml_file (Path | str):
+        detector_name (str): Name of the detector in use for current experiment.
+        geometry_json (Path | str, optional): Path to GDA config JSON file \
+            describing the beamline geometry.
+        detector_json (Path | str, optional): Path to GDA config JSON file \
+            describing the detector.
+    """
+
+    meta_file: Path | str
+    xml_file: Path | str
+    detector_name: str
+    geometry_json: Optional[Path | str]
+    detector_json: Optional[Path | str]
 
 
 def tristan_writer(
     master_file: Path,
-    TR: namedtuple,
+    TR: GDACollectionParams,
     axes_params: BeamlineAxes,
     det_params: DetectorType,
     timestamps: Tuple[str, str] = (None, None),
@@ -163,7 +150,7 @@ def tristan_writer(
 
 def eiger_writer(
     master_file: Path,
-    TR: namedtuple,
+    TR: GDACollectionParams,
     axes_params: BeamlineAxes,
     det_params: DetectorType,
     timestamps: Tuple[str, str] = (None, None),
@@ -281,30 +268,22 @@ def write_nxs(**tr_params):
         vds_dtype (DtypeLike): Data type for vds as np.uint##.
     """
     # Get info from the beamline
-    TR = tr_collect(
+    TR = GDACollectionParams(
         meta_file=Path(tr_params["meta_file"]).expanduser().resolve(),
         xml_file=Path(tr_params["xml_file"]).expanduser().resolve(),
         detector_name=tr_params["detector_name"],
         exposure_time=tr_params["exposure_time"],
         wavelength=tr_params["wavelength"],
         beam_center=tr_params["beam_center"],
-        start_time=(
-            tr_params["start_time"].strftime("%Y-%m-%dT%H:%M:%S")  #
-            if tr_params["start_time"]
-            else None
-        ),  # This should be datetiem type
-        stop_time=(
-            tr_params["stop_time"].strftime(
-                "%Y-%m-%dT%H:%M:%S"
-            )  # .strftime("%Y-%m-%dT%H:%M:%S")
-            if tr_params["stop_time"]
-            else None
-        ),  # idem.
         geometry_json=(
-            tr_params["geometry_json"] if tr_params["geometry_json"] else None
+            tr_params["geometry_json"]
+            if find_in_dict(tr_params, "geometry_json")
+            else None
         ),
         detector_json=(
-            tr_params["detector_json"] if tr_params["detector_json"] else None
+            tr_params["detector_json"]
+            if find_in_dict(tr_params, "detector_json")
+            else None
         ),
     )
 
@@ -360,15 +339,31 @@ def write_nxs(**tr_params):
         axes_params.slow_axis = slow_axis
 
     # Get timestamps in the correct format if they aren't already
+    _start_time = (
+        (
+            tr_params["start_time"].strftime("%Y-%m-%dT%H:%M:%S")
+            if find_in_dict(tr_params, "start_time")
+            else None
+        ),
+    )  # This should be datetiem type
+    _stop_time = (
+        (
+            tr_params["stop_time"].strftime("%Y-%m-%dT%H:%M:%S")
+            if find_in_dict(tr_params, "stop_time")
+            else None
+        ),
+    )  # idem.
     timestamps = (
-        get_iso_timestamp(TR.start_time),
-        get_iso_timestamp(TR.stop_time),
+        get_iso_timestamp(_start_time),
+        get_iso_timestamp(_stop_time),
     )
 
     if "tristan" in TR.detector_name:
         tristan_writer(master_file, TR, axes_params, det_params, timestamps)
     else:
         vds_dtype = (
-            np.uint16 if "vds_dtype" not in tr_params.keys() else tr_params["vds_dtype"]
+            np.uint16
+            if not find_in_dict(tr_params, "vds_dtype")
+            else tr_params["vds_dtype"]
         )
         eiger_writer(master_file, TR, axes_params, det_params, timestamps, vds_dtype)
