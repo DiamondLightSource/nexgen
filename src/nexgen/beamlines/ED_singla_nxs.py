@@ -11,7 +11,7 @@ from typing import Dict, List
 from .. import log
 from ..nxs_utils import Attenuator, Beam, Detector, Goniometer, SinglaDetector
 from ..nxs_utils.scan_utils import calculate_scan_points
-from ..nxs_write.nxmx_writer import EDNXmxFileWriter
+from ..nxs_write.ed_nxmx_writer import EDNXmxFileWriter
 from ..nxs_write.write_utils import find_number_of_images
 from ..tools.ed_tools import (
     extract_detector_info_from_master,

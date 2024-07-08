@@ -84,16 +84,16 @@ For an event-mode data collection using a Tristan detector
 .. autoclass:: nexgen.nxs_write.nxmx_writer.EventNXmxFileWriter
     :members:
     :show-inheritance:
+    :inherited-members:
 
 
 For an Electron Diffraction collection using NXmx-like format nexus files.
 When dealing with an Electron Diffraction dataset, there may also be a need to convert the vectors to mcstas from another coordinate system convention,
 as well as save the relevant information about the new coordinate system into a NXcoordinate_system_set base class. This writer takes care of these issues.
 
-.. autoclass:: nexgen.nxs_write.nxmx_writer.EDNXmxFileWriter
+.. autoclass:: nexgen.nxs_write.ed_nxmx_writer.EDNXmxFileWriter
     :members:
     :show-inheritance:
-    :inherited-members:
 
 
 
