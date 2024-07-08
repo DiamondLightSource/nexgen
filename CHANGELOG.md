@@ -5,6 +5,7 @@
 
 ### Changed
 - Tidier collection parameters for specific beamline/experiment writers.
+- Separated nexus writer for ED and made it stand alone.
 
 
 ### Fixed
