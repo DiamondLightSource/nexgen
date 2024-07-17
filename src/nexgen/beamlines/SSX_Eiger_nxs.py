@@ -7,13 +7,12 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-import h5py
+import numpy as np
+from numpy.typing import DTypeLike
 
 from .. import log
 from ..nxs_utils import Attenuator, Beam, Detector, EigerDetector, Goniometer, Source
 from ..nxs_write.nxmx_writer import NXmxFileWriter
-from ..tools.meta_reader import define_vds_data_type, update_axes_from_meta
-from ..tools.metafile import DectrisMetafile
 from ..utils import find_in_dict, get_iso_timestamp
 from .beamline_utils import GeneralParams, PumpProbe, collection_summary_log
 
@@ -37,6 +36,16 @@ class SerialParams(GeneralParams):
     experiment_type: str
 
 
+def _define_vds_dtype_from_bit_depth(bit_depth: int) -> DTypeLike:
+    """Define dtype of VDS based on the passed bit depth."""
+    if bit_depth == 32:
+        return np.uint32
+    elif bit_depth == 8:
+        return np.uint8
+    else:
+        return np.uint16
+
+
 def ssx_eiger_writer(
     visitpath: Path | str,
     filename: str,
@@ -58,6 +67,8 @@ def ssx_eiger_writer(
         pump_status (bool, optional): True for pump-probe experiment. Defaults to False.
 
     Keyword Args:
+        bit_depth (int): bit_depth_image value, from which the vds_dtype is determined. \
+            Will default to 32 if not passed.
         exp_time (float): Exposure time, in s.
         det_dist (float): Distance between sample and detector, in mm.
         beam_center (List[float, float]): Beam center position, in pixels.
@@ -67,12 +78,15 @@ def ssx_eiger_writer(
         start_time (datetime): Experiment start time.
         stop_time (datetime): Experiment end time.
         chip_info (Dict): For a grid scan, dictionary containing basic chip information.
-            At least it should contain: x/y_start, x/y number of blocks and block size, x/y number of steps and number of exposures.
+            At least it should contain: x/y_start, x/y number of blocks and block size, \
+            x/y number of steps and number of exposures.
         chipmap (Path | str): Path to the chipmap file corresponding to the experiment,
-            if None for a fixed target experiment, it indicates that the fullchip is being scanned.
+            if None for a fixed target experiment, it indicates that the fullchip is \
+            being scanned.
         pump_exp (float): Pump exposure time, in s.
         pump_delay (float): Pump delay time, in s.
-        osc_axis (str): Oscillation axis. Always omega on I24. If not passed it will default to phi for I19-2.
+        osc_axis (str): Oscillation axis. Always omega on I24. If not passed it will \
+            default to phi for I19-2.
         outdir (str): Directory where to save the file. Only specify if different \
             from meta_file directory.
 
@@ -206,57 +220,39 @@ def ssx_eiger_writer(
         get_iso_timestamp(_stop_time),
     )
 
-    # Find metafile in directory and get info from it
-    try:
-        metafile = [
-            f for f in visitpath.iterdir() if filename + "_meta" in f.as_posix()
-        ][0]
-        logger.debug(f"Found {metafile} in directory.")
-    except IndexError as err:
-        logger.exception(err)
-        logger.error(
-            "Missing metadata, something might be wrong with this collection."
-            "Unable to write NeXus file at this time. Please try using command line tool."
+    # Define meta file name and check if it has already appeared in the directory
+    metafile = visitpath / f"{filename}_meta.h5"
+    _check = [f for f in visitpath.iterdir() if f.name == metafile]
+    if len(_check) == 0:
+        logger.warning(
+            """Meta file has not yet appeared in the visit directory.
+            If still missing at the end of the collection, something may be wrong.
+            Without a meta file, the links in the nexus file will be broken.
+            """
         )
-        raise
+    else:
+        logger.debug(f"Found {metafile} in directory.")
 
     # Define Attenuator
     attenuator = Attenuator(SSX.transmission)
     # Define Beam
     wl = SSX.wavelength
     if not wl:
-        logger.debug("No wavelength passed, looking for it in the meta file.")
-
-        with h5py.File(metafile, "r", libver="latest", swmr=True) as fh:
-            wl = DectrisMetafile(fh).get_wavelength()
+        logger.warning("No value passed for wavelength, will be set to 0.0.")
+        wl = 0.0
     beam = Beam(wl, SSX.flux)
+
+    # Define vds_dtype from bit_depth
+    bit_depth = ssx_params["bit_depth"] if find_in_dict("bit_depth", ssx_params) else 32
+    vds_dtype = _define_vds_dtype_from_bit_depth(bit_depth)
 
     # Define Goniometer axes
     gonio_axes = axes_params.gonio
     # Define Detector
     det_axes = axes_params.det_axes
-
-    # Update axes starts and get data type from meta file
-    with h5py.File(metafile, "r", libver="latest", swmr=True) as fh:
-        meta = DectrisMetafile(fh)
-        vds_dtype = define_vds_data_type(meta)
-        update_axes_from_meta(meta, gonio_axes, osc_axis=osc_axis)
-        update_axes_from_meta(meta, det_axes)
-
-    logger.debug(
-        "Goniometer and detector axes have ben updated with values from the meta file."
-    )
-
-    # Sanity check on det_z vs SSX.det_dist
-    logger.debug("Sanity check on detector distance.")
+    # Set det_z to detector_distance passed in mm
     det_z_idx = [n for n, ax in enumerate(det_axes) if ax.name == "det_z"][0]
-    if SSX.detector_distance and SSX.detector_distance != det_axes[det_z_idx].start_pos:
-        logger.debug(
-            "Detector distance value in meta file did not match with the one passed by the user.\n"
-            f"Passed value: {SSX.detector_distance}; Value stored in meta file: {det_axes[det_z_idx].start_pos}.\n"
-            "Value will be overwritten with the passed one."
-        )
-        det_axes[det_z_idx].start_pos = SSX.detector_distance
+    det_axes[det_z_idx].start_pos = SSX.detector_distance
 
     # Define detector
     detector = Detector(
