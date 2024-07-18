@@ -6,19 +6,38 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+from typing import Literal, Tuple, get_args
 
-import h5py
+import numpy as np
+from numpy.typing import DTypeLike
 
 from .. import log
 from ..nxs_utils import Attenuator, Beam, Detector, EigerDetector, Goniometer, Source
 from ..nxs_write.nxmx_writer import NXmxFileWriter
-from ..tools.meta_reader import define_vds_data_type, update_axes_from_meta
-from ..tools.metafile import DectrisMetafile
 from ..utils import find_in_dict, get_iso_timestamp
-from .beamline_utils import GeneralParams, PumpProbe, collection_summary_log
+from .beamline_utils import (
+    BeamlineAxes,
+    GeneralParams,
+    PumpProbe,
+    collection_summary_log,
+)
 
 # Define logger
 logger = logging.getLogger("nexgen.SSX_Eiger")
+
+
+EnabledBeamlines = Literal["i24", "i19-2"]
+ExperimentTypes = Literal["extruder", "fixed-target"]  # TODO add "3Dgridscan"
+
+
+class InvalidBeamlineError(Exception):
+    def __init__(self, errmsg):
+        logger.error(errmsg)
+
+
+class UnknownExperimentTypeError(Exception):
+    def __init__(self, errmsg):
+        logger.error(errmsg)
 
 
 class SerialParams(GeneralParams):
@@ -37,12 +56,55 @@ class SerialParams(GeneralParams):
     experiment_type: str
 
 
+def _define_vds_dtype_from_bit_depth(bit_depth: int) -> DTypeLike:
+    """Define dtype of VDS based on the passed bit depth."""
+    if bit_depth == 32:
+        return np.uint32
+    elif bit_depth == 8:
+        return np.uint8
+    else:
+        return np.uint16
+
+
+def _get_beamline_specific_params(beamline: str) -> Tuple[BeamlineAxes, EigerDetector]:
+    """Get beamline specific axes and eiger description.
+
+    Args:
+        beamline (str): Beamline name. Allowed values: i24, i19-2.
+
+    Returns:
+        Tuple[BeamlineAxes, EigerDetector]: beamline axes description, eiger parameters.
+    """
+    match beamline.lower():
+        case "i24":
+            from .I24_params import I24Eiger as axes_params
+
+            eiger_params = EigerDetector(
+                "Eiger2 X 9M",
+                (3262, 3108),
+                "CdTe",
+                50649,
+                -1,
+            )
+        case "i19-2":
+            from .I19_2_params import I19_2Eiger as axes_params
+
+            eiger_params = EigerDetector(
+                "Eiger2 X 4M",
+                (2162, 2068),
+                "CdTe",
+                50649,
+                -1,
+            )
+    return axes_params, eiger_params
+
+
 def ssx_eiger_writer(
     visitpath: Path | str,
     filename: str,
-    beamline: str,
+    beamline: EnabledBeamlines,
     num_imgs: int,
-    expt_type: str = "fixed-target",
+    expt_type: ExperimentTypes = "fixed-target",
     pump_status: bool = False,
     **ssx_params,
 ):
@@ -51,13 +113,15 @@ def ssx_eiger_writer(
     Args:
         visitpath (Path | str): Collection directory.
         filename (str): Filename root.
-        beamline (str): Beamline on which the experiment is being run.
+        beamline (str): Beamline on which the experiment is being run. Allowed values: i24, i19-2.
         num_imgs (int): Total number of images collected.
         expt_type (str, optional): Experiment type, accepted values: extruder,
-            fixed-target, 3Dgridscan. Defaults to "fixed-target".
+            fixed-target, (coming soon: 3Dgridscan). Defaults to "fixed-target".
         pump_status (bool, optional): True for pump-probe experiment. Defaults to False.
 
     Keyword Args:
+        bit_depth (int): bit_depth_image value, from which the vds_dtype is determined. \
+            Will default to 32 if not passed.
         exp_time (float): Exposure time, in s.
         det_dist (float): Distance between sample and detector, in mm.
         beam_center (List[float, float]): Beam center position, in pixels.
@@ -67,19 +131,28 @@ def ssx_eiger_writer(
         start_time (datetime): Experiment start time.
         stop_time (datetime): Experiment end time.
         chip_info (Dict): For a grid scan, dictionary containing basic chip information.
-            At least it should contain: x/y_start, x/y number of blocks and block size, x/y number of steps and number of exposures.
+            At least it should contain: x/y_start, x/y number of blocks and block size, \
+            x/y number of steps and number of exposures.
         chipmap (Path | str): Path to the chipmap file corresponding to the experiment,
-            if None for a fixed target experiment, it indicates that the fullchip is being scanned.
+            if None for a fixed target experiment, it indicates that the fullchip is \
+            being scanned.
         pump_exp (float): Pump exposure time, in s.
         pump_delay (float): Pump delay time, in s.
-        osc_axis (str): Oscillation axis. Always omega on I24. If not passed it will default to phi for I19-2.
+        osc_axis (str): Oscillation axis. Always omega on I24. If not passed it will \
+            default to phi for I19-2.
         outdir (str): Directory where to save the file. Only specify if different \
             from meta_file directory.
 
     Raises:
-        ValueError: If an invalid beamline name is passed.
-        ValueError: If an invalid experiment type is passed.
+        InvalidBeamlineError: If an invalid beamline name is passed.
+        UnknownExperimentTypeError: If an invalid experiment type is passed.
     """
+    # Beamline check
+    if beamline.lower() not in get_args(EnabledBeamlines):
+        raise InvalidBeamlineError(
+            "Unknown beamline for SSX collections with Eiger detector."
+            "Beamlines currently enabled for the writer: I24 (Eiger 9M), I19-2 (Eiger 4M)."
+        )
     # Collect some of the params
     SSX = SerialParams(
         num_imgs=int(num_imgs),
@@ -111,8 +184,10 @@ def ssx_eiger_writer(
     )
     chipmap = ssx_params["chipmap"] if find_in_dict("chipmap", ssx_params) else None
 
-    if SSX.experiment_type.lower() not in ["extruder", "fixed-target", "3Dgridscan"]:
-        raise ValueError("Unknown experiment type.")
+    if SSX.experiment_type.lower() not in get_args(ExperimentTypes):
+        raise UnknownExperimentTypeError(
+            f"Unknown experiment type, please pass one of {get_args(ExperimentTypes)}"
+        )
 
     visitpath = Path(visitpath).expanduser().resolve()
 
@@ -134,42 +209,17 @@ def ssx_eiger_writer(
 
     # Get parameters depending on beamline
     logger.info(f"DLS Beamline: {beamline.upper()}.")
-    if "I19" in beamline.upper():
-        source = Source("I19-2")
+    # Define source
+    source = Source(beamline.upper())
+    # Axes, eiger params
+    axes_params, eiger_params = _get_beamline_specific_params(beamline)
+    # Oscillation axis defaults to omega unless it's I19-2
+    if beamline.lower() == "i19-2":
         osc_axis = ssx_params["osc_axis"] if "osc_axis" in ssx_params.keys() else "phi"
-        from .I19_2_params import I19_2Eiger as axes_params
-
-        eiger_params = EigerDetector(
-            "Eiger 2X 4M",
-            (2162, 2068),
-            "CdTe",
-            50649,
-            -1,
-        )
-    elif "I24" in beamline.upper():
-        source = Source("I24")
-        osc_axis = "omega"
-        from .I24_params import I24Eiger as axes_params
-
-        eiger_params = EigerDetector(
-            "Eiger 2X 9M",
-            (3262, 3108),
-            "CdTe",
-            50649,
-            -1,
-        )
     else:
-        raise ValueError(
-            "Unknown beamline for SSX collections with Eiger detector."
-            "Beamlines currently enabled for the writer: I24 (Eiger 9M), I19-2 (Eiger 4M)."
-        )
+        osc_axis = "omega"
 
     # Define what to do based on experiment type
-    if SSX.experiment_type not in ["extruder", "fixed-target", "3Dgridscan"]:
-        raise ValueError(
-            "Please pass a valid experiment type.\n"
-            "Accepted values: extruder, fixed-target, 3Dgridscan."
-        )
     logger.info(f"Running {SSX.experiment_type} collection.")
 
     # Get pump information
@@ -193,12 +243,12 @@ def ssx_eiger_writer(
     # Get timestamps in the correct format
     _start_time = (
         ssx_params["start_time"].strftime("%Y-%m-%dT%H:%M:%S")
-        if find_in_dict("start_time", ssx_params)
+        if find_in_dict("start_time", ssx_params) and ssx_params["start_time"]
         else None
     )
     _stop_time = (
         ssx_params["stop_time"].strftime("%Y-%m-%dT%H:%M:%S")
-        if find_in_dict("stop_time", ssx_params)
+        if find_in_dict("stop_time", ssx_params) and ssx_params["stop_time"]
         else None
     )
     timestamps = (
@@ -206,57 +256,45 @@ def ssx_eiger_writer(
         get_iso_timestamp(_stop_time),
     )
 
-    # Find metafile in directory and get info from it
-    try:
-        metafile = [
-            f for f in visitpath.iterdir() if filename + "_meta" in f.as_posix()
-        ][0]
-        logger.debug(f"Found {metafile} in directory.")
-    except IndexError as err:
-        logger.exception(err)
-        logger.error(
-            "Missing metadata, something might be wrong with this collection."
-            "Unable to write NeXus file at this time. Please try using command line tool."
+    # Define meta file name and check if it has already appeared in the directory
+    metafile = visitpath / f"{filename}_meta.h5"
+    print(metafile)
+    _check = [f for f in visitpath.iterdir() if f.name == metafile.name]
+    if len(_check) == 0:
+        logger.warning(
+            """Meta file has not yet appeared in the visit directory.
+            If still missing at the end of the collection, something may be wrong.
+            Without a meta file, the links in the nexus file will be broken.
+            """
         )
-        raise
+    else:
+        logger.debug(f"Found {metafile} in directory.")
 
     # Define Attenuator
     attenuator = Attenuator(SSX.transmission)
     # Define Beam
     wl = SSX.wavelength
     if not wl:
-        logger.debug("No wavelength passed, looking for it in the meta file.")
-
-        with h5py.File(metafile, "r", libver="latest", swmr=True) as fh:
-            wl = DectrisMetafile(fh).get_wavelength()
+        logger.warning("No value passed for wavelength, will be set to 0.0.")
+        wl = 0.0
     beam = Beam(wl, SSX.flux)
+
+    # Define vds_dtype from bit_depth
+    if not find_in_dict("bit_depth", ssx_params):
+        logger.warning("Bit depth not in parameters, will be assumed to be 32.")
+        bit_depth = 32
+    else:
+        bit_depth = ssx_params["bit_depth"]
+    vds_dtype = _define_vds_dtype_from_bit_depth(bit_depth)
+    logger.debug(f"VDS dtype will be {vds_dtype}")
 
     # Define Goniometer axes
     gonio_axes = axes_params.gonio
     # Define Detector
     det_axes = axes_params.det_axes
-
-    # Update axes starts and get data type from meta file
-    with h5py.File(metafile, "r", libver="latest", swmr=True) as fh:
-        meta = DectrisMetafile(fh)
-        vds_dtype = define_vds_data_type(meta)
-        update_axes_from_meta(meta, gonio_axes, osc_axis=osc_axis)
-        update_axes_from_meta(meta, det_axes)
-
-    logger.debug(
-        "Goniometer and detector axes have ben updated with values from the meta file."
-    )
-
-    # Sanity check on det_z vs SSX.det_dist
-    logger.debug("Sanity check on detector distance.")
+    # Set det_z to detector_distance passed in mm
     det_z_idx = [n for n, ax in enumerate(det_axes) if ax.name == "det_z"][0]
-    if SSX.detector_distance and SSX.detector_distance != det_axes[det_z_idx].start_pos:
-        logger.debug(
-            "Detector distance value in meta file did not match with the one passed by the user.\n"
-            f"Passed value: {SSX.detector_distance}; Value stored in meta file: {det_axes[det_z_idx].start_pos}.\n"
-            "Value will be overwritten with the passed one."
-        )
-        det_axes[det_z_idx].start_pos = SSX.detector_distance
+    det_axes[det_z_idx].start_pos = SSX.detector_distance
 
     # Define detector
     detector = Detector(
@@ -270,42 +308,42 @@ def ssx_eiger_writer(
     tot_num_imgs = SSX.num_imgs
 
     # Run experiment type
-    if SSX.experiment_type == "extruder":
-        from .SSX_expt import run_extruder
+    match SSX.experiment_type:
+        case "extruder":
+            from .SSX_expt import run_extruder
 
-        gonio_axes, SCAN, pump_info = run_extruder(
-            gonio_axes,
-            tot_num_imgs,
-            pump_probe,
-            osc_axis,
-        )
-    elif SSX.experiment_type == "fixed-target":
-        from .SSX_expt import run_fixed_target
-
-        # Define chipmap if needed
-        chipmapfile = None if chipmap is None else Path(chipmap).expanduser().resolve()
-
-        SCAN, pump_info = run_fixed_target(
-            gonio_axes,
-            chip_info,
-            chipmapfile,
-            pump_probe,
-            ["sam_y", "sam_x"],
-        )
-
-        # Sanity check that things make sense
-        if SSX.num_imgs != len(SCAN["sam_x"]):
-            logger.warning(
-                f"The total number of scan points is {len(SCAN['sam_x'])}, which does not match the total number of images passed as input {SSX.num_imgs}."
+            gonio_axes, SCAN, pump_info = run_extruder(
+                gonio_axes,
+                tot_num_imgs,
+                pump_probe,
+                osc_axis,
             )
-            logger.warning(
-                "Reset SSX.num_imgs to number of scan points for vds creation."
+        case "fixed-target":
+            from .SSX_expt import run_fixed_target
+
+            # Define chipmap if needed
+            chipmapfile = (
+                None if chipmap is None else Path(chipmap).expanduser().resolve()
             )
-            tot_num_imgs = len(SCAN["sam_x"])
-    else:
-        print("3D")
-        SCAN = {}  # tboth here here
-        pump_info = pump_probe.to_dict()
+
+            SCAN, pump_info = run_fixed_target(
+                gonio_axes,
+                chip_info,
+                chipmapfile,
+                pump_probe,
+                ["sam_y", "sam_x"],
+            )
+
+            # Sanity check that things make sense
+            if SSX.num_imgs != len(SCAN["sam_x"]):
+                logger.warning(
+                    f"The total number of scan points is {len(SCAN['sam_x'])}, which does not match the total number of images passed as input {SSX.num_imgs}."
+                )
+                logger.warning(
+                    "Reset SSX.num_imgs to number of scan points for vds creation."
+                )
+                tot_num_imgs = len(SCAN["sam_x"])
+        # TODO case "3D"
 
     # Define goniometer only once the full scan has been calculated.
     goniometer = Goniometer(gonio_axes, SCAN)
