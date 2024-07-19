@@ -1,15 +1,16 @@
 # CHANGELOG
 
 
-## #.#.#
+## 0.9.4
 
 ### Changed
 - Tidier collection parameters for specific beamline/experiment writers.
+- Separated nexus writer for ED and made it stand alone.
+- Stopped reading the meta file for a serial collection with Eiger.
 
 
 ### Fixed
 - Numpy2.0 compatibility - stop using deprecated np.string_ alias for fixed-width bytestrings.
-- External links to eiger meta file in NXdetector and detectorSpecific groups re-enabled.
 
 
 ## 0.9.3

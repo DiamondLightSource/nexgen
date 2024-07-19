@@ -29,9 +29,9 @@ EIGER_CONST = {
     "photon_energy": "_dectris/photon_energy",
     "software_version": "_dectris/software_version",
     "ntrigger": "/_dectris/ntrigger",
-    "serial_number": "/_dectris/detector_number",
-    "eiger_fw_version": "/_dectris/eiger_fw_version",
-    "data_collection_date": "/_dectris/data_collection_date",
+    # "serial_number": "/_dectris/detector_number",
+    # "eiger_fw_version": "/_dectris/eiger_fw_version",
+    # "data_collection_date": "/_dectris/data_collection_date",
 }
 
 TRISTAN_CONST = {
