@@ -4,7 +4,7 @@ hdf5plugin==4.4.0
 numpy==1.26.4
 pint==0.24.3
 scanspec==0.6.6
-pydantic==1.10.14
+pydantic==2.8.2
 importlib_resources==6.1.1
 pytest==8.2.2
 pytest-cov==5.0.0
