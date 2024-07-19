@@ -8,4 +8,4 @@ hdf5plugin==4.4.0
 freephil==0.2.1
 importlib_resources==6.1.1
 scanspec==0.6.6
-pydantic==1.10.14
+pydantic==2.8.2
