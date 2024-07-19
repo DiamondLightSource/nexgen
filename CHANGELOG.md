@@ -1,6 +1,12 @@
 # CHANGELOG
 
 
+## 0.#.#
+
+### Fixed
+- External links to eiger meta file in NXdetector and detectorSpecific groups re-enabled.
+
+
 ## 0.9.4
 
 ### Changed
