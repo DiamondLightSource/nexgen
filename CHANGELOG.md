@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.9.5
+
+### Changed
+- Dependency pin to Pydantic <2 removed
 
 ## 0.9.4
 
