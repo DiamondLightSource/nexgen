@@ -1,7 +1,6 @@
-import argparse
 import math
 import sys
-from argparse import ArgumentParser
+from argparse import ArgumentParser, BooleanOptionalAction
 from collections.abc import Sequence
 from enum import Enum
 from math import dist
@@ -27,11 +26,9 @@ def main() -> int:
         description="A tool to compare gridscan pcap position output with the positions reported "
         "in the gridscan .h5 grid",
     )
+    parser.add_argument("--csv", action=BooleanOptionalAction, help="Output as CSV")
     parser.add_argument(
-        "--csv", action=argparse.BooleanOptionalAction, help="Output as CSV"
-    )
-    parser.add_argument(
-        "--verbose", action=argparse.BooleanOptionalAction, help="Output more info"
+        "--verbose", action=BooleanOptionalAction, help="Output more info"
     )
     parser.add_argument("xy_nexus_file", help="xy gridscan nexus file")
     parser.add_argument("xz_nexus_file", help="xz gridscan nexus file")
