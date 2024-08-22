@@ -40,13 +40,14 @@ dev = [
     "sphinx-autobuild",
     "sphinx-rtd-theme",
     "autodoc_pydantic",     # Needed for pydantic docs
-    "bump2version",
-    "pipdeptree",
+    "bump-my-version",
     "ipython",
     "mockito",
     "pre-commit",
+    "pipdeptree",
     "mypy",
     "tox",
+    "wheel",
     "build",
     "types-mock",
 ]
@@ -56,9 +57,9 @@ GitHub = "https://github.com/DiamondLightSource/nexgen"
 Documentation = "https://nexgen.readthedocs.io/"
 Bug-Tracker = "https://github.com/DiamondLightSource/nexgen/issues"
 
-#[[project.authors]]
-#email = "data_analysis@diamond.ac.uk"
-#name = "Diamond Light Source - Scientific Software"
+[[project.authors]]
+email = "scientificsoftware@diamond.ac.uk"
+name = "Diamond Light Source - Scientific Software"
 
 [project.scripts]
 nexgen = "nexgen.__main__:main"
@@ -107,6 +108,23 @@ testpaths = "src tests"
 [tool.coverage.paths]
 # Tests are run from installed location, map back to the src directory
 source = ["src", "**/site-packages/"]
+
+[tool.bumpversion]
+current_version = "0.9.5"
+tag = true
+commit = true
+parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"
+serialize = ["{major}.{minor}.{patch}"]
+search = "{current_version}"
+replace = "{new_version}"
+tag_name = "v{new_version}"
+tag_message = "Bump version: {current_version} → {new_version}"
+message = "Bump version: {current_version} → {new_version}"
+
+[[tool.bumpversion.files]]
+filename = "src/nexgen/__init__.py"
+search = "__version__={current_version}"
+replace = "__version__={new_version}"
 
 # tox must currently be configured via an embedded ini string
 # See: https://github.com/tox-dev/tox/issues/999
