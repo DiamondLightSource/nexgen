@@ -122,7 +122,9 @@ tag_message = "Bump version: {current_version} → {new_version}"
 message = "Bump version: {current_version} → {new_version}"
 
 [[tool.bumpversion.files]]
-filename = "__init__.py"
+filename = "src/nexgen/__init__.py"
+search = "[myproject]\nversion={current_version}"
+replace = "[myproject]\nversion={new_version}"
 
 # tox must currently be configured via an embedded ini string
 # See: https://github.com/tox-dev/tox/issues/999
