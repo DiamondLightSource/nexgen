@@ -44,6 +44,7 @@ dev = [
     "ipython",
     "mockito",
     "pre-commit",
+    "pipdeptree",
     "mypy",
     "tox",
     "wheel",
