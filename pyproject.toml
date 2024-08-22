@@ -39,9 +39,8 @@ dev = [
     "pytest-random-order",
     "sphinx-autobuild",
     "sphinx-rtd-theme",
-    "autodoc_pydantic<2.0.0",     # Needed for pydantic docs
-    "bump-my-version==0.12.0",      # Last version with unpinned pydantic
-    "pipdeptree",
+    "autodoc_pydantic",     # Needed for pydantic docs
+    "bump-my-version",
     "ipython",
     "mockito",
     "pre-commit",
@@ -110,7 +109,7 @@ testpaths = "src tests"
 source = ["src", "**/site-packages/"]
 
 [tool.bumpversion]
-current_version = "0.9.3"
+current_version = "0.9.5"
 tag = true
 commit = true
 parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"
