@@ -1,7 +1,7 @@
 Sphinx==7.3.7
 sphinx-rtd-theme==2.0.0
 autodoc_pydantic==2.2.0
-numpy==2.0.0
+numpy==2.1.0
 pint==0.24.3
 h5py==3.11.0
 hdf5plugin==4.4.0
