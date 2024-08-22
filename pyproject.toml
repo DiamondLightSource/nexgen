@@ -121,6 +121,9 @@ tag_name = "v{new_version}"
 tag_message = "Bump version: {current_version} → {new_version}"
 message = "Bump version: {current_version} → {new_version}"
 
+[[tool.bumpversion.files]]
+filename = "__init__.py"
+
 # tox must currently be configured via an embedded ini string
 # See: https://github.com/tox-dev/tox/issues/999
 [tool.tox]
