@@ -23,6 +23,7 @@ I19-2
 
 The function
 
+
 .. autofunction:: nexgen.beamlines.I19_2_nxs.nexus_writer
 
 
@@ -31,10 +32,12 @@ can be called from python and depending on the specified detector type will run:
 
 .. autofunction:: nexgen.beamlines.I19_2_nxs.tristan_writer
 
+
 .. autofunction:: nexgen.beamlines.I19_2_nxs.eiger_writer
 
 
 Some useful type definitions to use with these methods:
+
 
 .. autoclass:: nexgen.beamlines.I19_2_nxs.axes
     :members:
@@ -46,6 +49,7 @@ Some useful type definitions to use with these methods:
 
 Collection parameters schema for I19-2
 
+
 .. autopydantic_model:: nexgen.beamlines.I19_2_nxs.CollectionParams
     :model-show-config-summary: False
 
@@ -53,15 +57,19 @@ Collection parameters schema for I19-2
 
 2. Interface with GDA ...
 
+
 .. autoclass:: nexgen.beamlines.I19_2_gda_nxs.tr_collect
     :members:
 
+
 .. autofunction:: nexgen.beamlines.I19_2_gda_nxs.tristan_writer
+
 
 .. autofunction:: nexgen.beamlines.I19_2_gda_nxs.eiger_writer
 
 
 Collection parameters schema for I19-2 from GDA
+
 
 .. autopydantic_model:: nexgen.beamlines.I19_2_gda_nxs.GDACollectionParams
     :model-show-config-summary: False
@@ -70,10 +78,12 @@ Collection parameters schema for I19-2 from GDA
 Serial crystallography: Eiger writers
 -------------------------------------
 
+
 .. autofunction:: nexgen.beamlines.SSX_Eiger_nxs.ssx_eiger_writer
 
 
 Collection parameters schema for SSX
+
 
 .. autopydantic_model:: nexgen.beamlines.SSX_Eiger_nxs.SerialParams
     :model-show-config-summary: False
@@ -83,10 +93,12 @@ Collection parameters schema for SSX
 Serial crystallography: Tristan writers
 ---------------------------------------
 
+
 .. autofunction:: nexgen.beamlines.SSX_Tristan_nxs.ssx_tristan_writer
 
 
 Collection parameters schema for SSX using Tristan
+
 
 .. autopydantic_model:: nexgen.beamlines.SSX_Tristan_nxs.TimeResolvedSerialParams
     :model-show-config-summary: False
