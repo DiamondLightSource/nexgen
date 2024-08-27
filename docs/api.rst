@@ -207,7 +207,12 @@ Reader for Singla detector master file
 .. autoclass:: nexgen.tools.ed_tools.SinglaMaster
     :members:
 
-.. autofunction:: nexgen.tools.ed_tools.extract_from_SINGLA_master
+.. autofunction:: nexgen.tools.ed_tools.extract_exposure_time_from_master
+
+.. autofunction:: nexgen.tools.ed_tools.extract_start_time_from_master
+
+.. autofunction:: nexgen.tools.ed_tools.extract_detector_info_from_master
+
 
 Tools to calculate the beam center of an Electron Diffraction experiment:
 
