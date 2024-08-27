@@ -102,7 +102,7 @@ NXclass writers
 
 All the NXclass writers available can be found in:
 
-.. automodule:: nexgen.nxs_write.NXclassWriters
+.. automodule:: nexgen.nxs_write.nxclass_writers
     :members:
 
 
@@ -204,16 +204,21 @@ data type using the information stored in the `meta` file.
 Reader for Singla detector master file
 --------------------------------------
 
-.. autoclass:: nexgen.tools.ED_tools.SinglaMaster
+.. autoclass:: nexgen.tools.ed_tools.SinglaMaster
     :members:
 
-.. autofunction:: nexgen.tools.ED_tools.extract_from_SINGLA_master
+.. autofunction:: nexgen.tools.ed_tools.extract_exposure_time_from_master
+
+.. autofunction:: nexgen.tools.ed_tools.extract_start_time_from_master
+
+.. autofunction:: nexgen.tools.ed_tools.extract_detector_info_from_master
+
 
 Tools to calculate the beam center of an Electron Diffraction experiment:
 
-.. autofunction:: nexgen.tools.ED_tools.centroid_max
+.. autofunction:: nexgen.tools.ed_tools.centroid_max
 
-.. autofunction:: nexgen.tools.ED_tools.find_beam_centre
+.. autofunction:: nexgen.tools.ed_tools.find_beam_centre
 
 
 Logging configuration

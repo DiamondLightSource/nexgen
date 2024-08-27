@@ -173,8 +173,8 @@ def compute_goniometer(
         ax2 (str, optional): Axis name corrsponding to fast varying axis. Defaults to "sam_x".
 
     Returns:
-        Dict[Dict[str | Tuple, float | int]]: Axes start coordinates and scan direction of each block. \
-            eg. \
+        Dict[Dict[str | Tuple, float | int]]: Axes start coordinates and scan direction of each block.
+            eg.
                 {
                     '01'/(0,0): {
                         'ax1': 0.0,
