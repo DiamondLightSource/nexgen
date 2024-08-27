@@ -35,7 +35,7 @@ EIGER_CONST = {
 }
 
 TRISTAN_CONST = {
-    "flatfield": "Tristan10M_flat_field_coeff_with_Mo_17.479keV.h5",
+    "flatfield": "Tristan10M_flat_field_coff_gap_filled_1_with_Mo_17.479keV.h5",  # "Tristan10M_flat_field_coeff_with_Mo_17.479keV.h5",
     "flatfield_applied": False,
     "pixel_mask": "Tristan10M_mask_with_spec.h5",
     "pixel_mask_applied": False,
