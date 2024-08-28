@@ -59,10 +59,6 @@ Collection parameters schema for I19-2
 2. Interface with GDA ...
 
 
-.. autoclass:: nexgen.beamlines.I19_2_gda_nxs.tr_collect
-    :members:
-
-
 .. autofunction:: nexgen.beamlines.I19_2_gda_nxs.tristan_writer
 
 
