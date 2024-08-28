@@ -51,15 +51,12 @@ Collection parameters schema for I19-2
 
 
 .. autopydantic_model:: nexgen.beamlines.I19_2_nxs.CollectionParams
+    :inherited-members: BaseModel
     :model-show-config-summary: False
 
 
 
 2. Interface with GDA ...
-
-
-.. autoclass:: nexgen.beamlines.I19_2_gda_nxs.tr_collect
-    :members:
 
 
 .. autofunction:: nexgen.beamlines.I19_2_gda_nxs.tristan_writer
@@ -72,6 +69,7 @@ Collection parameters schema for I19-2 from GDA
 
 
 .. autopydantic_model:: nexgen.beamlines.I19_2_gda_nxs.GDACollectionParams
+    :inherited-members: BaseModel
     :model-show-config-summary: False
 
 
@@ -86,6 +84,7 @@ Collection parameters schema for SSX
 
 
 .. autopydantic_model:: nexgen.beamlines.SSX_Eiger_nxs.SerialParams
+    :inherited-members: BaseModel
     :model-show-config-summary: False
 
 
@@ -101,6 +100,7 @@ Collection parameters schema for SSX using Tristan
 
 
 .. autopydantic_model:: nexgen.beamlines.SSX_Tristan_nxs.TimeResolvedSerialParams
+    :inherited-members: BaseModel
     :model-show-config-summary: False
 
 
