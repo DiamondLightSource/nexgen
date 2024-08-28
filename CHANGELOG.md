@@ -1,9 +1,26 @@
 # CHANGELOG
 
+## 0.9.6
+
+### Added
+- Python 3.12 support.
+
+### Changed
+- Default faltfield file for Tristan detector.
+- Set up bump-my-version to replace the older bump2version.
+
+### Fixed
+- Documentation rendering for pydantic models.
+- Typos in tristan_writer for I19-2.
+
+
+
 ## 0.9.5
 
 ### Changed
-- Dependency pin to Pydantic <2 removed
+- Dependency pin to Pydantic<2 removed.
+
+
 
 ## 0.9.4
 
