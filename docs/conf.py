@@ -25,6 +25,8 @@ import nexgen
 sys.path.insert(0, os.path.abspath(".."))
 
 
+from nexgen.beamlines import I19_2_gda_nxs, I19_2_nxs, SSX_Eiger_nxs, SSX_Tristan_nxs   # noqa
+
 # -- General configuration ---------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
