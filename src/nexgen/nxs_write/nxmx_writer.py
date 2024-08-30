@@ -330,6 +330,7 @@ class EventNXmxFileWriter(NXmxFileWriter):
 
     def write(
         self,
+        image_filename: str | None = None,
         start_time: datetime | str | None = None,
         write_mode: str = "x",
         add_non_standard: bool = False,
@@ -339,16 +340,19 @@ class EventNXmxFileWriter(NXmxFileWriter):
         This method overrides the write() method of NXmxFileWriter, from which thsi class inherits.
 
         Args:
-            start_time (datetime | str, optional): Collection estimated end time if available, in the format "%Y-%m-%dT%H:%M:%SZ".\
+            start_time (datetime | str, optional): Collection estimated end time if available, in the \
+                format "%Y-%m-%dT%H:%M:%SZ". Defaults to None.
+            image_filename (str | None, optional): Filename stem to use to look for image files. \
+                Needed in case it doesn't match the NeXus file name. Format: filename_runnumber. \
                 Defaults to None.
-            write_mode (str, optional): String indicating writing mode for the output NeXus file. Accepts any valid \
-                h5py file opening mode. Defaults to "x".
+            write_mode (str, optional): String indicating writing mode for the output NeXus file. \
+                Accepts any valid h5py file opening mode. Defaults to "x".
             add_non_standard (bool, optional): Flag if non-standard NXsample fields should be added \
                 for processing to work. Defaults to False.
         """
         # Get metafile
         # No data files, just link to meta
-        metafile = super()._get_meta_file()
+        metafile = super()._get_meta_file(image_filename=image_filename)
 
         module = self.detector.get_module_info()
 
