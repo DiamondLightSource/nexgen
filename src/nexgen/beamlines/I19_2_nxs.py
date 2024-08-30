@@ -163,7 +163,10 @@ def tristan_writer(
             beam,
             attenuator,
         )
-        EventFileWriter.write(image_filename=TR.metafile.stem, start_time=timestamps[0])
+        EventFileWriter.write(
+            image_filename=TR.metafile.stem.replace("_meta", ""),
+            start_time=timestamps[0],
+        )
         if timestamps[1]:
             EventFileWriter.update_timestamps(timestamps[1], "end_time")
         logger.info(f"The file {master_file} was written correctly.")
