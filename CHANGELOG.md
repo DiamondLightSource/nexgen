@@ -1,9 +1,11 @@
 # CHANGELOG
 
+
 ## 0.9.6
 
 ### Added
 - Python 3.12 support.
+- Command line tool to compare gridscan pcap position output with the positions recorded in the nexus file.
 
 ### Changed
 - Default faltfield file for Tristan detector.
@@ -14,12 +16,10 @@
 - Typos in tristan_writer for I19-2.
 
 
-
 ## 0.9.5
 
 ### Changed
 - Dependency pin to Pydantic<2 removed.
-
 
 
 ## 0.9.4
