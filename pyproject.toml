@@ -111,21 +111,6 @@ testpaths = "src tests"
 # Tests are run from installed location, map back to the src directory
 source = ["src", "**/site-packages/"]
 
-[tool.bumpversion]
-current_version = "0.9.6"
-tag = true
-commit = true
-parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"
-serialize = ["{major}.{minor}.{patch}"]
-search = "{current_version}"
-replace = "{new_version}"
-tag_name = "v{new_version}"
-tag_message = "Bump version: {current_version} → {new_version}"
-message = "Bump version: {current_version} → {new_version}"
-
-[[tool.bumpversion.files]]
-filename = "src/nexgen/__init__.py"
-
 # tox must currently be configured via an embedded ini string
 # See: https://github.com/tox-dev/tox/issues/999
 [tool.tox]
