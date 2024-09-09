@@ -112,7 +112,7 @@ testpaths = "src tests"
 source = ["src", "**/site-packages/"]
 
 [tool.bumpversion]
-current_version = "0.9.5"
+current_version = "0.9.6"
 tag = true
 commit = true
 parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"
