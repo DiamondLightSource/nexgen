@@ -1,6 +1,11 @@
 # CHANGELOG
 
 
+## 0.9.7
+
+### Added
+- Possibility of adding an NXnote to nexus file for I19 writers.
+
 ## 0.9.6
 
 ### Added

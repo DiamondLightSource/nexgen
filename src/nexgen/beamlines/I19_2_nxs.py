@@ -8,7 +8,7 @@ import logging
 from collections import namedtuple
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import h5py
 import numpy as np
@@ -80,6 +80,7 @@ def tristan_writer(
     timestamps: Tuple[str, str] = (None, None),
     axes_pos: List[axes] = None,
     det_pos: List[det_axes] = None,
+    notes: Dict[str, Any] | None = None,
 ):
     """
     A function to call the nexus writer for Tristan 10M detector.
@@ -92,6 +93,8 @@ def tristan_writer(
             goniometer, passed from command line. Defaults to None.
         det_pos (List[det_axes], optional): List of (axis_name, start) values for the \
             detector, passed from command line. Defaults to None.
+        notes (Dict[str, Any], optional): Dictionary of (key, value) pairs where key represents the \
+            dataset name and value its data. Defaults to None.
     """
     source = Source("I19-2")
     from .I19_2_params import I19_2Tristan as axes_params
@@ -169,6 +172,9 @@ def tristan_writer(
         )
         if timestamps[1]:
             EventFileWriter.update_timestamps(timestamps[1], "end_time")
+        if notes:
+            # Write any additional info in /entry/notes
+            EventFileWriter.add_NXnote(notes)
         logger.info(f"The file {master_file} was written correctly.")
     except Exception as err:
         logger.exception(err)
@@ -184,9 +190,10 @@ def eiger_writer(
     timestamps: Tuple[str, str] = (None, None),
     use_meta: bool = False,
     n_frames: int | None = None,
-    axes_pos: List[axes] = None,
-    det_pos: List[det_axes] = None,
+    axes_pos: List[axes] | None = None,
+    det_pos: List[det_axes] | None = None,
     vds_offset: int = 0,
+    notes: Dict[str, Any] | None = None,
 ):
     """
     A function to call the NXmx nexus file writer for Eiger 2X 4M detector.
@@ -208,6 +215,8 @@ def eiger_writer(
         det_pos (List[det_axes], optional): List of (axis_name, start) values for the \
             detector, passed from command line. Defaults to None.
         vds_offset (int, optional): Start index for the vds writer. Defaults to 0.
+        notes (Dict[str, Any], optional): Dictionary of (key, value) pairs where key represents the \
+            dataset name and value its data. Defaults to None.
 
     Raises:
         ValueError: If use_meta is set to False but axes_pos and det_pos haven't been passed.
@@ -382,6 +391,8 @@ def eiger_writer(
         )
         if timestamps[1]:
             NXmx_writer.update_timestamps(timestamps[1], "end_time")
+        if notes:
+            NXmx_writer.add_NXnote(notes)
         logger.info(f"The file {master_file} was written correctly.")
     except Exception as err:
         logger.exception(err)
@@ -518,6 +529,9 @@ def nexus_writer(
                 """
             )
 
+    if find_in_dict("notes", params) and isinstance(params["notes"], dict):
+        notes = params["notes"]
+
     if "eiger" in TR.detector_name:
         if not find_in_dict("n_imgs", params):
             params["n_imgs"] = None
@@ -529,8 +543,14 @@ def nexus_writer(
             params["n_imgs"],
             params["gonio_pos"],
             params["det_pos"],
+            notes=notes,
         )
     elif "tristan" in TR.detector_name:
         tristan_writer(
-            master_file, TR, timestamps, params["gonio_pos"], params["det_pos"]
+            master_file,
+            TR,
+            timestamps,
+            params["gonio_pos"],
+            params["det_pos"],
+            notes=notes,
         )
