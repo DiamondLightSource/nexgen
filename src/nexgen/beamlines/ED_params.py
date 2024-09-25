@@ -42,8 +42,14 @@ ED_coord_system = {
     "z": Axis("z", "y", TransformationType.TRANSLATION, Point3D(0, 0, 1)),
 }
 
+UnknownSource = Source("unknown",
+                       Facility("unknown", "unknown",
+                                "Electron Source", None),
+                       "electron")
+
 EDSource = Source(
     "eBIC",
-    Facility("Diamond Light Source", "DLS", "Electron Source", "DIAMOND MICROSCOPE"),
+    Facility("Diamond Light Source", "DLS",
+             "Electron Source", "DIAMOND MICROSCOPE"),
     "electron",
 )
