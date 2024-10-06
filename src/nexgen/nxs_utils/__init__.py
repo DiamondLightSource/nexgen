@@ -10,6 +10,7 @@ from .detector import (
     JungfrauDetector,
     SinglaDetector,
     TristanDetector,
+    TVIPSDetector
 )
 from .goniometer import Goniometer
 from .sample import Sample
@@ -33,4 +34,5 @@ __all__ = [
     "TransformationType",
     "Facility",
     "CetaDetector",
+    "TVIPSDetector"
 ]

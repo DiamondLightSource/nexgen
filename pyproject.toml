@@ -26,6 +26,7 @@ dependencies = [
     "scanspec",
     "dataclasses-json",
     "pydantic",
+    "mrcfile>=1.5.3",
 ]
 license.file = "LICENSE"
 readme = "README.rst"
