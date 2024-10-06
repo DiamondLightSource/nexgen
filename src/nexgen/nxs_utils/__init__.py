@@ -10,7 +10,7 @@ from .detector import (
     JungfrauDetector,
     SinglaDetector,
     TristanDetector,
-    TVIPSDetector
+    TVIPSDetector,
 )
 from .goniometer import Goniometer
 from .sample import Sample
