@@ -353,11 +353,9 @@ def write_nxs(
 
     # Get timestamps in the correct format if they aren't already
     _start_time = (
-        (start_time.strftime("%Y-%m-%dT%H:%M:%S") if start_time else None),
+        start_time.strftime("%Y-%m-%dT%H:%M:%S") if start_time else None
     )  # This should be datetiem type
-    _stop_time = (
-        (stop_time.strftime("%Y-%m-%dT%H:%M:%S") if stop_time else None),
-    )  # idem.
+    _stop_time = stop_time.strftime("%Y-%m-%dT%H:%M:%S") if stop_time else None  # idem.
     timestamps = (
         get_iso_timestamp(_start_time),
         get_iso_timestamp(_stop_time),
