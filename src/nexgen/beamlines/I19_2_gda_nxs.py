@@ -329,6 +329,10 @@ def write_nxs(
         from .I19_2_params import I19_2Tristan as axes_params
 
         det_params = TristanDetector("Tristan 10M", (3043, 4183))
+        # Temporary worksround, flatfield from gda has different file name
+        det_params.constants["flatfield"] = (
+            "Tristan10M_flat_field_coeff_with_Mo_17.479keV.h5"
+        )
     else:
         raise UnknownDetectorTypeError("Unknown detector name passed.")
 
