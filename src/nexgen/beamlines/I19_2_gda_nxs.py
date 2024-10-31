@@ -277,12 +277,12 @@ def write_nxs(**tr_params):
         beam_center=tr_params["beam_center"],
         geometry_json=(
             tr_params["geometry_json"]
-            if find_in_dict(tr_params, "geometry_json")
+            if find_in_dict("geometry_json", tr_params)
             else None
         ),
         detector_json=(
             tr_params["detector_json"]
-            if find_in_dict(tr_params, "detector_json")
+            if find_in_dict("detector_json", tr_params)
             else None
         ),
     )
@@ -342,14 +342,14 @@ def write_nxs(**tr_params):
     _start_time = (
         (
             tr_params["start_time"].strftime("%Y-%m-%dT%H:%M:%S")
-            if find_in_dict(tr_params, "start_time")
+            if find_in_dict("start_time", tr_params)
             else None
         ),
     )  # This should be datetiem type
     _stop_time = (
         (
             tr_params["stop_time"].strftime("%Y-%m-%dT%H:%M:%S")
-            if find_in_dict(tr_params, "stop_time")
+            if find_in_dict("stop_time", tr_params)
             else None
         ),
     )  # idem.
@@ -363,7 +363,7 @@ def write_nxs(**tr_params):
     else:
         vds_dtype = (
             np.uint16
-            if not find_in_dict(tr_params, "vds_dtype")
+            if not find_in_dict("vds_dtype", tr_params)
             else tr_params["vds_dtype"]
         )
         eiger_writer(master_file, TR, axes_params, det_params, timestamps, vds_dtype)
