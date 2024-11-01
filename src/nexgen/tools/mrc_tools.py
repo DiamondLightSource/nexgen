@@ -1,5 +1,4 @@
 """ Helper functions for the MRC to Nexus converter """
-
 import os
 from math import sqrt
 
@@ -11,45 +10,51 @@ import numpy as np
 
 def cal_wavelength(V0):
     """
-    Compute the relativistic electron wavelength from
-    the electron acceleration voltage.
+    Compute the relativistic electron wavelength from the electron
+    acceleration voltage.
 
-    Args:
-        V0 (int or float): acceleration voltage for electrons
-                           in Volts [V].
+    Arguments
+    ---------
+    V0 : int or float
+        Acceleration voltage for electrons in Volts.
 
-    Returns:
-        wlen (float): Electron wavelength in Angstroms.
+    Returns
+    -------
+    wlen : float
+        Electron wavelength in Angstroms.
 
     For an acceleration voltage of 200000 V, the electron energy
     is 200 keV (set by default if V0 is zero).
     """
 
-    h = 6.626e-34  # Planck's constant [J*s]
-    m = 9.109e-31  # Electron mass [kg]
-    e = 1.6021766208e-19  # Electron charge [C]
-    c = 3e8  # Speed of light  [m/s]
+    h = 6.626e-34           # Planck's constant [J*s]
+    m = 9.109e-31           # Electron mass [kg]
+    e = 1.6021766208e-19    # Electron charge [C]
+    c = 3e8                 # Speed of light  [m/s]
 
     # Default to wavelength at 200 keV if voltage set to zero
     if V0 == 0:
         V0 = 200000
-    wlen = h / sqrt(2 * m * e * V0 * (1 + e * V0 / (2 * m * c * c))) * 1e10
-    return wlen  # Electron wavelength in Angstroms
+    wlen = h / sqrt(2*m*e*V0 * (1 + e*V0 / (2*m*c*c))) * 1e10
+    return wlen             # Electron wavelength in Angstroms
 
 
 def get_metadata(mrc_image, verbatim=True):
     """
-    Extract the metadata dictionary from a single MRC file.
+    Extract metadata dictionary from an MRC file.
 
-    Args:
-        mrc_image (Path or str): the MRC file path.
+    Arguments
+    ---------
+    mrc_image : Path or str
+        MRC file path.
 
-    Returns:
-        hd (dict): A dictionary containing metadata
-                   from the MRC file.
+    Returns
+    -------
+    hd : dict
+        A dictionary containing metadata from the MRC file.
 
-    The function extracts data from the MRC header and extended
-    header dictionaries.
+    The function extracts data from the MRC header and extended header
+    dictionaries.
     """
 
     with mrcfile.open(mrc_image, header_only=True) as mrc:
@@ -59,6 +64,7 @@ def get_metadata(mrc_image, verbatim=True):
         except AttributeError:
             # For mrcfile versions older than 1.5.0
             xh = mrc.extended_header
+
         hd = {}
 
         hd["nx"] = h["nx"]
@@ -94,12 +100,12 @@ def get_metadata(mrc_image, verbatim=True):
             / (hd["pixelSpacing"] * hd["wavelength"] * 1e-10)
             * 1000.0
         )
-
         if not is_FEI2:
             return hd
 
         hd["scanRotation"] = xh["Scan rotation"][0]
-        hd["diffractionPatternRotation"] = xh["Diffraction pattern rotation"][0]
+        hd["diffractionPatternRotation"] = xh[
+            "Diffraction pattern rotation"][0]
         hd["imageRotation"] = xh["Image rotation"][0]
         hd["scanModeEnum"] = xh["Scan mode enumeration"][0]
         hd["acquisitionTimeStamp"] = xh["Acquisition time stamp"][0]
@@ -115,42 +121,52 @@ def get_metadata(mrc_image, verbatim=True):
         hd["objectiveApertureName"] = xh["Objective aperture name"][0]
 
         # Check if binning is correct
-        assert hd["binning"] == 4096 / hd["nx"]
+        assert hd['binning'] == 4096 / hd["nx"]
 
         return hd
 
 
-def collect_data(files):
+def collect_data(files, dtype=None):
     """
-    Extract image data from a list of MRC files into a single
-    HDF5 (h5) file.
+    Extracts data from an MRC format into HDF5
 
-    Args:
-        files (list of strings): A list containing names
-            of all MRC images.
+    Arguments
+    ---------
+        files : a list of strings or paths
+            A list of MRC files.
+        dtype : string, optional
+            Convert the original data from MRC to this type in HDF5.
+            Can be: 'uint16', 'uint32', 'uint64', 'int16', 'int32', 'int64',
+                    'float32', 'float64'.
+            Default is None, in which case the original data type will be
+            preserved during conversion.
 
-    Returns:
-        n (int): The total number of MRC images.
-        out_file (string): Name of the output h5 file.
-        angles (1D numpy array of floats): An array containing
-            tilt angles of all MRC images (as extracted from the
-            MRC metadata).
+    Returns
+    -------
+        n :  int
+            Total number of MRC images.
+        hdf5_file :  string
+            Name of the output HDF5 file.
+        angles : 1D numpy float array
+            An array of tilt angles (extracted from MRC images).
 
-    The function takes a list of MRC filenames, assuming that each
-    filename contains a single diffraction image (as a 2D array),
-    and makes a single h5 file containing a 3D array (where the first
-    index enumerates the images). The data is saved in the field
-    '/entry/data/data/' as an int32 and compressed using the LZ4
-    compression method. Note that the original data in the MRC files
-    is saved as a floating point number, although the actual data
-    consists solely of integers. The function also assumes that all
-    MRC files end with an indexing number: like 'basename_00001.mrc',
-    in which case the data is saved in 'basename.h5'.
+    Converts MRC data to HDF5. The input can be either a list of individual
+    MRC images, or a single MRC file with a stack of images. In the first
+    case, the function assumes that all MRC files end with an indexing number
+    (e.g. some_basename_00001.mrc) and removes everything after the last '_'
+    (e.g. the output is some_basename.h5). In the second case (a single MRC
+    input file) the function only replaces the '.mrc' extension with '.h5'.
+    The HDF5 output contains a 3D array (saved in the field
+    '/entry/data/data'), where the first index enumerates the images.
     """
 
-    out_file = files[0].rsplit("_", 1)[0] + ".h5"
+    # Remove everything after the last '_' from the file name (the indexing)
+    out_file = files[0].rsplit('_', 1)[0] + '.h5'
+
     mrc_files = []
     angles = []
+
+    # Filter only MRC files from the input
     for file in files:
         path = os.path.abspath(file)
         if path.endswith(".mrc"):
@@ -160,43 +176,96 @@ def collect_data(files):
 
     test_file = mrcfile.open(mrc_files[0], mode="r")
     data_shape = test_file.data.shape
+
+    # For CetaD dtype should be int32
+
+    if not dtype:
+        dtype = test_file.data.dtype
+    else:
+        dtype = np.dtype(dtype)   # Convert the string to dtype
+
     test_file.close()
-    if len(data_shape) != 2:
-        msg = "The converter works only with individual MRC images"
-        raise ValueError(msg)
 
-    with h5py.File(out_file, "w") as hdf5_file:
-        dataset_shape = (n, data_shape[0], data_shape[1])
-        dataset = hdf5_file.create_dataset(
-            "data_temp", shape=dataset_shape, dtype=np.int32
-        )
+    # Input is a single MRC file with a stack of images
+    if (len(data_shape) == 3) and (n == 1):
 
-        group = hdf5_file.create_group("entry")
-        group.attrs["NX_class"] = np.bytes_("NXentry")
-        data_group = group.create_group("data")
-        data_group.attrs["NX_class"] = np.bytes_("NXdata")
+        with h5py.File(out_file, "w") as hdf5_file:
 
-        compressed_data = hdf5_file.create_dataset(
-            "/entry/data/data", shape=dataset_shape, dtype=np.int32, **hdf5plugin.LZ4()
-        )
+            mrc = mrcfile.open(files[0], mode="r")
 
-        for i, file in enumerate(mrc_files):
-            print(" Reading image %d:  %s" % (i, file))
-            mrc = mrcfile.open(file, mode="r")
-            data = np.array(mrc.data, dtype=np.int32)
-            try:
-                xh = mrc.indexed_extended_header
-            except AttributeError:
-                xh = mrc.extended_header
+            bs = hdf5plugin.Bitshuffle
+            dataset_shape = (data_shape[0], data_shape[1], data_shape[2])
+            dataset = hdf5_file.create_dataset("data_temp",
+                                               shape=dataset_shape,
+                                               dtype=dtype,
+                                               **bs(clevel=3, cname='lz4'))
 
-            if "Alpha tilt" in xh.dtype.names:
-                angles.append(xh["Alpha tilt"][0])
-            else:
-                angles.append(None)
-            dataset[i, :, :] = data
+            group = hdf5_file.create_group("entry")
+            group.attrs["NX_class"] = np.bytes_('NXentry')
+            data_group = group.create_group("data")
+            data_group.attrs["NX_class"] = np.bytes_("NXdata")
+
+            compressed_data = hdf5_file.create_dataset("/entry/data/data",
+                                                       shape=dataset_shape,
+                                                       dtype=dtype,
+                                                       **bs(clevel=3,
+                                                            cname='lz4'))
+
+            dataset[:, :, :] = mrc.data
             mrc.close()
 
-        compressed_data[...] = dataset[...]
-        del hdf5_file["data_temp"]
+            compressed_data[...] = dataset[...]
+            del hdf5_file["data_temp"]
 
-        return n, out_file, np.array(angles)
+            angles = np.array([0 for i in range(dataset_shape[0])])
+            return dataset_shape[0], out_file, angles
+
+    # Input is a list of MRC files containing single images
+    elif (len(data_shape) == 2) and (n >= 1):
+
+        with h5py.File(out_file, 'w') as hdf5_file:
+            dataset_shape = (n, data_shape[0], data_shape[1])
+            dataset = hdf5_file.create_dataset("data_temp",
+                                               shape=dataset_shape,
+                                               dtype=dtype)
+
+            group = hdf5_file.create_group("entry")
+            group.attrs["NX_class"] = np.bytes_("NXentry")
+            data_group = group.create_group("data")
+            data_group.attrs["NX_class"] = np.string_("NXdata")
+
+            compressed_data = hdf5_file.create_dataset("/entry/data/data",
+                                                       shape=dataset_shape,
+                                                       dtype=dtype,
+                                                       **hdf5plugin.LZ4())
+
+            for i, file in enumerate(mrc_files):
+                print(' Reading image %d:  %s' % (i, file))
+                mrc = mrcfile.open(file, mode='r')
+                data = np.array(mrc.data, dtype=np.int32)
+
+                if (len(data.shape) > 2):
+                    msg = "MRC file contains more than a single image\n"
+                    msg += f"  File: {file}"
+                    raise ValueError(msg)
+
+                try:
+                    xh = mrc.indexed_extended_header
+                except AttributeError:
+                    xh = mrc.extended_header
+
+                if "Alpha tilt" in xh.dtype.names:
+                    angles.append(xh["Alpha tilt"][0])
+                else:
+                    angles.append(None)
+                dataset[i, :, :] = data
+                mrc.close()
+
+            compressed_data[...] = dataset[...]
+            del hdf5_file["data_temp"]
+
+            return n, out_file, np.array(angles)
+    else:
+        msg = "The converter expects either a list of MRC images\n"
+        msg = "or a single MRC file with a stack of images."
+        raise ValueError(msg)
