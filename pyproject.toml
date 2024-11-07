@@ -26,7 +26,7 @@ dependencies = [
     "scanspec",
     "dataclasses-json",
     "pydantic",
-    "flexparser==0.3.1",
+    "flexparser==0.3.1", # See https://github.com/DiamondLightSource/nexgen/issues/309
 ]
 license.file = "LICENSE"
 readme = "README.rst"
