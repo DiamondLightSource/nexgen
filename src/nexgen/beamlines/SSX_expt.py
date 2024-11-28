@@ -8,7 +8,6 @@ Experiment definitions for SSX collections:
 from __future__ import annotations
 
 import logging
-from pathlib import Path
 from typing import Dict, List, Tuple
 
 import numpy as np
@@ -79,8 +78,8 @@ def run_extruder(
 def run_fixed_target(
     goniometer_axes: List[Axis],
     chip_info: Dict[str, List],
-    chipmap: Path | str,
     pump_probe: PumpProbe,
+    chipmap: List[int] | None = None,
     scan_axes: List[str, str] = ["sam_y", "sam_x"],
 ) -> Tuple[Dict, Dict]:
     """Run the goniometer computations for a fixed-target experiment.
@@ -89,8 +88,8 @@ def run_fixed_target(
         goniometer_axes (List[Axis]): List of goniometer axes for current beamline.
         chip_info (Dict[str, List]): General information about the chip: number and size of blocks, \
             size and step of each window, start positions, number of exposures.
-        chipmap (Path | str): Path to .map file. If None is passed, assumes a fullchip.
         pump_probe (PumpProbe): Pump probe parameters.
+        chipmap (List[int], optional): List of blocks scanned. If None is passed, assumes a fullchip.
         scan_axes (List[str, str], optional): List of scan axes, in order slow,fast. \
             Defaults to ["sam_y", "sam_x"].
 
@@ -197,8 +196,8 @@ def run_fixed_target(
 def run_3D_grid_scan(
     goniometer_axes: List[Axis],
     chip_info: Dict[str, List],
-    chipmap: Path | str,
     pump_probe: PumpProbe,
+    chipmap: List[int] | None = None,
     osc_axis: str = "omega",
 ) -> Tuple[Dict]:
     """_summary_
@@ -206,8 +205,8 @@ def run_3D_grid_scan(
     Args:
         goniometer_axes (List[Axis]): _description_
         chip_info (Dict[str, List]): _description_
-        chipmap (Path | str): _description_
         pump_probe (PumpProbe): _description_
+        chipmap (List[int], optional): _description_
         osc_axis (str, optional): _description_
 
     Returns:

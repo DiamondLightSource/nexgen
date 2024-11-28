@@ -133,8 +133,8 @@ def ssx_eiger_writer(
         chip_info (Dict): For a grid scan, dictionary containing basic chip information.
             At least it should contain: x/y_start, x/y number of blocks and block size, \
             x/y number of steps and number of exposures.
-        chipmap (Path | str): Path to the chipmap file corresponding to the experiment,
-            if None for a fixed target experiment, it indicates that the fullchip is \
+        chipmap (list[int]): List of scanned blocks for the current collection. If not \
+            passed or None for a fixed target experiment, it indicates that the fullchip is \
             being scanned.
         pump_exp (float): Pump exposure time, in s.
         pump_delay (float): Pump delay time, in s.
@@ -321,16 +321,11 @@ def ssx_eiger_writer(
         case "fixed-target":
             from .SSX_expt import run_fixed_target
 
-            # Define chipmap if needed
-            chipmapfile = (
-                None if chipmap is None else Path(chipmap).expanduser().resolve()
-            )
-
             SCAN, pump_info = run_fixed_target(
                 gonio_axes,
                 chip_info,
-                chipmapfile,
                 pump_probe,
+                chipmap,
                 ["sam_y", "sam_x"],
             )
 
