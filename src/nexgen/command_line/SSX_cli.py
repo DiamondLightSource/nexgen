@@ -159,7 +159,7 @@ eiger_parser.add_argument(
     default=False,
     help="Select pump status.",
 )
-eiger_parser.add_argument("--chipmap", type=str, help="Location of chipmap.")
+eiger_parser.add_argument("--chipmap", type=int, nargs="+", help="Location of chipmap.")
 eiger_parser.set_defaults(func=eiger_collection)
 
 tristan_parser = subparsers.add_parser(

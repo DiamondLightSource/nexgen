@@ -1,6 +1,12 @@
 # CHANGELOG
 
 
+## #.#.#
+
+### Changed
+- Update serial writer to take a list of blocks as input for the chipmap instead of a file.
+
+
 ## 0.9.8
 
 ### Fixed

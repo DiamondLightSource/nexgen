@@ -5,7 +5,6 @@ Tools to read a chip and compute the coordinates of a Serial Crystallography col
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 from ..nxs_utils.scan_utils import ScanDirection
@@ -94,12 +93,12 @@ def fullchip_conversion_table(chip: Chip) -> Dict:
     return table
 
 
-def read_chip_map(mapfile: Path | str, x_blocks: int, y_blocks: int) -> Dict:
+def read_chip_map(chipmap: list[int] | None, x_blocks: int, y_blocks: int) -> Dict:
     """
     Read the .map file for the current collection on a chip.
 
     Args:
-        mapfile (Path | str): Path to .map file. If None, assumes fullchip.
+        chipmap (List[int] | None): List of scanned blocks. If None, assumes fullchip.
         x_blocks (int): Total number of blocks in x direction in the chip.
         y_blocks (int): Total number of blocks in y direction in the chip.
 
@@ -107,36 +106,23 @@ def read_chip_map(mapfile: Path | str, x_blocks: int, y_blocks: int) -> Dict:
         Dict: A dictionary whose values indicate either the coordinates on the chip \
             of the scanned blocks, or a string indicating that the whole chip is being scanned.
     """
-    if mapfile is None:
+    max_num_blocks = x_blocks * y_blocks
+    if chipmap is None or len(chipmap) == max_num_blocks:
         # Assume it's a full chip
         return {"all": "fullchip"}
 
-    with open(mapfile) as f:
-        chipmap = f.read()
-
-    block_list = []
-    max_num_blocks = x_blocks * y_blocks
-    for n, line in enumerate(chipmap.rsplit("\n")):
-        if n == max_num_blocks:
-            break
-        k = line[:2]
-        v = line[-1:]
-        if v == "1":
-            block_list.append(k)
-    if len(block_list) == max_num_blocks:
-        # blocks["fullchip"] = len(block_list)
-        return {"all": "fullchip"}
-
     blocks = {}
-    for b in block_list:
-        x = int(b) // x_blocks if int(b) % x_blocks != 0 else (int(b) // x_blocks) - 1
+    block_str_template = f"%0{2}d"
+    for b in chipmap:
+        x = b // x_blocks if b % x_blocks != 0 else (b // x_blocks) - 1
         if x % 2 == 0:
             val = x * x_blocks + 1
             y = int(b) - val
         else:
             val = (x + 1) * x_blocks
             y = val - int(b)
-        blocks[b] = (x, y)
+        block_str = block_str_template % b
+        blocks[block_str] = (x, y)
     return blocks
 
 

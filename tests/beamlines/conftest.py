@@ -14,51 +14,15 @@ axes_list = [
 
 
 @pytest.fixture
-def dummy_chipmap_file():
-    lines = [
-        "01status    P3011       1\n",
-        "02status    P3021       0\n",
-        "03status    P3031       0\n",
-        "04status    P3041       1\n",
-    ]
-    test_map_file = tempfile.NamedTemporaryFile(
-        mode="w", suffix=".map", delete=False, encoding="utf-8"
-    )
-    with test_map_file as map:
-        map.writelines(lines)
-    yield test_map_file
+def dummy_chipmap():
+    block_list = [1, 4]
+    yield block_list
 
 
 @pytest.fixture
-def dummy_chipmap_file_single_block():
-    lines = [
-        "01status    P3011       1\n",
-        "02status    P3021       0\n",
-        "03status    P3031       0\n",
-        "04status    P3041       0\n",
-    ]
-    test_map_file = tempfile.NamedTemporaryFile(
-        mode="w", suffix=".map", delete=False, encoding="utf-8"
-    )
-    with test_map_file as map:
-        map.writelines(lines)
-    yield test_map_file
-
-
-@pytest.fixture
-def dummy_chipmap_file_multi_block():
-    lines = [
-        "01status    P3011       1\n",
-        "02status    P3021       1\n",
-        "03status    P3031       1\n",
-        "04status    P3041       1\n",
-    ]
-    test_map_file = tempfile.NamedTemporaryFile(
-        mode="w", suffix=".map", delete=False, encoding="utf-8"
-    )
-    with test_map_file as map:
-        map.writelines(lines)
-    yield test_map_file
+def dummy_chipmap_full():
+    block_list = [1, 2, 3, 4]
+    yield block_list
 
 
 @pytest.fixture

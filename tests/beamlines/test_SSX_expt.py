@@ -47,12 +47,12 @@ def test_run_extruder_with_non_zero_omega():
     assert_array_equal(osc["omega"], np.repeat(90.0, 10))
 
 
-def test_run_fixed_target(dummy_chipmap_file_single_block):
+def test_run_fixed_target():
     transl, info = run_fixed_target(
         axes_list,
         test_chip_dict,
-        dummy_chipmap_file_single_block.name,
         test_pump,
+        [1],
     )
     assert list(transl.keys()) == ["sam_y", "sam_x"]
     assert len(transl["sam_x"]) == len(transl["sam_y"])
@@ -60,45 +60,45 @@ def test_run_fixed_target(dummy_chipmap_file_single_block):
     assert info["n_exposures"] == 1
 
 
-def test_run_fixed_target_with_wrong_axis_in_list(dummy_chipmap_file_single_block):
+def test_run_fixed_target_with_wrong_axis_in_list():
     with pytest.raises(ValueError):
         _ = run_fixed_target(
             axes_list,
             test_chip_dict,
-            dummy_chipmap_file_single_block.name,
             test_pump,
+            [1],
             scan_axes=["phi", "sam_x"],
         )
 
 
-def test_run_fixed_target_with_missing_scan_axis(dummy_chipmap_file_single_block):
+def test_run_fixed_target_with_missing_scan_axis():
     with pytest.raises(IndexError):
         _ = run_fixed_target(
             axes_list,
             test_chip_dict,
-            dummy_chipmap_file_single_block.name,
             test_pump,
+            [1],
             scan_axes=["sam_z"],
         )
 
 
-def test_fixed_target_raises_error_if_no_chip_info(dummy_chipmap_file_single_block):
+def test_fixed_target_raises_error_if_no_chip_info():
     with pytest.raises(ValueError):
         _ = run_fixed_target(
             axes_list,
             {},
-            dummy_chipmap_file_single_block.name,
             test_pump,
+            [1],
         )
 
 
-def test_fixed_target_for_multiple_exposures(dummy_chipmap_file_single_block):
+def test_fixed_target_for_multiple_exposures():
     test_chip_dict["N_EXPOSURES"] = [0, "2"]
     transl, info = run_fixed_target(
         axes_list,
         test_chip_dict,
-        dummy_chipmap_file_single_block.name,
         test_pump,
+        [1],
     )
     assert list(transl.keys()) == ["sam_y", "sam_x"]
     assert len(transl["sam_x"]) == len(transl["sam_y"])
@@ -106,13 +106,13 @@ def test_fixed_target_for_multiple_exposures(dummy_chipmap_file_single_block):
     assert info["n_exposures"] == 2
 
 
-def test_fixed_target_with_upwards_blocks(dummy_chipmap_file_multi_block):
+def test_fixed_target_with_upwards_blocks(dummy_chipmap_full):
     test_chip_dict["N_EXPOSURES"] = [0, "1"]
     transl, info = run_fixed_target(
         axes_list,
         test_chip_dict,
-        dummy_chipmap_file_multi_block.name,
         test_pump,
+        dummy_chipmap_full,
     )
     assert list(transl.keys()) == ["sam_y", "sam_x"]
     assert len(transl["sam_x"]) == len(transl["sam_y"])
@@ -120,13 +120,13 @@ def test_fixed_target_with_upwards_blocks(dummy_chipmap_file_multi_block):
     assert info["n_exposures"] == 1
 
 
-def test_fixed_target_fullchip_with_multiple_exposures(dummy_chipmap_file_multi_block):
+def test_fixed_target_fullchip_with_multiple_exposures(dummy_chipmap_full):
     test_chip_dict["N_EXPOSURES"] = [0, "2"]
     transl, info = run_fixed_target(
         axes_list,
         test_chip_dict,
-        dummy_chipmap_file_multi_block.name,
         test_pump,
+        dummy_chipmap_full,
     )
     assert list(transl.keys()) == ["sam_y", "sam_x"]
     assert len(transl["sam_x"]) == len(transl["sam_y"])
