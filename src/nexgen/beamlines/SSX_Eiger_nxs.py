@@ -183,6 +183,8 @@ def ssx_eiger_writer(
         ssx_params["chip_info"] if find_in_dict("chip_info", ssx_params) else None
     )
     chipmap = ssx_params["chipmap"] if find_in_dict("chipmap", ssx_params) else None
+    if isinstance(chipmap, list) and len(chipmap) == 0:
+        chipmap = None
 
     if SSX.experiment_type.lower() not in get_args(ExperimentTypes):
         raise UnknownExperimentTypeError(
