@@ -3,7 +3,7 @@ sphinx-rtd-theme==2.0.0
 autodoc_pydantic==2.2.0
 numpy==2.2.2
 pint==0.24.3
-h5py==3.11.0
+h5py==3.12.1
 hdf5plugin==5.0.0
 freephil==0.2.1
 importlib_resources==6.5.2
