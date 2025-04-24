@@ -25,6 +25,7 @@ __all__ = [
     "units_of_time",
     "get_iso_timestamp",
     "ScopeExtract",
+    "create_directory",
 ]
 
 MAX_FRAMES_PER_DATASET = 1000
@@ -61,6 +62,7 @@ def create_directory(path: Path | str):
         path (Path | str): Path to the directory to be created.
     """
     try:
+        logger.info(f"Attempting to create directory: {path}.")
         directory_path = coerce_to_path(path)
         directory_path.mkdir(exist_ok=True, parents=True)
     except Exception as e:
