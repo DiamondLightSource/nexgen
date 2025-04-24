@@ -50,6 +50,17 @@ def find_in_dict(key: str, params_dict: Dict):
     return False
 
 
+def create_directory(path: Path | str):
+    """Small utility function to be able to create a directory for the nexus file.
+    Should be used with caution, main use for new files after failed writing at collection time.
+
+    Args:
+        path (Path | str): Path to the directory to be created.
+    """
+    directory_path = coerce_to_path(path)
+    directory_path.mkdir(exist_ok=True, parents=True)
+
+
 def get_filename_template(input_filename: Path) -> str:
     """
     Get the data file name template from either the master or the meta file.
