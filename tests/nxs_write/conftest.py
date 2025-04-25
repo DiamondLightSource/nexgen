@@ -60,6 +60,11 @@ def mock_beam() -> Beam:
 
 
 @pytest.fixture
+def mock_polychromatic_beam() -> Beam:
+    return Beam(wavelength=[0.6, 0.7], wavelength_weights=[1, 1], flux=30.0)
+
+
+@pytest.fixture
 def mock_attenuator() -> Attenuator:
     return Attenuator(transmission=10.0)
 

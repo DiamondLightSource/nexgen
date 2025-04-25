@@ -3,6 +3,8 @@
 
 ## 0.9.#
 
+### Changed
+- NXbeam now allows to write multiple wavelengths to the ``incident_wavelength`` dataset for a polychromatic beam.
 
 ### Added
 - Small utility for creating directories when needed.
