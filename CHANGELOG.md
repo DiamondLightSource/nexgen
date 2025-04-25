@@ -1,6 +1,13 @@
 # CHANGELOG
 
 
+## 0.9.#
+
+
+### Added
+- Small utility for creating directories when needed.
+
+
 ## 0.9.10
 
 ### Changed
