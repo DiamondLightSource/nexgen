@@ -298,7 +298,7 @@ def write_NXinstrument(
 
     Args:
         nxsfile (h5py.File): NeXus file handle.
-        beam (Dict):Dictionary with beam information, mainly wavelength and flux.
+        beam (Dict): Dictionary with beam information, mainly wavelength and flux.
         attenuator (Dict): Dictionary containing transmission.
         source (Source): Source definition, containing the facility information.
         reset_instrument_name (bool, optional): If True, a string with the name of the \
@@ -329,6 +329,18 @@ def write_NXinstrument(
 
     NXclass_logger.debug("Write NXattenuator and NXbeam.")
     # Write NXattenuator group: entry/instrument/attenuator
+    write_NXattenuator(nxinstrument, attenuator)
+    # Write NXbeam group: entry/instrument/beam
+    write_NXbeam(nxinstrument, beam)
+
+
+def write_NXattenuator(nxinstrument: h5py.Group, attenuator: Attenuator):
+    """Write the NXattenuator group in /entry/instrument/attenuator.
+
+    Args:
+        nxinstrument (h5py.Group): HDF5 Nxinstrument group handle.
+        attenuator (Attenuator):  Attenuator definition, with transmission.
+    """
     nxatt = nxinstrument.require_group("attenuator")
     create_attributes(nxatt, ("NX_class",), ("NXattenuator",))
     if attenuator.transmission:
@@ -337,11 +349,32 @@ def write_NXinstrument(
             data=attenuator.transmission,
         )
 
-    # Write NXbeam group: entry/instrument/beam
+
+def write_NXbeam(nxinstrument: h5py.Group, beam: Beam):
+    """Write the NXbeam group in /entry/instrument/beam.
+
+    Args:
+        nxinstrument (h5py.Group): HDF5 Nxinstrument group handle.
+        beam (Beam):  Beam definition with wavelength and flux.
+    """
     nxbeam = nxinstrument.require_group("beam")
     create_attributes(nxbeam, ("NX_class",), ("NXbeam",))
-    wl = nxbeam.create_dataset("incident_wavelength", data=beam.wavelength)
+    _wavelength = (
+        beam.wavelength
+        if not isinstance(beam.wavelength, list)
+        else np.array(beam.wavelength)
+    )
+    wl = nxbeam.create_dataset("incident_wavelength", data=_wavelength)
     create_attributes(wl, ("units",), ("angstrom",))
+    if isinstance(beam.wavelength, list) and beam.wavelength_weights:
+        if len(beam.wavelength) != len(beam.wavelength_weights):
+            msg = "Cannot write wavelength weights dataset as length doesn't match number of wavelengths."
+            NXclass_logger.error(msg)
+            raise ValueError(msg)
+        nxbeam.create_dataset(
+            "incident_wavelength_weights", data=np.array(beam.wavelength_weights)
+        )
+
     if beam.flux:
         flux = nxbeam.create_dataset("total_flux", data=beam.flux)
         create_attributes(flux, ("units"), ("Hz",))

@@ -85,9 +85,18 @@ class Source:
 
 @dataclass
 class Beam(DataClassJsonMixin):
-    """Beam definition."""
+    """Beam definition.
 
-    wavelength: float
+    Attributes:
+        wavelength (list[float] | float): incident wavelength. For a monochromatic beam this should be a single value, \
+            for a polychromatic beam a list of wavelengths.
+        wavelength_weights (list[float] | None): For a ploychromatic beam, this is a list of the same length as the \
+            wavelength one containing the relative weigths corresponding to each wavelength. Defaults to None.
+        flux (float | None): flux incident on beam plane area, if measured. Defaults to None.
+    """
+
+    wavelength: list[float] | float
+    wavelength_weights: list[float] | None = None
     flux: float | None = None
 
 
