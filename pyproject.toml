@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nexgen"
-version = "0.9.9"
+version = "0.9.10"
 description = "Next Generation Nexus Generator"
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -21,12 +21,11 @@ dependencies = [
     "h5py",
     "hdf5plugin>=4.0.1",
     "numpy",
-    "pint",
+    "pint>=0.24.4",
     "importlib_resources>=1.1",
     "scanspec",
     "dataclasses-json",
     "pydantic",
-    "flexparser==0.3.1", # See https://github.com/DiamondLightSource/nexgen/issues/309
 ]
 license.file = "LICENSE"
 readme = "README.rst"
