@@ -5,6 +5,7 @@ Create a NeXus file for time-resolved collections on I19-2 using parameters pass
 from __future__ import annotations
 
 import logging
+from datetime import datetime
 from pathlib import Path
 from typing import Optional, Tuple
 
@@ -250,39 +251,51 @@ def eiger_writer(
         )
 
 
-def write_nxs(**tr_params):
+def write_nxs(
+    meta_file: Path | str,
+    xml_file: Path | str,
+    detector_name: str,
+    exposure_time: float,
+    wavelength: float,
+    beam_center: list[float, float],
+    start_time: datetime | None = None,
+    stop_time: datetime | None = None,
+    **tr_params,
+):
     """
     Gather all parameters from the beamline and call the NeXus writers.
 
-    Keyword Args:
+    Args:
         meta_file (Path | str): Path to _meta.h5 file.
         xml_file (Path | str): Path to gda-generated xml file.
         detector_name (str): Detector in use.
         exposure_time (float): Exposure time, in s.
         wavelength (float): Wavelength of incident beam, in A.
         beam_center (List[float, float]): Beam center position, in pixels.
-        start_time (datetime): Experiment start time.
-        stop_time (datetime): Experiment end time.
+        start_time (datetime, optional): Experiment start time. Defaults to None.
+        stop_time (datetime, optional): Experiment end time. Defaults to None.
+
+    Keyword Args:
         geometry_json (Path | str): Path to GDA generated geometry json file.
         detector_json (Path | str): Path to GDA generated detector json file.
         vds_dtype (DtypeLike): Data type for vds as np.uint##.
     """
     # Get info from the beamline
     TR = GDACollectionParams(
-        meta_file=Path(tr_params["meta_file"]).expanduser().resolve(),
-        xml_file=Path(tr_params["xml_file"]).expanduser().resolve(),
-        detector_name=tr_params["detector_name"],
-        exposure_time=tr_params["exposure_time"],
-        wavelength=tr_params["wavelength"],
-        beam_center=tr_params["beam_center"],
+        meta_file=Path(meta_file).expanduser().resolve(),
+        xml_file=Path(xml_file).expanduser().resolve(),
+        detector_name=detector_name,
+        exposure_time=exposure_time,
+        wavelength=wavelength,
+        beam_center=beam_center,
         geometry_json=(
             tr_params["geometry_json"]
-            if find_in_dict(tr_params, "geometry_json")
+            if find_in_dict("geometry_json", tr_params)
             else None
         ),
         detector_json=(
             tr_params["detector_json"]
-            if find_in_dict(tr_params, "detector_json")
+            if find_in_dict("detector_json", tr_params)
             else None
         ),
     )
@@ -316,6 +329,10 @@ def write_nxs(**tr_params):
         from .I19_2_params import I19_2Tristan as axes_params
 
         det_params = TristanDetector("Tristan 10M", (3043, 4183))
+        # Temporary worksround, flatfield from gda has different file name
+        det_params.constants["flatfield"] = (
+            "Tristan10M_flat_field_coeff_with_Mo_17.479keV.h5"
+        )
     else:
         raise UnknownDetectorTypeError("Unknown detector name passed.")
 
@@ -340,19 +357,9 @@ def write_nxs(**tr_params):
 
     # Get timestamps in the correct format if they aren't already
     _start_time = (
-        (
-            tr_params["start_time"].strftime("%Y-%m-%dT%H:%M:%S")
-            if find_in_dict(tr_params, "start_time")
-            else None
-        ),
+        start_time.strftime("%Y-%m-%dT%H:%M:%S") if start_time else None
     )  # This should be datetiem type
-    _stop_time = (
-        (
-            tr_params["stop_time"].strftime("%Y-%m-%dT%H:%M:%S")
-            if find_in_dict(tr_params, "stop_time")
-            else None
-        ),
-    )  # idem.
+    _stop_time = stop_time.strftime("%Y-%m-%dT%H:%M:%S") if stop_time else None  # idem.
     timestamps = (
         get_iso_timestamp(_start_time),
         get_iso_timestamp(_stop_time),
@@ -363,7 +370,7 @@ def write_nxs(**tr_params):
     else:
         vds_dtype = (
             np.uint16
-            if not find_in_dict(tr_params, "vds_dtype")
+            if not find_in_dict("vds_dtype", tr_params)
             else tr_params["vds_dtype"]
         )
         eiger_writer(master_file, TR, axes_params, det_params, timestamps, vds_dtype)

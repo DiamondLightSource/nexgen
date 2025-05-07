@@ -1,10 +1,30 @@
 # CHANGELOG
 
 
+## 0.9.#
+
+
+### Added
+- Small utility for creating directories when needed.
+
+
+## 0.9.10
+
+### Changed
+- Update serial writer to take a list of blocks as input for the chipmap instead of a file.
+
+
+## 0.9.8
+
+### Fixed
+- Bugfixes and input argument improvement for I19 gda writer.
+
+
 ## 0.9.7
 
 ### Added
 - Possibility of adding an NXnote to nexus file for I19 writers.
+
 
 ## 0.9.6
 

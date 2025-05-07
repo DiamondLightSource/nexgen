@@ -4,6 +4,7 @@ General utilities for nexgen
 
 from __future__ import annotations
 
+import logging
 import re
 from collections import namedtuple
 from datetime import datetime
@@ -24,6 +25,7 @@ __all__ = [
     "units_of_time",
     "get_iso_timestamp",
     "ScopeExtract",
+    "create_directory",
 ]
 
 MAX_FRAMES_PER_DATASET = 1000
@@ -37,6 +39,8 @@ Point3D.__doc__ = """Coordinates in 3D space."""
 # P = re.compile(r"(.*)_(?:\d+)")
 P = re.compile(r"(.*)_(?:meta|master|\d+)")
 
+logger = logging.getLogger("nexgen.utils")
+
 
 def coerce_to_path(filename: Path | str):
     if not isinstance(filename, Path):
@@ -48,6 +52,23 @@ def find_in_dict(key: str, params_dict: Dict):
     if key in list(params_dict.keys()):
         return True
     return False
+
+
+def create_directory(path: Path | str):
+    """Small utility function to be able to create a directory for the nexus file.
+    Should be used with caution, main use for new files after failed writing at collection time.
+
+    Args:
+        path (Path | str): Path to the directory to be created.
+    """
+    try:
+        logger.info(f"Attempting to create directory: {path}.")
+        directory_path = coerce_to_path(path)
+        directory_path.mkdir(exist_ok=True, parents=True)
+    except Exception as e:
+        logger.error("Could not create directory because of the following error: ")
+        logger.exception(e)
+        raise
 
 
 def get_filename_template(input_filename: Path) -> str:

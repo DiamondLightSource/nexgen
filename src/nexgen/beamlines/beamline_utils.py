@@ -27,9 +27,9 @@ class GeneralParams(BaseModel):
 
     exposure_time: float
     beam_center: Sequence[float]
-    wavelength: Optional[float]
-    transmission: Optional[float]
-    flux: Optional[float]
+    wavelength: float
+    transmission: Optional[float] = None
+    flux: Optional[float] = None
 
 
 class PumpProbe(BaseModel):

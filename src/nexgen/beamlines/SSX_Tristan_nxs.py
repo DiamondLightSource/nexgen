@@ -60,7 +60,7 @@ def ssx_tristan_writer(
         stop_time (datetime): Experiment end time.
         chip_info (Dict): For a grid scan, dictionary containing basic chip information.
             At least it should contain: x/y_start, x/y number of blocks and block size, x/y number of steps and number of exposures.
-        chipmap (Path | str): Path to the chipmap file corresponding to the experiment,
+        chipmap (list[int]): Path to the chipmap file corresponding to the experiment,
             or 'fullchip' indicating that the whole chip is being scanned.
     """
     # Get info from the beamline

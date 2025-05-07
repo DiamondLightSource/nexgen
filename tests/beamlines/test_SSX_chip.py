@@ -65,9 +65,9 @@ def test_fullchip_blocks_conversion():
     assert list(new_test_pos.keys()) == ["01", "02", "03", "04"]
 
 
-def test_read_chip_map(dummy_chipmap_file):
+def test_read_chip_map(dummy_chipmap):
     blocks = read_chip_map(
-        dummy_chipmap_file.name, test_chip.num_blocks[0], test_chip.num_blocks[1]
+        dummy_chipmap, test_chip.num_blocks[0], test_chip.num_blocks[1]
     )
     assert isinstance(blocks, dict) and len(blocks) == 2
     assert list(blocks.keys()) == ["01", "04"]
@@ -79,9 +79,9 @@ def test_compute_goniometer_for_full_chip():
     assert list(starts.keys()) == [(0, 0), (0, 1), (1, 1), (1, 0)]
 
 
-def test_compute_goniometer_from_chipmap_for_up_and_down_blocks(dummy_chipmap_file):
+def test_compute_goniometer_from_chipmap_for_up_and_down_blocks(dummy_chipmap):
     blocks = read_chip_map(
-        dummy_chipmap_file.name, test_chip.num_blocks[0], test_chip.num_blocks[1]
+        dummy_chipmap, test_chip.num_blocks[0], test_chip.num_blocks[1]
     )
     starts = compute_goniometer(test_chip, blocks=blocks)
     assert list(starts.keys()) == ["01", "04"]
