@@ -1,6 +1,9 @@
 """ Helper functions for the MRC to Nexus converter """
+
 import os
 from math import sqrt
+from pathlib import Path
+from typing import Tuple, Union
 
 import h5py
 import hdf5plugin
@@ -8,7 +11,7 @@ import mrcfile
 import numpy as np
 
 
-def cal_wavelength(V0):
+def cal_wavelength(V0: float) -> float:
     """
     Compute the relativistic electron wavelength from the electron
     acceleration voltage.
@@ -27,19 +30,19 @@ def cal_wavelength(V0):
     is 200 keV (set by default if V0 is zero).
     """
 
-    h = 6.626e-34           # Planck's constant [J*s]
-    m = 9.109e-31           # Electron mass [kg]
-    e = 1.6021766208e-19    # Electron charge [C]
-    c = 3e8                 # Speed of light  [m/s]
+    h = 6.626e-34  # Planck's constant [J*s]
+    m = 9.109e-31  # Electron mass [kg]
+    e = 1.6021766208e-19  # Electron charge [C]
+    c = 3e8  # Speed of light  [m/s]
 
     # Default to wavelength at 200 keV if voltage set to zero
     if V0 == 0:
         V0 = 200000
-    wlen = h / sqrt(2*m*e*V0 * (1 + e*V0 / (2*m*c*c))) * 1e10
-    return wlen             # Electron wavelength in Angstroms
+    wlen = h / sqrt(2 * m * e * V0 * (1 + e * V0 / (2 * m * c * c))) * 1e10
+    return wlen  # Electron wavelength in Angstroms
 
 
-def get_metadata(mrc_image, verbatim=True):
+def get_metadata(mrc_image: Union[str, Path], verbatim: bool = True) -> dict:
     """
     Extract metadata dictionary from an MRC file.
 
@@ -104,8 +107,7 @@ def get_metadata(mrc_image, verbatim=True):
             return hd
 
         hd["scanRotation"] = xh["Scan rotation"][0]
-        hd["diffractionPatternRotation"] = xh[
-            "Diffraction pattern rotation"][0]
+        hd["diffractionPatternRotation"] = xh["Diffraction pattern rotation"][0]
         hd["imageRotation"] = xh["Image rotation"][0]
         hd["scanModeEnum"] = xh["Scan mode enumeration"][0]
         hd["acquisitionTimeStamp"] = xh["Acquisition time stamp"][0]
@@ -121,12 +123,14 @@ def get_metadata(mrc_image, verbatim=True):
         hd["objectiveApertureName"] = xh["Objective aperture name"][0]
 
         # Check if binning is correct
-        assert hd['binning'] == 4096 / hd["nx"]
+        assert hd["binning"] == 4096 / hd["nx"]
 
         return hd
 
 
-def collect_data(files, dtype=None):
+def collect_data(
+    files: list[Union[str, Path]], dtype: str = None
+) -> Tuple[int, str, np.ndarray]:
     """
     Extracts data from an MRC format into HDF5
 
@@ -161,7 +165,7 @@ def collect_data(files, dtype=None):
     """
 
     # Remove everything after the last '_' from the file name (the indexing)
-    out_file = files[0].rsplit('_', 1)[0] + '.h5'
+    out_file = files[0].rsplit("_", 1)[0] + ".h5"
 
     mrc_files = []
     angles = []
@@ -182,7 +186,7 @@ def collect_data(files, dtype=None):
     if not dtype:
         dtype = test_file.data.dtype
     else:
-        dtype = np.dtype(dtype)   # Convert the string to dtype
+        dtype = np.dtype(dtype)  # Convert the string to dtype
 
     test_file.close()
 
@@ -195,21 +199,24 @@ def collect_data(files, dtype=None):
 
             bs = hdf5plugin.Bitshuffle
             dataset_shape = (data_shape[0], data_shape[1], data_shape[2])
-            dataset = hdf5_file.create_dataset("data_temp",
-                                               shape=dataset_shape,
-                                               dtype=dtype,
-                                               **bs(clevel=3, cname='lz4'))
+            dataset = hdf5_file.create_dataset(
+                "data_temp",
+                shape=dataset_shape,
+                dtype=dtype,
+                **bs(clevel=3, cname="lz4"),
+            )
 
             group = hdf5_file.create_group("entry")
-            group.attrs["NX_class"] = np.bytes_('NXentry')
+            group.attrs["NX_class"] = np.bytes_("NXentry")
             data_group = group.create_group("data")
             data_group.attrs["NX_class"] = np.bytes_("NXdata")
 
-            compressed_data = hdf5_file.create_dataset("/entry/data/data",
-                                                       shape=dataset_shape,
-                                                       dtype=dtype,
-                                                       **bs(clevel=3,
-                                                            cname='lz4'))
+            compressed_data = hdf5_file.create_dataset(
+                "/entry/data/data",
+                shape=dataset_shape,
+                dtype=dtype,
+                **bs(clevel=3, cname="lz4"),
+            )
 
             dataset[:, :, :] = mrc.data
             mrc.close()
@@ -223,28 +230,27 @@ def collect_data(files, dtype=None):
     # Input is a list of MRC files containing single images
     elif (len(data_shape) == 2) and (n >= 1):
 
-        with h5py.File(out_file, 'w') as hdf5_file:
+        with h5py.File(out_file, "w") as hdf5_file:
             dataset_shape = (n, data_shape[0], data_shape[1])
-            dataset = hdf5_file.create_dataset("data_temp",
-                                               shape=dataset_shape,
-                                               dtype=dtype)
+            dataset = hdf5_file.create_dataset(
+                "data_temp", shape=dataset_shape, dtype=dtype
+            )
 
             group = hdf5_file.create_group("entry")
             group.attrs["NX_class"] = np.bytes_("NXentry")
             data_group = group.create_group("data")
             data_group.attrs["NX_class"] = np.string_("NXdata")
 
-            compressed_data = hdf5_file.create_dataset("/entry/data/data",
-                                                       shape=dataset_shape,
-                                                       dtype=dtype,
-                                                       **hdf5plugin.LZ4())
+            compressed_data = hdf5_file.create_dataset(
+                "/entry/data/data", shape=dataset_shape, dtype=dtype, **hdf5plugin.LZ4()
+            )
 
             for i, file in enumerate(mrc_files):
-                print(' Reading image %d:  %s' % (i, file))
-                mrc = mrcfile.open(file, mode='r')
+                print(" Reading image %d:  %s" % (i, file))
+                mrc = mrcfile.open(file, mode="r")
                 data = np.array(mrc.data, dtype=np.int32)
 
-                if (len(data.shape) > 2):
+                if len(data.shape) > 2:
                     msg = "MRC file contains more than a single image\n"
                     msg += f"  File: {file}"
                     raise ValueError(msg)
@@ -254,8 +260,11 @@ def collect_data(files, dtype=None):
                 except AttributeError:
                     xh = mrc.extended_header
 
-                if "Alpha tilt" in xh.dtype.names:
-                    angles.append(xh["Alpha tilt"][0])
+                if xh.dtype.names:
+                    if "Alpha tilt" in xh.dtype.names:
+                        angles.append(xh["Alpha tilt"][0])
+                    else:
+                        angles.append(None)
                 else:
                     angles.append(None)
                 dataset[i, :, :] = data
@@ -267,5 +276,5 @@ def collect_data(files, dtype=None):
             return n, out_file, np.array(angles)
     else:
         msg = "The converter expects either a list of MRC images\n"
-        msg = "or a single MRC file with a stack of images."
+        msg += "or a single MRC file with a stack of images."
         raise ValueError(msg)

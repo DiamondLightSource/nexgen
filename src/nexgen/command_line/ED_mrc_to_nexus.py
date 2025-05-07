@@ -22,7 +22,7 @@ from nexgen.nxs_utils.scan_utils import calculate_scan_points
 from nexgen.nxs_write.ed_nxmx_writer import EDNXmxFileWriter
 from nexgen.tools.mrc_tools import collect_data, get_metadata
 
-logger = logging.getLogger('nexgen.ED_mrc_to_nexus')
+logger = logging.getLogger("nexgen.ED_mrc_to_nexus")
 
 
 def main():
@@ -35,6 +35,7 @@ def main():
         "--detector",
         type=str,
         default="cetad",
+        choices=["cetad", "tvips"],
         help="Detector type: use --detector cetad or --detector tvips",
     )
 
@@ -42,14 +43,14 @@ def main():
         "--facility",
         type=str,
         default=None,
-        help="Name of the facility (e.g. Diamond Light Source)."
+        help="Name of the facility (e.g. Diamond Light Source).",
     )
 
     parser.add_argument(
         "--facility-short",
         type=str,
         default=None,
-        help="Short name of the facility (e.g. DLS)."
+        help="Short name of the facility (e.g. DLS).",
     )
 
     msg = "Facility ID (e.g. DIAMOND). "
@@ -57,12 +58,7 @@ def main():
     msg += "https://mmcif.wwpdb.org/dictionaries/"
     msg += "mmcif_pdbx_v50.dic/Items/_diffrn_source.type.html"
 
-    parser.add_argument(
-        "--facility-id",
-        type=str,
-        default=None,
-        help=msg
-    )
+    parser.add_argument("--facility-id", type=str, default=None, help=msg)
 
     parser.add_argument(
         "--det_distance",
@@ -108,12 +104,12 @@ def main():
         type=str,
         nargs=1,
         default=None,
-        help="Data type for the HDF5 output (int32, int64, float64, ...)"
+        help="Data type for the HDF5 output (int32, int64, float64, ...)",
     )
     des = "List of input files. Can be a single MRC file containing all the "
     des += "images, or a list of files containing single images, "
     des += "usually obtained by global expansion (e.g. *mrc)"
-    parser.add_argument('input_files', nargs='+', help=des)
+    parser.add_argument("input_files", nargs="+", help=des)
 
     args = parser.parse_args()
 
@@ -147,8 +143,7 @@ def main():
         beam = Beam(args.wavelength)
     elif "wavelength" in mdict:
         beam = Beam(mdict["wavelength"])
-        msg = ("Reading wavelength from the MRC files: %f" %
-               mdict['wavelength'])
+        msg = "Reading wavelength from the MRC files: %f" % mdict["wavelength"]
         logger.info(msg)
     else:
         msg = "No wavelength in the MRC metadata. "
@@ -159,7 +154,7 @@ def main():
         start_angle = args.angle_start
     elif angles[0] is not None:
         start_angle = angles[0]
-        msg = ("Reading starting angle from the MRC files: %.2f" % start_angle)
+        msg = "Reading starting angle from the MRC files: %.2f" % start_angle
         logger.info(msg)
     else:
         msg = "No starting angle in the MRC metadata. "
@@ -170,7 +165,7 @@ def main():
         increment = args.angle_inc
     elif "tiltPerImage" in mdict:
         increment = mdict["tiltPerImage"]
-        msg = ("Reading angle increment from the MRC files: %f" % increment)
+        msg = "Reading angle increment from the MRC files: %f" % increment
         logger.info(msg)
     else:
         msg = "No angle increment in the MRC metadata. "
@@ -181,7 +176,7 @@ def main():
         exposure_time = args.exp_time
     elif "integrationTime" in mdict:
         exposure_time = mdict["integrationTime"]
-        msg = ("Reading exposure time from the MRC files: %f" % exposure_time)
+        msg = "Reading exposure time from the MRC files: %f" % exposure_time
         logger.info(msg)
     else:
         msg = "No exposure time in the MRC metadata. "
@@ -196,10 +191,8 @@ def main():
             msg = "Beam center requires two arguments"
             raise ValueError(msg)
     elif ("beamCentreXpx" in mdict) and ("beamCentreYpx" in mdict):
-        beam_center = (mdict["beamCentreXpx"],
-                       mdict["beamCentreYpx"])
-        msg = ("Reading beam center from the MRC files: (%.1f, %.1f)" %
-               beam_center)
+        beam_center = (mdict["beamCentreXpx"], mdict["beamCentreYpx"])
+        msg = "Reading beam center from the MRC files: (%.1f, %.1f)" % beam_center
         logger.info(msg)
     else:
         msg = "No beam center in the MRC metadata. "
@@ -211,9 +204,7 @@ def main():
     gonio_axes[0].increment = increment
     gonio_axes[0].num_steps = tot_imgs
 
-    scan = calculate_scan_points(gonio_axes[0],
-                                 rotation=True,
-                                 tot_num_imgs=tot_imgs)
+    scan = calculate_scan_points(gonio_axes[0], rotation=True, tot_num_imgs=tot_imgs)
     goniometer = Goniometer(gonio_axes, scan)
 
     nx = mdict["nx"]
@@ -266,7 +257,7 @@ def main():
         msg += "Use either --detector=cetad or --detector=tvips."
         raise ValueError(msg)
 
-    ps_str = '%5.7fmm' % pixel_size
+    ps_str = "%5.7fmm" % pixel_size
     det_params.pixel_size = [ps_str, ps_str]
 
     extra_params = {}
@@ -282,10 +273,13 @@ def main():
 
     det_axes[0].start_pos = det_distance
 
-    detector = Detector(det_params, det_axes, beam_center,
-                        exposure_time,
-                        [EDCeta.fast_axis,
-                         EDCeta.slow_axis])
+    detector = Detector(
+        det_params,
+        det_axes,
+        beam_center,
+        exposure_time,
+        [EDCeta.fast_axis, EDCeta.slow_axis],
+    )
 
     script_dir = os.path.dirname(full_mrc_path)
     file_name = out_file.replace("h5", "nxs")
@@ -296,17 +290,17 @@ def main():
     msg = "Writing the Nexus file %s" % full_path
     logger.info(msg)
     writer = EDNXmxFileWriter(
-         full_path,
-         goniometer,
-         detector,
-         source,
-         beam,
-         attenuator,
-         tot_imgs,
-         ED_coord_system)
+        full_path,
+        goniometer,
+        detector,
+        source,
+        beam,
+        attenuator,
+        tot_imgs,
+        ED_coord_system,
+    )
 
     datafiles = [data_path]
     writer.write(datafiles, "/entry/data/data")
-    writer.write_vds(vds_dtype=np.int32,
-                     datafiles=datafiles)
+    writer.write_vds(vds_dtype=np.int32, datafiles=datafiles)
     logger.info("MRC images converted to Nexus.")
