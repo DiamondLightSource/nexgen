@@ -69,6 +69,35 @@ CETA_CONST = {
     "software_version": "0.0.0",
 }
 
+TVIPS_CONST = {
+    "flatfield": None,
+    "flatfield_applied": False,
+    "pixel_mask": None,
+    "pixel_mask_applied": False,
+    "software_version": "0.0.0",
+}
+
+
+@dataclass
+class TVIPSDetector(DataClassJsonMixin):
+    """Define a TVIPS camera """
+
+    description: str
+    image_size: List[float] | Tuple[float]
+    pixel_size: str = "0.0155000mm"
+    sensor_material: str = "Si"
+    sensor_thickness: str = "0.0000000000001mm"
+    detector_type: str = "CMOS"
+    overload: int = 65534
+    underload: int = 0
+
+    @property
+    def constants(self) -> Dict:
+        return TVIPS_CONST
+
+    @property
+    def hasMeta(self) -> bool:
+        return False
 
 @dataclass
 class EigerDetector(DataClassJsonMixin):
