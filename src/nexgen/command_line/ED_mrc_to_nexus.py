@@ -61,7 +61,7 @@ def main():
     parser.add_argument("--facility-id", type=str, default=None, help=msg)
 
     parser.add_argument(
-        "--det_distance",
+        "--det-distance",
         type=float,
         default=None,
         help="The sample-detector distance.",
@@ -196,7 +196,7 @@ def main():
         logger.info(msg)
     else:
         msg = "No beam center in the MRC metadata. "
-        msg += "You can set it with --beam-center option."
+        msg += "You can set it with --beam-center X Y option."
         raise ValueError(msg)
 
     gonio_axes = EDCeta.gonio
