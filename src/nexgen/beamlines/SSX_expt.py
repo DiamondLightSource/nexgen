@@ -68,7 +68,7 @@ def run_extruder(
         goniometer_axes[osc_idx], rotation=True, tot_num_imgs=num_imgs
     )
 
-    pump_info = pump_probe.dict()
+    pump_info = pump_probe.model_dump()
     logger.debug("Removing pump_repeat from pump probe necessary information.")
     pump_info.pop("pump_repeat")
 
@@ -187,7 +187,7 @@ def run_fixed_target(
         SCAN = {k: [val for val in v for _ in range(N)] for k, v in SCAN.items()}
     logger.info(f"Each position has been collected {N} times.")
     logger.info(f"Pump repeat setting: {chip_info['PUMP_REPEAT'][1]}.")
-    pump_info = pump_probe.dict()
+    pump_info = pump_probe.model_dump()
     pump_info["n_exposures"] = N
 
     return SCAN, pump_info
@@ -219,7 +219,7 @@ def run_3D_grid_scan(
 
     N = int(chip_info["N_EXPOSURES"][1])
 
-    pump_info = pump_probe.dict()
+    pump_info = pump_probe.model_dump()
     pump_info["repeat"] = int(chip_info["PUMP_REPEAT"][1])
     pump_info["n_exposures"] = N
     return None, None, pump_info

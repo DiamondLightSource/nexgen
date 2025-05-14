@@ -14,7 +14,7 @@ def test_pump_probe():
 
 
 def test_pump_probe_dict():
-    pump_probe = PumpProbe().dict()
+    pump_probe = PumpProbe().model_dump()
     assert list(pump_probe.keys()) == [
         "pump_status",
         "pump_exposure",
