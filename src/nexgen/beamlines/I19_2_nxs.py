@@ -7,6 +7,7 @@ from __future__ import annotations
 import logging
 from collections import namedtuple
 from datetime import datetime
+from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -30,9 +31,17 @@ from ..tools.metafile import DectrisMetafile
 from ..utils import find_in_dict, get_iso_timestamp, get_nexus_filename
 from .beamline_utils import GeneralParams, collection_summary_log
 
+# Define a logger object
+logger = logging.getLogger("nexgen.I19-2_NeXus")
+
 
 class ExperimentTypeError(Exception):
     pass
+
+
+class DetectorName(str, Enum):
+    EIGER = "eiger"
+    TRISTAN = "tristan"
 
 
 class CollectionParams(GeneralParams):
@@ -48,13 +57,9 @@ class CollectionParams(GeneralParams):
     """
 
     metafile: Path | str
-    detector_name: str
+    detector_name: DetectorName
     tot_num_images: Optional[int]
     scan_axis: Optional[str]
-
-
-# Define a logger object
-logger = logging.getLogger("nexgen.I19-2_NeXus")
 
 
 # Useful axis definitions
@@ -438,6 +443,7 @@ def nexus_writer(
         use_meta (bool): For Eiger, if True use metadata from meta.h5 file. Otherwise \
             will require all other information to be passed manually.
     """
+    # TODO This can now be removed, essentially useless. Same in CLI
     if find_in_dict("serial", params) and params["serial"] is True:
         raise ExperimentTypeError(
             "This is writer is not enabled for ssx collections."
@@ -489,6 +495,7 @@ def nexus_writer(
         get_iso_timestamp(stop_time),
     )
 
+    # TODO Ok, this is absolutely horrible, improve. Don't need to create new field in kwargs!!!
     if not find_in_dict("gonio_pos", params):
         params["gonio_pos"] = None
     if not find_in_dict("det_pos", params):
