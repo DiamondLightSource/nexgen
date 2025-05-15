@@ -86,8 +86,10 @@ class CollectionParams(GeneralParams):
 
     metafile: Path | str
     detector_name: DetectorName
-    tot_num_images: Optional[int]
-    scan_axis: Optional[str]
+    tot_num_images: Optional[int] = None
+    scan_axis: Optional[str] = None
+    axes_pos: Optional[List[GonioAxisPosition]] = None
+    det_pos: Optional[List[DetAxisPosition]] = None
 
 
 def tristan_writer(
