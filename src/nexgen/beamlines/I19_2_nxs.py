@@ -5,11 +5,10 @@ Create a NeXus file for time-resolved collections on I19-2.
 from __future__ import annotations
 
 import logging
-from collections import namedtuple
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, NamedTuple, Optional, Tuple
 
 import h5py
 import numpy as np
@@ -39,6 +38,35 @@ class ExperimentTypeError(Exception):
     pass
 
 
+# Useful axis definitions and parameters
+class GonioAxisPosition(NamedTuple):
+    """Definition of goniometer axis name, start and end position, increment.
+
+    Fields:
+        id (str): Axis name.
+        start (float): Axis start position.
+        increment (float): Axis increment value, only needed for the scan axis. Defaults to 0.0.
+        end (float, optional): Axis end position, should only be passed for Tristan (if not passed, stills \
+            will be assumed). Defaults to None.
+    """
+
+    id: str
+    start: float
+    inc: float = 0.0
+    end: float | None = None
+
+
+class DetAxisPosition(NamedTuple):
+    """Definition of detector axis name and position.
+
+    Fields:
+        NamedTuple (_type_): _description_
+    """
+
+    id: str
+    start: float = 0.0
+
+
 class DetectorName(str, Enum):
     EIGER = "eiger"
     TRISTAN = "tristan"
@@ -62,29 +90,12 @@ class CollectionParams(GeneralParams):
     scan_axis: Optional[str]
 
 
-# Useful axis definitions
-axes = namedtuple("axes", ("id", "start", "inc", "end"), defaults=(None, 0.0, 0.0, 0.0))
-axes.__doc__ = """Goniometer axis name, start and end position, increment."""
-axes.id.__doc__ = "Axis name."
-axes.start.__doc__ = "Axis start position. Defaults fo 0.0."
-axes.inc.__doc__ = (
-    "Axis increment value. Defaults fo 0.0. Only needed for the scan axis."
-)
-axes.end.__doc__ = (
-    "Axis end position. Defaults fo 0.0. Only really needed for Tristan collections."
-)
-det_axes = namedtuple("det_axes", ("id", "start"), defaults=(None, 0.0))
-det_axes.__doc__ = """Detector axis name and position."""
-det_axes.id.__doc__ = "Axis name."
-det_axes.start.__doc__ = "Axis position. Defaults to 0.0."
-
-
 def tristan_writer(
     master_file: Path,
     TR: CollectionParams,
     timestamps: Tuple[str, str] = (None, None),
-    axes_pos: List[axes] = None,
-    det_pos: List[det_axes] = None,
+    axes_pos: List[GonioAxisPosition] = None,
+    det_pos: List[DetAxisPosition] = None,
     notes: Dict[str, Any] | None = None,
 ):
     """
@@ -94,9 +105,9 @@ def tristan_writer(
         master_file (Path): Path to nexus file to be written.
         TR (CollectionParams): Parameters passed from the beamline.
         timestamps (Tuple[str, str], optional): Collection start and end time. Defaults to (None, None).
-        axes_pos (List[axes], optional): List of (axis_name, start, end) values for the \
+        axes_pos (List[GonioAxisPosition], optional): List of (axis_name, start, end) values for the \
             goniometer, passed from command line. Defaults to None.
-        det_pos (List[det_axes], optional): List of (axis_name, start) values for the \
+        det_pos (List[DetAxisPosition], optional): List of (axis_name, start) values for the \
             detector, passed from command line. Defaults to None.
         notes (Dict[str, Any], optional): Dictionary of (key, value) pairs where key represents the \
             dataset name and value its data. Defaults to None.
@@ -195,8 +206,8 @@ def eiger_writer(
     timestamps: Tuple[str, str] = (None, None),
     use_meta: bool = False,
     n_frames: int | None = None,
-    axes_pos: List[axes] | None = None,
-    det_pos: List[det_axes] | None = None,
+    axes_pos: List[GonioAxisPosition] | None = None,
+    det_pos: List[DetAxisPosition] | None = None,
     vds_offset: int = 0,
     notes: Dict[str, Any] | None = None,
 ):
@@ -215,9 +226,9 @@ def eiger_writer(
         num_frames (int, optional): Number of images for the nexus file. Not necessary if same as the \
             tot_num_images from the CollectionParameters. If different, the VDS will onlu contain the \
             number of frames specified here. Defaults to None.
-        axes_pos (List[axes], optional): List of (axis_name, start, inc) values for the \
+        axes_pos (List[GonioAxisPosition], optional): List of (axis_name, start, inc) values for the \
             goniometer, passed from command line. Defaults to None.
-        det_pos (List[det_axes], optional): List of (axis_name, start) values for the \
+        det_pos (List[DetAxisPosition], optional): List of (axis_name, start) values for the \
             detector, passed from command line. Defaults to None.
         vds_offset (int, optional): Start index for the vds writer. Defaults to 0.
         notes (Dict[str, Any], optional): Dictionary of (key, value) pairs where key represents the \
@@ -432,9 +443,9 @@ def nexus_writer(
         transmission (float): Attenuator transmission, in %.
         wavelength (float): Wavelength of incident beam, in A.
         beam_center (List[float, float]): Beam center position, in pixels.
-        gonio_pos (List[axes]): Name, start and end positions \
+        gonio_pos (List[GonioAxisPosition]): Name, start and end positions \
             of the goniometer axes.
-        det_pos (List[det_axes]): Name, start and end positions \
+        det_pos (List[DetAxisPosition]): Name, start and end positions \
             of detector axes.
         outdir (str): Directory where to save the file. Only specify if different \
             from meta_file directory.

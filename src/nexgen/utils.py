@@ -6,10 +6,9 @@ from __future__ import annotations
 
 import logging
 import re
-from collections import namedtuple
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, NamedTuple, Tuple
 
 import h5py
 import numpy as np
@@ -31,9 +30,15 @@ __all__ = [
 MAX_FRAMES_PER_DATASET = 1000
 MAX_SUFFIX_DIGITS = 6
 
+
 # Define coordinates
-Point3D = namedtuple("Point3D", ("x", "y", "z"))
-Point3D.__doc__ = """Coordinates in 3D space."""
+class Point3D(NamedTuple):
+    """Coordinates (x,y,z) in 3D space."""
+
+    x: float
+    y: float
+    z: float
+
 
 # Filename pattern: filename_######.h5 or filename_meta.h5
 # P = re.compile(r"(.*)_(?:\d+)")

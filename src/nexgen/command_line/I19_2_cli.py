@@ -5,7 +5,6 @@ Available detectors: Tristan 10M, Eiger 2X 4M.
 
 import argparse
 import logging
-from collections import namedtuple
 from datetime import datetime
 
 from .. import log
@@ -55,7 +54,7 @@ def nexgen_writer(args):
     """
     logger.info("Create a NeXus file for I19-2 data.")
 
-    from ..beamlines.I19_2_nxs import axes, det_axes, nexus_writer
+    from ..beamlines.I19_2_nxs import DetAxisPosition, GonioAxisPosition, nexus_writer
 
     if args.axes and not args.ax_start:
         raise OSError(
@@ -77,17 +76,16 @@ def nexgen_writer(args):
         if args.detector_name == "eiger":
             axes_list = []
             for ax, s, i in zip(args.axes, args.ax_start, args.ax_inc):
-                axes_list.append(axes(id=ax, start=s, inc=i))
+                axes_list.append(GonioAxisPosition(id=ax, start=s, inc=i))
         else:
-            axes = namedtuple("axes", ("id", "start", "end"))
             axes_list = []
             for ax, s, e in zip(args.axes, args.ax_start, args.ax_end):
-                axes_list.append(axes(id=ax, start=s, end=e))
+                axes_list.append(GonioAxisPosition(id=ax, start=s, end=e))
 
     if args.det_axes and args.det_start:
         det_list = []
         for ax, s in zip(args.det_axes, args.det_start):
-            det_list.append(det_axes(id=ax, start=s))
+            det_list.append(DetAxisPosition(id=ax, start=s))
 
     # Check that an actual meta file has been passed and not a data file
     if "meta" not in args.meta_file:
