@@ -47,8 +47,3 @@ EDSource = Source(
     Facility("Diamond Light Source", "DLS", "Electron Source", "DIAMOND MICROSCOPE"),
     "electron",
 )
-
-UnknownSource = Source("unknown",
-                       Facility("unknown", "unknown", "Electron Source", None),
-                       "electron")
-
