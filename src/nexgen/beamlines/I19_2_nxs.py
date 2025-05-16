@@ -30,6 +30,7 @@ from ..tools.meta_reader import define_vds_data_type, update_axes_from_meta
 from ..tools.metafile import DectrisMetafile
 from ..utils import find_in_dict, get_iso_timestamp, get_nexus_filename
 from .beamline_utils import GeneralParams, collection_summary_log
+from .I19_2_params import I19_2Eiger, I19_2Tristan
 
 # Define a logger object
 logger = logging.getLogger("nexgen.I19-2_NeXus")
@@ -118,15 +119,14 @@ def tristan_writer(
             dataset name and value its data. Defaults to None.
     """
     source = Source("I19-2")
-    from .I19_2_params import I19_2Tristan as axes_params
 
     # Define Tristan params
     tristan_params = TristanDetector("Tristan 10M", (3043, 4183))
 
     # Define Goniometer axes
-    gonio_axes = axes_params.gonio
+    gonio_axes = I19_2Tristan.gonio
     # Define Detector
-    det_axes = axes_params.det_axes
+    det_axes = I19_2Tristan.det_axes
 
     # Update axes
     # Identify scan axis
@@ -157,7 +157,7 @@ def tristan_writer(
         det_axes,
         TR.beam_center,
         TR.exposure_time,
-        [axes_params.fast_axis, axes_params.slow_axis],
+        [I19_2Tristan.fast_axis, I19_2Tristan.slow_axis],
     )
 
     # Define Goniometer
@@ -261,7 +261,6 @@ def eiger_writer(
             )
 
     source = Source("I19-2")
-    from .I19_2_params import I19_2Eiger as axes_params
 
     # Define Eiger 4M params
     eiger_params = EigerDetector(
@@ -278,9 +277,9 @@ def eiger_writer(
     beam_center = TR.beam_center
 
     # Define Goniometer axes
-    gonio_axes = axes_params.gonio
+    gonio_axes = I19_2Eiger.gonio
     # Define Detector
-    det_axes = axes_params.det_axes
+    det_axes = I19_2Eiger.det_axes
 
     # Update axes
     if use_meta:
@@ -374,7 +373,7 @@ def eiger_writer(
         det_axes,
         beam_center,
         TR.exposure_time,
-        [axes_params.fast_axis, axes_params.slow_axis],
+        [I19_2Eiger.fast_axis, I19_2Eiger.slow_axis],
     )
 
     # Define Goniometer
