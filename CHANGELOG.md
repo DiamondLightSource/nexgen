@@ -1,11 +1,14 @@
 # CHANGELOG
 
 
-## 0.9.#
-
+## 0.10.0
 
 ### Added
 - Small utility for creating directories when needed.
+- New wrapper function for serial nexus file for I19-2.
+
+### Changed
+- Tidier parameter model for I19-2.
 
 
 ## 0.9.10
