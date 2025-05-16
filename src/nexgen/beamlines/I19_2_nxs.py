@@ -12,6 +12,7 @@ from typing import Any, NamedTuple, Optional
 
 import h5py
 import numpy as np
+from pydantic import field_validator
 
 from .. import log
 from ..nxs_utils import (
@@ -32,10 +33,6 @@ from .beamline_utils import GeneralParams, collection_summary_log
 
 # Define a logger object
 logger = logging.getLogger("nexgen.I19-2_NeXus")
-
-
-class ExperimentTypeError(Exception):
-    pass
 
 
 # Useful axis definitions and parameters
@@ -89,12 +86,19 @@ class CollectionParams(GeneralParams):
             detector, passed from command line. Defaults to None.
     """
 
-    metafile: Path | str
+    metafile: Path
     detector_name: DetectorName
     tot_num_images: Optional[int] = None
     scan_axis: Optional[str] = None
     axes_pos: Optional[list[GonioAxisPosition]] = None
     det_pos: Optional[list[DetAxisPosition]] = None
+
+    @field_validator("metafile", mode="before")
+    @classmethod
+    def _parse_visit(cls, metafile: str | Path):
+        if isinstance(metafile, str):
+            return Path(metafile)
+        return metafile
 
 
 def tristan_writer(
@@ -489,18 +493,10 @@ def nexus_writer(
             of detector axes.
         outdir (str): Directory where to save the file. Only specify if different \
             from meta_file directory.
-        serial (bool): Specify whether it's a serial crystallography dataset.
         det_dist (float): Distance between sample and detector, in mm.
         use_meta (bool): For Eiger, if True use metadata from meta.h5 file. Otherwise \
             will require all other information to be passed manually.
     """
-    # TODO This can now be removed, essentially useless. Same in CLI
-    if find_in_dict("serial", params) and params["serial"] is True:
-        raise ExperimentTypeError(
-            "This is writer is not enabled for ssx collections."
-            "Pleas look into SSX_Eiger or SSX_Tristan for this functionality."
-        )
-
     TR = CollectionParams(
         metafile=Path(meta_file).expanduser().resolve(),
         detector_name=DetectorName(detector_name.lower()),
