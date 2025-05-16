@@ -11,7 +11,6 @@ from nexgen.beamlines.I19_2_nxs import (
     DetectorName,
     GonioAxisPosition,
     eiger_writer,
-    nexus_writer,
     serial_nexus_writer,
 )
 
@@ -43,10 +42,15 @@ def dummy_tristan_collection_params():
     )
 
 
-@patch("nexgen.beamlines.I19_2_nxs.log")
-def test_nexus_writer_fails_if_missing_n_imgs_and_not_using_meta(fake_log):
+@patch("nexgen.beamlines.I19_2_nxs.log.config")
+def test_nexus_writer_fails_if_missing_n_imgs_and_not_using_meta(
+    mock_log_config, dummy_eiger_collection_params
+):
+    dummy_eiger_collection_params.tot_num_images = None
     with pytest.raises(ValueError):
-        nexus_writer("/path/to/meta", "eiger", 0.1, use_meta=False)
+        eiger_writer(
+            Path("/path/to/master.nxs"), dummy_eiger_collection_params, use_meta=False
+        )
 
 
 def test_eiger_nxs_writer_fails_if_missing_axes_and_no_meta(
