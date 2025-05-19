@@ -88,6 +88,11 @@ def test_get_iso_timestamp_from_time_string(ts, expected_iso):
     assert iso_ts == expected_iso
 
 
+def test_iso_timestamp_fails_for_unknown_format():
+    with pytest.raises(ValueError):
+        utils.get_iso_timestamp("19-05-2025 14:25:01")
+
+
 def test_units_of_length():
     assert utils.units_of_length("1.5m") == ureg.Quantity(1.5, "m")
     # Check that a dimensionless unit defaults to mm

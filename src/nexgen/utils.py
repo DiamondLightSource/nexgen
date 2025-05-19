@@ -245,6 +245,7 @@ def get_iso_timestamp(ts: str | float | None) -> str:
     if ts is None:
         return None
 
+    ts_iso = None
     if isinstance(ts, float):
         ts = float(ts)
         ts_iso = (
@@ -258,6 +259,10 @@ def get_iso_timestamp(ts: str | float | None) -> str:
             if _validate_timestamp_string(ts, fmt) is True:
                 ts_iso = datetime.strptime(ts, fmt).isoformat()
                 break
+        if not ts_iso:
+            raise ValueError(
+                f"Unknown format. Unable to validate timestamp string, please pass one of: {format_list}"
+            )
     else:
         raise ValueError(
             "Please pass the timestamp either as a time.time float or a formatted string."
