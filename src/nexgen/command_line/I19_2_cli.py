@@ -8,6 +8,8 @@ import logging
 from datetime import datetime
 
 from .. import log
+from ..beamlines.I19_2_gda_nxs import write_nxs
+from ..beamlines.I19_2_nxs import DetAxisPosition, GonioAxisPosition, nexus_writer
 from . import version_parser
 
 logger = logging.getLogger("nexgen.I19-2_NeXus_cli")
@@ -24,8 +26,6 @@ def gda_writer(args):
     Write a NeXus file starting from information passed by GDA.
     """
     logger.info("Create a NeXus file for I19-2 interfacing with GDA.")
-
-    from ..beamlines.I19_2_gda_nxs import write_nxs
 
     write_nxs(
         meta_file=args.meta_file,
@@ -53,8 +53,6 @@ def nexgen_writer(args):
     Write a NXmx format NeXus file from the I19-2 beamline.
     """
     logger.info("Create a NeXus file for I19-2 data.")
-
-    from ..beamlines.I19_2_nxs import DetAxisPosition, GonioAxisPosition, nexus_writer
 
     if args.axes and not args.ax_start:
         raise OSError(
