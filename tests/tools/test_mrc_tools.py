@@ -1,9 +1,12 @@
+import logging
 import os
 
 import mrcfile
 import numpy as np
 
-from nexgen.tools.mrc_tools import cal_wavelength, collect_data, get_metadata
+from nexgen.tools.mrc_tools import cal_wavelength, get_metadata, to_hdf5_data_file
+
+logger = logging.getLogger("nexgen.ED_mrc_to_nexus")
 
 
 def test_cal_wavelength():
@@ -27,8 +30,9 @@ def test_collect_data():
     make_mrc_file("images_00001.mrc")
     make_mrc_file("images_00002.mrc")
 
-    n, hdf5_file, angles = collect_data(["images_00001.mrc", "images_00002.mrc"])
-    assert n == 2
+    files = ["images_00001.mrc", "images_00002.mrc"]
+    hdf5_file = to_hdf5_data_file(files, logger)
+    assert hdf5_file == "images.h5"
     assert os.path.exists("images.h5")
 
     os.remove("images_00001.mrc")
