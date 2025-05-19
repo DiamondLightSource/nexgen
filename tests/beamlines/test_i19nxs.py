@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from pathlib import Path
 from unittest.mock import patch
 
@@ -93,10 +94,11 @@ def test_serial_nexus_writer_calls_correct_writer_for_eiger(
 def test_serial_nexus_writer_calls_correct_writer_for_tristan(
     mock_tristan_writer, mock_log_config, mock_logger, dummy_tristan_collection_params
 ):
+    start_time = datetime.strptime("2025-05-19T11:59:02", "%Y-%m-%dT%H:%M:%S")
     serial_nexus_writer(
         dummy_tristan_collection_params.model_dump(),
         Path("path/to/somefile.nxs"),
-        (None, None),
+        (start_time, None),
         use_meta=True,
     )
 
@@ -104,6 +106,6 @@ def test_serial_nexus_writer_calls_correct_writer_for_tristan(
     mock_tristan_writer.assert_called_once_with(
         Path("path/to/somefile.nxs"),
         dummy_tristan_collection_params,
-        (None, None),
+        ("2025-05-19T11:59:02Z", None),
         None,
     )
