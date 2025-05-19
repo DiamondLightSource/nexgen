@@ -1,4 +1,5 @@
 import time
+from datetime import datetime
 from pathlib import Path
 
 import numpy as np
@@ -66,6 +67,25 @@ def test_iso_timestamps():
     assert utils.get_iso_timestamp(None) is None
     # Check that no exceptions are raised when passing a time.time() object
     assert utils.get_iso_timestamp(time.time())
+
+
+def test_iso_timestamps_fails_for_wrong_input_type():
+    with pytest.raises(ValueError):
+        utils.get_iso_timestamp(datetime.now())
+
+
+@pytest.mark.parametrize(
+    "ts, expected_iso",
+    [
+        ("2023-10-15T20:12:26", "2023-10-15T20:12:26Z"),
+        ("2024-03-12 11:35:01", "2024-03-12T11:35:01Z"),
+        ("Mon May 19 2025 10:45:28", "2025-05-19T10:45:28Z"),
+    ],
+)
+def test_get_iso_timestamp_from_time_string(ts, expected_iso):
+    iso_ts = utils.get_iso_timestamp(ts)
+
+    assert iso_ts == expected_iso
 
 
 def test_units_of_length():

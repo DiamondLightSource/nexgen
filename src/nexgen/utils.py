@@ -215,6 +215,14 @@ def units_of_time(q: str) -> Q_:  # -> pint.Quantity:
         )
 
 
+def _validate_timestamp_string(ts: str, fmt: str) -> bool:
+    try:
+        res = bool(datetime.strptime(ts, fmt))
+    except ValueError:
+        res = False
+    return res
+
+
 def get_iso_timestamp(ts: str | float | None) -> str:
     """
     Format a timestamp string to be stores in a NeXus file according to ISO8601: 'YY-MM-DDThh:mm:ssZ'
@@ -228,6 +236,7 @@ def get_iso_timestamp(ts: str | float | None) -> str:
     """
     # Format strings for timestamps
     format_list = [
+        "%Y-%m-%dT%H:%M:%SZ",  # ISO8601 formatted string
         "%Y-%m-%dT%H:%M:%S",
         "%Y-%m-%d %H:%M:%S",
         "%a %b %d %Y %H:%M:%S",
@@ -235,7 +244,8 @@ def get_iso_timestamp(ts: str | float | None) -> str:
     ]
     if ts is None:
         return None
-    try:
+
+    if isinstance(ts, float):
         ts = float(ts)
         ts_iso = (
             datetime.fromtimestamp(ts, tz=timezone.utc)
@@ -243,12 +253,15 @@ def get_iso_timestamp(ts: str | float | None) -> str:
             .isoformat()
         )
         ts_iso = ts_iso.removesuffix("+00:00")  # Remove timezone indication
-    except ValueError:
+    elif isinstance(ts, str):
         for fmt in format_list:
-            try:
+            if _validate_timestamp_string(ts, fmt) is True:
                 ts_iso = datetime.strptime(ts, fmt).isoformat()
-            except ValueError:
-                ts_iso = str(ts)
+                break
+    else:
+        raise ValueError(
+            "Please pass the timestamp either as a time.time float or a formatted string."
+        )
     if ts_iso.endswith("Z") is False:
         ts_iso += "Z"
     return ts_iso
