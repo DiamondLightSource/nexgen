@@ -30,7 +30,7 @@ The functions
 and
 
 
-..autofunction:: nexgen.beamlines.I19_2_nxs.serial_nexus_writer
+.. autofunction:: nexgen.beamlines.I19_2_nxs.serial_nexus_writer
 
 
 can be called from python and depending on the specified detector type will run:
