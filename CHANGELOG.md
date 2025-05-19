@@ -8,6 +8,9 @@
 - New wrapper function for serial nexus file for I19-2.
 - Serial functionality for i19 CLI.
 
+### Removed
+- Dropped Python 3.10 support
+
 ### Changed
 - Tidier parameter model for I19-2.
 
