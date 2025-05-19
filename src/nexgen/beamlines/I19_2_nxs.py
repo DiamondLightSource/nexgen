@@ -5,6 +5,7 @@ Create a NeXus file for time-resolved collections on I19-2.
 from __future__ import annotations
 
 import logging
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any, NamedTuple, Optional
@@ -12,6 +13,8 @@ from typing import Any, NamedTuple, Optional
 import h5py
 import numpy as np
 from pydantic import field_validator
+
+from nexgen.utils import get_iso_timestamp
 
 from .. import log
 from ..nxs_utils import (
@@ -421,12 +424,29 @@ def eiger_writer(
 def serial_nexus_writer(
     params: dict[str, Any],
     master_file: Path,
-    timestamps: tuple[str, str],
+    timestamps: tuple[datetime, datetime] = (None, None),
     use_meta: bool = False,
     vds_offset: int = 0,
     n_frames: int | None = None,
     notes: dict[str, Any] | None = None,
 ):
+    """Wrapper function to gather all parameters from the beamline and kick off the nexus writer.
+
+    Args:
+        params (dict[str, Any]): Dictionary representation of CollectionParams.
+        master_file (Path): Full path to the nexus file to be written.
+        timestamps (tuple[str, str], optional): Start and end collection timestamps as datetime. \
+            Defaults to (None, None).
+        use_meta (bool, optional): Eiger option only, if True use metadata from meta.h5 file. Otherwise \
+            all parameters will need to be passed manually. Defaults to False.
+        vds_offset (int, optional): Start index for the vds writer. Defaults to 0.
+        n_frames (int | None, optional): Number of images for the nexus file. Only needed if different \
+            from the tot_num_images in the collection params. If passed, the VDS will only contain the \
+            number of frames specified here. Defaults to None.
+        notes (dict[str, Any] | None, optional): Any additional information to be written as NXnote, \
+            passed as a dictionary of (key, value) pairs where key represents the dataset name and \
+            value its data. Defaults to None.
+    """
     collection_params = CollectionParams(**params)
     wdir = master_file.parent
 
@@ -443,6 +463,14 @@ def serial_nexus_writer(
 
     # Get NeXus filename
     logger.info("NeXus file will be saved as %s" % master_file)
+
+    # Get timestamps in the correct format if they aren't already
+    start_time = timestamps[0].strftime("%Y-%m-%dT%H:%M:%S") if timestamps[0] else None
+    stop_time = timestamps[1].strftime("%Y-%m-%dT%H:%M:%S") if timestamps[1] else None
+    timestamps = (
+        get_iso_timestamp(start_time),
+        get_iso_timestamp(stop_time),
+    )
 
     match collection_params.detector_name:
         case DetectorName.EIGER:

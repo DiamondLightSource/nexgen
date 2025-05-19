@@ -215,7 +215,7 @@ def units_of_time(q: str) -> Q_:  # -> pint.Quantity:
         )
 
 
-def get_iso_timestamp(ts: str | float) -> str:
+def get_iso_timestamp(ts: str | float | None) -> str:
     """
     Format a timestamp string to be stores in a NeXus file according to ISO8601: 'YY-MM-DDThh:mm:ssZ'
 
