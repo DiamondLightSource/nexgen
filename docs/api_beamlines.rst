@@ -21,10 +21,16 @@ I19-2
 
 1. Directly from the python intepreter/ a python script ...
 
-The function
+The functions
 
 
 .. autofunction:: nexgen.beamlines.I19_2_nxs.nexus_writer
+
+
+and
+
+
+..autofunction:: nexgen.beamlines.I19_2_nxs.serial_nexus_writer
 
 
 can be called from python and depending on the specified detector type will run:
@@ -39,11 +45,15 @@ can be called from python and depending on the specified detector type will run:
 Some useful type definitions to use with these methods:
 
 
-.. autoclass:: nexgen.beamlines.I19_2_nxs.axes
+.. autoclass:: nexgen.beamlines.I19_2_nxs.GonioAxisPosition
     :members:
 
 
-.. autoclass:: nexgen.beamlines.I19_2_nxs.det_axes
+.. autoclass:: nexgen.beamlines.I19_2_nxs.DetAxisPosition
+    :members:
+
+
+.. autoclass:: nexgen.beamlines.I19_2_nxs.DetectorName
     :members:
 
 
