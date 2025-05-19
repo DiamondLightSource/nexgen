@@ -6,6 +6,7 @@
 ### Added
 - Small utility for creating directories when needed.
 - New wrapper function for serial nexus file for I19-2.
+- Serial functionality for i19 CLI.
 
 ### Changed
 - Tidier parameter model for I19-2.
