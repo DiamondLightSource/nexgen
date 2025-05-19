@@ -52,7 +52,7 @@ def nexgen_writer(args):
     """
     Write a NXmx format NeXus file from the I19-2 beamline.
     """
-    logger.info("Create a NeXus file for I19-2 data.")
+    logger.info("Create a NeXus file for a standard I19-2 data collection.")
 
     if args.axes and not args.ax_start:
         raise OSError(
