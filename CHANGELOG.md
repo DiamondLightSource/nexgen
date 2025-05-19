@@ -10,6 +10,9 @@
 ### Changed
 - Tidier parameter model for I19-2.
 
+### FIxed
+- Small bug in iso_timestamps where some formats were not properly handled.
+
 
 ## 0.9.10
 
