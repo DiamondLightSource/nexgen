@@ -430,7 +430,8 @@ def serial_nexus_writer(
     n_frames: int | None = None,
     notes: dict[str, Any] | None = None,
 ):
-    """Wrapper function to gather all parameters from the beamline and kick off the nexus writer.
+    """Wrapper function to gather all parameters from the beamline and kick off the nexus writer for a \
+    serial experiment on I19-2.
 
     Args:
         params (dict[str, Any]): Dictionary representation of CollectionParams.
@@ -493,6 +494,17 @@ def nexus_writer(
     timestamps: tuple[datetime, datetime] = (None, None),
     use_meta: bool = False,
 ):
+    """Wrapper function to gather all parameters from the beamline and kick off the nexus writer for a \
+    standard experiment on I19-2.
+
+    Args:
+        params (dict[str, Any]): Dictionary representation of CollectionParams.
+        master_file (Path): Full path to the nexus file to be written.
+        timestamps (tuple[str, str], optional): Start and end collection timestamps as datetime. \
+            Defaults to (None, None).
+        use_meta (bool, optional): Eiger option only, if True use metadata from meta.h5 file. Otherwise \
+            all parameters will need to be passed manually. Defaults to False.
+    """
     collection_params = CollectionParams(**params)
     wdir = master_file.parent
 
