@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import logging
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, NamedTuple, Tuple
 
@@ -237,7 +237,12 @@ def get_iso_timestamp(ts: str | float | None) -> str:
         return None
     try:
         ts = float(ts)
-        ts_iso = datetime.utcfromtimestamp(ts).replace(microsecond=0).isoformat()
+        ts_iso = (
+            datetime.fromtimestamp(ts, tz=timezone.utc)
+            .replace(microsecond=0)
+            .isoformat()
+        )
+        ts_iso = ts_iso.removesuffix("+00:00")  # Remove timezone indication
     except ValueError:
         for fmt in format_list:
             try:
