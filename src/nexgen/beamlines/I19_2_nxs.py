@@ -14,7 +14,7 @@ import h5py
 import numpy as np
 from pydantic import field_validator
 
-from nexgen.utils import find_in_dict, get_iso_timestamp, get_nexus_filename
+from nexgen.utils import get_iso_timestamp
 
 from .. import log
 from ..nxs_utils import (
@@ -488,62 +488,13 @@ def serial_nexus_writer(
 
 
 def nexus_writer(
-    meta_file: Path | str,
-    detector_name: str,
-    exposure_time: float,
-    scan_axis: str = "phi",
-    start_time: datetime | None = None,
-    stop_time: datetime | None = None,
-    **params,
+    params: dict[str, Any],
+    master_file: Path,
+    timestamps: tuple[datetime, datetime] = (None, None),
+    use_meta: bool = False,
 ):
-    """
-    Gather all parameters from the beamline and call the NeXus writers.
-
-    Args:
-        meta_file (Path | str): Path to _meta.h5 file.
-        detector_name (str): Detector in use.
-        exposure_time (float): Exposure time, in s.
-        scan_axis (str, optional): Name of the oscillation axis. Defaults to phi.
-        start_time (datetime, optional): Experiment start time. Defaults to None.
-        stop_time (datetime, optional): Experiment end time. Defaults to None.
-
-    Keyword Args:
-        n_imgs (int): Total number of images to be collected.
-        transmission (float): Attenuator transmission, in %.
-        wavelength (float): Wavelength of incident beam, in A.
-        beam_center (list[float, float]): Beam center position, in pixels.
-        gonio_pos (list[GonioAxisPosition]): Name, start and end positions \
-            of the goniometer axes.
-        det_pos (list[DetAxisPosition]): Name, start and end positions \
-            of detector axes.
-        outdir (str): Directory where to save the file. Only specify if different \
-            from meta_file directory.
-        det_dist (float): Distance between sample and detector, in mm.
-        use_meta (bool): For Eiger, if True use metadata from meta.h5 file. Otherwise \
-            will require all other information to be passed manually.
-    """
-    TR = CollectionParams(
-        metafile=Path(meta_file).expanduser().resolve(),
-        detector_name=DetectorName(detector_name.lower()),
-        exposure_time=exposure_time,
-        beam_center=(
-            params["beam_center"] if find_in_dict("beam_center", params) else (0, 0)
-        ),
-        wavelength=params["wavelength"] if find_in_dict("wavelength", params) else None,
-        transmission=(
-            params["transmission"] if find_in_dict("transmission", params) else None
-        ),
-        tot_num_images=params["n_imgs"] if find_in_dict("n_imgs", params) else None,
-        scan_axis=scan_axis,
-        axes_pos=params["gonio_pos"] if find_in_dict("gonio_pos", params) else None,
-        det_pos=params["det_pos"] if find_in_dict("det_pos", params) else None,
-    )
-
-    # Check that the new NeXus file is to be written in the same directory
-    if find_in_dict("outdir", params) and params["outdir"]:
-        wdir = Path(params["outdir"]).expanduser().resolve()
-    else:
-        wdir = TR.metafile.parent
+    collection_params = CollectionParams(**params)
+    wdir = master_file.parent
 
     # Define a file handler
     logfile = wdir / "I19_2_nxs_writer.log"
@@ -551,41 +502,40 @@ def nexus_writer(
     log.config(logfile.as_posix())
 
     logger.info("NeXus file writer for beamline I19-2 at DLS.")
-    logger.info(f"Detector in use for this experiment: {TR.detector_name}.")
-    logger.info(f"Current collection directory: {TR.metafile.parent}")
+    logger.info(
+        f"Detector in use for this experiment: {collection_params.detector_name}."
+    )
+    logger.info(f"Current collection directory: {collection_params.metafile.parent}")
 
     # Add some information to logger
-    logger.info("Creating a NeXus file for %s ..." % TR.metafile.name)
-    # Get NeXus filename
-    master_file = get_nexus_filename(TR.metafile)
-    master_file = wdir / master_file.name
+    logger.info("Creating a NeXus file for %s ..." % collection_params.metafile.name)
     logger.info("NeXus file will be saved as %s" % master_file)
 
     # Get timestamps in the correct format if they aren't already
-    start_time = start_time.strftime("%Y-%m-%dT%H:%M:%S") if start_time else None
-    stop_time = stop_time.strftime("%Y-%m-%dT%H:%M:%S") if stop_time else None
+    start_time = timestamps[0].strftime("%Y-%m-%dT%H:%M:%S") if timestamps[0] else None
+    stop_time = timestamps[1].strftime("%Y-%m-%dT%H:%M:%S") if timestamps[1] else None
     timestamps = (
         get_iso_timestamp(start_time),
         get_iso_timestamp(stop_time),
     )
 
-    if "tristan" in TR.detector_name.lower():
-        if not TR.axes_pos or not TR.det_pos:
+    if collection_params.detector_name is DetectorName.TRISTAN:
+        if not collection_params.axes_pos or not collection_params.det_pos:
             logger.error("Please pass the axes positions for a Tristan collection.")
             raise ValueError(
                 "Missing goniometer and/or detector axes information for tristan collection"
             )
-        if TR.scan_axis is None:
+        if collection_params.scan_axis is None:
             logger.warning(
                 "No scan axis has been specified. Phi will be set as default."
             )
+            collection_params.scan_axis = "phi"
 
-    if not find_in_dict("use_meta", params):
-        # If by any chance not passed, assume False
-        params["use_meta"] = False
-
-    if not params["use_meta"]:
-        if not find_in_dict("n_imgs", params) and "eiger" in TR.detector_name:
+    if not use_meta:
+        if (
+            not collection_params.tot_num_images
+            and collection_params.detector_name is DetectorName.EIGER
+        ):
             raise ValueError(
                 """
                 Missing input parameter n_imgs. \n
@@ -593,7 +543,7 @@ def nexus_writer(
                 be collected has to be passed to the writer.
                 """
             )
-        if TR.beam_center == (0, 0):
+        if collection_params.beam_center == (0, 0):
             logger.warning(
                 """
                 Beam centre was not passed to the writer.
@@ -601,25 +551,17 @@ def nexus_writer(
                 """
             )
 
-    if find_in_dict("notes", params) and isinstance(params["notes"], dict):
-        notes = params["notes"]
-
-    match TR.detector_name:
+    match collection_params.detector_name:
         case DetectorName.EIGER:
-            if not find_in_dict("n_imgs", params):
-                params["n_imgs"] = None
             eiger_writer(
                 master_file,
-                TR,
+                collection_params,
                 timestamps,
-                params["use_meta"],
-                params["n_imgs"],
-                notes=notes,
+                use_meta,
             )
         case DetectorName.TRISTAN:
             tristan_writer(
                 master_file,
-                TR,
+                collection_params,
                 timestamps,
-                notes=notes,
             )
