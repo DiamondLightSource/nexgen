@@ -22,46 +22,53 @@ Example usage
     """
     This example calls the nexus writer for a collection using Tristan detector.
 
-    Note that in this case the axes start and end positions need to be passed to the writer
-    and this can be done by defining the following namedtuples:
-       axes = namedtuple("axes", ("id", "start", "end"))
-        det_axes = namedtuple("det_axes", ("id", "start"))
+    Note that in this case the axes start and end positions need to be passed to the writer.
     """
 
-    from nexgen.beamlines.I19_2_nxs import nexus_writer
+    from nexgen.beamlines.I19_2_nxs import (
+        nexus_writer,
+        GonioAxisPosition,
+        DetAxisPosition,
+        DetectorName
+    )
 
     from datetime import datetime
-    from collections import namedtuple
     from pathlib import Path
 
-    axes = namedtuple("axes", ("id", "start", "end"))
-    det_axes = namedtuple("det_axes", ("id", "start"))
 
     axes_list = [
-        axes("omega", 0, 10),
-        axes("kappa", 0, 0),
-        axes("phi", -90, -90),
-        axes("sam_z", 0, 0),
-        axes("sam_y", 1, 1),
-        axes("sam_x", 0, 0),
+        GonioAxisPosition(id="omega", start=0, end=10),
+        GonioAxisPosition(id="kappa", start=0, end=0),
+        GonioAxisPosition(id="phi", start=-90, end=-90),
+        GonioAxisPosition(id="sam_z", start=0, end=0),
+        GonioAxisPosition(id="sam_y", start=1, end=1),
+        GonioAxisPosition(id="sam_x", start=0, end=0),
     ]
 
     det_ax_list = [
-        det_axes("two_theta", 90),
-        det_axes("det_z", 100),
+        DetAxisPosition(id="two_theta", start=90),
+        DetAxisPosition(id="det_z", start=100),
     ]
 
+    params = {
+        "exposure_time"=60.0,
+        "beam_center"=[1000., 1200.],
+        "wavelength"=0.6,
+        "transmission"=1.0,
+        "detector_name"=DetectorName.TRISTAN,
+        "metafile"=Path("/path/to/file_meta.h5"),
+        "scan_axis"="omega",
+        "axes_pos"=axes_list,
+        "det_pos"=det_ax_list,
+    }
+
+    master_file=Path("/path/to/file.nxs")
+
+
     nexus_writer(
-        meta_file=Path("/path/to/file_meta.h5"),
-        detector_name="tristan",
-        scan_axis="omega",
-        start_time=datetime.now(),
-        exposure_time=60.0,
-        transmission=1.0,
-        wavelength=0.6,
-        beam_center=[1000., 1200.],
-        gonio_pos=axes_list,
-        det_pos=det_ax_list,
+        params=params,
+        master_file=master_file,
+        timestamps=(datetime.now(), None),
     )
 
 
@@ -74,23 +81,32 @@ Example usage
     This example calls the nexus writer for a collection using Eiger detector.
 
     Note that in this case there's no need to pass the axes positions as those can be read from
-    the config written to the _meta.h5 file at the arming of the detector.
+    the config written to the _meta.h5 file at the arming of the detector. In order to do this
+    the use_meta flag must be passed as True.
     """
 
-    from nexgen.beamlines.I19_2_nxs import nexus_writer
+    from nexgen.beamlines.I19_2_nxs import nexus_writer, DetectorName
 
     from datetime import datetime
     from pathlib import Path
 
+    params = {
+        "exposure_time"=0.01,
+        "beam_center"=[1000., 1200.],
+        "wavelength"=0.6,
+        "transmission"=1.0,
+        "detector_name"=DetectorName.EIGER,
+        "metafile"=Path("/path/to/file_meta.h5"),
+        "scan_axis"="phi",
+    }
+
+    master_file=Path("/path/to/file.nxs")
+
     nexus_writer(
-        meta_file=Path("/path/to/file_meta.h5"),
-        detector_name="eiger",
-        scan_axis="phi",
-        start_time=datetime.now(),
-        exposure_time=60.0,
-        transmission=1.0,
-        wavelength=0.6,
-        beam_center=[1000., 1200.],
+        params=params,
+        master_file=master_file,
+        timestamps=(datetime.now(), None),
+        use_meta=True,
     )
 
 
