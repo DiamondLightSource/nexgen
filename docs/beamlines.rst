@@ -111,10 +111,75 @@ Example usage
 
 
 
+**Example III: Serial collection with Eiger**
+
+.. code-block:: python
+
+    """
+    This example calls the nexus writer for a serial collection with a small rotation at each well
+    using Eiger detector.
+
+    Note that in this the use_meta tag will be passed as false and the axes positions given explicitely
+    to be able to give the correct values for each well.
+    """
+
+    from nexgen.beamlines.I19_2_nxs import (
+        serial_nexus_writer,
+        GonioAxisPosition,
+        DetAxisPosition,
+        DetectorName,
+    )
+
+    from datetime import datetime
+    from pathlib import Path
+
+    well_number = 800
+    
+    metafile = Path("/path/to/file_meta.h5")
+    master_template = "/path/to/file_w%0{3}d.nxs"
+    master_file = Path(master_template % (well_number))
+
+    axes_list = [
+        GonioAxisPosition(id="phi", start=-2.5, inc=0.2),
+        GonioAxisPosition(id="kappa", start=0.005),
+        GonioAxisPosition(id="omega", start=-90),
+        GonioAxisPosition(id="sam_x", start=0.154),
+        GonioAxisPosition(id="sam_y", start=0.0),
+        GonioAxisPosition(id="sam_z", start=0.77)
+    ]
+
+    det_list = [
+        DetAxisPosition(id="two_theta", start=0),
+        DetAxisPosition(id="det_z", start=85)
+    ]
+
+    params = {
+        "exposure_time"=0.1,
+        "beam_center"=[1000., 1200.],
+        "wavelength"=0.4,
+        "transmission"=10,
+        "detector_name"=DetectorName.EIGER,
+        "metafile"=metafile,
+        "tot_num_imgs"=900,
+        "scan_axis"="phi",
+        "axes_pos"=axes_list,
+        "det_pos"=det_list,
+    }
+
+    serial_nexus_writer(
+        params,
+        master_file,
+        (datetime.now(), None),
+        use_meta=False,
+        vds_offset=800,
+        n_frames=25,
+    )
+
+
+
 Serial crystallography
 ----------------------
 
-- I19-2: Fixed target SSX with Tristan detector.
 - I24: serial crystallography with Eiger detector
     * Still shots (or extruder)
     * Fixed target
@@ -124,7 +189,7 @@ Serial crystallography
 Example usage
 *************
 
-**Example 1: grid scan on I24**
+**Example: grid scan on I24**
 
 .. code-block:: python
 
@@ -179,37 +244,6 @@ Example usage
 
 
 
-**Example 2: grid scan on I19-2 using Tristan10M**
-
-.. code-block:: python
-
-    "This example calls the SSX writer for a simple time-resolved pump-probe experiment on a full chip using Tristan."
-
-    from nexgen.beamlines.SSX_Tristan_nxs import ssx_tristan_writer
-    from datetime import datetime
-
-    beam_x = 1590.7
-    beam_y = 1643.7
-
-    D = 0.5     # Detector distance passed in mm
-    t = 0.002   # Exposure time passed in s
-
-    write_nxs(
-        "/path/to/dataset",
-        "Expt1_00",
-        "I19-2",
-        exp_time=t,
-        det_dist=D,
-        beam_center=[beam_x, beam_y],
-        transmission=1.,
-        wavelength=0.649,
-        start_time=datetime.now(),
-        stop_time=None,
-        chip_info=chip_dict,
-        chipmap=None,
-    )
-
-
 I19-2 CLI
 ---------
 
@@ -242,6 +276,13 @@ This will then need to be passed from the commang line:
     Only the goniometer/detector axes that have values and increments different from 0 need to be passed to the command line.
     If --scan-axis is not passed, it will default to 'phi'.
     If -bc (beam_center) is not passed, in the absence of a meta file it will default to (0, 0)
+
+
+The full options for the I19 command line tool can be visualised by:
+
+.. code-block:: console
+
+    I19_nexus 2 --help
 
 
 SSX CLI

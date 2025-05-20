@@ -7,9 +7,12 @@
 - Small utility for creating directories when needed.
 - New wrapper function for serial nexus file for I19-2.
 - Serial functionality for i19 CLI.
+- ED_mrc_to_nexus CLI has been extended to work with TVIPS cameras.
 
 ### Removed
 - Dropped Python 3.10 support
+- Unused and obsolete serial_images_nexus for copying tristan nexus files as multi_image is used.
+- Standalone serial Tristan writer as now integrated with I19-2 writers.
 
 ### Changed
 - Tidier parameter model for I19-2.
