@@ -10,6 +10,7 @@
 
 ### Removed
 - Dropped Python 3.10 support
+- Unused and obsolete copy_serial for tristan as multi_image is used.
 
 ### Changed
 - Tidier parameter model for I19-2.
