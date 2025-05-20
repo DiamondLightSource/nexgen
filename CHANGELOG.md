@@ -16,6 +16,7 @@
 
 ### Fixed
 - Small bug in iso_timestamps where some formats were not properly handled.
+- NXbeam now allows to write multiple wavelengths to the ``incident_wavelength`` dataset for a polychromatic beam.
 
 
 ## 0.9.10
