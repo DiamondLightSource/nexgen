@@ -1,13 +1,22 @@
 # CHANGELOG
 
 
-## 0.9.#
-
-### Changed
-- NXbeam now allows to write multiple wavelengths to the ``incident_wavelength`` dataset for a polychromatic beam.
+## 0.10.0
 
 ### Added
 - Small utility for creating directories when needed.
+- New wrapper function for serial nexus file for I19-2.
+- Serial functionality for i19 CLI.
+
+### Removed
+- Dropped Python 3.10 support
+
+### Changed
+- Tidier parameter model for I19-2.
+
+### Fixed
+- Small bug in iso_timestamps where some formats were not properly handled.
+- NXbeam now allows to write multiple wavelengths to the ``incident_wavelength`` dataset for a polychromatic beam.
 
 
 ## 0.9.10

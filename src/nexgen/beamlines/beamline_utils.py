@@ -5,10 +5,10 @@ Define and store basic beamline utilities.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
 from typing import List, Optional, Sequence, Tuple
 
 from pydantic import BaseModel
+from pydantic.dataclasses import dataclass
 
 from nexgen.nxs_utils import Attenuator, Axis, Beam, Detector, Goniometer, Source
 from nexgen.utils import Point3D
