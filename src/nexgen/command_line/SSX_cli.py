@@ -1,5 +1,5 @@
 """
-Command line tool to generate NXmx NeXus files for Serial Crystallography.
+Command line tool to generate NXmx NeXus files for Serial Crystallography on I24.
 """
 
 import argparse
@@ -9,6 +9,7 @@ from typing import Tuple
 
 from .. import log
 from ..beamlines.SSX_chip import CHIP_DICT_DEFAULT
+from ..beamlines.SSX_Eiger_nxs import ssx_eiger_writer
 from ..utils import P
 from . import version_parser
 
@@ -23,36 +24,15 @@ parser.add_argument("--debug", action="store_const", const=True)
 
 def eiger_collection(args):
     logger.info("Create a NeXus file for SSX collection on Eiger.")
-    from ..beamlines.SSX_Eiger_nxs import ssx_eiger_writer
 
     ssx_eiger_writer(
         Path(args.visitpath).expanduser().resolve(),
         args.filename_root,
-        args.beamline,
+        "I24",
         expt_type=args.expt_type,
         pump_status=args.pump_status,
         num_imgs=args.num_imgs,
         exp_time=args.exp_time,
-        det_dist=args.det_dist,
-        beam_center=args.beam_center,
-        transmission=args.transmission,
-        wavelength=args.wavelength,
-        start_time=args.start,
-        stop_time=args.stop,
-        chip_info=CHIP_DICT_DEFAULT,  # TODO This might be better passed as a json/yaml or whatever
-        chipmap=args.chipmap,
-    )
-
-
-def tristan_collection(args):
-    logger.info("Create a NeXus file for SSX collection on Tristan.")
-    from ..beamlines.SSX_Tristan_nxs import ssx_tristan_writer
-
-    ssx_tristan_writer(
-        Path(args.visitpath).expanduser().resolve(),
-        args.filename_root,
-        args.beamline,
-        xp_time=args.exp_time,
         det_dist=args.det_dist,
         beam_center=args.beam_center,
         transmission=args.transmission,
@@ -88,7 +68,6 @@ collect_parser.add_argument(
     action=_ImportCollect,
     help="Path to _meta.h5 or _000001.h5 file.",
 )
-collect_parser.add_argument("beamline", type=str, help="Beamline name.")
 collect_parser.add_argument(
     "-det",
     "--det-dist",
@@ -161,22 +140,6 @@ eiger_parser.add_argument(
 )
 eiger_parser.add_argument("--chipmap", type=int, nargs="+", help="Location of chipmap.")
 eiger_parser.set_defaults(func=eiger_collection)
-
-tristan_parser = subparsers.add_parser(
-    "2",
-    aliases=["tristan"],
-    description=("Trigger Tristan writer."),
-    parents=[collect_parser],
-)
-tristan_parser.add_argument(
-    "-e",
-    "--exp-time",
-    type=float,
-    required=True,
-    help="Total collection time in s.",
-)
-tristan_parser.add_argument("--chipmap", type=str, help="Location of chipmap.")
-tristan_parser.set_defaults(func=tristan_collection)
 
 
 def main():
