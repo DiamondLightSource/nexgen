@@ -333,9 +333,10 @@ def eiger_writer(
         for dax in TR.det_pos:
             idx = [n for n, ax in enumerate(det_axes) if ax.name == dax.id][0]
             det_axes[idx].start_pos = dax.start
-            logger.info(
-                "Goniometer and detector axes positions have been updated with values passed by the user."
-            )
+
+        logger.info(
+            "Goniometer and detector axes positions have been updated with values passed by the user."
+        )
 
         if not n_frames:
             n_frames = TR.tot_num_images

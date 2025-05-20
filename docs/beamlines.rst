@@ -111,6 +111,72 @@ Example usage
 
 
 
+**Example III: Serial collection with Eiger**
+
+.. code-block:: python
+
+    """
+    This example calls the nexus writer for a serial collection with a small rotation at each well
+    using Eiger detector.
+
+    Note that in this the use_meta tag will be passed as false and the axes positions given explicitely
+    to be able to give the correct values for each well.
+    """
+
+    from nexgen.beamlines.I19_2_nxs import (
+        serial_nexus_writer,
+        GonioAxisPosition,
+        DetAxisPosition,
+        DetectorName,
+    )
+
+    from datetime import datetime
+    from pathlib import Path
+
+    well_number = 800
+    
+    metafile = Path("/path/to/file_meta.h5")
+    master_template = "/path/to/file_w%0{3}d.nxs"
+    master_file = Path(master_template % (well_number))
+
+    axes_list = [
+        GonioAxisPosition(id="phi", start=-2.5, inc=0.2),
+        GonioAxisPosition(id="kappa", start=0.005),
+        GonioAxisPosition(id="omega", start=-90),
+        GonioAxisPosition(id="sam_x", start=0.154),
+        GonioAxisPosition(id="sam_y", start=0.0),
+        GonioAxisPosition(id="sam_z", start=0.77)
+    ]
+
+    det_list = [
+        DetAxisPosition(id="two_theta", start=0),
+        DetAxisPosition(id="det_z", start=85)
+    ]
+
+    params = {
+        "exposure_time"=0.1,
+        "beam_center"=[1000., 1200.],
+        "wavelength"=0.4,
+        "transmission"=10,
+        "detector_name"=DetectorName.EIGER,
+        "metafile"=metafile,
+        "tot_num_imgs"=900,
+        "scan_axis"="phi",
+        "axes_pos"=axes_list,
+        "det_pos"=det_list,
+    }
+
+    serial_nexus_writer(
+        params,
+        master_file,
+        (datetime.now(), None),
+        use_meta=False,
+        vds_offset=800,
+        n_frames=25,
+    )
+
+
+
 Serial crystallography
 ----------------------
 
