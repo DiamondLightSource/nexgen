@@ -180,7 +180,6 @@ Example usage
 Serial crystallography
 ----------------------
 
-- I19-2: Fixed target SSX with Tristan detector.
 - I24: serial crystallography with Eiger detector
     * Still shots (or extruder)
     * Fixed target
@@ -190,7 +189,7 @@ Serial crystallography
 Example usage
 *************
 
-**Example 1: grid scan on I24**
+**Example: grid scan on I24**
 
 .. code-block:: python
 
@@ -245,37 +244,6 @@ Example usage
 
 
 
-**Example 2: grid scan on I19-2 using Tristan10M**
-
-.. code-block:: python
-
-    "This example calls the SSX writer for a simple time-resolved pump-probe experiment on a full chip using Tristan."
-
-    from nexgen.beamlines.SSX_Tristan_nxs import ssx_tristan_writer
-    from datetime import datetime
-
-    beam_x = 1590.7
-    beam_y = 1643.7
-
-    D = 0.5     # Detector distance passed in mm
-    t = 0.002   # Exposure time passed in s
-
-    write_nxs(
-        "/path/to/dataset",
-        "Expt1_00",
-        "I19-2",
-        exp_time=t,
-        det_dist=D,
-        beam_center=[beam_x, beam_y],
-        transmission=1.,
-        wavelength=0.649,
-        start_time=datetime.now(),
-        stop_time=None,
-        chip_info=chip_dict,
-        chipmap=None,
-    )
-
-
 I19-2 CLI
 ---------
 
@@ -308,6 +276,13 @@ This will then need to be passed from the commang line:
     Only the goniometer/detector axes that have values and increments different from 0 need to be passed to the command line.
     If --scan-axis is not passed, it will default to 'phi'.
     If -bc (beam_center) is not passed, in the absence of a meta file it will default to (0, 0)
+
+
+The full options for the I19 command line tool can be visualised by:
+
+.. code-block:: console
+
+    I19_nexus 2 --help
 
 
 SSX CLI
