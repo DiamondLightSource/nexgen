@@ -8,7 +8,7 @@ import logging
 import math
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import List, Literal, Tuple
+from typing import Literal
 
 import h5py  # isort: skip
 import numpy as np
@@ -25,7 +25,7 @@ NXclassUtils_logger.setLevel(logging.DEBUG)
 TSdset = Literal["start_time", "end_time", "end_time_estimated"]
 
 
-def create_attributes(nxs_obj: h5py.Group | h5py.Dataset, names: Tuple, values: Tuple):
+def create_attributes(nxs_obj: h5py.Group | h5py.Dataset, names: tuple, values: tuple):
     """
     Create or overwrite attributes with additional metadata information.
 
@@ -35,8 +35,8 @@ def create_attributes(nxs_obj: h5py.Group | h5py.Dataset, names: Tuple, values: 
     Args:
         nxs_obj (h5py.Group | h5py.Dataset): NeXus object to which the \
             attributes should be attached.
-        names (Tuple): The names of the new attributes.
-        values (Tuple): The attribute values asociated to the names.
+        names (tuple): The names of the new attributes.
+        values (tuple): The attribute values asociated to the names.
     """
     for n, v in zip(names, values):
         if isinstance(v, str):
@@ -71,12 +71,12 @@ def set_dependency(dep_info: str, path: str = None) -> np.bytes_:
 
 
 def calculate_origin(
-    beam_center_fs: List | Tuple,
-    fs_pixel_size: List | Tuple,
-    fast_axis_vector: Tuple,
-    slow_axis_vector: Tuple,
+    beam_center_fs: list | tuple,
+    fs_pixel_size: list | tuple,
+    fast_axis_vector: tuple,
+    slow_axis_vector: tuple,
     mode: str = "1",
-) -> Tuple[List, float]:
+) -> tuple[list, float]:
     """
     Calculate the offset of the detector.
 
@@ -88,10 +88,10 @@ def calculate_origin(
         mcstas if needed.
 
     Args:
-        beam_center_fs (List | Tuple): Beam center position in fast and slow direction.
-        fs_pixel_size (List | Tuple): Pixel size in fast and slow direction, in m.
-        fast_axis_vector (Tuple): Fast axis vector.
-        slow_axis_vector (Tuple): Slow axis vector.
+        beam_center_fs (list | tuple): Beam center position in fast and slow direction.
+        fs_pixel_size (list | tuple): Pixel size in fast and slow direction, in m.
+        fast_axis_vector (tuple): Fast axis vector.
+        slow_axis_vector (tuple): Slow axis vector.
         mode (str, optional): Decide how origin should be calculated.
             If set to "1" the displacement vector is un-normalized \
                 and the offset value set to 1.0.
@@ -100,7 +100,7 @@ def calculate_origin(
             Defaults to "1".
 
     Returns:
-        det_origin (List): Displacement of beam center, vector attribute of module_offset.
+        det_origin (list): Displacement of beam center, vector attribute of module_offset.
         offset_val (float): Value to assign to module_offset, depending whether \
             det_origin is normalized or not.
     """
@@ -119,12 +119,12 @@ def calculate_origin(
     return det_origin, offset_val
 
 
-def find_number_of_images(datafile_list: List[Path], entry_key: str = "data") -> int:
+def find_number_of_images(datafile_list: list[Path], entry_key: str = "data") -> int:
     """
     Calculate total number of images when there's more than one input HDF5 file.
 
     Args:
-        datafile_list (List[Path]): List of paths to the input image files.
+        datafile_list (list[Path]): List of paths to the input image files.
         entry_key (str):    Key for the location of the images inside the \
             data files. Defaults to "data".
 
@@ -326,14 +326,14 @@ def write_compressed_copy(
     )
 
 
-def add_sample_axis_groups(nxsample: h5py.Group, axis_list: List[Axis]):
+def add_sample_axis_groups(nxsample: h5py.Group, axis_list: list[Axis]):
     """
     Add non-standard "sample_{phi,omega,...}" groups to NXsample. These may be needed for \
     some autoprocessing tools to work correctly.
 
     Args:
         nxsample (h5py.Group): NeXus NXsample group.
-        axis_list (List[Axis]): List of goniometer axes.
+        axis_list (list[Axis]): List of goniometer axes.
     """
     NXclassUtils_logger.debug("Add non-standard fields for autoPROC to work.")
     nxtransf = nxsample["transformations"]

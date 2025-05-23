@@ -1,4 +1,5 @@
 import pytest
+from pydantic import ValidationError
 
 from nexgen.nxs_utils.source import Attenuator, Beam, Facility, Source
 
@@ -37,7 +38,7 @@ def test_polichromatic_beam_with_flux():
 
 
 def test_attenuator_raises_error_if_nothing_is_passed():
-    with pytest.raises(TypeError):
+    with pytest.raises(ValidationError):
         Attenuator()
 
 

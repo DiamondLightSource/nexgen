@@ -4,8 +4,6 @@ Object definition for goniometer.
 
 from __future__ import annotations
 
-from typing import Dict, List, Tuple
-
 from numpy.typing import ArrayLike
 
 from .axes import Axis
@@ -29,8 +27,8 @@ class Goniometer:
 
     def __init__(
         self,
-        axes: List[Axis],
-        scan: Dict[str, ArrayLike] | None = None,
+        axes: list[Axis],
+        scan: dict[str, ArrayLike] | None = None,
     ):
         self.axes_list = axes
         self.scan = scan
@@ -45,7 +43,7 @@ class Goniometer:
             msg += f"Scan axis/axes: {list(self.scan.keys())}. \n"
         return f"Goniometer information: \n\t{msg}"
 
-    def _check_and_update_goniometer_from_scan(self, scan_axes: List[str]):
+    def _check_and_update_goniometer_from_scan(self, scan_axes: list[str]):
         """Check that the values entered for the goniometer match with the scan."""
         for ax in scan_axes:
             idx = self._find_axis_in_goniometer(ax)
@@ -68,7 +66,7 @@ class Goniometer:
             return None
         return idx[0]
 
-    def _get_unique_scan_point_values(self, ax: str) -> List:
+    def _get_unique_scan_point_values(self, ax: str) -> list:
         """Get the unique values for a scan, in the order they are collected."""
         # Doing this in place of np.unique which automatically sorts the values, leading to
         # errors in reverse rotation scans. Nothing should change for grid scans.
@@ -84,7 +82,7 @@ class Goniometer:
         grid_scan_options: GridScanOptions | None = None,
         scan_direction: ScanDirection = ScanDirection.POSITIVE,
         update: bool = True,  # Option to set to False for ssx if needed
-    ) -> Tuple[Dict, Dict]:
+    ) -> tuple[dict, dict]:
         """Define oscillation and/or grid scan ranges for image data collections."""
         if self.scan:
             # Look at keys to see if rotation or grid scan
@@ -151,7 +149,7 @@ class Goniometer:
     def define_scan_axes_for_event_mode(
         self,
         end_position: float | None = None,
-    ) -> Tuple[Dict, Dict]:
+    ) -> tuple[dict, dict]:
         """Define oscillation and/or grid scan ranges for event-mode collections."""
         # NOTE For Tristan we already give it (start, stop).
         # To figure out how this actually will work, I need to fix the Tristan writer.

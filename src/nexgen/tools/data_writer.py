@@ -7,7 +7,6 @@ from __future__ import annotations
 import logging
 import time
 from pathlib import Path
-from typing import List, Tuple
 
 import h5py
 import numpy as np
@@ -33,17 +32,17 @@ rng = np.random.default_rng()
 
 # Build-a-detector functions
 def build_an_eiger(
-    image_size: List | Tuple,
+    image_size: list | tuple,
     det_description: str,
-    n_modules: Tuple[int, int] = None,
+    n_modules: tuple[int, int] = None,
 ) -> ArrayLike:
     """
     Generate an Eiger-like blank image.
 
     Args:
-        image_size (List | Tuple): Detector size, defines image dimensions as (slow_axis , fast_axis).
+        image_size (list | tuple): Detector size, defines image dimensions as (slow_axis , fast_axis).
         det_description (str): Identifies the type of Eiger detector.
-        n_modules (Tuple[int, int], optional): Number of modules in the detector. Defaults to None.
+        n_modules (tuple[int, int], optional): Number of modules in the detector. Defaults to None.
 
     Returns:
         IM (ArrayLike): Blank image - an array of zeros with an Eiger-like mask.
@@ -82,14 +81,14 @@ def build_an_eiger(
 
 
 def build_a_tristan(
-    image_size: List | Tuple,
+    image_size: list | tuple,
     det_description: str,
 ) -> ArrayLike:
     """
     Generate a Tristan-like blank image.
 
     Args:
-        image_size (List | Tuple): Detector size, fefines image dimensions as (slow_axis , fast_axis).
+        image_size (list | tuple): Detector size, fefines image dimensions as (slow_axis , fast_axis).
         det_description (str): Identifies the Tristan detector.
 
     Returns:
@@ -124,8 +123,8 @@ def build_a_tristan(
 
 
 def generate_image_files(
-    datafiles: List[Path | str],
-    image_size: List | Tuple,
+    datafiles: list[Path | str],
+    image_size: list | tuple,
     det_description: str,
     tot_num_images: int,
 ):
@@ -133,8 +132,8 @@ def generate_image_files(
     Generate HDF5 files of blank images.
 
     Args:
-        datafiles (List[Path | str]): List of HDF5 files to be written.
-        image_size (List | Tuple): Image dimensions as (slow_axis, fast_axis).
+        datafiles (list[Path | str]): List of HDF5 files to be written.
+        image_size (list | tuple): Image dimensions as (slow_axis, fast_axis).
         det_description (str): Type of detector. The string should include the number of modules.
         tot_num_images (int): Total number of images to be written across the files.
 
@@ -189,20 +188,20 @@ def generate_image_files(
 # Event list generator
 # TODO Better than before, but this is still pretty slow.
 def pseudo_event_list(
-    x_lim: Tuple[int, int | None],
-    y_lim: Tuple[int, int | None],
+    x_lim: tuple[int, int | None],
+    y_lim: tuple[int, int | None],
     exp_time: float,
-) -> Tuple[List, List]:
+) -> tuple[list, list]:
     """
     Generate a pseudo-events list with positions and timestamps.
 
     Args:
-        x_lim (Tuple[int, Union[int, None]]): Minimum and maximum position along the fast axis.
-        y_lim (Tuple[int, Union[int, None]]): Minimum and maximum position along the slow axis.
+        x_lim (tuple[int, Union[int, None]]): Minimum and maximum position along the fast axis.
+        y_lim (tuple[int, Union[int, None]]): Minimum and maximum position along the slow axis.
         exp_time (float): Total exposure time, in seconds.
 
     Returns:
-        pos_list, time_list (Tuple[List, List]): Lists of pseudo-event positions and relative timestamps.
+        pos_list, time_list (tuple[list, list]): Lists of pseudo-event positions and relative timestamps.
     """
     pos_list = []
     time_list = []
@@ -228,7 +227,7 @@ def pseudo_event_list(
 
 
 def generate_event_files(
-    datafiles: List[Path | str],
+    datafiles: list[Path | str],
     num_chunks: int,
     det_description: str,
     exp_time: float,
@@ -237,7 +236,7 @@ def generate_event_files(
     Generate HDF5 files of pseudo events.
 
     Args:
-        datafiles (List[Union[Path, str]]): List of HDF5 files to be written.
+        datafiles (list[Union[Path, str]]): list of HDF5 files to be written.
         num_chunks (int): Chunks of events to be written per file.
         det_description (str): Type of detector. The string should include the number of modules.
         exp_time (float): Total exposure time, in seconds.

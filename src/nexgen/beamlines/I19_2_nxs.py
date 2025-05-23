@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any, NamedTuple, Optional
 
@@ -67,7 +67,7 @@ class DetAxisPosition(NamedTuple):
     start: float = 0.0
 
 
-class DetectorName(str, Enum):
+class DetectorName(StrEnum):
     EIGER = "eiger"
     TRISTAN = "tristan"
 

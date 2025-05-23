@@ -8,11 +8,11 @@ from nexgen.beamlines.SSX_chip import (
 
 test_chip = Chip(
     "testchip",
-    num_steps=[20, 20],
-    step_size=[0.125, 0.125],
-    num_blocks=[2, 2],
-    block_size=[3.175, 3.175],
-    start_pos=[0.0, 0.0, 0.0],
+    num_steps=(20, 20),
+    step_size=(0.125, 0.125),
+    num_blocks=(2, 2),
+    block_size=(3.175, 3.175),
+    start_pos=(0.0, 0.0, 0.0),
 )
 
 test_goniometer = {"axes": ["omega", "sam_y", "sam_x", "phi"]}

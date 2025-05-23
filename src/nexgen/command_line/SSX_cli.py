@@ -5,7 +5,6 @@ Command line tool to generate NXmx NeXus files for Serial Crystallography on I24
 import argparse
 import logging
 from pathlib import Path
-from typing import Tuple
 
 from .. import log
 from ..beamlines.SSX_chip import CHIP_DICT_DEFAULT
@@ -53,7 +52,7 @@ class _ImportCollect(argparse.Action):
         setattr(namespace, "filename_root", filename_root)
 
     @staticmethod
-    def find_import_args(val) -> Tuple[str]:
+    def find_import_args(val) -> tuple[str]:
         input_file = Path(val).expanduser().resolve()
         visitpath = input_file.parent
         filename_root = P.fullmatch(input_file.stem)[1]

@@ -7,7 +7,7 @@ from __future__ import annotations
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional
 
 import numpy as np
 from numpy.typing import DTypeLike
@@ -65,7 +65,7 @@ def tristan_writer(
     TR: GDACollectionParams,
     axes_params: BeamlineAxes,
     det_params: DetectorType,
-    timestamps: Tuple[str, str] = (None, None),
+    timestamps: tuple[str, str] = (None, None),
 ):
     """
     A function to call the nexus writer for Tristan 10M detector.
@@ -75,7 +75,7 @@ def tristan_writer(
         TR (namedtuple): Parameters passed from the beamline.
         axes_params (BeamlineAxes): Axes for goniometer, detector and detector module.
         det_params (DetectorType): Detector definition for Tristan.
-        timestamps (Tuple[str, str], optional): Collection start and end time. Defaults to None.
+        timestamps (tuple[str, str], optional): Collection start and end time. Defaults to None.
     """
     ecr = ExtendedRequestIO(TR.xml_file)
     # Read information from xml file
@@ -154,7 +154,7 @@ def eiger_writer(
     TR: GDACollectionParams,
     axes_params: BeamlineAxes,
     det_params: DetectorType,
-    timestamps: Tuple[str, str] = (None, None),
+    timestamps: tuple[str, str] = (None, None),
     vds_dtype: DTypeLike = np.uint16,
 ):
     """
@@ -165,7 +165,7 @@ def eiger_writer(
         TR (namedtuple): Parameters passed from the beamline.
         axes_params (BeamlineAxes): Axes for goniometer, detector and detector module.
         det_params (DetectorType): Detector definition for Eiger.
-        timestamps (Tuple[str, str], optional): Collection start and end time. Defaults to (None, None).
+        timestamps (tuple[str, str], optional): Collection start and end time. Defaults to (None, None).
         vds_dtype (DtypeLike): Data type for vds as np.uint##.
     """
     ecr = ExtendedRequestIO(TR.xml_file)
@@ -271,7 +271,7 @@ def write_nxs(
         detector_name (str): Detector in use.
         exposure_time (float): Exposure time, in s.
         wavelength (float): Wavelength of incident beam, in A.
-        beam_center (List[float, float]): Beam center position, in pixels.
+        beam_center (list[float, float]): Beam center position, in pixels.
         start_time (datetime, optional): Experiment start time. Defaults to None.
         stop_time (datetime, optional): Experiment end time. Defaults to None.
 

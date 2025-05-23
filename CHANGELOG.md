@@ -1,6 +1,13 @@
 # CHANGELOG
 
 
+## 0.10.1
+
+### Changed
+- Implement more pydantic dataclasses
+- Update typing
+
+
 ## 0.10.0
 
 ### Added

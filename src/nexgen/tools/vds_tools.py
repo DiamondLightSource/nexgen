@@ -6,14 +6,14 @@ from __future__ import annotations
 
 import logging
 import operator
-from dataclasses import dataclass
 from functools import reduce
 from pathlib import Path
-from typing import List, Tuple
+from typing import Sequence
 
 import h5py
 import numpy as np
 from numpy.typing import DTypeLike
+from pydantic.dataclasses import dataclass
 
 from ..utils import MAX_FRAMES_PER_DATASET
 from .constants import jungfrau_fill_value, jungfrau_gap_size, jungfrau_mod_size
@@ -26,7 +26,7 @@ class Dataset:
     name: str
 
     # The full shape of the source, regardless of start index
-    source_shape: Tuple[int]
+    source_shape: Sequence[int]
 
     # The start index that we should start copying from
     start_index: int = 0
@@ -35,7 +35,7 @@ class Dataset:
     stop_index: int = MAX_FRAMES_PER_DATASET
 
     # The shape of the destination, including the start_index
-    dest_shape: Tuple[int] = None
+    dest_shape: Sequence[int] | None = None
 
     def __post_init__(self):
         self.dest_shape = (
@@ -64,7 +64,7 @@ class Dataset:
         )
 
 
-def find_datasets_in_file(nxdata: h5py.Group) -> List:
+def find_datasets_in_file(nxdata: h5py.Group) -> list:
     """
     Look for the source datasets in the NeXus file. Assumes that the source datasets are always h5py.ExternalLink.
 
@@ -75,7 +75,7 @@ def find_datasets_in_file(nxdata: h5py.Group) -> List:
         KeyError: If no ExternalLinks to data are found in the group.
 
     Returns:
-        dsets (List): The source datasets.
+        dsets (list): The source datasets.
     """
     # FIXME for now this assumes that the source datasets are always links
     dsets = []
@@ -91,19 +91,19 @@ def find_datasets_in_file(nxdata: h5py.Group) -> List:
 
 def split_datasets(
     dsets,
-    data_shape: Tuple[int, int, int],
+    data_shape: tuple[int, int, int],
     start_idx: int = 0,
-    vds_shape: Tuple[int, int, int] = None,
-) -> List[Dataset]:
+    vds_shape: tuple[int, int, int] = None,
+) -> list[Dataset]:
     """
     Splits the full data shape and start index up into values per dataset,
     given that each dataset has a maximum size.
 
     Args:
         dsets (Dataset): The input datasets.
-        data_shape (Tuple[int, int, int]): Shape of the data, usually defined as (num_frames, *image_size).
+        data_shape (tuple[int, int, int]): Shape of the data, usually defined as (num_frames, *image_size).
         start_idx (int, optional): The start point for the source data. Defaults to 0.
-        vds_shape(Tuple, optional): Desired shape of the VDS, usually defined as (num_frames, *image_size). \
+        vds_shape(tuple, optional): Desired shape of the VDS, usually defined as (num_frames, *image_size). \
             The number of frames must be smaller or equal to the one in full_data_shape. Defaults to None.
 
     Raises:
@@ -111,7 +111,7 @@ def split_datasets(
         ValueError: It the passed start index value is negative.
 
     Returns:
-        List[Dataset]: A list of datasets.
+        list[Dataset]: A list of datasets.
     """
     if start_idx > data_shape[0]:
         raise ValueError(
@@ -158,12 +158,12 @@ def split_datasets(
     return result
 
 
-def create_virtual_layout(datasets: List[Dataset], data_type: DTypeLike):
+def create_virtual_layout(datasets: list[Dataset], data_type: DTypeLike):
     """
     Create a virtual layout and populate it based on the provided data.
 
     Args:
-        datasets (List[Dataset]): A list of datasets that are to be merged.
+        datasets (list[Dataset]): A list of datasets that are to be merged.
         data_type (DTypeLike): The type of the input data.
 
     Returns:
@@ -193,9 +193,9 @@ def create_virtual_layout(datasets: List[Dataset], data_type: DTypeLike):
 
 def image_vds_writer(
     nxsfile: h5py.File,
-    full_data_shape: Tuple | List,
+    full_data_shape: tuple | list,
     start_index: int = 0,
-    vds_shape: Tuple | List | None = None,
+    vds_shape: tuple | list | None = None,
     data_type: DTypeLike = np.uint16,
     entry_key: str = "data",
 ):
@@ -204,9 +204,9 @@ def image_vds_writer(
 
     Args:
         nxsfile (h5py.File): Handle to NeXus file being written.
-        full_data_shape (Tuple | List): Shape of the full dataset, usually defined as (num_frames, *image_size).
+        full_data_shape (tuple | list): Shape of the full dataset, usually defined as (num_frames, *image_size).
         start_index(int): The start point for the source data. Defaults to 0.
-        vds_shape(Tuple, optional): Desired shape of the VDS, usually defined as (num_frames, *image_size). \
+        vds_shape(tuple, optional): Desired shape of the VDS, usually defined as (num_frames, *image_size). \
             The number of frames must be smaller or equal to the one in full_data_shape. Defaults to None.
         data_type (DTypeLike, optional): The type of the input data. Defaults to np.uint16.
         entry_key (str, optional): Entry key for the Virtual DataSet name. Defaults to data.
@@ -246,9 +246,9 @@ def image_vds_writer(
 
 def jungfrau_vds_writer(
     nxsfile: h5py.File,
-    vds_shape: Tuple | List,
+    vds_shape: tuple | list,
     data_type: DTypeLike = np.uint16,
-    source_dsets: List[str] | None = None,
+    source_dsets: list[str] | None = None,
 ):
     """Write VDS for Jungfrau 1M use case, with a tiled layout."""
     external_dsets = True
@@ -280,8 +280,8 @@ def jungfrau_vds_writer(
 
 def vds_file_writer(
     nxsfile: h5py.File,
-    datafiles: List[Path],
-    data_shape: Tuple | List,
+    datafiles: list[Path],
+    data_shape: tuple | list,
     data_type: DTypeLike = np.uint16,
     entry_key: str = "data",
 ):
@@ -290,8 +290,8 @@ def vds_file_writer(
 
     Args:
         nxsfile (h5py.File): NeXus file being written.
-        datafiles (List[Path]): List of paths to source files.
-        data_shape (Tuple | List): Shape of the dataset, usually defined as (num_frames, *image_size).
+        datafiles (list[Path]): list of paths to source files.
+        data_shape (tuple | list): Shape of the dataset, usually defined as (num_frames, *image_size).
         data_type (DTypeLike, optional): Dtype. Defaults to np.uint16.
         entry_key (str): Entry key for the Virtual DataSet name. Defaults to data.
     """
@@ -328,7 +328,7 @@ def vds_file_writer(
 
 def clean_unused_links(
     nxsfile: h5py.File,
-    vds_shape: Tuple | List,
+    vds_shape: tuple | list,
     start_index: int = 0,
 ):
     """
@@ -336,7 +336,7 @@ def clean_unused_links(
 
     Args:
         nxsfile (h5py.File): Handle to NeXus file being written.
-        vds_shape (Tuple | List): Actual shape of the VDS dataset, usually defined as (num_frames, *image_size).
+        vds_shape (tuple | list): Actual shape of the VDS dataset, usually defined as (num_frames, *image_size).
         start_index(int): The start point for the source data. Defaults to 0.
     """
     vds_logger.debug("Cleaning links unused in VDS ...")

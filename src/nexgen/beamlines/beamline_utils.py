@@ -5,7 +5,7 @@ Define and store basic beamline utilities.
 from __future__ import annotations
 
 import logging
-from typing import List, Optional, Sequence, Tuple
+from typing import Optional, Sequence
 
 from pydantic import BaseModel
 from pydantic.dataclasses import dataclass
@@ -53,10 +53,10 @@ class PumpProbe(BaseModel):
 class BeamlineAxes:
     """Beamline specific axes for goniometer, detector and detector module."""
 
-    gonio: List[Axis]
-    det_axes: List[Axis]
-    fast_axis: Point3D | Tuple[float, float, float]
-    slow_axis: Point3D | Tuple[float, float, float]
+    gonio: list[Axis]
+    det_axes: list[Axis]
+    fast_axis: Point3D | tuple[float, float, float]
+    slow_axis: Point3D | tuple[float, float, float]
 
     def __post_init__(self):
         if not isinstance(self.fast_axis, Point3D):
@@ -72,7 +72,7 @@ def collection_summary_log(
     attenuator: Attenuator,
     beam: Beam,
     source: Source,
-    timestamps: Tuple[str],
+    timestamps: tuple[str],
 ):
     """General function to log a collection summary."""
     logger.debug("--- COLLECTION SUMMARY ---")
