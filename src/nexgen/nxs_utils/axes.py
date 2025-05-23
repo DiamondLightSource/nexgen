@@ -5,13 +5,13 @@ Utilities for axes definition
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from typing import Tuple
 
 from ..utils import Point3D
 
 
-class TransformationType(str, Enum):  # StrEnum only from Python 3.11
+class TransformationType(StrEnum):
     """Define axis transformation type
     - ROTATION
     - TRANSLATION
