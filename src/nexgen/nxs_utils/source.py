@@ -4,13 +4,19 @@ Object definition for Source, Beam and Attenuator
 
 from __future__ import annotations
 
-from collections import namedtuple
+from typing import NamedTuple
 
 from pydantic.dataclasses import dataclass
 
+
 # Describe facility
-Facility = namedtuple("Facility", ("name", "short_name", "type", "id"))
-Facility.__doc__ = """Facility description"""
+class Facility(NamedTuple):
+    """Facility description."""
+
+    name: str
+    short_name: str
+    type: str
+    id: str
 
 
 class Source:
