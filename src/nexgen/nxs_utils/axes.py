@@ -4,8 +4,9 @@ Utilities for axes definition
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from enum import StrEnum
+
+from pydantic.dataclasses import dataclass
 
 from ..utils import Point3D
 

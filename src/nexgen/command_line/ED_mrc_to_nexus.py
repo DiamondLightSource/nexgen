@@ -8,7 +8,6 @@ from argparse import ArgumentParser
 from dataclasses import asdict, dataclass
 from logging import Logger
 from pathlib import Path
-from typing import List, Tuple
 
 import numpy as np
 
@@ -39,7 +38,7 @@ logger.addHandler(console_handler)
 
 @dataclass
 class Metadata:
-    mrc_files: List[str | Path]
+    mrc_files: list[str | Path]
     detector_name: str = "unknown"
     facility_name: str = "unknown"
     facility_id: str = "unknown"
@@ -50,10 +49,10 @@ class Metadata:
     angle_start: float = None
     angle_increment: float = None
     exposure_time: float = None
-    beam_center: Tuple[float, float] | List[float] = None
-    rotation_axis: Tuple[float, float, float] = (0, -1, 0)
-    fast_axis: Tuple[float, float, float] = (-1, 0, 0)
-    slow_axis: Tuple[float, float, float] = (0, -1, 0)
+    beam_center: tuple[float, float] | list[float] = None
+    rotation_axis: tuple[float, float, float] = (0, -1, 0)
+    fast_axis: tuple[float, float, float] = (-1, 0, 0)
+    slow_axis: tuple[float, float, float] = (0, -1, 0)
     pixel_size: float = None
     sensor_material: str = "Si"
     sensor_thickness: float = 0.0
@@ -344,7 +343,7 @@ def overwrite_from_command_line(
         logger.info(msg)
 
 
-def log_dict(logger: Logger, dictionary: dict, skip: List = None) -> None:
+def log_dict(logger: Logger, dictionary: dict, skip: list = None) -> None:
 
     if skip is None:
         skip = [1]

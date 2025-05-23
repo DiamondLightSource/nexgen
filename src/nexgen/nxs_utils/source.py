@@ -5,9 +5,8 @@ Object definition for Source, Beam and Attenuator
 from __future__ import annotations
 
 from collections import namedtuple
-from dataclasses import dataclass
 
-from dataclasses_json import DataClassJsonMixin
+from pydantic.dataclasses import dataclass
 
 # Describe facility
 Facility = namedtuple("Facility", ("name", "short_name", "type", "id"))
@@ -84,7 +83,7 @@ class Source:
 
 
 @dataclass
-class Beam(DataClassJsonMixin):
+class Beam:
     """Beam definition.
 
     Attributes:
@@ -99,9 +98,15 @@ class Beam(DataClassJsonMixin):
     wavelength_weights: list[float] | None = None
     flux: float | None = None
 
+    def to_dict(self) -> dict:
+        return self.__dict__
+
 
 @dataclass
-class Attenuator(DataClassJsonMixin):
+class Attenuator:
     """Attenuator definition."""
 
-    transmission: float
+    transmission: float | None
+
+    def to_dict(self) -> dict:
+        return self.__dict__
