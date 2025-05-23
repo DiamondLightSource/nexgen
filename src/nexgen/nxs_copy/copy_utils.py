@@ -250,15 +250,15 @@ def compute_ssx_axes(
     # Define chip
     chip = Chip(
         "fastchip",
-        num_steps=[chip_info["X_NUM_STEPS"], chip_info["Y_NUM_STEPS"]],
-        step_size=[chip_info["X_STEP_SIZE"], chip_info["Y_STEP_SIZE"]],
-        num_blocks=[chip_info["X_NUM_BLOCKS"], chip_info["Y_NUM_BLOCKS"]],
-        block_size=[chip_info["X_BLOCK_SIZE"], chip_info["Y_BLOCK_SIZE"]],
-        start_pos=[
+        num_steps=(chip_info["X_NUM_STEPS"], chip_info["Y_NUM_STEPS"]),
+        step_size=(chip_info["X_STEP_SIZE"], chip_info["Y_STEP_SIZE"]),
+        num_blocks=(chip_info["X_NUM_BLOCKS"], chip_info["Y_NUM_BLOCKS"]),
+        block_size=(chip_info["X_BLOCK_SIZE"], chip_info["Y_BLOCK_SIZE"]),
+        start_pos=(
             chip_info["X_START"],
             chip_info["Y_START"],
             chip_info["Z_START"],
-        ],
+        ),
     )
 
     # Rotation values

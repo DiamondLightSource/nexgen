@@ -6,7 +6,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Tuple
 
 from ..utils import Point3D
 
@@ -31,11 +30,11 @@ class Axis:
         name (str): Axis name.
         depends (str): Name of the axis it depends on.
         transformation_type (TransformationType): Rotation or translation.
-        vector (Point3D | Tuple): Axis vector.
+        vector (Point3D | tuple): Axis vector.
         start_pos (float, optional): Start position of axis. Defaults to 0.0.
         increment (float, optional): Scan step size if the axis moves. Defaults to 0.0.
         num_steps (int, optional): Number of scan points. Defaults to 0.0.
-        offset (Point3D | Tuple, optional): Axis offset. Defaults to (0.0, 0.0, 0.0).
+        offset (Point3D | tuple, optional): Axis offset. Defaults to (0.0, 0.0, 0.0).
 
     Properties:
         units (str): Defined depending on transformation type: deg or mm.
@@ -46,11 +45,11 @@ class Axis:
     name: str
     depends: str
     transformation_type: TransformationType
-    vector: Point3D | Tuple[float, float, float]
+    vector: Point3D | tuple[float, float, float]
     start_pos: float = 0.0
     increment: float = 0.0
     num_steps: int = 0
-    offset: Point3D | Tuple[float, float, float] = (0.0, 0.0, 0.0)
+    offset: Point3D | tuple[float, float, float] = (0.0, 0.0, 0.0)
 
     def __post_init__(self):
         if type(self.vector) is Point3D:
