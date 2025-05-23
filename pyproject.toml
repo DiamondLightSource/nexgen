@@ -23,7 +23,6 @@ dependencies = [
     "pint>=0.24.4",
     "importlib_resources>=1.1",
     "scanspec",
-    "dataclasses-json",
     "pydantic",
     "mrcfile>=1.5.3",
 ]
