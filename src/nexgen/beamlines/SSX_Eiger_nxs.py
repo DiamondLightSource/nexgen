@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Literal, Tuple, get_args
+from typing import Literal, get_args
 
 import numpy as np
 from numpy.typing import DTypeLike
@@ -66,14 +66,14 @@ def _define_vds_dtype_from_bit_depth(bit_depth: int) -> DTypeLike:
         return np.uint16
 
 
-def _get_beamline_specific_params(beamline: str) -> Tuple[BeamlineAxes, EigerDetector]:
+def _get_beamline_specific_params(beamline: str) -> tuple[BeamlineAxes, EigerDetector]:
     """Get beamline specific axes and eiger description.
 
     Args:
         beamline (str): Beamline name. Allowed values: i24, i19-2.
 
     Returns:
-        Tuple[BeamlineAxes, EigerDetector]: beamline axes description, eiger parameters.
+        tuple[BeamlineAxes, EigerDetector]: beamline axes description, eiger parameters.
     """
     match beamline.lower():
         case "i24":

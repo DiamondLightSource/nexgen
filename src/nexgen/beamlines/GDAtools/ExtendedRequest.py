@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from typing import Dict, List, Tuple
 
 
 class ExtendedRequestIO:
@@ -16,13 +15,13 @@ class ExtendedRequestIO:
         self.tree = ET.parse(xmlfile)
         self.root = self.tree.getroot()
 
-    def getCollectionInfo(self) -> Tuple[str, str, str]:
+    def getCollectionInfo(self) -> tuple[str, str, str]:
         directory = self.root.find(".//directory").text
         prefix = self.root.find(".//prefix").text
         run_number = self.root.find(".//runNumber").text
         return directory, prefix, run_number
 
-    def getOscillationSequence(self) -> Dict[str, float]:
+    def getOscillationSequence(self) -> dict[str, float]:
         osc_seq_node = self.root.find(".//oscillation_sequence")
         osc_seq = {
             "start": float(osc_seq_node.find(".//start").text),
@@ -70,7 +69,7 @@ def read_scan_from_xml(ecr: ExtendedRequestIO):
 
     Returns:
         scan_axis (str): Name of the rotation scan axis
-        pos (Dict): Dictionary containing the (start,end,increment) values for each goniometer axis.
+        pos (dict): Dictionary containing the (start,end,increment) values for each goniometer axis.
         num (int): Number of images written.
     """
     # Goniometer
@@ -110,7 +109,7 @@ def read_scan_from_xml(ecr: ExtendedRequestIO):
 def read_det_position_from_xml(
     ecr: ExtendedRequestIO,
     det_description: str,
-) -> List[float]:
+) -> list[float]:
     """Extract the detector position contained in the xml file.
 
     Args:
@@ -118,7 +117,7 @@ def read_det_position_from_xml(
         det_description (str): Detector description
 
     Returns:
-        List[float]: Detector axes positions in the order [2theta, det_z]
+        list[float]: Detector axes positions in the order [2theta, det_z]
     """
     if "tristan" in det_description.lower():
         return [0.0, ecr.getSampleDetectorDistance()]

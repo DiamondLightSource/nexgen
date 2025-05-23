@@ -5,7 +5,7 @@ import os
 import re
 from math import sqrt
 from pathlib import Path
-from typing import Tuple, Union
+from typing import Union
 
 import h5py
 import hdf5plugin
@@ -136,7 +136,7 @@ def get_metadata(mrc_image: Union[str, Path], verbatim: bool = True) -> dict:
 
 def to_hdf5_data_file(
     files: list[Union[str, Path]], logger: logging.Logger, dtype: str = None
-) -> Tuple[int, str, np.ndarray, np.dtype]:
+) -> tuple[int, str, np.ndarray, np.dtype]:
     """
     Extracts data from an MRC format into HDF5
 

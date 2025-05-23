@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import numpy as np
 from freephil.common import scope_extract as ScopeExtract
@@ -45,28 +45,28 @@ def add_tristan_spec(detector: ScopeExtract, tristanSpec: ScopeExtract):
         detector.__inject__(k, v)
 
 
-def phil2dict(D: Dict):
-    l: List = [k for k in D.keys() if "__phil_" in k]
+def phil2dict(D: dict):
+    l: list = [k for k in D.keys() if "__phil_" in k]
     for i in l:
         D.__delitem__(i)
     return D
 
 
-def split_arrays(axes_names: List, array: List) -> Dict[str, Tuple]:
+def split_arrays(axes_names: list, array: list) -> dict[str, tuple]:
     """Split a list of values into arrays.
 
     This function splits up the list of values passed as input (eg. phil parameters, dictionary) \
     for vector, offset for all existing axes.
 
     Args:
-        axes_names (List): Axes names.
-        array (List): Array of values to be split up. It must be
+        axes_names (list): Axes names.
+        array (list): Array of values to be split up. It must be
 
     Raises:
         ValueError: When each axes doesn't have a corresponding array of size 3.
 
     Returns:
-        array_dict (Dict[str, Tuple]): Dictionary of arrays corresponding to each axis. Keys are axes names.
+        array_dict (dict[str, tuple]): dictionary of arrays corresponding to each axis. Keys are axes names.
     """
     array_dict = {}
     if len(axes_names) == len(array):
@@ -87,23 +87,23 @@ def split_arrays(axes_names: List, array: List) -> Dict[str, Tuple]:
 
 
 def reframe_arrays(
-    goniometer: Dict[str, Any],
-    detector: Dict[str, Any],
-    module: Dict[str, Any],
+    goniometer: dict[str, Any],
+    detector: dict[str, Any],
+    module: dict[str, Any],
     coordinate_frame: str = "mcstas",
-    new_coord_system: Dict[str, Any] = None,
+    new_coord_system: dict[str, Any] = None,
 ):
     """
     Split a list of offset/vector values into arrays. If the coordinate frame is not mcstas, \
     convert the arrays using the base vectors of the new coordinate system.
 
     Args:
-        goniometer (Dict[str, Any]): Goniometer geometry description.
-        detector (Dict[str, Any]): Detector specific parameters and its axes.
-        module (Dict[str, Any]): Geometry and description of detector module.
+        goniometer (dict[str, Any]): Goniometer geometry description.
+        detector (dict[str, Any]): Detector specific parameters and its axes.
+        module (dict[str, Any]): Geometry and description of detector module.
         coordinate_frame (str, optional): Coordinate system being used. If "imgcif", there's no need to pass a \
             new coordinate system definition, as the conversion is already included in nexgen. Defaults to "mcstas".
-        new_coord_system (Dict[str, Any], optional): Definition of the current coordinate system. \
+        new_coord_system (dict[str, Any], optional): Definition of the current coordinate system. \
             It should at least contain a string defining the convention, origin and axes information as a tuple of (depends_on, type, units, vector). \
             e.g. for X axis: {"x": (".", "translation", "mm", [1,0,0])}. \
             Defaults to None.
@@ -179,7 +179,7 @@ def reframe_arrays(
                 ]
 
 
-def _update_detector_constants(det_params: DetectorType, params: Dict):
+def _update_detector_constants(det_params: DetectorType, params: dict):
     for k in list(det_params.constants.keys()):
         if k in list(params.keys()):
             det_params[k] = params[k]
@@ -249,36 +249,36 @@ def set_detector_params(
 # Write NeXus base classes
 def call_writers(
     nxsfile: Path | str,
-    datafiles: List[Path | str],
+    datafiles: list[Path | str],
     coordinate_frame: str,
-    data_type: Tuple[str, int],
-    goniometer: Dict[str, Any],
-    detector: Dict[str, Any],
-    module: Dict[str, Any],
-    source: Dict[str, Any],
-    beam: Dict[str, Any],
-    attenuator: Dict[str, Any],
+    data_type: tuple[str, int],
+    goniometer: dict[str, Any],
+    detector: dict[str, Any],
+    module: dict[str, Any],
+    source: dict[str, Any],
+    beam: dict[str, Any],
+    attenuator: dict[str, Any],
     metafile: bool = False,
-    timestamps: Tuple[str, str] = None,
-    notes: Dict[str, Any] = None,
+    timestamps: tuple[str, str] = None,
+    notes: dict[str, Any] = None,
 ):
     """
     Call the writers for the NeXus base classes.
 
     Args:
         nxsfile (Path | str): NeXus file to be written.
-        datafiles (List[Path | str]): List of at least 1 Path object to a HDF5 data file.
+        datafiles (list[Path | str]): List of at least 1 Path object to a HDF5 data file.
         coordinate_frame (str): Coordinate system being used. Accepted frames are imgcif and mcstas.
-        data_type (Tuple[str, int]): Images or event-mode data, and eventually how many are being written.
-        goniometer (Dict[str, Any] Goniometer geometry description.
-        detector (Dict[str, Any]): Detector specific parameters and its axes.
-        module (Dict[str, Any]): Geometry and description of detector module.
-        source (Dict[str, Any]): Facility information.
-        beam (Dict[str, Any]): Beam properties.
-        attenuator (Dict[str, Any]): Attenuator properties.
+        data_type (tuple[str, int]): Images or event-mode data, and eventually how many are being written.
+        goniometer (dict[str, Any] Goniometer geometry description.
+        detector (dict[str, Any]): Detector specific parameters and its axes.
+        module (dict[str, Any]): Geometry and description of detector module.
+        source (dict[str, Any]): Facility information.
+        beam (dict[str, Any]): Beam properties.
+        attenuator (dict[str, Any]): Attenuator properties.
         metafile (bool, optional): Whether a metafile is present. Defaults to False.
-        timestamps (Tuple[str], optional): Start and end collection timestamps in ISO format. Defaults to None.
-        notes (Dict, optional): Any additional information to write as NXnote. Defaults to None.
+        timestamps (tuple[str], optional): Start and end collection timestamps in ISO format. Defaults to None.
+        notes (dict, optional): Any additional information to write as NXnote. Defaults to None.
     """
     logger.info("Calling the writer ...")
     nxsfile = coerce_to_path(nxsfile)

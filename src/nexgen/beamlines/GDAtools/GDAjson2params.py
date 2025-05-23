@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Dict, List, Tuple
 
 from nexgen.nxs_utils import Axis, EigerDetector, TransformationType, TristanDetector
 from nexgen.nxs_utils.detector import DetectorType, UnknownDetectorTypeError
@@ -20,7 +19,7 @@ class JSONParamsIO:
         self.json_file = json_file
         self.params = self._read_file()
 
-    def _read_file(self) -> Dict:
+    def _read_file(self) -> dict:
         with open(self.json_file, "r") as fh:
             params = json.load(fh)
         return params
@@ -35,7 +34,7 @@ class JSONParamsIO:
         """Get the coordinate frame from geometry json file."""
         return self.params["geometry"]
 
-    def get_goniometer_axes_from_file(self) -> List[Axis]:
+    def get_goniometer_axes_from_file(self) -> list[Axis]:
         """Read the axes information from the GDA-supplied json file."""
         axes_list = []
         for v in self.params.values():
@@ -51,7 +50,7 @@ class JSONParamsIO:
                 )
         return axes_list
 
-    def get_detector_axes_from_file(self) -> List[Axis]:
+    def get_detector_axes_from_file(self) -> list[Axis]:
         """Read the detector axes information from the GDA-supplied json file."""
         axes_list = []
         for v in self.params.values():
@@ -116,7 +115,7 @@ class JSONParamsIO:
     def get_fast_and_slow_direction_vectors_from_file(
         self,
         det_type: str,
-    ) -> Tuple[Point3D, Point3D]:
+    ) -> tuple[Point3D, Point3D]:
         """Read detector fast and slow axes from the GDA-supplied json file."""
         det_name = "eiger" if "eiger" in det_type.lower() else "tristan"
         det_params = self.params[det_name]

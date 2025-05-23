@@ -8,7 +8,7 @@ import logging
 import re
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, NamedTuple, Tuple
+from typing import NamedTuple
 
 import h5py
 import numpy as np
@@ -53,7 +53,7 @@ def coerce_to_path(filename: Path | str):
     return filename
 
 
-def find_in_dict(key: str, params_dict: Dict):
+def find_in_dict(key: str, params_dict: dict):
     if key in list(params_dict.keys()):
         return True
     return False
@@ -134,7 +134,7 @@ def get_nexus_filename(input_filename: Path | str, copy: bool = False) -> Path:
     return nxs_filename
 
 
-def walk_nxs(nxs_obj: h5py.File | h5py.Group) -> List[str]:
+def walk_nxs(nxs_obj: h5py.File | h5py.Group) -> list[str]:
     """
     Walk all the groups, subgroups and datasets of an object.
 
@@ -142,7 +142,7 @@ def walk_nxs(nxs_obj: h5py.File | h5py.Group) -> List[str]:
         nxs_obj (h5py.File | h5py.Group): Object to walk through, could be a file or a group.
 
     Returns:
-        obj_list (List[str]): List of objects found, as strings.
+        obj_list (list[str]): List of objects found, as strings.
     """
     obj_list = []
     nxs_obj.visit(obj_list.append)
@@ -272,30 +272,30 @@ def get_iso_timestamp(ts: str | float | None) -> str:
     return ts_iso
 
 
-def imgcif2mcstas(vector: List | Tuple | ArrayLike) -> Tuple:
+def imgcif2mcstas(vector: list | tuple | ArrayLike) -> tuple:
     """
     Convert from the standard coordinate frame used by imgCIF/CBF to the
     NeXus McStas coordinate system.
 
     Args:
-        vector (List | Tuple | np.array): Coordinates to be converted.
+        vector (list | tuple | np.array): Coordinates to be converted.
 
     Returns:
-        Tuple: Converted coordinate values.
+        tuple: Converted coordinate values.
     """
     c2n = np.array([[-1, 0, 0], [0, 1, 0], [0, 0, -1]])
     return tuple(np.dot(c2n, vector))
 
 
-def coord2mcstas(vector: List | Tuple | ArrayLike, mat: ArrayLike) -> Tuple:
+def coord2mcstas(vector: list | tuple | ArrayLike, mat: ArrayLike) -> tuple:
     """
     General conversion from a new coordinate convention to the NeXus McStas coordinate system.
 
     Args:
-        vector (List | Tuple | np.array): Coordinates to be converted.
+        vector (list | tuple | np.array): Coordinates to be converted.
         mat (np.ndarray): Coordinate transformation matrix.
 
     Returns:
-        Tuple: Converted coordinate values
+        tuple: Converted coordinate values
     """
     return tuple(np.dot(mat, vector))
