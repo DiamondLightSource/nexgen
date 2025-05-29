@@ -7,50 +7,16 @@ from __future__ import annotations
 import argparse
 import glob
 import logging
-import sys
 from pathlib import Path
-
-import freephil
 
 from .. import log
 from ..beamlines.ED_params import ED_coord_system
 from ..beamlines.ED_singla_nxs import singla_nexus_writer
 from ..nxs_utils import Axis, TransformationType
-from . import config_parser, nexus_parser, version_parser
+from . import config_parser, version_parser
+from .cli_config import CliConfig
 
 logger = logging.getLogger("nexgen.EDNeXusGeneratorCLI")
-
-ED_phil = freephil.parse(
-    """
-    input {
-      datafiles = None
-        .type = path
-        .help = "List of input data files."
-      vds_writer = None *dataset file
-        .type = choice
-        .help = "If not None, write vds along with external link to data in NeXus file, or create _vds.h5 file."
-      n_imgs = None
-        .type = int
-        .help = "Total number of images collected."
-      convert_to_mcstas = False
-        .type = bool
-        .help = "Convert vectors to mcstas if required. Defaults to False."
-    }
-
-    include scope nexgen.command_line.nxs_phil.goniometer_scope
-
-    include scope nexgen.command_line.nxs_phil.instrument_scope
-
-    include scope nexgen.command_line.nxs_phil.detector_scope
-
-    include scope nexgen.command_line.nxs_phil.module_scope
-
-    include scope nexgen.command_line.nxs_phil.timestamp_scope
-
-    include scope nexgen.command_line.nxs_phil.coord_system_scope
-    """,
-    process_includes=True,
-)
 
 usage = "%(prog)s <sub-command> [options]"
 parser = argparse.ArgumentParser(
@@ -74,18 +40,15 @@ def write_from_SINGLA(args):
     )
 
 
-def write_from_SINGLA_with_phil(args):
-    cl = ED_phil.command_line_argument_interpreter()
-    working_phil = ED_phil.fetch(cl.process_and_fetch(args.phil_args))
-    params = working_phil.extract()
-
-    if args.show_config:
-        working_phil.show(attributes_level=args.attributes_level)
-        sys.exit()
+def write_from_SINGLA_from_config(args):
+    if not args.config:
+        raise IOError(
+            "Please pass a YAML/JSON file with the configuration to use this functionality."
+        )
+    params = CliConfig.from_file(args.config)
 
     datafiles = [
-        Path(f).expanduser().resolve()
-        for f in sorted(glob.glob(params.input.datafiles))
+        Path(f).expanduser().resolve() for f in sorted(glob.glob(args.datafiles))
     ]
 
     logger.warning("Have you checked the coordinate system convention?\n")
@@ -107,10 +70,10 @@ def write_from_SINGLA_with_phil(args):
         ED_coord_system["origin"] = tuple(params.coord_system.origin)
 
     if params.coord_system.vectors:
-        from .cli_utils import split_arrays
+        vectors = {}
+        for v, ax in zip(params.coord_system.vectors, ["x", "y", "z"]):
+            vectors[ax] = v
 
-        # Note: setting to coordinate frame to avoid any conversions.
-        vectors = split_arrays(["x", "y", "z"], params.coord_system.vectors)
         logger.info(
             f"New vectors defined for {params.coord_system.convention} coordinate system."
         )
@@ -126,38 +89,37 @@ def write_from_SINGLA_with_phil(args):
 
     # Source info from cli
     new_source = {
-        "name": params.source.name,
-        "facility_id": params.source.facility_id,
-        "beamline": params.source.beamline_name,
+        "name": params.source.facility.name,
+        "facility_id": params.source.facility.id,
+        "beamline": params.source.beamline,
         "probe": params.source.probe,
     }
 
     # Find scan axis in parsed values
     scan_idx = [
         n
-        for n in range(len(params.goniometer.axes))
-        if params.goniometer.types[n] == "rotation"
+        for n, ax in enumerate(params.gonio.axes)
+        if ax.transformation_type == "rotation"
     ][0]
     scan_info = [
-        params.goniometer.axes[scan_idx],
-        params.goniometer.starts[scan_idx],
-        params.goniometer.increments[scan_idx],
+        params.gonio.axes[scan_idx].name,
+        params.gonio.axes[scan_idx].start_pos,
+        params.gonio.axes[scan_idx].increment,
     ]
 
     singla_nexus_writer(
         args.master,
-        params.detector.starts[0],
-        params.detector.exposure_time,
+        params.det.axes[0].start_pos,
+        params.det.exposure_time,
         ED_coord_system,
         datafiles,
-        params.input.convert_to_mcstas,
-        n_imgs=params.input.n_imgs,
+        args.convert,
+        n_imgs=args.n_imgs,
         scan_axis=scan_info,
-        beam_center=params.detector.beam_center,
-        wavelength=params.beam.wavelength,
+        beam_center=params.det.beam_center,
+        wavelength=params.instrument.beam.wavelength,
         outdir=args.output,
         new_source_info=new_source,
-        vds_writer=params.input.vds_writer,
     )
 
 
@@ -244,16 +206,33 @@ singla1_parser.set_defaults(func=write_from_SINGLA)
 singla2_parser = subparsers.add_parser(
     "singla-phil",
     description=("Trigger NeXus file writing for Singla data, using a phil parser."),
-    parents=[nexus_parser, config_parser, output_parser],
+    parents=[config_parser, output_parser],
 )
 singla2_parser.add_argument(
-    "-m",
-    "--master",
+    "master",
     type=str,
     required=True,
     help="HDF5 master file written by Singla detector.",
 )
-singla2_parser.set_defaults(func=write_from_SINGLA_with_phil)
+singla2_parser.add_argument(
+    "datafiles",
+    type=str,
+    nargs="+",
+    required=True,
+    help="List of input data files with full path",
+)
+singla2_parser.add_argument(
+    "-n",
+    "-n-imgs",
+    type=int,
+    help="Total number of images collected.",
+)
+singla2_parser.add_argument(
+    "--convert",
+    action="store_true",
+    help="If passed, convert vectors to mcstas if required.",
+)
+singla2_parser.set_defaults(func=write_from_SINGLA_from_config)
 
 
 def main():

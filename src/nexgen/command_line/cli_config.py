@@ -72,7 +72,7 @@ class CliConfig(BaseModel):
     instrument: InstrumentConfig
     det: DetectorConfig
     sample: Sample | None = None
-    coord: CoordSystemConfig | None = None
+    coord_system: CoordSystemConfig | None = None
 
     @classmethod
     def from_file(cls, filename: str | Path):

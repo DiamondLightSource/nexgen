@@ -15,6 +15,12 @@ version_parser.add_argument(
 
 config_parser = argparse.ArgumentParser(add_help=False)
 config_parser.add_argument(
+    "--config",
+    type=str,
+    help="A YAML or JSON file with the configuration paramters.",
+)
+# TODO Delete
+config_parser.add_argument(
     "-c",
     "--show-config",
     action="store_true",
