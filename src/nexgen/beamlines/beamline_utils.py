@@ -76,7 +76,11 @@ def collection_summary_log(
 ):
     """General function to log a collection summary."""
     logger.debug("--- COLLECTION SUMMARY ---")
-    logger.debug(source.__repr__())
+    msg = f"Facility: {source.facility.name} - {source.facility.type}. \n\t"
+    msg += f"Beamline / instrument: {source.beamline} \n\t"
+    if source.probe:
+        msg += f"Probe: {source.probe}"
+    logger.debug(f"Source information: \n\t{msg}")
 
     logger.debug(f"Incident beam wavelength: {beam.wavelength}")
     logger.debug(f"Attenuation: {attenuator.transmission}")
