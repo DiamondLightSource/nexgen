@@ -1,0 +1,39 @@
+gonio:
+  axes:
+    - name: omega
+      depends: "."
+      transformation_type: rotation
+      vector: [0,0,1]
+    - name: sam_x
+      depends: "omega"
+      transformation_type: translation
+      vector: [1,0,0]
+
+instrument:
+  beam:
+    wavelength: 0.6
+  source:
+    facility:
+      name: "Diamond"
+      short_name: "DLS"
+      type: "Synchrotron"
+      id: ""
+    beamline: "i19"
+
+det:
+  axes:
+    - name: det_z
+      depends: "."
+      transformation_type: translation
+      vector: [0,0,1]
+  params:
+    description: Eiger
+    image_size: [100, 200]
+    sensor_material: Si
+    overload: 65535
+    underload: -1
+  beam_center: [2, 2]
+  exposure_time: 0.01
+  module:
+    fast_axis: [0,1,0]
+    slow_axis: [-1,0,0]
