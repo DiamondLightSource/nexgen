@@ -16,39 +16,30 @@ class Facility(NamedTuple):
     name: str
     short_name: str
     type: str
-    id: str
+    id: str | None = None
 
 
+@dataclass
 class Source:
     """Source definition."""
 
-    def __init__(
-        self,
-        beamline: str,
-        facility: Facility = Facility(
-            "Diamond Light Source",
-            "DLS",
-            "Synchrotron X-ray Source",
-            None,
-        ),
-        probe: str | None = None,
-    ):
-        self.beamline = beamline
-
-        self.name = facility.name
-        self.short_name = facility.short_name
-        self.facility_type = facility.type
-        self.facility_id = facility.id
-
-        self.probe = probe
+    beamline: str
+    facility: Facility = Facility(
+        "Diamond Light Source",
+        "DLS",
+        "Synchrotron X-ray Source",
+        None,
+    )
+    probe: str | None = None
 
     def __repr__(self) -> str:
-        msg = f"Facility: {self.name} - {self.facility_type}. \n\t"
+        msg = f"Facility: {self.facility.name} - {self.facility.type}. \n\t"
         msg += f"Beamline / instrument: {self.beamline} \n\t"
         if self.probe:
             msg += "Probe: {}"
         return f"Source information: \n\t{msg}"
 
+    @property
     def set_instrument_name(self) -> str:
         """Set the instrument name from the details saved in source.
 
@@ -60,27 +51,24 @@ class Source:
         Returns:
             name (str): The name to write under '/entry/instrument/name'
         """
-        facility_id = "DIAMOND" if self.facility_id is None else self.facility_id
+        facility_id = "DIAMOND" if not self.facility.id else self.facility.id
 
-        if (
-            self.facility_type is None
-            or "SYNCHROTRON" not in self.facility_type.upper()
-        ):
+        if not self.facility.type or "SYNCHROTRON" not in self.facility.type.upper():
             return f"{facility_id} {self.beamline}"
         else:
             return f"{facility_id} BEAMLINE {self.beamline}"
 
     def _generate_source_dict(self):
         source = {
-            "name": self.name,
-            "type": self.facility_type,
-            "short_name": self.short_name,
+            "name": self.facility.name,
+            "type": self.facility.type,
+            "short_name": self.facility.short_name,
             "beamline_name": self.beamline,
         }
         if self.probe:
             source["probe"] = self.probe
-        if self.facility_id:
-            source["facility_id"] = self.facility_id
+        if self.facility.id:
+            source["facility_id"] = self.facility.id
         return source
 
     def to_dict(self):

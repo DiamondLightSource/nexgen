@@ -314,9 +314,9 @@ def write_NXinstrument(
     )
 
     # Write /name field and relative attribute
-    NXclass_logger.debug(f"{source.short_name} {source.beamline}")
+    NXclass_logger.debug(f"{source.facility.short_name} {source.beamline}")
     name_str = (
-        source.set_instrument_name()
+        source.set_instrument_name
         if reset_instrument_name
         else f"DIAMOND BEAMLINE {source.beamline}"
     )
@@ -324,7 +324,7 @@ def write_NXinstrument(
     create_attributes(
         nxinstrument["name"],
         ("short_name",),
-        (f"{source.short_name} {source.beamline}",),
+        (f"{source.facility.short_name} {source.beamline}",),
     )
 
     NXclass_logger.debug("Write NXattenuator and NXbeam.")
@@ -397,9 +397,9 @@ def write_NXsource(nxsfile: h5py.File, source: Source):
         ("NXsource",),
     )
 
-    nxsource.create_dataset("name", data=np.bytes_(source.name))
-    create_attributes(nxsource["name"], ("short_name",), (source.short_name,))
-    nxsource.create_dataset("type", data=np.bytes_(source.facility_type))
+    nxsource.create_dataset("name", data=np.bytes_(source.facility.name))
+    create_attributes(nxsource["name"], ("short_name",), (source.facility.short_name,))
+    nxsource.create_dataset("type", data=np.bytes_(source.facility.type))
     if source.probe:
         nxsource.create_dataset("probe", data=np.bytes_(source.probe))
 

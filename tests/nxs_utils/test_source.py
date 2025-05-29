@@ -49,10 +49,10 @@ def test_attenuator():
 
 def test_source():
     assert test_beamline_source.beamline == "I03"
-    assert test_beamline_source.name == "Diamond Light Source"
+    assert test_beamline_source.facility.name == "Diamond Light Source"
     assert test_beamline_source.probe is None
 
-    assert test_beamline_source.set_instrument_name() == "DIAMOND BEAMLINE I03"
+    assert test_beamline_source.set_instrument_name == "DIAMOND BEAMLINE I03"
 
 
 def test_dource_to_dict():
@@ -64,9 +64,9 @@ def test_dource_to_dict():
 
 def test_source_for_ed():
     assert test_ed_source.beamline == "m12"
-    assert test_ed_source.facility_type == "Electron Source"
+    assert test_ed_source.facility.type == "Electron Source"
     assert test_ed_source.probe == "electrons"
 
-    assert test_ed_source.set_instrument_name() == "DIAMOND MICROSCOPE m12"
+    assert test_ed_source.set_instrument_name == "DIAMOND MICROSCOPE m12"
 
     assert test_ed_source._generate_source_dict()["facility_id"] == "DIAMOND MICROSCOPE"

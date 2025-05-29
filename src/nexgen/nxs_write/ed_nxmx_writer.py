@@ -132,7 +132,7 @@ class EDNXmxFileWriter:
         self._check_coordinate_frame()
 
         # Get the instrument name
-        instrument_name = self.source.set_instrument_name()
+        instrument_name = self.source.set_instrument_name
         edwriter_logger.info(f"Instrument name will be set as {instrument_name}.")
 
         # NXcoordinate_system_set: /entry/coordinate_system_set
