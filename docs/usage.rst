@@ -38,10 +38,6 @@ This help message will be printed by using the option `-h`, or `--help`, and eac
 
 .. code-block:: console
 
-    copy_nexus --help
-
-.. code-block:: console
-
     generate_nexus demo -h
 
 
@@ -177,28 +173,3 @@ For both CLI tools, in case there is a need to save the NeXus file in a differen
 .. code-block:: console
 
     -o /path/to/new/directory
-
-
-Copying NeXus files
-===================
-
- - Copy a nexus file in full, or just parts of it. T
-
-    This tool will create a new file File_copy.nxs, in order to avoid modifying the orifinal data, with just the requested metadata.
-
-    .. code-block:: console
-
-        copy_nexus gen input.original_nexus=File.nxs input.simple_copy=True
-
-    .. code-block:: console
-
-        copy_nexus gen original_nexus=File.nxs data_filename=File_0001.h5 skip=NXdata skip=NXsample
-
- - Copy metadata from a Tristan NeXus file to NXmx format.
-
-    The main application fo this tool is to copy the necessary metadata to a new NeXus file following the NXmx format after binning event data into images.
-    The default `experiment_type` for copying Tristan metadata is set to rotation; when dealing with a single image, this value can be set to stationary like in the example below.
-
-    .. code-block:: console
-
-        copy_nexus tristan tristan_nexus=Tristan_img.nxs data_filename=Tristan_img_0001.h5 experiment_type=stationary
