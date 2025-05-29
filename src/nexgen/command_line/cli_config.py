@@ -1,5 +1,7 @@
+from pathlib import Path
 from typing import Literal
 
+import yaml
 from pydantic import BaseModel, field_validator
 
 from ..nxs_utils import Attenuator, Axis, Beam, DetectorType, Sample, Source
@@ -10,6 +12,10 @@ from ..nxs_utils.detector import (
     SinglaDetector,
     TristanDetector,
 )
+from ..utils import coerce_to_path
+
+JSON_EXT = ".json"
+YAML_EXT = ".yaml"
 
 
 class GonioConfig(BaseModel):
@@ -67,3 +73,17 @@ class CliConfig(BaseModel):
     det: DetectorConfig
     sample: Sample | None = None
     coord: CoordSystemConfig | None = None
+
+    @classmethod
+    def from_file(cls, filename: str | Path):
+        config_file = coerce_to_path(filename)
+        if config_file.suffix == JSON_EXT:
+            _raw_params = config_file.read_text()
+            config = cls.model_validate_json(_raw_params)
+        elif config_file.suffix == YAML_EXT:
+            with open(config_file) as fh:
+                _raw_params = yaml.load(fh, yaml.Loader)
+            config = cls(**_raw_params)
+        else:
+            raise IOError("Please pass a valid json or yaml file.")
+        return config

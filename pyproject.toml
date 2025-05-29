@@ -25,6 +25,7 @@ dependencies = [
     "scanspec",
     "pydantic",
     "mrcfile>=1.5.3",
+    "PyYAML>=6.0.2",
 ]
 license.file = "LICENSE"
 readme = "README.rst"
