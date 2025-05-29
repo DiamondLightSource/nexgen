@@ -58,39 +58,6 @@ Th default value is set to 0, which will only show names and default values of t
     generate_nexus 1 -c -a 2
 
 
-Creating a new .phil file
-=========================
-
-Writing the full list of parameters on the command line each time can be time consuming, not to mention subject to typing errors and the like.
-For this purpose, it is possible to generate one reusable Phil file containing the beamline description and those values from the experiment
-metadata that can be considered constant.
-
-Nexgen already includes Phil files for some MX beamlines at Diamond Light Source, which can be viewed and downloaded by running ``nexgen_phil`` with the ``list`` and ``get`` options.
-For example, the command
-
-.. code-block:: console
-
-    nexgen_phil list
-
-will return a list of the .phil files currently available, and che chosen file can be downloaded by running:
-
-.. code-block:: console
-
-    nexgen_phil get paramfile.phil -o  /path/to/directory
-
-In case a .phil file for a specific beamline is not in the list, it is possible to either download a blank template (also listed) to fill in manually or create on using the ``new`` option. While this is a bit more cumbersome,
-it has the advantage of only needing to write most of the parameters once. Once the file is created it can be parsed by ``generate_nexus``, eg.
-
-.. code-block:: console
-
-    generate_nexus 2 -i paramfile.phil output.master_filename=File.nxs input.vds_writer=dataset
-
-To access the help message for ``nexgen_phil``:
-
-.. code-block:: console
-
-    nexgen_phil -h
-
 Generating new NeXus files
 ==========================
 
@@ -128,7 +95,7 @@ Example usage for a dataset collected on Dectris Singla 1M detector using a phil
 
 .. code-block:: console
 
-    ED_nexus singla-phil ED_Singla.phil input.datafiles=FILE_data_*.h5 goniometer.starts=0,0,0,0 \
+    ED_nexus singla-phil ED_Singla.yaml input.datafiles=FILE_data_*.h5 goniometer.starts=0,0,0,0 \
     goniometer.ends=900,0,0,0 goniometer.increments=1,0,0,0 detector.starts=400 detector.beam_center=1,1 \
     -m FILE_master.h5
 
