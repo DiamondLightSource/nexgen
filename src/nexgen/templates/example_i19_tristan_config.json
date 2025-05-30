@@ -37,18 +37,18 @@
                 "num_steps": 80
             },
             {
-                "name": "sam_x",
+                "name": "sam_z",
                 "depends": "phi",
                 "transformation_type": "translation",
                 "vector": [
-                    1.0,
                     0.0,
-                    0.0
+                    0.0,
+                    1.0
                 ]
             },
 	    {
                 "name": "sam_y",
-                "depends": "sam_x",
+                "depends": "sam_z",
                 "transformation_type": "translation",
                 "vector": [
                     0.0,
@@ -57,13 +57,13 @@
                 ]
             },
             {
-                "name": "sam_z",
+                "name": "sam_x",
                 "depends": "sam_y",
                 "transformation_type": "translation",
                 "vector": [
+                    1.0,
                     0.0,
-                    0.0,
-                    1.0
+                    0.0
                 ]
             }
         ]
