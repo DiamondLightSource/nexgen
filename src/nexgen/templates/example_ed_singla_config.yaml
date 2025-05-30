@@ -1,0 +1,53 @@
+gonio:
+  axes:
+    - name: alpha
+      depends: "."
+      transformation_type: rotation
+      vector: [-1,0,0]
+    - name: sam_z
+      depends: "alpha"
+      transformation_type: translation
+      vector: [0,0,1]
+    - name: sam_y
+      depends: "sam_z"
+      transformation_type: translation
+      vector: [0,1,0]
+    - name: sam_x
+      depends: "sam_y"
+      transformation_type: translation
+      vector: [1,0,0]
+
+instrument:
+  beam:
+    wavelength: 0.02
+  source:
+    beamline: "eBIC"
+    facility:
+      name: "Diamond Light Source"
+      short_name: "DLS"
+      type: "Electron Source"
+      id: "DIAMOND MICROSCOPE"
+    probe: "electron"
+
+det:
+  axes:
+    - name: det_z
+      depends: "."
+      transformation_type: translation
+      vector: [0,0,1]
+  params:
+    description: Singla 1M
+    image_size: [1062, 1028]
+    sensor_material: Si
+    overload: 199996
+    underload: -1
+  beam_center: [1134, 1458]
+  exposure_time: 0.01
+  module:
+    fast_axis: [-1,0,0]
+    slow_axis: [0,-1,0]
+
+coord_system:
+  convention: null
+  origin: null
+  vectors: null
