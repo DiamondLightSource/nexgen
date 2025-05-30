@@ -1,7 +1,7 @@
 # CHANGELOG
 
 
-## 0.10.1
+## 0.11.0
 
 ### Changed
 - Implement more pydantic dataclasses
