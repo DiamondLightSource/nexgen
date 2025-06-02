@@ -7,7 +7,6 @@ import pytest
 from nexgen.nxs_utils import Axis, TransformationType
 from nexgen.tools.meta_reader import (
     define_vds_data_type,
-    overwrite_beam,
     update_axes_from_meta,
 )
 from nexgen.tools.metafile import DectrisMetafile, TristanMetafile
@@ -99,11 +98,6 @@ def test_Eiger_meta_file(dummy_eiger_meta_file):
         "phi_increment": 0.1,
         "phi_start": 0.0,
     }
-
-
-def test_overwrite_beam(dummy_eiger_meta_file):
-    overwrite_beam(dummy_eiger_meta_file, "Eiger", test_beam)
-    assert test_beam["wavelength"] == 0.6
 
 
 def test_define_vds_shape(dummy_eiger_meta_file):
