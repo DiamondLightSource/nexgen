@@ -16,7 +16,6 @@ classifiers = [
 ]
 keywords = ["nexus", "NXmx"]
 dependencies = [
-    "freephil",
     "h5py",
     "hdf5plugin>=4.0.1",
     "numpy",
