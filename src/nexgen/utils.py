@@ -13,7 +13,6 @@ from typing import NamedTuple
 import h5py
 import numpy as np
 import pint
-from freephil.common import scope_extract as ScopeExtract  # Define scope extract type
 from numpy.typing import ArrayLike
 
 __all__ = [
@@ -23,7 +22,6 @@ __all__ = [
     "units_of_length",
     "units_of_time",
     "get_iso_timestamp",
-    "ScopeExtract",
     "create_directory",
 ]
 

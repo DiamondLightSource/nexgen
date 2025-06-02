@@ -4,9 +4,13 @@
 ## 0.11.0
 
 ### Changed
+- Command line tools completely refactored, now using json/yaml for input. For more info, see docs.
 - Implement more pydantic dataclasses
 - Update typing
 
+
+### Removed
+- Dependency on freephil.
 
 ## 0.10.0
 
