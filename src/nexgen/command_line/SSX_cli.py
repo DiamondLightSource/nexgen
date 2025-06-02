@@ -9,16 +9,14 @@ from pathlib import Path
 from .. import log
 from ..beamlines.SSX_chip import CHIP_DICT_DEFAULT
 from ..beamlines.SSX_Eiger_nxs import ssx_eiger_writer
-from ..utils import P
-from . import version_parser
+from .parse_utils import ImportCollectAction, version_parser
 
 logger = logging.getLogger("nexgen.SSX_cli")
 
-usage = "%(prog)s <sub-command> collection-data [options]"
+usage = "%(prog)s <sub-command> collection_meta.h5 [options]"
 parser = argparse.ArgumentParser(
     usage=usage, description=__doc__, parents=[version_parser]
 )
-parser.add_argument("--debug", action="store_const", const=True)
 
 
 def eiger_collection(args):
@@ -43,28 +41,12 @@ def eiger_collection(args):
     )
 
 
-# Define a parser for the basic collection parameters
-class _ImportCollect(argparse.Action):
-    def __call__(self, parser, namespace, values, option_string=None):
-        input_file, visitpath, filename_root = self.find_import_args(values)
-        setattr(namespace, self.dest, input_file)
-        setattr(namespace, "visitpath", visitpath)
-        setattr(namespace, "filename_root", filename_root)
-
-    @staticmethod
-    def find_import_args(val) -> tuple[str]:
-        input_file = Path(val).expanduser().resolve()
-        visitpath = input_file.parent
-        filename_root = P.fullmatch(input_file.stem)[1]
-        return input_file, visitpath, filename_root
-
-
 collect_parser = argparse.ArgumentParser(add_help=False)
 # Get visitpath and filename_root out of meta file
 collect_parser.add_argument(
     "input_file",
     type=str,
-    action=_ImportCollect,
+    action=ImportCollectAction,
     help="Path to _meta.h5 or _000001.h5 file.",
 )
 collect_parser.add_argument(

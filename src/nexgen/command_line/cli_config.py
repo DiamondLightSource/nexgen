@@ -20,6 +20,9 @@ YAML_EXT = ".yaml"
 
 class GonioConfig(BaseModel):
     axes: list[Axis]
+    scan_axis: str | None = None  # only really needed for events
+    scan_type: Literal["rotation", "grid"] = "rotation"
+    snaked_scan: bool = False
 
 
 class InstrumentConfig(BaseModel):

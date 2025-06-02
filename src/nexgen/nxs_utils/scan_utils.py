@@ -5,9 +5,8 @@ Utilities to look for scan axes and calculate scan ranges from a list of Axis ob
 from __future__ import annotations
 
 import logging
-from collections import namedtuple
 from enum import IntEnum
-from typing import Dict, List
+from typing import Dict, List, NamedTuple
 
 from numpy.typing import ArrayLike
 from scanspec.core import Path as ScanPath
@@ -17,11 +16,18 @@ from .axes import Axis
 
 scan_logger = logging.getLogger("nexgen.ScanUtils")
 
+
 # Some options for grid scans
-GridScanOptions = namedtuple("GridScanOptions", ("axes_order", "snaked"))
-GridScanOptions.__doc__ = "Options for defining a grid scan"
-GridScanOptions.axes_order.__doc__ = "List of axes in order of (fast, slow)."
-GridScanOptions.snaked.__doc__ = "Boolean to say whether it's a snaked scan."
+class GridScanOptions(NamedTuple):
+    """Options for defining a grid scan.
+
+    Attributes:
+        axes_order (tuple[str, str]): List of axes in order of (fast, slow).
+        snaked (bool): Boolean to say whether it's a snaked scan.
+    """
+
+    axes_order: tuple[str, str]
+    snaked: bool
 
 
 class ScanDirection(IntEnum):

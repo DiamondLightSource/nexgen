@@ -26,7 +26,6 @@ usage = "%(prog)s <sub-command> [options]"
 parser = argparse.ArgumentParser(
     usage=usage, description=__doc__, parents=[version_parser]
 )
-parser.add_argument("--debug", action="store_const", const=True)
 
 
 def gda_writer(args):
