@@ -106,16 +106,6 @@ All the NXclass writers available can be found in:
     :members:
 
 
-Old tools
----------
-
-.. note::
-    Tools such as ScanReader and write_nexus_from_scope have been deprecated as of version `0.8.0`. The functionality of `call_writers` has also been changed.
-
-
-.. autofunction:: nexgen.command_line.cli_utils.call_writers
-
-
 
 Writing blank datasets
 ----------------------

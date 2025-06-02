@@ -26,8 +26,12 @@ Command line tools
 This package started out as an easy way to quickly generate NeXus files from scratch along with blank HDF5 datasets using command line tools.
 
 
-**Parsing**
-The `freephil <https://freephil.readthedocs.io/en/latest/>`_ package is used for parsing metadata from the command line.
+.. note::
+    NOTE ON PARSING
+
+    The command line tools have been refactored as of version ``0.11.0`` and no longer use `freephil <https://freephil.readthedocs.io/en/latest/>`_ 
+    because of dependencies issues with some packages being deprecated. Old tools are still available 
+    in older nexgen versions.
 
 
 Getting help
