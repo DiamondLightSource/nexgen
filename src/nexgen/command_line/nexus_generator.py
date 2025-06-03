@@ -45,7 +45,7 @@ def _get_datafiles(filepath: Path, filename_root: str) -> list[Path]:
     _file_template = filepath / f"{filename_root}_*.h5"
     datafiles = [
         Path(f).expanduser().resolve()
-        for f in glob.glob(_file_template)
+        for f in glob.glob(_file_template.as_posix())
         if "meta.h5" not in f
     ]
     return datafiles
@@ -57,7 +57,7 @@ def write_nxmx_cli(args):
     filepath = Path(args.visitpath)
     wdir = args.outdir if args.outdir else args.visitpath
     # Start logger
-    logfile = wdir.parent / "generate_nexus.log"
+    logfile = wdir / "generate_nexus.log"
     # Configure logging
     log.config(logfile.as_posix())
 
@@ -164,7 +164,7 @@ def write_nxmx_cli(args):
                 params.instrument.beam,
                 params.instrument.attenuator,
             )
-        writer.write()
+            writer.write()
     except Exception as err:
         logger.info(
             f"An error occurred and {master_file} couldn't be written correctly."
@@ -335,7 +335,7 @@ def write_demo_cli(args):
                 params.instrument.beam,
                 params.instrument.attenuator,
             )
-        writer.write(start_time=start_time)
+            writer.write(start_time=start_time)
     except Exception as err:
         logger.info(
             f"An error occurred and {master_file} couldn't be written correctly."

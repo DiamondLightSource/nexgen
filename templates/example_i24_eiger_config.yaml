@@ -31,6 +31,7 @@ det:
       depends: "."
       transformation_type: translation
       vector: [0,0,1]
+      start_pos: 1450.0
   params:
     description: Eiger2 X 9M
     image_size: [3262, 3108]
