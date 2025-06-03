@@ -35,6 +35,8 @@ from nexgen.utils import (
     units_of_time,
 )
 
+USAGE = "%(prog)s <sub-command> filename [options]"
+
 # Define a logger object
 logger = logging.getLogger("nexgen.NeXusGenerator")
 
@@ -345,7 +347,8 @@ def write_demo_cli(args):
 
 def _parse_cli() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Generate a new NeXus file for data collection.",
+        description=__doc__,
+        usage=USAGE,
         parents=[version_parser],
     )
     subparsers = parser.add_subparsers(
