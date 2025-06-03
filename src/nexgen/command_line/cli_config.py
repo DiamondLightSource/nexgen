@@ -37,6 +37,8 @@ class ModuleConfig(BaseModel):
 
 
 class DetectorConfig(BaseModel):
+    """Detector configuration for cli."""
+
     axes: list[Axis]
     params: DetectorType
     beam_center: list[float] | tuple[float, float]
@@ -71,6 +73,8 @@ class CoordSystemConfig(BaseModel):
 
 
 class CliConfig(BaseModel):
+    """General configuration model for command line tools."""
+
     gonio: GonioConfig
     instrument: InstrumentConfig
     det: DetectorConfig

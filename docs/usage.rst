@@ -129,5 +129,5 @@ implementing the following configuration schema:
 
 
 .. autopydantic_model:: nexgen.command_line.cli_config.CliConfig
-    :members:
+    :inherited-members: BaseModel
     :model-show-config-summary: True
