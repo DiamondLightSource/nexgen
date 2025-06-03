@@ -1,12 +1,16 @@
 # CHANGELOG
 
 
-## 0.10.1
+## 0.11.0
 
 ### Changed
-- Implement more pydantic dataclasses
-- Update typing
+- Command line tools completely refactored, now using json/yaml for input. For more info, see docs.
+- Replace dataclasses with pydantic dataclasses and use pydantic more generally for the model parameters.
+- Update typing.
 
+
+### Removed
+- Dependency on freephil.
 
 ## 0.10.0
 

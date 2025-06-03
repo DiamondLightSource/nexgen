@@ -106,16 +106,6 @@ All the NXclass writers available can be found in:
     :members:
 
 
-Old tools
----------
-
-.. note::
-    Tools such as ScanReader and write_nexus_from_scope have been deprecated as of version `0.8.0`. The functionality of `call_writers` has also been changed.
-
-
-.. autofunction:: nexgen.command_line.cli_utils.call_writers
-
-
 
 Writing blank datasets
 ----------------------
@@ -226,3 +216,35 @@ Logging configuration
 
 .. automodule:: nexgen.log
     :members:
+
+
+
+.. _cli-config-section:
+
+CLI configuration
+=================
+
+
+.. autopydantic_model:: nexgen.command_line.cli_config.CliConfig
+    :inherited-members: BaseModel
+    :model-show-config-summary: True
+
+
+.. autopydantic_model:: nexgen.command_line.cli_config.GonioConfig
+    :model-show-config-summary: False
+
+
+.. autopydantic_model:: nexgen.command_line.cli_config.InstrumentConfig
+    :model-show-config-summary: False
+
+
+.. autopydantic_model:: nexgen.command_line.cli_config.DetectorConfig
+    :model-show-config-summary: False
+
+
+.. autopydantic_model:: nexgen.command_line.cli_config.ModuleConfig
+    :model-show-config-summary: False
+
+
+.. autopydantic_model:: nexgen.command_line.cli_config.CoordSystemConfig
+    :model-show-config-summary: False
