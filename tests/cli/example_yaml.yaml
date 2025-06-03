@@ -1,0 +1,53 @@
+gonio:
+  axes:
+    - name: phi
+      depends: "."
+      transformation_type: rotation
+      vector: [-1,0,0]
+      start_pos: 10.0
+    - name: sam_z
+      depends: "phi"
+      transformation_type: translation
+      vector: [0,0,1]
+      start_pos: 0.0
+      increment: 0.125
+      num_steps: 20
+    - name: sam_x
+      depends: "sam_z"
+      transformation_type: translation
+      vector: [1,0,0]
+      start_pos: 0.0
+      increment: 0.125
+      num_steps: 20
+  scan_type: "grid"
+  snaked_scan: True
+
+instrument:
+  beam:
+    wavelength: [0.4, 0.6]
+    wavelength_weights: [0.1, 0.2]
+    flux: null
+  attenuator:
+    transmission: null
+  source:
+    beamline: "ixx"
+
+det:
+  axes:
+    - name: det_z
+      depends: "."
+      transformation_type: translation
+      vector: [0,0,1]
+      start_pos: 1350
+  params:
+    description: Eiger2 X 9M
+    image_size: [3262, 3108]
+    sensor_material: CdTe
+    overload: 65535
+    underload: -1
+  beam_center: [1134, 1458]
+  exposure_time: 0.01
+  module:
+    fast_axis: [-1,0,0]
+    slow_axis: [0,1,0]
+  

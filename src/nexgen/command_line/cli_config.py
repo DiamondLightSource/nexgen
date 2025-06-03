@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Literal
 
 import yaml
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator  # , ValidationError
 
 from ..nxs_utils import Attenuator, Axis, Beam, DetectorType, Sample, Source
 from ..nxs_utils.detector import (
@@ -61,7 +61,7 @@ class DetectorConfig(BaseModel):
             elif "ceta" in params["description"].lower():
                 return CetaDetector(**params)
             else:
-                raise ValueError("Undefined detector type")
+                raise ValueError("Unknown detector type")
 
 
 class CoordSystemConfig(BaseModel):
