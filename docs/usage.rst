@@ -77,30 +77,23 @@ Example usage for a dataset collected on Dectris Singla 1M detector using a phil
     ED_nexus singla-phil FILE_master.h5 FILE_data_01.h5 FILE_data_02.h5 (etc) --config ED_Singla.yaml 
 
 
-The instrument name and source are defined by the values parsed from source, which are shown in the following dictionary:
+The instrument name and source are defined by the values parsed from source, which can be defined in the config file as follows:
 
-.. code-block:: python
+.. code-block:: yaml
 
-    source = {
-        "name": "Diamond Light Source",
-        "short_name": "DLS",
-        "type": "Electron Source",
-        "beamline_name": "eBic",
-        "probe": "electron",
-    }
-
-
-.. note::
-    As of version `0.6.28`, the source type to go in the NXSource base class has been updated to `Electron Source`.
+    instrument:
+        source:
+            beamline: "eBIC"
+            facility:
+                name: "Diamond Light Source"
+                short_name: "DLS"
+                type: "Electron Source"
+                id: "DIAMOND MICROSCOPE"
+            probe: "electron"
 
 
-To specify a more specific name for the `/entry/instrument/name` field, the following command can be added to the command line:
-
-.. code-block:: console
-
-    source.facility_id="DIAMOND MICROSCOPE"
-
-which will result in the instrument name being set to `DIAMOND MICROSCOPE eBic` instead of `DIAMOND eBic`.
+Passing a facility id allows the user to specify a more specific name for the `/entry/instrument/name` field; 
+this will result in the instrument name being set to `DIAMOND MICROSCOPE eBic` instead of `DIAMOND eBic`.
 
 
 The downside of this option is that the external links to the data will now be saved using absolute paths instead of relative.
