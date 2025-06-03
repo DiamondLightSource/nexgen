@@ -129,4 +129,5 @@ implementing the following configuration schema:
 
 
 .. autopydantic_model:: nexgen.command_line.cli_config.CliConfig
+    :members:
     :model-show-config-summary: True
