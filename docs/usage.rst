@@ -46,22 +46,6 @@ This help message will be printed by using the option `-h`, or `--help`, and eac
 
 
 
-Show PHIL parameters
-====================
-In addition to the help message, it is possible to take a look at the list of phil parameters that can/need to be passed to the command line generator.
-
-.. code-block:: console
-
-    generate_nexus 3 -c
-
-It is also possible to view more details about the Phil parameters and definition attributes by setting the `attributes_level` parameter with the `-a` argument.
-Th default value is set to 0, which will only show names and default values of the parameters.
-
-.. code-block:: console
-
-    generate_nexus 1 -c -a 2
-
-
 Generating new NeXus files
 ==========================
 
@@ -69,26 +53,17 @@ Generating new NeXus files
 
     .. code-block:: console
 
-        generate_nexus 1 beamline.phil input.datafile=File_00*.h5 input.snaked=True \
-        goniometer.starts=0,0,0,0 goniometer.ends=0,0,1,2 goniometer.increments=0,0,0.1,0.2  \
-        detector.exposure_time=0.095 detector.beam_center=989.8,1419 detector.overload=65535 \
-        detector.starts=0,140 detector.ends=0,140 beam.wavelength=0.4859
+        generate_nexus 1 File_00_meta.h5 --config config_file.yaml -o /path/to/output/dir -nxs File_01.nxs
 
  - From scratch, along with blank data (demo)
 
     .. code-block:: console
 
-        generate_nexus 2 -i/-e beamline.phil output.master_filename=File.nxs input.vds_writer=dataset (etc...)
-
- - For an existing dataset which also has a meta.h5 file
-
-    .. code-block:: console
-
-        generate_nexus 3 beamline.phil input.metafile=File_meta.h5 input.vds_writer=dataset output.master_filename=/path/to/File.nxs
+        generate_nexus 2 File.nxs -n 3600 --config config_file.yaml --mask /path/to/mask/file
 
 
 .. note::
-    This functionality will only work properly for Eiger and Tristan detectors.
+    This functionality will only work properly for NXmx datasets.
 
 
 
@@ -99,9 +74,8 @@ Example usage for a dataset collected on Dectris Singla 1M detector using a phil
 
 .. code-block:: console
 
-    ED_nexus singla-phil ED_Singla.yaml input.datafiles=FILE_data_*.h5 goniometer.starts=0,0,0,0 \
-    goniometer.ends=900,0,0,0 goniometer.increments=1,0,0,0 detector.starts=400 detector.beam_center=1,1 \
-    -m FILE_master.h5
+    ED_nexus singla-phil FILE_master.h5 FILE_data_01.h5 FILE_data_02.h5 (etc) --config ED_Singla.yaml 
+
 
 The instrument name and source are defined by the values parsed from source, which are shown in the following dictionary:
 
@@ -144,3 +118,15 @@ For both CLI tools, in case there is a need to save the NeXus file in a differen
 .. code-block:: console
 
     -o /path/to/new/directory
+
+
+
+Configuration files
+===================
+
+The configuration files passed to the commanf line should be either ``yaml`` or ``json`` files,
+implementing the following configuration schema:
+
+
+.. autopydantic_model:: nexgen.command_line.cli_config.CliConfig
+    :model-show-config-summary: True
