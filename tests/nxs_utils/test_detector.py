@@ -1,4 +1,4 @@
-# import pytest
+import pytest
 from numpy.testing import assert_array_equal
 
 from nexgen.nxs_utils import (
@@ -13,52 +13,74 @@ from nexgen.nxs_utils import (
 )
 from nexgen.utils import Point3D
 
-det_axes = [
-    Axis("two_theta", ".", TransformationType.ROTATION, Point3D(1, 0, 0), 0.0),
-    Axis("det_z", "two_theta", TransformationType.TRANSLATION, Point3D(0, 0, 1), 500.0),
-]
 
-test_eiger = EigerDetector("Eiger2 1M", (1028, 1062), "Si", 10000, -1)
-test_tristan = TristanDetector("Tristan 1M", (515, 2069))
-test_jungfrau = JungfrauDetector("Jungfrau 1M", (1066, 1030))
-test_singla = SinglaDetector("Singla 1M", (1062, 1028))
-
-
-def test_eiger_detector():
-    assert test_eiger.description == "Eiger2 1M"
-    assert test_eiger.sensor_material == "Si"
-    assert test_eiger.sensor_thickness == "0.450mm"
-    assert test_eiger.pixel_size == ["0.075mm", "0.075mm"]
-    assert test_eiger.hasMeta is True
+@pytest.fixture
+def det_axes() -> list[Axis]:
+    return [
+        Axis("two_theta", ".", TransformationType.ROTATION, Point3D(1, 0, 0), 0.0),
+        Axis(
+            "det_z",
+            "two_theta",
+            TransformationType.TRANSLATION,
+            Point3D(0, 0, 1),
+            500.0,
+        ),
+    ]
 
 
-def test_tristan_detector():
-    assert test_tristan.description == "Tristan 1M"
-    assert test_tristan.sensor_material == "Si"
-    assert test_tristan.sensor_thickness == "0.5mm"
-    assert test_tristan.mode == "events"
-    assert test_eiger.hasMeta is True
+@pytest.fixture
+def eiger() -> EigerDetector:
+    return EigerDetector("Eiger2 1M", (1028, 1062), "Si", 10000, -1)
 
 
-def test_jungfrau_detector():
-    assert test_jungfrau.description == "Jungfrau 1M"
-    assert test_jungfrau.sensor_material == "Si"
-    assert test_jungfrau.sensor_thickness == "0.320mm"
-    assert test_jungfrau.hasMeta is False
-    assert isinstance(test_jungfrau.constants, dict)
+@pytest.fixture
+def tristan() -> TristanDetector:
+    return TristanDetector("Tristan 1M", (515, 2069))
 
 
-def test_singla_detector():
-    assert test_singla.description == "Singla 1M"
-    assert test_singla.sensor_thickness == "0.450mm"
-    assert test_singla.detector_type == "HPC"
-    assert test_singla.hasMeta is False
+@pytest.fixture
+def jungfrau() -> JungfrauDetector:
+    return JungfrauDetector("Jungfrau 1M", (1066, 1030))
 
 
-def test_detector_axes():
-    det = Detector(
-        test_eiger, det_axes, [100, 200], 0.1, [(0, 0, 1), Point3D(0, -1, 0)]
-    )
+@pytest.fixture
+def singla() -> SinglaDetector:
+    return SinglaDetector("Singla 1M", (1062, 1028))
+
+
+def test_eiger_detector(eiger: EigerDetector):
+    assert eiger.description == "Eiger2 1M"
+    assert eiger.sensor_material == "Si"
+    assert eiger.sensor_thickness == "0.450mm"
+    assert eiger.pixel_size == ["0.075mm", "0.075mm"]
+    assert eiger.hasMeta is True
+
+
+def test_tristan_detector(tristan: TristanDetector):
+    assert tristan.description == "Tristan 1M"
+    assert tristan.sensor_material == "Si"
+    assert tristan.sensor_thickness == "0.5mm"
+    assert tristan.mode == "events"
+    assert tristan.hasMeta is True
+
+
+def test_jungfrau_detector(jungfrau: JungfrauDetector):
+    assert jungfrau.description == "Jungfrau 1M"
+    assert jungfrau.sensor_material == "Si"
+    assert jungfrau.sensor_thickness == "0.320mm"
+    assert jungfrau.hasMeta is False
+    assert isinstance(jungfrau.constants, dict)
+
+
+def test_singla_detector(singla: SinglaDetector):
+    assert singla.description == "Singla 1M"
+    assert singla.sensor_thickness == "0.450mm"
+    assert singla.detector_type == "HPC"
+    assert singla.hasMeta is False
+
+
+def test_detector_axes(eiger: EigerDetector, det_axes: list[Axis]):
+    det = Detector(eiger, det_axes, [100, 200], 0.1, [(0, 0, 1), Point3D(0, -1, 0)])
     assert isinstance(det.detector_axes, list)
     assert det.detector_axes[0].name == "two_theta"
     assert det.detector_axes[1].name == "det_z"
@@ -68,28 +90,24 @@ def test_detector_axes():
     ]
 
 
-def test_get_detector_description():
-    eig = Detector(
-        test_eiger, det_axes, [100, 200], 0.1, [(0, 0, 1), Point3D(0, -1, 0)]
-    )
-    assert eig.get_detector_description() == test_eiger.description
+def test_get_detector_description(eiger: EigerDetector, det_axes: list[Axis]):
+    eig = Detector(eiger, det_axes, [100, 200], 0.1, [(0, 0, 1), Point3D(0, -1, 0)])
+    assert eig.get_detector_description() == eiger.description
 
 
-def test_get_detector_mode():
-    eig = Detector(
-        test_eiger, det_axes, [100, 200], 0.1, [(0, 0, 1), Point3D(0, -1, 0)]
-    )
+def test_get_detector_mode_for_eiger(eiger: EigerDetector, det_axes: list[Axis]):
+    eig = Detector(eiger, det_axes, [100, 200], 0.1, [(0, 0, 1), Point3D(0, -1, 0)])
     assert eig.get_detector_mode() == "images"
 
-    tr = Detector(
-        test_tristan, det_axes, [100, 200], 0.1, [(0, 0, 1), Point3D(0, -1, 0)]
-    )
+
+def test_get_detector_mode_for_tristan(tristan: TristanDetector, det_axes: list[Axis]):
+    tr = Detector(tristan, det_axes, [100, 200], 0.1, [(0, 0, 1), Point3D(0, -1, 0)])
     assert tr.get_detector_mode() == "events"
 
 
-def test_detector_to_module_dict():
+def test_detector_to_module_dict(eiger: EigerDetector, det_axes: list[Axis]):
     mod = Detector(
-        test_eiger, det_axes, [100, 200], 0.1, [(0, 0, 1), Point3D(0, -1, 0)]
+        eiger, det_axes, [100, 200], 0.1, [(0, 0, 1), Point3D(0, -1, 0)]
     ).get_module_info()
     assert isinstance(mod, dict)
     assert mod["module_offset"] == "1"

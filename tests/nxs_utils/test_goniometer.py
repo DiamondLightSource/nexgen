@@ -1,19 +1,21 @@
 import numpy as np
-
-# import pytest
+import pytest
 from numpy.testing import assert_array_equal
 
 from nexgen.nxs_utils import Axis, Goniometer, TransformationType
 
-axes_list = [
-    Axis("omega", ".", TransformationType.ROTATION, (0, 0, -1), 0.0),
-    Axis("sam_z", "omega", TransformationType.TRANSLATION, (0, 0, 1), 0.0),
-    Axis("sam_y", "sam_z", TransformationType.TRANSLATION, (0, 1, 0), 0.0, 0.1, 10),
-    Axis("sam_x", "sam_y", TransformationType.TRANSLATION, (1, 0, 0), 0.0, 0.1, 10),
-]
+
+@pytest.fixture
+def axes_list() -> list[Axis]:
+    return [
+        Axis("omega", ".", TransformationType.ROTATION, (0, 0, -1), 0.0),
+        Axis("sam_z", "omega", TransformationType.TRANSLATION, (0, 0, 1), 0.0),
+        Axis("sam_y", "sam_z", TransformationType.TRANSLATION, (0, 1, 0), 0.0, 0.1, 10),
+        Axis("sam_x", "sam_y", TransformationType.TRANSLATION, (1, 0, 0), 0.0, 0.1, 10),
+    ]
 
 
-def test_define_scan_from_gonio():
+def test_define_scan_from_gonio(axes_list):
     osc_scan, grid_scan = Goniometer(axes_list).define_scan_from_goniometer_axes()
     assert_array_equal(osc_scan["omega"], np.repeat(0.0, 100))
     assert "sam_x" in list(grid_scan.keys()) and "sam_y" in list(grid_scan.keys())
@@ -23,14 +25,14 @@ def test_define_scan_from_gonio():
     assert round(grid_scan["sam_x"][1] - grid_scan["sam_x"][0], 1) == 0.1
 
 
-def test_define_scan_given_a_rotation_scan():
+def test_define_scan_given_a_rotation_scan(axes_list):
     scan = {"omega": np.arange(0, 10, 1)}
     osc_scan, grid_scan = Goniometer(axes_list, scan).define_scan_from_goniometer_axes()
     assert grid_scan is None
     assert_array_equal(osc_scan["omega"], scan["omega"])
 
 
-def test_define_scan_given_a_grid_scan():
+def test_define_scan_given_a_grid_scan(axes_list):
     # For testing pusposes, reset number of images for omega
     axes_list[0].num_steps = 0
     axes_list[0].increment = 0
@@ -47,7 +49,7 @@ def test_define_scan_given_a_grid_scan():
     assert_array_equal(grid_scan["sam_x"], scan["sam_x"])
 
 
-def test_get_number_of_scan_points_given_a_scan():
+def test_get_number_of_scan_points_given_a_scan(axes_list):
     scan = {
         "sam_y": np.array([0, 0, 0, 1, 1, 1]),
         "sam_x": np.array([0, 1, 2, 2, 1, 0]),
@@ -75,21 +77,21 @@ def test_define_scan_axes_for_event_mode_given_scan():
     assert_array_equal(osc_scan["phi"], scan["phi"])
 
 
-def test_define_scan_axes_for_event_mode():
+def test_define_scan_axes_for_event_mode(axes_list):
     osc_scan, _ = Goniometer(
         [Axis("phi", ".", TransformationType.ROTATION, (0, 0, -1), 0.0), *axes_list[1:]]
     ).define_scan_axes_for_event_mode()
     assert_array_equal(osc_scan["phi"], (0, 0))
 
 
-def test_define_scan_axes_for_event_mode_given_new_end_position():
+def test_define_scan_axes_for_event_mode_given_new_end_position(axes_list):
     osc_scan, _ = Goniometer(axes_list).define_scan_axes_for_event_mode(
         end_position=180
     )
     assert_array_equal(osc_scan["omega"], (0, 180))
 
 
-def test_given_scan_gonio_positions_correctly_updated():
+def test_given_scan_gonio_positions_correctly_updated(axes_list):
     scan = {
         "sam_y": np.repeat(np.arange(0, 1.0, 0.2), 2),
         "sam_x": np.array(np.tile([1.0, 2.0], 5)),
@@ -103,7 +105,9 @@ def test_given_scan_gonio_positions_correctly_updated():
     assert axes_list[Xidx].num_steps == 2 and axes_list[Yidx].num_steps == 5
 
 
-def test_gonio_axes_have_correct_values_if_given_forward_or_reverse_rotation_scan():
+def test_gonio_axes_have_correct_values_if_given_forward_or_reverse_rotation_scan(
+    axes_list,
+):
     # Forward scan
     scan_fw = {"omega": np.arange(1, 2, 0.1)}
     gonio_fw = Goniometer(axes_list, scan_fw)

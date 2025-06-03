@@ -2,7 +2,12 @@ from pathlib import Path
 
 import pytest
 
-from nexgen.command_line.cli_config import CliConfig, DetectorConfig
+from nexgen.command_line.cli_config import (
+    CliConfig,
+    DetectorConfig,
+    GonioConfig,
+    InstrumentConfig,
+)
 from nexgen.nxs_utils import EigerDetector, TristanDetector
 
 
@@ -78,3 +83,56 @@ def test_cli_config_fails_to_load_wrong_file_extension():
     test_txt_file = Path("config.txt")
     with pytest.raises(IOError):
         CliConfig.from_file(test_txt_file)
+
+
+def test_gonio_config():
+    params = {
+        "axes": [
+            {
+                "name": "omega",
+                "depends": ".",
+                "transformation_type": "rotation",
+                "vector": (-1, 0, 0),
+                "start_pos": -90,
+                "increment": 0.1,
+                "num_steps": 10,
+            }
+        ],
+        "scan_axis": "omega",
+    }
+
+    gonio = GonioConfig(**params)
+
+    assert gonio.scan_axis == "omega"
+    assert len(gonio.axes) == 1
+    assert gonio.scan_type == "rotation"
+
+
+def test_instrument_config():
+    params = {
+        "beam": {
+            "wavelength": 0.6,
+            "flux": 10,
+        },
+        "attenuator": {
+            "transmission": 0.4,
+        },
+        "source": {
+            "beamline": "ixx-1",
+            "facility": {
+                "name": "Diamond Light Source",
+                "short_name": "DLS",
+                "type": "Synchrotron",
+                "id": "NEW ID",
+            },
+        },
+    }
+
+    instrument = InstrumentConfig(**params)
+
+    assert instrument.beam.wavelength == 0.6
+    assert not instrument.beam.wavelength_weights
+    assert instrument.attenuator.transmission == 0.4
+    assert instrument.source.beamline == "ixx-1"
+    assert instrument.source.facility.short_name == "DLS"
+    assert instrument.source.facility.id == "NEW ID"
