@@ -1,7 +1,6 @@
 from nexgen.beamlines.beamline_utils import BeamlineAxes, PumpProbe
 from nexgen.nxs_utils import Axis, TransformationType
 from nexgen.utils import Point3D
-from tests.beamlines.conftest import axes_list as gonio_axes
 
 
 def test_pump_probe():
@@ -24,9 +23,9 @@ def test_pump_probe_dict():
     assert pump_probe["pump_status"] is False
 
 
-def test_beamline_axes():
+def test_beamline_axes(i24_axes_list):
     bl = BeamlineAxes(
-        gonio=gonio_axes,
+        gonio=i24_axes_list,
         det_axes=[Axis("det_z", ".", TransformationType.TRANSLATION, (0, 0, 1))],
         fast_axis=(0, 1, 0),
         slow_axis=(1, 0, 0),

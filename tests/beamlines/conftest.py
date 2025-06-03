@@ -5,12 +5,15 @@ import pytest
 
 from nexgen.nxs_utils import Axis, TransformationType
 
-axes_list = [
-    Axis("omega", ".", TransformationType.ROTATION, (0, 0, -1)),
-    Axis("sam_z", "omega", TransformationType.TRANSLATION, (0, 0, 1)),
-    Axis("sam_y", "sam_z", TransformationType.TRANSLATION, (0, 1, 0)),
-    Axis("sam_x", "sam_y", TransformationType.TRANSLATION, (1, 0, 0)),
-]
+
+@pytest.fixture
+def i24_axes_list() -> list[Axis]:
+    return [
+        Axis("omega", ".", TransformationType.ROTATION, (0, 0, -1)),
+        Axis("sam_z", "omega", TransformationType.TRANSLATION, (0, 0, 1)),
+        Axis("sam_y", "sam_z", TransformationType.TRANSLATION, (0, 1, 0)),
+        Axis("sam_x", "sam_y", TransformationType.TRANSLATION, (1, 0, 0)),
+    ]
 
 
 @pytest.fixture
