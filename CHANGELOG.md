@@ -5,8 +5,8 @@
 
 ### Changed
 - Command line tools completely refactored, now using json/yaml for input. For more info, see docs.
-- Implement more pydantic dataclasses
-- Update typing
+- Replace dataclasses with pydantic dataclasses and use pydantic more generally for the model parameters.
+- Update typing.
 
 
 ### Removed
