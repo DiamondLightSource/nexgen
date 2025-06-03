@@ -4,7 +4,7 @@ autodoc_pydantic==2.2.0
 numpy==2.2.6
 pint==0.24.4
 h5py==3.13.0
-hdf5plugin==5.0.0
+hdf5plugin==5.1.0
 importlib_resources==6.5.2
 scanspec==0.7.8
 pydantic==2.11.5
