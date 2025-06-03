@@ -37,8 +37,6 @@ class ModuleConfig(BaseModel):
 
 
 class DetectorConfig(BaseModel):
-    """Detector configuration for cli."""
-
     axes: list[Axis]
     params: DetectorType
     beam_center: list[float] | tuple[float, float]

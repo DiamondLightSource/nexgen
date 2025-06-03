@@ -216,3 +216,35 @@ Logging configuration
 
 .. automodule:: nexgen.log
     :members:
+
+
+
+.. _cli-config-section:
+
+CLI configuration
+=================
+
+
+.. autopydantic_model:: nexgen.command_line.cli_config.CliConfig
+    :inherited-members: BaseModel
+    :model-show-config-summary: True
+
+
+.. autopydantic_model:: nexgen.command_line.cli_config.GonioConfig
+    :model-show-config-summary: False
+
+
+.. autopydantic_model:: nexgen.command_line.cli_config.InstrumentConfig
+    :model-show-config-summary: False
+
+
+.. autopydantic_model:: nexgen.command_line.cli_config.DetectorConfig
+    :model-show-config-summary: False
+
+
+.. autopydantic_model:: nexgen.command_line.cli_config.ModuleConfig
+    :model-show-config-summary: False
+
+
+.. autopydantic_model:: nexgen.command_line.cli_config.CoordSystemConfig
+    :model-show-config-summary: False
