@@ -1,34 +1,31 @@
 """
-Command line tool to generate NXmx NeXus files for Serial Crystallography.
+Command line tool to generate NXmx NeXus files for Serial Crystallography on I24.
 """
 
 import argparse
 import logging
 from pathlib import Path
-from typing import Tuple
 
 from .. import log
 from ..beamlines.SSX_chip import CHIP_DICT_DEFAULT
-from ..utils import P
-from . import version_parser
+from ..beamlines.SSX_Eiger_nxs import ssx_eiger_writer
+from .parse_utils import ImportCollectAction, version_parser
 
 logger = logging.getLogger("nexgen.SSX_cli")
 
-usage = "%(prog)s <sub-command> collection-data [options]"
+usage = "%(prog)s <sub-command> collection_meta.h5 [options]"
 parser = argparse.ArgumentParser(
     usage=usage, description=__doc__, parents=[version_parser]
 )
-parser.add_argument("--debug", action="store_const", const=True)
 
 
 def eiger_collection(args):
     logger.info("Create a NeXus file for SSX collection on Eiger.")
-    from ..beamlines.SSX_Eiger_nxs import ssx_eiger_writer
 
     ssx_eiger_writer(
         Path(args.visitpath).expanduser().resolve(),
         args.filename_root,
-        args.beamline,
+        "I24",
         expt_type=args.expt_type,
         pump_status=args.pump_status,
         num_imgs=args.num_imgs,
@@ -44,51 +41,14 @@ def eiger_collection(args):
     )
 
 
-def tristan_collection(args):
-    logger.info("Create a NeXus file for SSX collection on Tristan.")
-    from ..beamlines.SSX_Tristan_nxs import ssx_tristan_writer
-
-    ssx_tristan_writer(
-        Path(args.visitpath).expanduser().resolve(),
-        args.filename_root,
-        args.beamline,
-        xp_time=args.exp_time,
-        det_dist=args.det_dist,
-        beam_center=args.beam_center,
-        transmission=args.transmission,
-        wavelength=args.wavelength,
-        start_time=args.start,
-        stop_time=args.stop,
-        chip_info=CHIP_DICT_DEFAULT,  # TODO This might be better passed as a json/yaml or whatever
-        chipmap=args.chipmap,
-    )
-
-
-# Define a parser for the basic collection parameters
-class _ImportCollect(argparse.Action):
-    def __call__(self, parser, namespace, values, option_string=None):
-        input_file, visitpath, filename_root = self.find_import_args(values)
-        setattr(namespace, self.dest, input_file)
-        setattr(namespace, "visitpath", visitpath)
-        setattr(namespace, "filename_root", filename_root)
-
-    @staticmethod
-    def find_import_args(val) -> Tuple[str]:
-        input_file = Path(val).expanduser().resolve()
-        visitpath = input_file.parent
-        filename_root = P.fullmatch(input_file.stem)[1]
-        return input_file, visitpath, filename_root
-
-
 collect_parser = argparse.ArgumentParser(add_help=False)
 # Get visitpath and filename_root out of meta file
 collect_parser.add_argument(
     "input_file",
     type=str,
-    action=_ImportCollect,
+    action=ImportCollectAction,
     help="Path to _meta.h5 or _000001.h5 file.",
 )
-collect_parser.add_argument("beamline", type=str, help="Beamline name.")
 collect_parser.add_argument(
     "-det",
     "--det-dist",
@@ -159,24 +119,8 @@ eiger_parser.add_argument(
     default=False,
     help="Select pump status.",
 )
-eiger_parser.add_argument("--chipmap", type=str, help="Location of chipmap.")
+eiger_parser.add_argument("--chipmap", type=int, nargs="+", help="Location of chipmap.")
 eiger_parser.set_defaults(func=eiger_collection)
-
-tristan_parser = subparsers.add_parser(
-    "2",
-    aliases=["tristan"],
-    description=("Trigger Tristan writer."),
-    parents=[collect_parser],
-)
-tristan_parser.add_argument(
-    "-e",
-    "--exp-time",
-    type=float,
-    required=True,
-    help="Total collection time in s.",
-)
-tristan_parser.add_argument("--chipmap", type=str, help="Location of chipmap.")
-tristan_parser.set_defaults(func=tristan_collection)
 
 
 def main():

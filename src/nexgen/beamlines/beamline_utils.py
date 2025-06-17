@@ -5,10 +5,10 @@ Define and store basic beamline utilities.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
-from typing import List, Optional, Sequence, Tuple
+from typing import Optional, Sequence
 
 from pydantic import BaseModel
+from pydantic.dataclasses import dataclass
 
 from nexgen.nxs_utils import Attenuator, Axis, Beam, Detector, Goniometer, Source
 from nexgen.utils import Point3D
@@ -27,9 +27,9 @@ class GeneralParams(BaseModel):
 
     exposure_time: float
     beam_center: Sequence[float]
-    wavelength: Optional[float]
-    transmission: Optional[float]
-    flux: Optional[float]
+    wavelength: float
+    transmission: Optional[float] = None
+    flux: Optional[float] = None
 
 
 class PumpProbe(BaseModel):
@@ -53,10 +53,10 @@ class PumpProbe(BaseModel):
 class BeamlineAxes:
     """Beamline specific axes for goniometer, detector and detector module."""
 
-    gonio: List[Axis]
-    det_axes: List[Axis]
-    fast_axis: Point3D | Tuple[float, float, float]
-    slow_axis: Point3D | Tuple[float, float, float]
+    gonio: list[Axis]
+    det_axes: list[Axis]
+    fast_axis: Point3D | tuple[float, float, float]
+    slow_axis: Point3D | tuple[float, float, float]
 
     def __post_init__(self):
         if not isinstance(self.fast_axis, Point3D):
@@ -72,11 +72,15 @@ def collection_summary_log(
     attenuator: Attenuator,
     beam: Beam,
     source: Source,
-    timestamps: Tuple[str],
+    timestamps: tuple[str],
 ):
     """General function to log a collection summary."""
     logger.debug("--- COLLECTION SUMMARY ---")
-    logger.debug(source.__repr__())
+    msg = f"Facility: {source.facility.name} - {source.facility.type}. \n\t"
+    msg += f"Beamline / instrument: {source.beamline} \n\t"
+    if source.probe:
+        msg += f"Probe: {source.probe}"
+    logger.debug(f"Source information: \n\t{msg}")
 
     logger.debug(f"Incident beam wavelength: {beam.wavelength}")
     logger.debug(f"Attenuation: {attenuator.transmission}")

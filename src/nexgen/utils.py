@@ -4,16 +4,15 @@ General utilities for nexgen
 
 from __future__ import annotations
 
+import logging
 import re
-from collections import namedtuple
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import NamedTuple
 
 import h5py
 import numpy as np
 import pint
-from freephil.common import scope_extract as ScopeExtract  # Define scope extract type
 from numpy.typing import ArrayLike
 
 __all__ = [
@@ -23,19 +22,27 @@ __all__ = [
     "units_of_length",
     "units_of_time",
     "get_iso_timestamp",
-    "ScopeExtract",
+    "create_directory",
 ]
 
 MAX_FRAMES_PER_DATASET = 1000
 MAX_SUFFIX_DIGITS = 6
 
+
 # Define coordinates
-Point3D = namedtuple("Point3D", ("x", "y", "z"))
-Point3D.__doc__ = """Coordinates in 3D space."""
+class Point3D(NamedTuple):
+    """Coordinates (x,y,z) in 3D space."""
+
+    x: float
+    y: float
+    z: float
+
 
 # Filename pattern: filename_######.h5 or filename_meta.h5
 # P = re.compile(r"(.*)_(?:\d+)")
 P = re.compile(r"(.*)_(?:meta|master|\d+)")
+
+logger = logging.getLogger("nexgen.utils")
 
 
 def coerce_to_path(filename: Path | str):
@@ -44,10 +51,27 @@ def coerce_to_path(filename: Path | str):
     return filename
 
 
-def find_in_dict(key: str, params_dict: Dict):
+def find_in_dict(key: str, params_dict: dict):
     if key in list(params_dict.keys()):
         return True
     return False
+
+
+def create_directory(path: Path | str):
+    """Small utility function to be able to create a directory for the nexus file.
+    Should be used with caution, main use for new files after failed writing at collection time.
+
+    Args:
+        path (Path | str): Path to the directory to be created.
+    """
+    try:
+        logger.info(f"Attempting to create directory: {path}.")
+        directory_path = coerce_to_path(path)
+        directory_path.mkdir(exist_ok=True, parents=True)
+    except Exception as e:
+        logger.error("Could not create directory because of the following error: ")
+        logger.exception(e)
+        raise
 
 
 def get_filename_template(input_filename: Path) -> str:
@@ -108,7 +132,7 @@ def get_nexus_filename(input_filename: Path | str, copy: bool = False) -> Path:
     return nxs_filename
 
 
-def walk_nxs(nxs_obj: h5py.File | h5py.Group) -> List[str]:
+def walk_nxs(nxs_obj: h5py.File | h5py.Group) -> list[str]:
     """
     Walk all the groups, subgroups and datasets of an object.
 
@@ -116,7 +140,7 @@ def walk_nxs(nxs_obj: h5py.File | h5py.Group) -> List[str]:
         nxs_obj (h5py.File | h5py.Group): Object to walk through, could be a file or a group.
 
     Returns:
-        obj_list (List[str]): List of objects found, as strings.
+        obj_list (list[str]): List of objects found, as strings.
     """
     obj_list = []
     nxs_obj.visit(obj_list.append)
@@ -189,7 +213,15 @@ def units_of_time(q: str) -> Q_:  # -> pint.Quantity:
         )
 
 
-def get_iso_timestamp(ts: str | float) -> str:
+def _validate_timestamp_string(ts: str, fmt: str) -> bool:
+    try:
+        res = bool(datetime.strptime(ts, fmt))
+    except ValueError:
+        res = False
+    return res
+
+
+def get_iso_timestamp(ts: str | float | None) -> str:
     """
     Format a timestamp string to be stores in a NeXus file according to ISO8601: 'YY-MM-DDThh:mm:ssZ'
 
@@ -202,6 +234,7 @@ def get_iso_timestamp(ts: str | float) -> str:
     """
     # Format strings for timestamps
     format_list = [
+        "%Y-%m-%dT%H:%M:%SZ",  # ISO8601 formatted string
         "%Y-%m-%dT%H:%M:%S",
         "%Y-%m-%d %H:%M:%S",
         "%a %b %d %Y %H:%M:%S",
@@ -209,44 +242,58 @@ def get_iso_timestamp(ts: str | float) -> str:
     ]
     if ts is None:
         return None
-    try:
+
+    ts_iso = None
+    if isinstance(ts, float):
         ts = float(ts)
-        ts_iso = datetime.utcfromtimestamp(ts).replace(microsecond=0).isoformat()
-    except ValueError:
+        ts_iso = (
+            datetime.fromtimestamp(ts, tz=timezone.utc)
+            .replace(microsecond=0)
+            .isoformat()
+        )
+        ts_iso = ts_iso.removesuffix("+00:00")  # Remove timezone indication
+    elif isinstance(ts, str):
         for fmt in format_list:
-            try:
+            if _validate_timestamp_string(ts, fmt) is True:
                 ts_iso = datetime.strptime(ts, fmt).isoformat()
-            except ValueError:
-                ts_iso = str(ts)
+                break
+        if not ts_iso:
+            raise ValueError(
+                f"Unknown format. Unable to validate timestamp string, please pass one of: {format_list}"
+            )
+    else:
+        raise ValueError(
+            "Please pass the timestamp either as a time.time float or a formatted string."
+        )
     if ts_iso.endswith("Z") is False:
         ts_iso += "Z"
     return ts_iso
 
 
-def imgcif2mcstas(vector: List | Tuple | ArrayLike) -> Tuple:
+def imgcif2mcstas(vector: list | tuple | ArrayLike) -> tuple:
     """
     Convert from the standard coordinate frame used by imgCIF/CBF to the
     NeXus McStas coordinate system.
 
     Args:
-        vector (List | Tuple | np.array): Coordinates to be converted.
+        vector (list | tuple | np.array): Coordinates to be converted.
 
     Returns:
-        Tuple: Converted coordinate values.
+        tuple: Converted coordinate values.
     """
     c2n = np.array([[-1, 0, 0], [0, 1, 0], [0, 0, -1]])
     return tuple(np.dot(c2n, vector))
 
 
-def coord2mcstas(vector: List | Tuple | ArrayLike, mat: ArrayLike) -> Tuple:
+def coord2mcstas(vector: list | tuple | ArrayLike, mat: ArrayLike) -> tuple:
     """
     General conversion from a new coordinate convention to the NeXus McStas coordinate system.
 
     Args:
-        vector (List | Tuple | np.array): Coordinates to be converted.
+        vector (list | tuple | np.array): Coordinates to be converted.
         mat (np.ndarray): Coordinate transformation matrix.
 
     Returns:
-        Tuple: Converted coordinate values
+        tuple: Converted coordinate values
     """
     return tuple(np.dot(mat, vector))

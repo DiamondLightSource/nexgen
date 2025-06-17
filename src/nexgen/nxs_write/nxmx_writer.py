@@ -8,7 +8,6 @@ import logging
 import math
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Tuple
 
 import h5py
 import numpy as np
@@ -83,7 +82,7 @@ class NXmxFileWriter:
     def _get_data_files_list(
         self,
         image_filename: str | None = None,
-    ) -> List[Path]:
+    ) -> list[Path]:
         """Get list of datafiles.
 
         Args:
@@ -91,7 +90,7 @@ class NXmxFileWriter:
                 the NeXus file name. Defaults to None.
 
         Returns:
-            List[Path]: List of data files to link to.
+            list[Path]: List of data files to link to.
         """
         num_files = math.ceil(self.tot_num_imgs / MAX_FRAMES_PER_DATASET)
         template = (
@@ -119,11 +118,11 @@ class NXmxFileWriter:
             write_NXdatetime(nxs, timestamp, dset_name)
         nxmx_logger.info(f"{dset_name} timestamp for collection updated.")
 
-    def add_NXnote(self, notes: Dict, loc: str = "/entry/notes"):
+    def add_NXnote(self, notes: dict, loc: str = "/entry/notes"):
         """Save any additional information as NXnote at the end of the collection.
 
         Args:
-            notes (Dict): Dictionary of (key, value) pairs where key represents the \
+            notes (dict): Dictionary of (key, value) pairs where key represents the \
                 dataset name and value its data.
             loc (str, optional): Location in the NeXus file to save metadata. \
                 Defaults to "/entry/notes".
@@ -134,7 +133,7 @@ class NXmxFileWriter:
 
     def write(
         self,
-        image_datafiles: List | None = None,
+        image_datafiles: list | None = None,
         image_filename: str | None = None,
         start_time: datetime | str | None = None,
         est_end_time: datetime | str | None = None,
@@ -146,7 +145,7 @@ class NXmxFileWriter:
         This function calls the writers for the main NXclass objects.
 
         Args:
-            image_datafiles (List | None, optional): List of image data files. If not passed, \
+            image_datafiles (list | None, optional): List of image data files. If not passed, \
                 the program will look for files with the stem_######.h5 in the target directory. \
                 Defaults to None.
             image_filename (str | None, optional): Filename stem to use to look for image files. \
@@ -239,7 +238,7 @@ class NXmxFileWriter:
     def write_vds(
         self,
         vds_offset: int = 0,
-        vds_shape: Tuple[int, int, int] = None,
+        vds_shape: tuple[int, int, int] = None,
         vds_dtype: DTypeLike = np.uint16,
         clean_up: bool = False,
     ):
@@ -251,7 +250,7 @@ class NXmxFileWriter:
 
         Args:
             vds_offset (int, optional): Start index for the vds writer. Defaults to 0.
-            vds_shape (Tuple[int,int,int], optional): Shape of the data which will be linked in the VDS. If not passed, it will be defined as \
+            vds_shape (tuple[int,int,int], optional): Shape of the data which will be linked in the VDS. If not passed, it will be defined as \
             (tot_num_imgs - start_idx, *image_size). Defaults to None.
             vds_dtype (DTypeLike, optional): The type of the input data. Defaults to np.uint16.
             clean_up(bool, optional): Clean up unused links in vds. Defaults to False.
@@ -330,6 +329,7 @@ class EventNXmxFileWriter(NXmxFileWriter):
 
     def write(
         self,
+        image_filename: str | None = None,
         start_time: datetime | str | None = None,
         write_mode: str = "x",
         add_non_standard: bool = False,
@@ -339,16 +339,19 @@ class EventNXmxFileWriter(NXmxFileWriter):
         This method overrides the write() method of NXmxFileWriter, from which thsi class inherits.
 
         Args:
-            start_time (datetime | str, optional): Collection estimated end time if available, in the format "%Y-%m-%dT%H:%M:%SZ".\
+            start_time (datetime | str, optional): Collection estimated end time if available, in the \
+                format "%Y-%m-%dT%H:%M:%SZ". Defaults to None.
+            image_filename (str | None, optional): Filename stem to use to look for image files. \
+                Needed in case it doesn't match the NeXus file name. Format: filename_runnumber. \
                 Defaults to None.
-            write_mode (str, optional): String indicating writing mode for the output NeXus file. Accepts any valid \
-                h5py file opening mode. Defaults to "x".
+            write_mode (str, optional): String indicating writing mode for the output NeXus file. \
+                Accepts any valid h5py file opening mode. Defaults to "x".
             add_non_standard (bool, optional): Flag if non-standard NXsample fields should be added \
                 for processing to work. Defaults to False.
         """
         # Get metafile
         # No data files, just link to meta
-        metafile = super()._get_meta_file()
+        metafile = super()._get_meta_file(image_filename=image_filename)
 
         module = self.detector.get_module_info()
 

@@ -3,7 +3,7 @@ import argparse
 import pytest
 
 from nexgen import __version__
-from nexgen.command_line import version_parser
+from nexgen.command_line.parse_utils import version_parser
 
 
 def test_version():

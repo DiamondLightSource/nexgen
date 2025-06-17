@@ -10,11 +10,8 @@ from pathlib import Path
 import h5py
 import numpy as np
 
-from ..nxs_write.nxclass_writers import write_NXnote
 from ..nxs_write.write_utils import create_attributes
 from .copy_utils import (
-    check_and_fix_det_axis,
-    compute_ssx_axes,
     convert_scan_axis,
     get_nexus_tree,
     identify_tristan_scan_axis,
@@ -51,9 +48,10 @@ def single_image_nexus(
     data_file = Path(data_file).expanduser().resolve()
     tristan_nexus = Path(tristan_nexus).expanduser().resolve()
     nxs_filename = data_file.parent / f"{data_file.stem}.nxs"
-    with h5py.File(tristan_nexus, "r") as nxs_in, h5py.File(
-        nxs_filename, write_mode
-    ) as nxs_out:
+    with (
+        h5py.File(tristan_nexus, "r") as nxs_in,
+        h5py.File(nxs_filename, write_mode) as nxs_out,
+    ):
         # Copy the whole tree except for nxdata
         nxentry = get_nexus_tree(nxs_in, nxs_out)
         # Create nxdata group
@@ -134,9 +132,10 @@ def multiple_images_nexus(
     data_file = Path(data_file).expanduser().resolve()
     tristan_nexus = Path(tristan_nexus).expanduser().resolve()
     nxs_filename = data_file.parent / f"{data_file.stem}.nxs"
-    with h5py.File(tristan_nexus, "r") as nxs_in, h5py.File(
-        nxs_filename, write_mode
-    ) as nxs_out:
+    with (
+        h5py.File(tristan_nexus, "r") as nxs_in,
+        h5py.File(nxs_filename, write_mode) as nxs_out,
+    ):
         # Copy the whole tree except for nxdata
         nxentry = get_nexus_tree(nxs_in, nxs_out)
         # Create nxdata group
@@ -188,95 +187,5 @@ def multiple_images_nexus(
             # Now fix all other instances of scan_axis in the tree
             nxsample = nxentry["sample"]
             convert_scan_axis(nxsample, nxdata, ax, ax_range)
-
-    return nxs_filename.as_posix()
-
-
-def serial_images_nexus(
-    data_file: Path | str,
-    tristan_nexus: Path | str,
-    nbins: int,
-    write_mode: str = "x",
-) -> str:
-    """
-    Create a NeXus file for a serial collection.
-
-    Args:
-        data_file (Path | str): String or Path pointing to the HDF5 file containing the newly binned images.
-        tristan_nexus (Path | str): String or Path pointing to the input NeXus file with experiment metadata to be copied.
-        nbins (int): Number of binned images.
-        write_mode (str, optional): String indicating writing mode for the output NeXus file.  Accepts any valid
-                        h5py file opening mode. Defaults to "x".
-
-    Returns:
-        str: _description_
-    """
-    data_file = Path(data_file).expanduser().resolve()
-    tristan_nexus = Path(tristan_nexus).expanduser().resolve()
-    nxs_filename = data_file.parent / f"{data_file.stem}.nxs"
-    with h5py.File(tristan_nexus, "r") as nxs_in, h5py.File(
-        nxs_filename, write_mode
-    ) as nxs_out:
-        # Copy the whole tree except for nxdata and nxnote (which is where chip info is... or the pump for the old ones)
-        nxentry = get_nexus_tree(nxs_in, nxs_out, skip_obj=["NXdata", "NXnote"])
-        # Create nxdata group
-        nxdata = nxentry.create_group("data")
-        # Add link to data
-        nxdata["data"] = h5py.ExternalLink(data_file.name, "data")
-        # Compute and write axis information
-        ax, ax_attr = identify_tristan_scan_axis(nxs_in)
-        if ax:
-            create_attributes(
-                nxdata,
-                ("NX_class", "axes", "signal", ax + "_indices"),
-                (
-                    "NXdata",
-                    ax,
-                    "data",
-                    [
-                        0,
-                    ],
-                ),
-            )
-
-            (start, stop) = nxs_in["entry/data"][ax][()]
-
-            # Compute the scan points
-            rot_ax, transl_ax, pump_info, windows_per_bin = compute_ssx_axes(
-                nxs_in, nbins, ax, (start, stop)
-            )
-
-            # Write pump_info
-            write_NXnote(nxs_out, "/entry/source/notes", pump_info)
-
-            nxsample = nxentry["sample"]
-
-            # First rotation (attributes already found)
-            nxdata.create_dataset(ax, data=rot_ax[ax])
-            for key, value in ax_attr.items():
-                nxdata[ax].attrs.create(key, value)
-            convert_scan_axis(nxsample, nxdata, ax)
-
-            # Check whether multiple windows have been binned together
-            if windows_per_bin is not None:
-                write_NXnote(
-                    nxs_out, "/entry/data", {"windows_per_image": windows_per_bin}
-                )
-                # And exit here
-                return nxs_filename.as_posix()
-
-            # Then translation axes
-            for ax_name, ax_range in transl_ax.items():
-                nxdata.create_dataset(ax_name, data=ax_range)
-                # Get attributes for relevant axis in nxs_in
-                ax_attr = dict(nxs_in["/entry/sample/transformations/" + ax_name].attrs)
-                for key, value in ax_attr.items():
-                    nxdata[ax_name].attrs.create(key, value)
-                convert_scan_axis(nxsample, nxdata, ax_name)
-
-    # Run a quick check on axes values and attributes.
-    # Some ealy serial Tristan data from March/May 2022 have det_z saved as a string
-    with h5py.File(nxs_filename, "r+") as nxs:
-        check_and_fix_det_axis(nxs)
 
     return nxs_filename.as_posix()

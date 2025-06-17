@@ -1,10 +1,81 @@
 # CHANGELOG
 
 
-## 0.#.#
+## 0.11.#
 
 ### Fixed
 - External links to eiger meta file in NXdetector and detectorSpecific groups re-enabled.
+
+
+## 0.11.0
+
+### Changed
+- Command line tools completely refactored, now using json/yaml for input. For more info, see docs.
+- Replace dataclasses with pydantic dataclasses and use pydantic more generally for the model parameters.
+- Update typing.
+
+### Removed
+- Dependency on freephil.
+
+
+## 0.10.0
+
+### Added
+- Small utility for creating directories when needed.
+- New wrapper function for serial nexus file for I19-2.
+- Serial functionality for i19 CLI.
+- ED_mrc_to_nexus CLI has been extended to work with TVIPS cameras.
+
+### Removed
+- Dropped Python 3.10 support
+- Unused and obsolete serial_images_nexus for copying tristan nexus files as multi_image is used.
+- Standalone serial Tristan writer as now integrated with I19-2 writers.
+
+### Changed
+- Tidier parameter model for I19-2.
+
+### Fixed
+- Small bug in iso_timestamps where some formats were not properly handled.
+- NXbeam now allows to write multiple wavelengths to the ``incident_wavelength`` dataset for a polychromatic beam.
+
+
+## 0.9.10
+
+### Changed
+- Update serial writer to take a list of blocks as input for the chipmap instead of a file.
+
+
+## 0.9.8
+
+### Fixed
+- Bugfixes and input argument improvement for I19 gda writer.
+
+
+## 0.9.7
+
+### Added
+- Possibility of adding an NXnote to nexus file for I19 writers.
+
+
+## 0.9.6
+
+### Added
+- Python 3.12 support.
+- Command line tool to compare gridscan pcap position output with the positions recorded in the nexus file.
+
+### Changed
+- Default faltfield file for Tristan detector.
+- Set up bump-my-version to replace the older bump2version.
+
+### Fixed
+- Documentation rendering for pydantic models.
+- Typos in tristan_writer for I19-2.
+
+
+## 0.9.5
+
+### Changed
+- Dependency pin to Pydantic<2 removed.
 
 
 ## 0.9.4

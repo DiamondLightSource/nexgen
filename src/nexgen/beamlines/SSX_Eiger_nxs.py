@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Literal, Tuple, get_args
+from typing import Literal, get_args
 
 import numpy as np
 from numpy.typing import DTypeLike
@@ -66,14 +66,14 @@ def _define_vds_dtype_from_bit_depth(bit_depth: int) -> DTypeLike:
         return np.uint16
 
 
-def _get_beamline_specific_params(beamline: str) -> Tuple[BeamlineAxes, EigerDetector]:
+def _get_beamline_specific_params(beamline: str) -> tuple[BeamlineAxes, EigerDetector]:
     """Get beamline specific axes and eiger description.
 
     Args:
         beamline (str): Beamline name. Allowed values: i24, i19-2.
 
     Returns:
-        Tuple[BeamlineAxes, EigerDetector]: beamline axes description, eiger parameters.
+        tuple[BeamlineAxes, EigerDetector]: beamline axes description, eiger parameters.
     """
     match beamline.lower():
         case "i24":
@@ -133,8 +133,8 @@ def ssx_eiger_writer(
         chip_info (Dict): For a grid scan, dictionary containing basic chip information.
             At least it should contain: x/y_start, x/y number of blocks and block size, \
             x/y number of steps and number of exposures.
-        chipmap (Path | str): Path to the chipmap file corresponding to the experiment,
-            if None for a fixed target experiment, it indicates that the fullchip is \
+        chipmap (list[int]): List of scanned blocks for the current collection. If not \
+            passed or None for a fixed target experiment, it indicates that the fullchip is \
             being scanned.
         pump_exp (float): Pump exposure time, in s.
         pump_delay (float): Pump delay time, in s.
@@ -183,6 +183,8 @@ def ssx_eiger_writer(
         ssx_params["chip_info"] if find_in_dict("chip_info", ssx_params) else None
     )
     chipmap = ssx_params["chipmap"] if find_in_dict("chipmap", ssx_params) else None
+    if isinstance(chipmap, list) and len(chipmap) == 0:
+        chipmap = None
 
     if SSX.experiment_type.lower() not in get_args(ExperimentTypes):
         raise UnknownExperimentTypeError(
@@ -321,16 +323,11 @@ def ssx_eiger_writer(
         case "fixed-target":
             from .SSX_expt import run_fixed_target
 
-            # Define chipmap if needed
-            chipmapfile = (
-                None if chipmap is None else Path(chipmap).expanduser().resolve()
-            )
-
             SCAN, pump_info = run_fixed_target(
                 gonio_axes,
                 chip_info,
-                chipmapfile,
                 pump_probe,
+                chipmap,
                 ["sam_y", "sam_x"],
             )
 

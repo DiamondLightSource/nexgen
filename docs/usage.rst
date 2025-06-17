@@ -26,8 +26,12 @@ Command line tools
 This package started out as an easy way to quickly generate NeXus files from scratch along with blank HDF5 datasets using command line tools.
 
 
-**Parsing**
-The `freephil <https://freephil.readthedocs.io/en/latest/>`_ package is used for parsing metadata from the command line.
+.. note::
+    NOTE ON PARSING
+
+    The command line tools have been refactored as of version ``0.11.0`` and no longer use `freephil <https://freephil.readthedocs.io/en/latest/>`_ 
+    because of dependencies issues with some packages being deprecated. Old tools are still available 
+    in older nexgen versions.
 
 
 Getting help
@@ -38,62 +42,9 @@ This help message will be printed by using the option `-h`, or `--help`, and eac
 
 .. code-block:: console
 
-    copy_nexus --help
-
-.. code-block:: console
-
     generate_nexus demo -h
 
 
-
-Show PHIL parameters
-====================
-In addition to the help message, it is possible to take a look at the list of phil parameters that can/need to be passed to the command line generator.
-
-.. code-block:: console
-
-    generate_nexus 3 -c
-
-It is also possible to view more details about the Phil parameters and definition attributes by setting the `attributes_level` parameter with the `-a` argument.
-Th default value is set to 0, which will only show names and default values of the parameters.
-
-.. code-block:: console
-
-    generate_nexus 1 -c -a 2
-
-
-Creating a new .phil file
-=========================
-
-Writing the full list of parameters on the command line each time can be time consuming, not to mention subject to typing errors and the like.
-For this purpose, it is possible to generate one reusable Phil file containing the beamline description and those values from the experiment
-metadata that can be considered constant.
-
-Nexgen already includes Phil files for some MX beamlines at Diamond Light Source, which can be viewed and downloaded by running ``nexgen_phil`` with the ``list`` and ``get`` options.
-For example, the command
-
-.. code-block:: console
-
-    nexgen_phil list
-
-will return a list of the .phil files currently available, and che chosen file can be downloaded by running:
-
-.. code-block:: console
-
-    nexgen_phil get paramfile.phil -o  /path/to/directory
-
-In case a .phil file for a specific beamline is not in the list, it is possible to either download a blank template (also listed) to fill in manually or create on using the ``new`` option. While this is a bit more cumbersome,
-it has the advantage of only needing to write most of the parameters once. Once the file is created it can be parsed by ``generate_nexus``, eg.
-
-.. code-block:: console
-
-    generate_nexus 2 -i paramfile.phil output.master_filename=File.nxs input.vds_writer=dataset
-
-To access the help message for ``nexgen_phil``:
-
-.. code-block:: console
-
-    nexgen_phil -h
 
 Generating new NeXus files
 ==========================
@@ -102,26 +53,17 @@ Generating new NeXus files
 
     .. code-block:: console
 
-        generate_nexus 1 beamline.phil input.datafile=File_00*.h5 input.snaked=True \
-        goniometer.starts=0,0,0,0 goniometer.ends=0,0,1,2 goniometer.increments=0,0,0.1,0.2  \
-        detector.exposure_time=0.095 detector.beam_center=989.8,1419 detector.overload=65535 \
-        detector.starts=0,140 detector.ends=0,140 beam.wavelength=0.4859
+        generate_nexus 1 File_00_meta.h5 --config config_file.yaml -o /path/to/output/dir -nxs File_01.nxs
 
  - From scratch, along with blank data (demo)
 
     .. code-block:: console
 
-        generate_nexus 2 -i/-e beamline.phil output.master_filename=File.nxs input.vds_writer=dataset (etc...)
-
- - For an existing dataset which also has a meta.h5 file
-
-    .. code-block:: console
-
-        generate_nexus 3 beamline.phil input.metafile=File_meta.h5 input.vds_writer=dataset output.master_filename=/path/to/File.nxs
+        generate_nexus 2 File.nxs -n 3600 --config config_file.yaml --mask /path/to/mask/file
 
 
 .. note::
-    This functionality will only work properly for Eiger and Tristan detectors.
+    This functionality will only work properly for NXmx datasets.
 
 
 
@@ -132,34 +74,26 @@ Example usage for a dataset collected on Dectris Singla 1M detector using a phil
 
 .. code-block:: console
 
-    ED_nexus singla-phil ED_Singla.phil input.datafiles=FILE_data_*.h5 goniometer.starts=0,0,0,0 \
-    goniometer.ends=900,0,0,0 goniometer.increments=1,0,0,0 detector.starts=400 detector.beam_center=1,1 \
-    -m FILE_master.h5
-
-The instrument name and source are defined by the values parsed from source, which are shown in the following dictionary:
-
-.. code-block:: python
-
-    source = {
-        "name": "Diamond Light Source",
-        "short_name": "DLS",
-        "type": "Electron Source",
-        "beamline_name": "eBic",
-        "probe": "electron",
-    }
+    ED_nexus singla-phil FILE_master.h5 FILE_data_01.h5 FILE_data_02.h5 (etc) --config ED_Singla.yaml 
 
 
-.. note::
-    As of version `0.6.28`, the source type to go in the NXSource base class has been updated to `Electron Source`.
+The instrument name and source are defined by the values parsed from source, which can be defined in the config file as follows:
+
+.. code-block:: yaml
+
+    instrument:
+        source:
+            beamline: "eBIC"
+            facility:
+                name: "Diamond Light Source"
+                short_name: "DLS"
+                type: "Electron Source"
+                id: "DIAMOND MICROSCOPE"
+            probe: "electron"
 
 
-To specify a more specific name for the `/entry/instrument/name` field, the following command can be added to the command line:
-
-.. code-block:: console
-
-    source.facility_id="DIAMOND MICROSCOPE"
-
-which will result in the instrument name being set to `DIAMOND MICROSCOPE eBic` instead of `DIAMOND eBic`.
+Passing a facility id allows the user to specify a more specific name for the `/entry/instrument/name` field; 
+this will result in the instrument name being set to `DIAMOND MICROSCOPE eBic` instead of `DIAMOND eBic`.
 
 
 The downside of this option is that the external links to the data will now be saved using absolute paths instead of relative.
@@ -179,26 +113,69 @@ For both CLI tools, in case there is a need to save the NeXus file in a differen
     -o /path/to/new/directory
 
 
-Copying NeXus files
+
+Configuration files
 ===================
 
- - Copy a nexus file in full, or just parts of it. T
+The configuration files passed to the commanf line should be either ``yaml`` or ``json`` files,
+implementing the configuration schema described in :ref:`cli-config-section`.
 
-    This tool will create a new file File_copy.nxs, in order to avoid modifying the orifinal data, with just the requested metadata.
 
-    .. code-block:: console
+Example yaml
+************
 
-        copy_nexus gen input.original_nexus=File.nxs input.simple_copy=True
+.. code-block:: yaml
 
-    .. code-block:: console
+    gonio:
+        axes:
+            - name: phi
+            depends: "."
+            transformation_type: rotation
+            vector: [-1,0,0]
+            start_pos: 10.0
+            - name: sam_z
+            depends: "phi"
+            transformation_type: translation
+            vector: [0,0,1]
+            start_pos: 0.0
+            increment: 0.125
+            num_steps: 20
+            - name: sam_x
+            depends: "sam_z"
+            transformation_type: translation
+            vector: [1,0,0]
+            start_pos: 0.0
+            increment: 0.125
+            num_steps: 20
+        scan_type: "grid"
+        snaked_scan: True
 
-        copy_nexus gen original_nexus=File.nxs data_filename=File_0001.h5 skip=NXdata skip=NXsample
+    instrument:
+        beam:
+            wavelength: [0.4, 0.6]
+            wavelength_weights: [0.1, 0.2]
+            flux: null
+        attenuator:
+            transmission: null
+        source:
+            beamline: "ixx"
 
- - Copy metadata from a Tristan NeXus file to NXmx format.
+    det:
+        axes:
+            - name: det_z
+            depends: "."
+            transformation_type: translation
+            vector: [0,0,1]
+            start_pos: 1350
+        params:
+            description: Eiger2 X 9M
+            image_size: [3262, 3108]
+            sensor_material: CdTe
+            overload: 65535
+            underload: -1
+        beam_center: [1134, 1458]
+        exposure_time: 0.01
+        module:
+            fast_axis: [-1,0,0]
+            slow_axis: [0,1,0]
 
-    The main application fo this tool is to copy the necessary metadata to a new NeXus file following the NXmx format after binning event data into images.
-    The default `experiment_type` for copying Tristan metadata is set to rotation; when dealing with a single image, this value can be set to stationary like in the example below.
-
-    .. code-block:: console
-
-        copy_nexus tristan tristan_nexus=Tristan_img.nxs data_filename=Tristan_img_0001.h5 experiment_type=stationary

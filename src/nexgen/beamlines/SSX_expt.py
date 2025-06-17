@@ -8,8 +8,6 @@ Experiment definitions for SSX collections:
 from __future__ import annotations
 
 import logging
-from pathlib import Path
-from typing import Dict, List, Tuple
 
 import numpy as np
 
@@ -30,21 +28,21 @@ logger = logging.getLogger("nexgen.SSX.run_expt")
 
 
 def run_extruder(
-    goniometer_axes: List[Axis],
+    goniometer_axes: list[Axis],
     num_imgs: int,
     pump_probe: PumpProbe,
     osc_axis: str = "omega",
-) -> Tuple[List, Dict, Dict]:
+) -> tuple[list, dict, dict]:
     """Run the goniometer computations for an extruder experiment.
 
     Args:
-        goniometer_axes (List[Axis]): List of goniometer axes for current beamline.
+        goniometer_axes (list[Axis]): List of goniometer axes for current beamline.
         num_imgs (int): Total number of images.
         pump_probe (PumpProbe): Pump probe parameters.
         osc_axis: Defines which axis is considered the "moving" one. Defaults to omega.
 
     Returns:
-        Tuple[List, Dict, Dict]:
+        tuple[list, dict, dict]:
             goniometer_axes: updated goniometer_axes list with actual values from the scan.
             SCAN: dictionary with oscillation scan axis values.
             pump_info: updated pump probe information.
@@ -69,7 +67,7 @@ def run_extruder(
         goniometer_axes[osc_idx], rotation=True, tot_num_imgs=num_imgs
     )
 
-    pump_info = pump_probe.dict()
+    pump_info = pump_probe.model_dump()
     logger.debug("Removing pump_repeat from pump probe necessary information.")
     pump_info.pop("pump_repeat")
 
@@ -77,21 +75,21 @@ def run_extruder(
 
 
 def run_fixed_target(
-    goniometer_axes: List[Axis],
-    chip_info: Dict[str, List],
-    chipmap: Path | str,
+    goniometer_axes: list[Axis],
+    chip_info: dict[str, list],
     pump_probe: PumpProbe,
-    scan_axes: List[str, str] = ["sam_y", "sam_x"],
-) -> Tuple[Dict, Dict]:
+    chipmap: list[int] | None = None,
+    scan_axes: list[str, str] = ["sam_y", "sam_x"],
+) -> tuple[dict, dict]:
     """Run the goniometer computations for a fixed-target experiment.
 
     Args:
-        goniometer_axes (List[Axis]): List of goniometer axes for current beamline.
-        chip_info (Dict[str, List]): General information about the chip: number and size of blocks, \
+        goniometer_axes (list[Axis]): List of goniometer axes for current beamline.
+        chip_info (dict[str, list]): General information about the chip: number and size of blocks, \
             size and step of each window, start positions, number of exposures.
-        chipmap (Path | str): Path to .map file. If None is passed, assumes a fullchip.
         pump_probe (PumpProbe): Pump probe parameters.
-        scan_axes (List[str, str], optional): List of scan axes, in order slow,fast. \
+        chipmap (list[int], optional): List of blocks scanned. If None is passed, assumes a fullchip.
+        scan_axes (list[str, str], optional): List of scan axes, in order slow,fast. \
             Defaults to ["sam_y", "sam_x"].
 
     Raises:
@@ -99,7 +97,7 @@ def run_fixed_target(
         ValueError:if chip_info hasn't been passed or is an empty dictionary.
 
     Returns:
-        Tuple[Dict, Dict]:
+        tuple[dict, dict]:
             SCAN: Dictionary with grid scan values.
             pump_info: Updated pump probe information.
     """
@@ -124,15 +122,15 @@ def run_fixed_target(
     # Define chip
     chip = Chip(
         "fastchip",
-        num_steps=[chip_info["X_NUM_STEPS"][1], chip_info["Y_NUM_STEPS"][1]],
-        step_size=[chip_info["X_STEP_SIZE"][1], chip_info["Y_STEP_SIZE"][1]],
-        num_blocks=[chip_info["X_NUM_BLOCKS"][1], chip_info["Y_NUM_BLOCKS"][1]],
-        block_size=[chip_info["X_BLOCK_SIZE"][1], chip_info["Y_BLOCK_SIZE"][1]],
-        start_pos=[
+        num_steps=(chip_info["X_NUM_STEPS"][1], chip_info["Y_NUM_STEPS"][1]),
+        step_size=(chip_info["X_STEP_SIZE"][1], chip_info["Y_STEP_SIZE"][1]),
+        num_blocks=(chip_info["X_NUM_BLOCKS"][1], chip_info["Y_NUM_BLOCKS"][1]),
+        block_size=(chip_info["X_BLOCK_SIZE"][1], chip_info["Y_BLOCK_SIZE"][1]),
+        start_pos=(
             chip_info["X_START"][1],
             chip_info["Y_START"][1],
             chip_info["Z_START"][1],
-        ],
+        ),
     )
 
     # Read chip map
@@ -188,30 +186,30 @@ def run_fixed_target(
         SCAN = {k: [val for val in v for _ in range(N)] for k, v in SCAN.items()}
     logger.info(f"Each position has been collected {N} times.")
     logger.info(f"Pump repeat setting: {chip_info['PUMP_REPEAT'][1]}.")
-    pump_info = pump_probe.dict()
+    pump_info = pump_probe.model_dump()
     pump_info["n_exposures"] = N
 
     return SCAN, pump_info
 
 
 def run_3D_grid_scan(
-    goniometer_axes: List[Axis],
-    chip_info: Dict[str, List],
-    chipmap: Path | str,
+    goniometer_axes: list[Axis],
+    chip_info: dict[str, list],
     pump_probe: PumpProbe,
+    chipmap: list[int] | None = None,
     osc_axis: str = "omega",
-) -> Tuple[Dict]:
+) -> tuple[dict]:
     """_summary_
 
     Args:
-        goniometer_axes (List[Axis]): _description_
-        chip_info (Dict[str, List]): _description_
-        chipmap (Path | str): _description_
+        goniometer_axes (list[Axis]): _description_
+        chip_info (dict[str, list]): _description_
         pump_probe (PumpProbe): _description_
+        chipmap (list[int], optional): _description_
         osc_axis (str, optional): _description_
 
     Returns:
-        Tuple[Dict]:
+        tuple[dict]:
             OSC: dictionary with oscillation scan axis values
             TRANSL: dictionary with grid scan values
             pump_info: updated pump probe information
@@ -220,7 +218,7 @@ def run_3D_grid_scan(
 
     N = int(chip_info["N_EXPOSURES"][1])
 
-    pump_info = pump_probe.dict()
+    pump_info = pump_probe.model_dump()
     pump_info["repeat"] = int(chip_info["PUMP_REPEAT"][1])
     pump_info["n_exposures"] = N
     return None, None, pump_info

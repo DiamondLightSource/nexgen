@@ -4,7 +4,7 @@ Utilities for copying metadata to new NeXus files.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import h5py
 import numpy as np
@@ -37,16 +37,16 @@ def h5str(h5_value: str | np.bytes_ | bytes) -> str:
     return h5_value
 
 
-def get_skip_list(nxentry: h5py.Group, skip_obj: List[str]) -> List[str]:
+def get_skip_list(nxentry: h5py.Group, skip_obj: list[str]) -> list[str]:
     """
     Get a list of all the objects that should not be copied in the new NeXus file.
 
     Args:
         nxentry (h5py.Group): NXentry group of a NeXus file.
-        skip_obj (List[str]): List of objects that should not be copied.
+        skip_obj (list[str]): List of objects that should not be copied.
 
     Returns:
-        skip_list (List[str]): List of "NXclass" objects to skip during copy.
+        skip_list (list[str]): List of "NXclass" objects to skip during copy.
     """
     obj_list = walk_nxs(nxentry)
     skip_list = []
@@ -63,7 +63,7 @@ def get_nexus_tree(
     nxs_in: h5py.File,
     nxs_out: h5py.File,
     skip: bool = True,
-    skip_obj: List[str] = None,
+    skip_obj: list[str] = None,
 ) -> h5py.Group | None:
     """
     Copy the tree from the original NeXus file. Everything except NXdata is copied to a new NeXus file.
@@ -74,7 +74,7 @@ def get_nexus_tree(
         nxs_out (h5py.File): New NeXus file.
         skip (bool, optional): Copy everything but objects in skip_obj, which always include NXdata.
                             Pass False to copy the whole NXentry tree. Defaults to True.
-        skip_obj (List[str], optional): List of NX_class objects not to be copied, eg. 'NXdata' or 'NXdetector'.. Defaults to None.
+        skip_obj (list[str], optional): List of NX_class objects not to be copied, eg. 'NXdata' or 'NXdetector'.. Defaults to None.
 
     Returns:
         h5py.Group | None: The group NXentry or nothing if the full file is copied.
@@ -99,7 +99,7 @@ def get_nexus_tree(
         return None
 
 
-def identify_tristan_scan_axis(nxs_in: h5py.File) -> Tuple[str | None, Dict[str, Any]]:
+def identify_tristan_scan_axis(nxs_in: h5py.File) -> tuple[str | None, dict[str, Any]]:
     """
     Identify the scan_axis in the NeXus tree of a Tristan collection.
 
@@ -111,7 +111,7 @@ def identify_tristan_scan_axis(nxs_in: h5py.File) -> Tuple[str | None, Dict[str,
 
     Returns:
         ax (str | None): Name of the scan_axis.
-        ax_attrs (Dict[str, Any]): Attributes of the scan_axis dataset.
+        ax_attrs (dict[str, Any]): Attributes of the scan_axis dataset.
     """
     nxdata = nxs_in["entry/data"]
     for ax, h5_object in nxdata.items():
@@ -201,8 +201,8 @@ def is_chipmap_in_tristan_nxs(
 
 
 def compute_ssx_axes(
-    nxs_in: h5py.File, nbins: int, rot_ax: str, rot_val: Tuple | List | ArrayLike
-) -> Tuple[Dict, Dict, Dict, int | None]:
+    nxs_in: h5py.File, nbins: int, rot_ax: str, rot_val: tuple | list | ArrayLike
+) -> tuple[dict, dict, dict, int | None]:
     """
     Computes the positions on chip corresponding to the binned images from a Tristan fixed target collection.
 
@@ -216,10 +216,10 @@ def compute_ssx_axes(
         nxs_in (h5py.File): File handle for the original Tristan collection NeXus file.
         nbins (int): Number of images.
         rot_ax (str): Rotation axis.
-        rot_val (Tuple | List | ArrayLike): Rotation axis start and stop values, as found in the original NeXus.
+        rot_val (tuple | list | ArrayLike): Rotation axis start and stop values, as found in the original NeXus.
 
     Returns:
-        OSC, TRANSL, pump_info, windows_per_bin (Tuple[Dict, Dict, Dict, int | None]): Oscillation range, Translation range, pump_probe info, number of windows per binned image.
+        OSC, TRANSL, pump_info, windows_per_bin (tuple[dict, dict, dict, int | None]): Oscillation range, Translation range, pump_probe info, number of windows per binned image.
     """
     # Define pump_probe
     pp = PumpProbe()
@@ -250,15 +250,15 @@ def compute_ssx_axes(
     # Define chip
     chip = Chip(
         "fastchip",
-        num_steps=[chip_info["X_NUM_STEPS"], chip_info["Y_NUM_STEPS"]],
-        step_size=[chip_info["X_STEP_SIZE"], chip_info["Y_STEP_SIZE"]],
-        num_blocks=[chip_info["X_NUM_BLOCKS"], chip_info["Y_NUM_BLOCKS"]],
-        block_size=[chip_info["X_BLOCK_SIZE"], chip_info["Y_BLOCK_SIZE"]],
-        start_pos=[
+        num_steps=(chip_info["X_NUM_STEPS"], chip_info["Y_NUM_STEPS"]),
+        step_size=(chip_info["X_STEP_SIZE"], chip_info["Y_STEP_SIZE"]),
+        num_blocks=(chip_info["X_NUM_BLOCKS"], chip_info["Y_NUM_BLOCKS"]),
+        block_size=(chip_info["X_BLOCK_SIZE"], chip_info["Y_BLOCK_SIZE"]),
+        start_pos=(
             chip_info["X_START"],
             chip_info["Y_START"],
             chip_info["Z_START"],
-        ],
+        ),
     )
 
     # Rotation values
@@ -307,7 +307,7 @@ def compute_ssx_axes(
             }
 
         # Update pump probe
-        pump_info = pp.dict()
+        pump_info = pp.model_dump()
         pump_info["n_exposures"] = N_EXP
         return OSC, TRANSL, pump_info, None
     else:
@@ -315,4 +315,4 @@ def compute_ssx_axes(
         # Do not set N_EXP, there should be no repeat here
         # Find out how many consecutive windows are binned together.
         windows_per_bin = (num_blocks * chip.tot_windows_per_block()) // nbins
-        return OSC, {}, pp.dict(), windows_per_bin
+        return OSC, {}, pp.model_dump(), windows_per_bin

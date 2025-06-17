@@ -8,7 +8,7 @@ import logging
 from datetime import datetime
 from functools import cached_property
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import h5py
 import hdf5plugin  # noqa: F401
@@ -45,7 +45,7 @@ class SinglaMaster:
         return self._handle[key]
 
     @cached_property
-    def walk(self) -> List[str]:
+    def walk(self) -> list[str]:
         obj_list = []
         self._handle.visit(obj_list.append)
         return obj_list
@@ -71,7 +71,7 @@ class SinglaMaster:
             return None
         return self.__getitem__(_loc[0])[()]
 
-    def get_mask(self) -> Tuple[bool, ArrayLike]:
+    def get_mask(self) -> tuple[bool, ArrayLike]:
         M = [obj for obj in self.walk if "pixel_mask" in obj]
         if len(M) > 0:
             mask_path = [_loc for _loc in M if _loc.split("/")[-1] == "pixel_mask"]
@@ -85,7 +85,7 @@ class SinglaMaster:
             return (mask_applied, mask)
         return (False, None)
 
-    def get_flatfield(self) -> Tuple[bool, ArrayLike]:
+    def get_flatfield(self) -> tuple[bool, ArrayLike]:
         F = [obj for obj in self.walk if "flatfield" in obj]
         if len(F) > 0:
             flatfield_path = [_loc for _loc in F if _loc.split("/")[-1] == "flatfield"]
@@ -209,7 +209,7 @@ def extract_start_time_from_master(master: Path | str) -> datetime:
     return start_time
 
 
-def extract_detector_info_from_master(master: Path | str) -> Dict[str, Any]:
+def extract_detector_info_from_master(master: Path | str) -> dict[str, Any]:
     """
     Extracts mask, flatfield and any other information relative to the detector \
     from a Singla master file.
@@ -218,7 +218,7 @@ def extract_detector_info_from_master(master: Path | str) -> Dict[str, Any]:
         master (Path | str): Path to Singla master file.
 
     Returns:
-        Dict[str, Any]: Dictionary of information relative to the detector.
+        dict[str, Any]: Dictionary of information relative to the detector.
     """
 
     if SinglaMaster.isDectrisSingla(master) is False:
@@ -247,7 +247,7 @@ def extract_detector_info_from_master(master: Path | str) -> Dict[str, Any]:
     return D
 
 
-def centroid_max(image: ArrayLike) -> Tuple[float, float]:
+def centroid_max(image: ArrayLike) -> tuple[float, float]:
     """
     Find the centre of gravity of the maximum pixels.
 
@@ -255,7 +255,7 @@ def centroid_max(image: ArrayLike) -> Tuple[float, float]:
         image (ArrayLike): Pixel image.
 
     Returns:
-        Tuple[float, float]: Centroid (x,y) position.
+        tuple[float, float]: Centroid (x,y) position.
     """
 
     y, x = np.where(image == np.amax(image))
@@ -264,7 +264,7 @@ def centroid_max(image: ArrayLike) -> Tuple[float, float]:
 
 def find_beam_centre(
     master: Path | str, data: Path | str, data_entry_key: str = "/entry/data/data"
-) -> Tuple[float, float]:
+) -> tuple[float, float]:
     """
     Calculate the beam center position for Electron Diffraction data collected on Singla detector.
 
@@ -274,7 +274,7 @@ def find_beam_centre(
         data_entry_key (str, optional): Key for the location of the images inside the Singla data file. Defaults to "/entry/data/data".
 
     Returns:
-        fast, slow (Tuple[float, float]): Beam center position (fast, slow) on the detector. \
+        fast, slow (tuple[float, float]): Beam center position (fast, slow) on the detector. \
             None if the pixel_mask can't be found.
     """
 

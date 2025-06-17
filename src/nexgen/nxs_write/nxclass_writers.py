@@ -7,7 +7,7 @@ from __future__ import annotations
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, get_args
+from typing import Any, Optional, get_args
 
 import h5py  # isort: skip
 import numpy as np
@@ -73,7 +73,7 @@ def write_NXentry(nxsfile: h5py.File, definition: str = "NXmx") -> h5py.Group:
 # NXdata writer
 def write_NXdata(
     nxsfile: h5py.File,
-    datafiles: List[Path],
+    datafiles: list[Path],
     data_type: str,
     osc_axis: str = "omega",
     entry_key: str = "data",
@@ -83,7 +83,7 @@ def write_NXdata(
 
     Args:
         nxsfile (h5py.File): NeXus file handle.
-        datafiles (List[Path]): List of Path objects pointing to HDF5 data files.
+        datafiles (list[Path]): List of Path objects pointing to HDF5 data files.
         data_type (str): Images or events.
         osc_scan (str, optional): Rotation scan axis name. Defaults to omega.
         entry_key (str): Entry key to create the external links to the data files. Defaults to data.
@@ -147,8 +147,8 @@ def write_NXdata(
 # NXtransformations
 def write_NXtransformations(
     parent_group: h5py.Group,
-    axes: List[Axis],
-    scan: Optional[Dict[str, ArrayLike]] = None,
+    axes: list[Axis],
+    scan: Optional[dict[str, ArrayLike]] = None,
     collection_type: str = "images",
 ):
     """Write NXtransformations group.
@@ -160,8 +160,8 @@ def write_NXtransformations(
     Args:
         parent_group (h5py.Group): Handle to HDF5 group where NXtransformations \
             should be written.
-        axes (List[Axis]): List of Axes to write to the NXtransformations group.
-        scan (Optional[Dict[str, ArrayLike]], optional): All the scan axes, both \
+        axes (list[Axis]): list of Axes to write to the NXtransformations group.
+        scan (Optional[dict[str, ArrayLike]], optional): All the scan axes, both \
             rotation and translation. Defaults to None.
         collection_type (str, optional): Collection type, could be images or \
             events. Defaults to "images".
@@ -208,12 +208,12 @@ def write_NXtransformations(
 # NXsample
 def write_NXsample(
     nxsfile: h5py.File,
-    goniometer_axes: List[Axis],
+    goniometer_axes: list[Axis],
     data_type: str,
-    osc_scan: Dict[str, ArrayLike],
-    transl_scan: Dict[str, ArrayLike] = None,
+    osc_scan: dict[str, ArrayLike],
+    transl_scan: dict[str, ArrayLike] = None,
     sample_depends_on: str = None,
-    sample_details: Dict[str, Any] = None,
+    sample_details: dict[str, Any] = None,
     add_nonstandard_fields: bool = True,
 ):
     """
@@ -221,13 +221,13 @@ def write_NXsample(
 
     Args:
         nxsfile (h5py.File): NeXus file handle.
-        goniometer_axes (List[Axis]): List of goniometer axes.
+        goniometer_axes (list[Axis]): List of goniometer axes.
         data_type (str): Images or events.
-        osc_scan (Dict[str, ArrayLike]): Rotation scan. If writing events, this is just a (start, end) tuple.
-        transl_scan (Dict[str, ArrayLike], optional): Scan along the xy axes at sample. Defaults to None.
+        osc_scan (dict[str, ArrayLike]): Rotation scan. If writing events, this is just a (start, end) tuple.
+        transl_scan (dict[str, ArrayLike], optional): Scan along the xy axes at sample. Defaults to None.
         sample_depends_on (str, optional): Axis on which the sample depends on. If absent, the depends_on field \
             will be set to the last axis listed in the goniometer. Defaults to None.
-        sample_details (Dict[str, Any], optional): General information about the sample, eg. name, temperature.
+        sample_details (dict[str, Any], optional): General information about the sample, eg. name, temperature.
         add_nonstandard_fields (bool, optional): Choose whether to add the old "sample_{x,phi,...}/{x,phi,...}" to the group. \
             These fields are non-standard but may be needed for processing to run. Defaults to True.
     """
@@ -298,8 +298,8 @@ def write_NXinstrument(
 
     Args:
         nxsfile (h5py.File): NeXus file handle.
-        beam (Dict):Dictionary with beam information, mainly wavelength and flux.
-        attenuator (Dict): Dictionary containing transmission.
+        beam (dict): dictionary with beam information, mainly wavelength and flux.
+        attenuator (dict): Dictionary containing transmission.
         source (Source): Source definition, containing the facility information.
         reset_instrument_name (bool, optional): If True, a string with the name of the \
             instrument used. Otherwise, it will be set to 'DIAMOND BEAMLINE Ixx'. Defaults to False.
@@ -314,9 +314,9 @@ def write_NXinstrument(
     )
 
     # Write /name field and relative attribute
-    NXclass_logger.debug(f"{source.short_name} {source.beamline}")
+    NXclass_logger.debug(f"{source.facility.short_name} {source.beamline}")
     name_str = (
-        source.set_instrument_name()
+        source.set_instrument_name
         if reset_instrument_name
         else f"DIAMOND BEAMLINE {source.beamline}"
     )
@@ -324,11 +324,23 @@ def write_NXinstrument(
     create_attributes(
         nxinstrument["name"],
         ("short_name",),
-        (f"{source.short_name} {source.beamline}",),
+        (f"{source.facility.short_name} {source.beamline}",),
     )
 
     NXclass_logger.debug("Write NXattenuator and NXbeam.")
     # Write NXattenuator group: entry/instrument/attenuator
+    write_NXattenuator(nxinstrument, attenuator)
+    # Write NXbeam group: entry/instrument/beam
+    write_NXbeam(nxinstrument, beam)
+
+
+def write_NXattenuator(nxinstrument: h5py.Group, attenuator: Attenuator):
+    """Write the NXattenuator group in /entry/instrument/attenuator.
+
+    Args:
+        nxinstrument (h5py.Group): HDF5 Nxinstrument group handle.
+        attenuator (Attenuator):  Attenuator definition, with transmission.
+    """
     nxatt = nxinstrument.require_group("attenuator")
     create_attributes(nxatt, ("NX_class",), ("NXattenuator",))
     if attenuator.transmission:
@@ -337,11 +349,32 @@ def write_NXinstrument(
             data=attenuator.transmission,
         )
 
-    # Write NXbeam group: entry/instrument/beam
+
+def write_NXbeam(nxinstrument: h5py.Group, beam: Beam):
+    """Write the NXbeam group in /entry/instrument/beam.
+
+    Args:
+        nxinstrument (h5py.Group): HDF5 Nxinstrument group handle.
+        beam (Beam):  Beam definition with wavelength and flux.
+    """
     nxbeam = nxinstrument.require_group("beam")
     create_attributes(nxbeam, ("NX_class",), ("NXbeam",))
-    wl = nxbeam.create_dataset("incident_wavelength", data=beam.wavelength)
+    _wavelength = (
+        beam.wavelength
+        if not isinstance(beam.wavelength, list)
+        else np.array(beam.wavelength)
+    )
+    wl = nxbeam.create_dataset("incident_wavelength", data=_wavelength)
     create_attributes(wl, ("units",), ("angstrom",))
+    if isinstance(beam.wavelength, list) and beam.wavelength_weights:
+        if len(beam.wavelength) != len(beam.wavelength_weights):
+            msg = "Cannot write wavelength weights dataset as length doesn't match number of wavelengths."
+            NXclass_logger.error(msg)
+            raise ValueError(msg)
+        nxbeam.create_dataset(
+            "incident_wavelength_weights", data=np.array(beam.wavelength_weights)
+        )
+
     if beam.flux:
         flux = nxbeam.create_dataset("total_flux", data=beam.flux)
         create_attributes(flux, ("units"), ("Hz",))
@@ -364,9 +397,9 @@ def write_NXsource(nxsfile: h5py.File, source: Source):
         ("NXsource",),
     )
 
-    nxsource.create_dataset("name", data=np.bytes_(source.name))
-    create_attributes(nxsource["name"], ("short_name",), (source.short_name,))
-    nxsource.create_dataset("type", data=np.bytes_(source.facility_type))
+    nxsource.create_dataset("name", data=np.bytes_(source.facility.name))
+    create_attributes(nxsource["name"], ("short_name",), (source.facility.short_name,))
+    nxsource.create_dataset("type", data=np.bytes_(source.facility.type))
     if source.probe:
         nxsource.create_dataset("probe", data=np.bytes_(source.probe))
 
@@ -568,20 +601,20 @@ def write_NXdetector(
 # NXdetector_module writer
 def write_NXdetector_module(
     nxsfile: h5py.File,
-    module: Dict,
-    image_size: List | Tuple,
-    pixel_size: List | Tuple,
-    beam_center: Optional[List | Tuple] = None,
+    module: dict,
+    image_size: list | tuple,
+    pixel_size: list | tuple,
+    beam_center: Optional[list | tuple] = None,
 ):
     """
     Write NXdetector_module group at /entry/instrument/detector/module.
 
     Args:
         nxsfile (h5py.File): NeXus file handle.
-        module (Dict): Dictionary containing the detector module information: fast and slow axes, how many modules.
-        image_size (List | Tuple): Size of the detector, in pixels, passed in the order (slow, fast) axis.
-        pixel_size (List | Tuple): Size of the single pixels in fast and slow direction, in mm.
-        beam_center (Optional[List | Tuple], optional): Beam center position, needed only if origin needs to be calculated. Defaults to None.
+        module (dict): Dictionary containing the detector module information: fast and slow axes, how many modules.
+        image_size (list | tuple): Size of the detector, in pixels, passed in the order (slow, fast) axis.
+        pixel_size (list | tuple): Size of the single pixels in fast and slow direction, in mm.
+        beam_center (Optional[list | tuple], optional): Beam center position, needed only if origin needs to be calculated. Defaults to None.
     """
     NXclass_logger.debug("Start writing NXdetector_module.")
     # Create NXdetector_module group, unless it already exists, in which case just open it.
@@ -800,14 +833,14 @@ def write_NXdatetime(
 
 # NXnote writer
 # To be used e.g. as a place to store pump-probe info such as pump delay/width
-def write_NXnote(nxsfile: h5py.File, loc: str, info: Dict):
+def write_NXnote(nxsfile: h5py.File, loc: str, info: dict):
     """
     Write any additional information as a NXnote class in a specified location in the NeXus file.
 
     Args:
         nxsfile (h5py.File): NeXus file handle.
         loc (str): Location inside the NeXus file to write NXnote group.
-        info (Dict): Dictionary of datasets to be written to NXnote.
+        info (dict): Dictionary of datasets to be written to NXnote.
     """
     NXclass_logger.debug("Start writing NXnote.")
     # Create the NXnote group in the specified location
@@ -830,8 +863,8 @@ def write_NXnote(nxsfile: h5py.File, loc: str, info: Dict):
 def write_NXcoordinate_system_set(
     nxsfile: h5py.File,
     convention: str,
-    base_vectors: Dict[str, Axis],
-    origin: List | Tuple | ArrayLike,
+    base_vectors: dict[str, Axis],
+    origin: list | tuple | ArrayLike,
 ):
     """
     Write a container object to store coordinate system conventions different from mcstas.
@@ -846,8 +879,8 @@ def write_NXcoordinate_system_set(
     Args:
         nxsfile (h5py.File): Handle to NeXus file.
         convention (str): Convention decription. Defaults to "ED".
-        base_vectors (Dict[str, Axis]): The three base vectors of the coordinate system.
-        origin (List | Tuple | np.ndarray): The location of the origin of the coordinate system.
+        base_vectors (dict[str, Axis]): The three base vectors of the coordinate system.
+        origin (list | tuple | np.ndarray): The location of the origin of the coordinate system.
     """
     NXclass_logger.info(
         f"Writing NXcoordinate_system_set to define the coordinate system convention for {convention}."

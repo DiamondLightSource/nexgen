@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import re
 from functools import cached_property
-from typing import Dict, List, Tuple
 
 import h5py
 
@@ -29,7 +28,7 @@ class Metafile:
         return f"File {self._handle.filename} opened in '{self._handle.mode}' mode."
 
     @cached_property
-    def walk(self) -> List[str]:
+    def walk(self) -> list[str]:
         obj_list = []
         self._handle.visit(obj_list.append)
         return obj_list
@@ -69,7 +68,7 @@ class DectrisMetafile(Metafile):
             return True
         return False
 
-    def read_dectris_config(self) -> Dict:
+    def read_dectris_config(self) -> dict:
         config = {}
         for k, v in self._handle["_dectris"].items():
             v = v[()]
@@ -80,7 +79,7 @@ class DectrisMetafile(Metafile):
             config[k] = v
         return config
 
-    def read_config_dset(self) -> Dict:
+    def read_config_dset(self) -> dict:
         config = eval(self._handle["config"][()])
         return config
 
@@ -103,7 +102,7 @@ class DectrisMetafile(Metafile):
     def get_full_number_of_images(self) -> int:
         return self.get_number_of_triggers() * self.get_number_of_images()
 
-    def get_detector_size(self) -> Tuple:
+    def get_detector_size(self) -> tuple:
         # NB. returns (fast, slow) but data_size in nxs file shoud be recorded (slow, fast)
         # => det_size[::-1]
         _loc = [obj for obj in self.walk if "pixels_in_detector" in obj]
@@ -114,7 +113,7 @@ class DectrisMetafile(Metafile):
             return None
         return tuple(det_size[::-1])
 
-    def get_pixel_size(self) -> List:
+    def get_pixel_size(self) -> list:
         _loc = [obj for obj in self.walk if "pixel_size" in obj]
         pix = []
         for i in _loc:
@@ -123,7 +122,7 @@ class DectrisMetafile(Metafile):
             return None
         return pix
 
-    def get_beam_center(self) -> List:
+    def get_beam_center(self) -> list:
         _loc = [obj for obj in self.walk if "beam_center" in obj]
         bc = []
         for i in _loc:
@@ -151,7 +150,7 @@ class DectrisMetafile(Metafile):
             return None
         return self.__getitem__(_loc[0])[0]
 
-    def get_sensor_information(self) -> Tuple[bytes, float]:
+    def get_sensor_information(self) -> tuple[bytes, float]:
         _loc_material = [obj for obj in self.walk if "sensor_material" in obj]
         _loc_thickness = [obj for obj in self.walk if "sensor_thickness" in obj]
         return (
@@ -202,7 +201,7 @@ class DectrisMetafile(Metafile):
             return None
         return self.__getitem__(_loc[0])[0]
 
-    def find_mask(self) -> Tuple[str, str]:
+    def find_mask(self) -> tuple[str, str]:
         if self.hasMask:
             mask_path = [obj for obj in self.walk if obj.lower() == "mask"]
             mask_applied_path = [obj for obj in self.walk if "mask_applied" in obj]
@@ -211,7 +210,7 @@ class DectrisMetafile(Metafile):
             return (mask_path[0], mask_applied_path[0])
         return (None, None)
 
-    def find_flatfield(self) -> Tuple[str, str]:
+    def find_flatfield(self) -> tuple[str, str]:
         if self.hasFlatfield:
             flatfield_path = [obj for obj in self.walk if obj.lower() == "flatfield"]
             flatfield_applied_path = [

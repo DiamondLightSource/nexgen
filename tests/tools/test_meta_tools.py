@@ -7,18 +7,21 @@ import pytest
 from nexgen.nxs_utils import Axis, TransformationType
 from nexgen.tools.meta_reader import (
     define_vds_data_type,
-    overwrite_beam,
     update_axes_from_meta,
 )
 from nexgen.tools.metafile import DectrisMetafile, TristanMetafile
 
-axes_list = [
-    Axis("omega", ".", TransformationType.ROTATION, (0, 0, -1)),
-    Axis("sam_z", "omega", TransformationType.TRANSLATION, (0, 0, 1)),
-    Axis("sam_y", "sam_z", TransformationType.TRANSLATION, (0, 1, 0)),
-    Axis("sam_x", "sam_y", TransformationType.TRANSLATION, (1, 0, 0)),
-    Axis("phi", "sam_x", TransformationType.ROTATION, (0, 0, 1)),
-]
+
+@pytest.fixture
+def axes_list() -> list[Axis]:
+    return [
+        Axis("omega", ".", TransformationType.ROTATION, (0, 0, -1)),
+        Axis("sam_z", "omega", TransformationType.TRANSLATION, (0, 0, 1)),
+        Axis("sam_y", "sam_z", TransformationType.TRANSLATION, (0, 1, 0)),
+        Axis("sam_x", "sam_y", TransformationType.TRANSLATION, (1, 0, 0)),
+        Axis("phi", "sam_x", TransformationType.ROTATION, (0, 0, 1)),
+    ]
+
 
 test_detector_size = (512, 1028)  # slow, fast
 test_beam = {"wavelength": 0.0}
@@ -101,11 +104,6 @@ def test_Eiger_meta_file(dummy_eiger_meta_file):
     }
 
 
-def test_overwrite_beam(dummy_eiger_meta_file):
-    overwrite_beam(dummy_eiger_meta_file, "Eiger", test_beam)
-    assert test_beam["wavelength"] == 0.6
-
-
 def test_define_vds_shape(dummy_eiger_meta_file):
     meta = DectrisMetafile(dummy_eiger_meta_file)
     vds_shape = define_vds_data_type(meta)
@@ -113,7 +111,7 @@ def test_define_vds_shape(dummy_eiger_meta_file):
     assert vds_shape == np.uint32
 
 
-def test_update_axes_from_meta(dummy_eiger_meta_file):
+def test_update_axes_from_meta(dummy_eiger_meta_file, axes_list):
     meta = DectrisMetafile(dummy_eiger_meta_file)
     assert axes_list[0].start_pos == 0.0  # omega
     assert axes_list[-1].start_pos == 0.0  # phi
@@ -123,7 +121,7 @@ def test_update_axes_from_meta(dummy_eiger_meta_file):
     assert axes_list[-1].num_steps == 10
 
 
-def test_update_axes_from_meta_using_config(dummy_eiger_meta_file):
+def test_update_axes_from_meta_using_config(dummy_eiger_meta_file, axes_list):
     meta = DectrisMetafile(dummy_eiger_meta_file)
     # Reset axes
     axes_list[0].start_pos = 0.0

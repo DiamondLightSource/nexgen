@@ -1,0 +1,134 @@
+{
+    "gonio": {
+        "axes": [
+            {
+                "name": "omega",
+                "depends": ".",
+                "transformation_type": "rotation",
+                "vector": [
+                    -1.0,
+                    0.0,
+                    0.0
+                ],
+                "start_pos": -90.0,
+            },
+	    {
+                "name": "kappa",
+                "depends": "omega",
+                "transformation_type": "rotation",
+                "vector": [
+                    -0.642788,
+                    -0.766044,
+                    0.0
+                ],
+                "start_pos": 0.0
+            },
+            {
+                "name": "phi",
+                "depends": "kappa",
+                "transformation_type": "rotation",
+                "vector": [
+                    -1,
+                    0.0,
+                    0.0
+                ],
+                "start_pos": 10.0,
+                "increment": 0.1,
+                "num_steps": 80
+            },
+            {
+                "name": "sam_z",
+                "depends": "phi",
+                "transformation_type": "translation",
+                "vector": [
+                    0.0,
+                    0.0,
+                    1.0
+                ]
+            },
+	    {
+                "name": "sam_y",
+                "depends": "sam_z",
+                "transformation_type": "translation",
+                "vector": [
+                    0.0,
+                    1.0,
+                    0.0
+                ]
+            },
+            {
+                "name": "sam_x",
+                "depends": "sam_y",
+                "transformation_type": "translation",
+                "vector": [
+                    1.0,
+                    0.0,
+                    0.0
+                ]
+            }
+        ],
+    "scan_axis": "phi",
+    },
+    "instrument": {
+        "beam": {
+            "wavelength": 0.6
+        },
+        "source": {
+            "beamline": "i19-2"
+        },
+	"attenuator": {
+	    "transmission": 10
+	}
+    },
+    "det": {
+        "axes": [
+	    {
+                "name": "two_theta",
+                "depends": ".",
+                "transformation_type": "rotation",
+                "vector": [
+                    -1.0,
+                    0.0,
+                    0.0
+                ],
+                "start_pos": 0.0
+            },
+            {
+                "name": "det_z",
+                "depends": "two_theta",
+                "transformation_type": "translation",
+                "vector": [
+                    0.0,
+                    0.0,
+                    1.0
+                ],
+                "start_pos": 250.0
+            }
+        ],
+        "params": {
+            "description": "Tristan 10M",
+            "image_size": [
+                3043,
+                4183
+            ]
+        },
+        "beam_center": [
+            1230,
+            2450
+        ],
+        "exposure_time": 300,
+        "module": {
+            "fast_axis": [
+                -1.0,
+                0.0,
+                0.0
+            ],
+            "slow_axis": [
+                0.0,
+                -1.0,
+                0.0
+            ]
+        },
+        "mode": "events"
+    }
+}

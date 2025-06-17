@@ -102,18 +102,8 @@ NXclass writers
 
 All the NXclass writers available can be found in:
 
-.. automodule:: nexgen.nxs_write.NXclassWriters
+.. automodule:: nexgen.nxs_write.nxclass_writers
     :members:
-
-
-Old tools
----------
-
-.. note::
-    Tools such as ScanReader and write_nexus_from_scope have been deprecated as of version `0.8.0`. The functionality of `call_writers` has also been changed.
-
-
-.. autofunction:: nexgen.command_line.cli_utils.call_writers
 
 
 
@@ -204,16 +194,21 @@ data type using the information stored in the `meta` file.
 Reader for Singla detector master file
 --------------------------------------
 
-.. autoclass:: nexgen.tools.ED_tools.SinglaMaster
+.. autoclass:: nexgen.tools.ed_tools.SinglaMaster
     :members:
 
-.. autofunction:: nexgen.tools.ED_tools.extract_from_SINGLA_master
+.. autofunction:: nexgen.tools.ed_tools.extract_exposure_time_from_master
+
+.. autofunction:: nexgen.tools.ed_tools.extract_start_time_from_master
+
+.. autofunction:: nexgen.tools.ed_tools.extract_detector_info_from_master
+
 
 Tools to calculate the beam center of an Electron Diffraction experiment:
 
-.. autofunction:: nexgen.tools.ED_tools.centroid_max
+.. autofunction:: nexgen.tools.ed_tools.centroid_max
 
-.. autofunction:: nexgen.tools.ED_tools.find_beam_centre
+.. autofunction:: nexgen.tools.ed_tools.find_beam_centre
 
 
 Logging configuration
@@ -221,3 +216,35 @@ Logging configuration
 
 .. automodule:: nexgen.log
     :members:
+
+
+
+.. _cli-config-section:
+
+CLI configuration
+=================
+
+
+.. autopydantic_model:: nexgen.command_line.cli_config.CliConfig
+    :inherited-members: BaseModel
+    :model-show-config-summary: True
+
+
+.. autopydantic_model:: nexgen.command_line.cli_config.GonioConfig
+    :model-show-config-summary: False
+
+
+.. autopydantic_model:: nexgen.command_line.cli_config.InstrumentConfig
+    :model-show-config-summary: False
+
+
+.. autopydantic_model:: nexgen.command_line.cli_config.DetectorConfig
+    :model-show-config-summary: False
+
+
+.. autopydantic_model:: nexgen.command_line.cli_config.ModuleConfig
+    :model-show-config-summary: False
+
+
+.. autopydantic_model:: nexgen.command_line.cli_config.CoordSystemConfig
+    :model-show-config-summary: False

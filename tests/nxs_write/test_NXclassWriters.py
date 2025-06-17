@@ -16,6 +16,8 @@ from nexgen.nxs_utils import (
     TristanDetector,
 )
 from nexgen.nxs_write.nxclass_writers import (
+    write_NXattenuator,
+    write_NXbeam,
     write_NXcollection,
     write_NXcoordinate_system_set,
     write_NXdata,
@@ -528,3 +530,50 @@ def test_write_NXinstrument_sets_correct_instrument_name(
 
     assert dummy_nexus_file[instr + "name"][()] == b"DIAMOND MICROSCOPE eBic"
     assert dummy_nexus_file[instr + "name"].attrs["short_name"] == b"DLS eBic"
+
+
+def test_write_NXattenuator(dummy_nexus_file, mock_attenuator):
+    nx_instrument = dummy_nexus_file.require_group("/entry/instrument")
+
+    write_NXattenuator(nx_instrument, mock_attenuator)
+
+    assert "attenuator" in list(dummy_nexus_file["/entry/instrument"].keys())
+    assert "attenuator_transmission" in list(
+        dummy_nexus_file["/entry/instrument/attenuator"].keys()
+    )
+    assert (
+        dummy_nexus_file["/entry/instrument/attenuator/attenuator_transmission"][()]
+        == 10.0
+    )
+
+
+def test_write_NXbeam_for_polychromatic_beam(dummy_nexus_file, mock_polychromatic_beam):
+    beam_loc = "/entry/instrument/beam"
+    nx_instrument = dummy_nexus_file.require_group("/entry/instrument")
+
+    write_NXbeam(nx_instrument, mock_polychromatic_beam)
+
+    assert "beam" in list(dummy_nexus_file["/entry/instrument"].keys())
+    assert "incident_wavelength" in list(dummy_nexus_file[beam_loc].keys())
+    assert "incident_wavelength_weights" in list(dummy_nexus_file[beam_loc].keys())
+    assert "total_flux" in list(dummy_nexus_file[beam_loc].keys())
+    assert_array_equal(
+        dummy_nexus_file[f"{beam_loc}/incident_wavelength"][()], [0.6, 0.7]
+    )
+    assert_array_equal(
+        dummy_nexus_file[f"{beam_loc}/incident_wavelength_weights"][()],
+        mock_polychromatic_beam.wavelength_weights,
+    )
+    assert (
+        dummy_nexus_file[f"{beam_loc}/total_flux"][()] == mock_polychromatic_beam.flux
+    )
+
+
+def test_write_NEbeam_for_polychromatic_beam_fails_if_wrong_number_of_weights(
+    dummy_nexus_file, mock_polychromatic_beam
+):
+    mock_polychromatic_beam.wavelength_weights = [0.5]
+    nx_instrument = dummy_nexus_file.require_group("/entry/instrument")
+
+    with pytest.raises(ValueError):
+        write_NXbeam(nx_instrument, mock_polychromatic_beam)

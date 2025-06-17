@@ -4,13 +4,14 @@ Sample definition utilities.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-
-from dataclasses_json import DataClassJsonMixin
+from pydantic.dataclasses import dataclass
 
 
 @dataclass
-class Sample(DataClassJsonMixin):
+class Sample:
     name: str | None = None
     depends_on: str | None = None
-    temperature: str | None = None
+    temperature: float | None = None
+
+    def to_dict(self) -> dict:
+        return self.__dict__
