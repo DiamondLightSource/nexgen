@@ -1,6 +1,12 @@
 # CHANGELOG
 
 
+## 0.11.#
+
+### Fixed
+- External links to eiger meta file in NXdetector and detectorSpecific groups re-enabled.
+
+
 ## 0.11.0
 
 ### Changed
@@ -8,9 +14,9 @@
 - Replace dataclasses with pydantic dataclasses and use pydantic more generally for the model parameters.
 - Update typing.
 
-
 ### Removed
 - Dependency on freephil.
+
 
 ## 0.10.0
 
