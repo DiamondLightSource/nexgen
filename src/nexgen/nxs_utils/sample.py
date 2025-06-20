@@ -12,6 +12,11 @@ class Sample:
     name: str | None = None
     depends_on: str | None = None
     temperature: float | None = None
+    pressure: float | None = None
 
-    def to_dict(self) -> dict:
-        return self.__dict__
+    def get_sample_info_as_dict(self) -> dict | None:
+        """Write a dict with sample details that does not include depends on."""
+        d = {k: v for k, v in self.__dict__.items() if v and k != "depends_on"}
+        if len(d) == 0:
+            return None
+        return d

@@ -1,6 +1,13 @@
 # CHANGELOG
 
 
+## 0.11.1
+
+# Added
+- Ability to pass a Sample definition to the NXmx writer as an optional field
+- Check for still in I19 writer - with relative update to sample depends_on.
+
+
 ## 0.11.0
 
 ### Changed
@@ -8,9 +15,9 @@
 - Replace dataclasses with pydantic dataclasses and use pydantic more generally for the model parameters.
 - Update typing.
 
-
 ### Removed
 - Dependency on freephil.
+
 
 ## 0.10.0
 

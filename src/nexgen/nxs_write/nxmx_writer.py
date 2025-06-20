@@ -15,6 +15,7 @@ from numpy.typing import DTypeLike
 
 from ..nxs_utils.detector import Detector
 from ..nxs_utils.goniometer import Goniometer
+from ..nxs_utils.sample import Sample
 from ..nxs_utils.source import Attenuator, Beam, Source
 from ..tools.vds_tools import (
     clean_unused_links,
@@ -56,6 +57,7 @@ class NXmxFileWriter:
         beam: Beam,
         attenuator: Attenuator,
         tot_num_imgs: int,  # | None = None,
+        sample: Sample | None = None,
     ):
         self.filename = Path(filename).expanduser().resolve()
         self.goniometer = goniometer
@@ -64,6 +66,7 @@ class NXmxFileWriter:
         self.beam = beam
         self.attenuator = attenuator
         self.tot_num_imgs = tot_num_imgs
+        self.sample = sample
 
     def _get_meta_file(self, image_filename: str = None) -> Path | None:
         """Get filename_meta.h5 file in directory if it's supposed to exist."""
@@ -225,13 +228,16 @@ class NXmxFileWriter:
             write_NXsource(nxs, self.source)
 
             # NXsample: entry/sample
+            sample_dep = self.sample.depends_on if self.sample else None
+            sample_info = self.sample.get_sample_info_as_dict() if self.sample else None
             write_NXsample(
                 nxs,
                 self.goniometer.axes_list,
                 "images",
                 osc,
                 transl,
-                sample_depends_on=None,  # TODO
+                sample_depends_on=sample_dep,
+                sample_details=sample_info,
                 add_nonstandard_fields=add_non_standard,
             )
 
@@ -315,6 +321,7 @@ class EventNXmxFileWriter(NXmxFileWriter):
         beam: Beam,
         attenuator: Attenuator,
         axis_end_position: float | None = None,
+        sample: Sample | None = None,
     ):
         super().__init__(
             filename,
@@ -324,6 +331,7 @@ class EventNXmxFileWriter(NXmxFileWriter):
             beam,
             attenuator,
             None,
+            sample,
         )
         self.end_pos = axis_end_position
 
@@ -403,11 +411,14 @@ class EventNXmxFileWriter(NXmxFileWriter):
             write_NXsource(nxs, self.source)
 
             # NXsample: entry/sample
+            sample_dep = self.sample.depends_on if self.sample else None
+            sample_info = self.sample.get_sample_info_as_dict() if self.sample else None
             write_NXsample(
                 nxs,
                 self.goniometer.axes_list,
                 "events",
                 osc,
-                sample_depends_on=None,  # TODO
+                sample_depends_on=sample_dep,
+                sample_details=sample_info,
                 add_nonstandard_fields=add_non_standard,
             )
