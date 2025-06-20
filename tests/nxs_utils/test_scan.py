@@ -95,7 +95,7 @@ def test_calculate_scan_points_for_reverse_rotation():
     assert round(rev[ax.name][-1], 1) == -0.8
 
 
-def test_calculate_omega_points_for_no_rotation():
+def test_calculate_omega_points_for_no_rotation():  # stills test
     rot = calculate_scan_points(test_axis_list[0], rotation=True, tot_num_imgs=10)
     assert test_axis_list[0].name in rot.keys()
     assert len(rot[test_axis_list[0].name]) == 10
