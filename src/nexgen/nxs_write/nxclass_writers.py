@@ -166,7 +166,9 @@ def write_NXtransformations(
         collection_type (str, optional): Collection type, could be images or \
             events. Defaults to "images".
     """
-    NXclass_logger.debug(f"Start writing NXtransformations group in {parent_group}.")
+    NXclass_logger.debug(
+        f"Start writing NXtransformations group in {parent_group.name}."
+    )
     nxtransformations = parent_group.require_group("transformations")
     create_attributes(
         nxtransformations,

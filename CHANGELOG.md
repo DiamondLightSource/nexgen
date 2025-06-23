@@ -7,6 +7,13 @@
 - External links to eiger meta file in NXdetector and detectorSpecific groups re-enabled.
 
 
+## 0.11.1
+
+# Added
+- Ability to pass a Sample definition to the NXmx writer as an optional field
+- Check for still in I19 writer - with relative update to sample depends_on.
+
+
 ## 0.11.0
 
 ### Changed

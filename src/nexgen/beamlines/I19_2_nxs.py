@@ -12,6 +12,7 @@ from typing import Any, NamedTuple, Optional
 
 import h5py
 import numpy as np
+from numpy.typing import ArrayLike
 from pydantic import field_validator
 
 from nexgen.utils import get_iso_timestamp
@@ -23,6 +24,7 @@ from ..nxs_utils import (
     Detector,
     EigerDetector,
     Goniometer,
+    Sample,
     Source,
     TristanDetector,
 )
@@ -103,6 +105,12 @@ class CollectionParams(GeneralParams):
         return metafile
 
 
+def _is_stills(scan: ArrayLike) -> bool:
+    if all(scan == scan[0]):
+        return True
+    return False
+
+
 def tristan_writer(
     master_file: Path,
     TR: CollectionParams,
@@ -152,6 +160,12 @@ def tristan_writer(
         end_pos = gonio_axes[scan_idx].end_pos
     OSC = {scan_axis: (gonio_axes[scan_idx].start_pos, end_pos)}
 
+    sample = None
+    if OSC[scan_axis][0] == OSC[scan_axis][1]:
+        logger.info(f"Scan on axis {scan_axis} is actually a collection of stills")
+        logger.debug(f"Will set sample depends_on to {scan_axis}")
+        sample = Sample(depends_on=scan_axis)
+
     # Define Detector
     detector = Detector(
         tristan_params,
@@ -187,6 +201,7 @@ def tristan_writer(
             source,
             beam,
             attenuator,
+            sample=sample,
         )
         EventFileWriter.write(
             image_filename=TR.metafile.stem.replace("_meta", ""),
@@ -364,6 +379,11 @@ def eiger_writer(
         rotation=True,
         tot_num_imgs=n_frames,
     )
+    sample = None
+    if _is_stills(OSC[scan_axis]):
+        logger.info(f"Scan on axis {scan_axis} is actually a collection of stills")
+        logger.debug(f"Will set sample depends_on to {scan_axis}")
+        sample = Sample(depends_on=scan_axis)
 
     # Define beam and attenuator
     attenuator = Attenuator(transmission)
@@ -402,6 +422,7 @@ def eiger_writer(
             beam,
             attenuator,
             TR.tot_num_images,
+            sample,
         )
         NXmx_writer.write(image_filename=image_filename, start_time=timestamps[0])
         NXmx_writer.write_vds(
