@@ -5,15 +5,15 @@ gonio:
       transformation_type: rotation
       vector: [-1,0,0]
     - name: sam_z
-      depends: "omega"
+      depends: omega
       transformation_type: translation
       vector: [0,0,1]
     - name: sam_y
-      depends: "sam_z"
+      depends: sam_z
       transformation_type: translation
       vector: [0,1,0]
     - name: sam_x
-      depends: "sam_y"
+      depends: sam_y
       transformation_type: translation
       vector: [1,0,0]
 
