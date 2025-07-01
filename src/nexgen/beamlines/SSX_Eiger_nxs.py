@@ -12,7 +12,7 @@ import numpy as np
 from numpy.typing import DTypeLike
 
 from .. import log
-from ..nxs_utils import Attenuator, Beam, Detector, EigerDetector, Goniometer, Source
+from ..nxs_utils import Attenuator, Beam, Detector, EigerDetector, Goniometer, Sample, Source
 from ..nxs_write.nxmx_writer import NXmxFileWriter
 from ..utils import find_in_dict, get_iso_timestamp
 from .beamline_utils import (
@@ -309,6 +309,8 @@ def ssx_eiger_writer(
 
     tot_num_imgs = SSX.num_imgs
 
+    # Define sample as None
+    sample = None
     # Run experiment type
     match SSX.experiment_type:
         case "extruder":
@@ -320,6 +322,7 @@ def ssx_eiger_writer(
                 pump_probe,
                 osc_axis,
             )
+            sample = Sample(depends_on=osc_axis)
         case "fixed-target":
             from .SSX_expt import run_fixed_target
 
@@ -366,6 +369,7 @@ def ssx_eiger_writer(
             beam,
             attenuator,
             tot_num_imgs,
+            sample,
         )
         image_filename = metafile.as_posix().replace("_meta.h5", "")
         NXmx_Writer.write(image_filename=image_filename, start_time=timestamps[0])
