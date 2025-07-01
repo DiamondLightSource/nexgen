@@ -12,7 +12,15 @@ import numpy as np
 from numpy.typing import DTypeLike
 
 from .. import log
-from ..nxs_utils import Attenuator, Beam, Detector, EigerDetector, Goniometer, Sample, Source
+from ..nxs_utils import (
+    Attenuator,
+    Beam,
+    Detector,
+    EigerDetector,
+    Goniometer,
+    Sample,
+    Source,
+)
 from ..nxs_write.nxmx_writer import NXmxFileWriter
 from ..utils import find_in_dict, get_iso_timestamp
 from .beamline_utils import (
