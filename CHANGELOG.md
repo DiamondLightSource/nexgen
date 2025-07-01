@@ -1,9 +1,15 @@
 # CHANGELOG
 
 
+## 0.11.2
+
+### Fixed
+- Sample depends_on for extruder serial collections
+
+
 ## 0.11.1
 
-# Added
+### Added
 - Ability to pass a Sample definition to the NXmx writer as an optional field
 - Check for still in I19 writer - with relative update to sample depends_on.
 
