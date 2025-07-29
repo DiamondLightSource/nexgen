@@ -31,8 +31,6 @@ from nexgen.nxs_write.nxclass_writers import (
     write_NXsource,
     write_NXtransformations,
 )
-import tempfile
-import h5py
 
 test_module = {"fast_axis": [1, 0, 0], "slow_axis": [0, 1, 0]}
 
