@@ -489,6 +489,7 @@ def test_write_NXdetector_for_eiger_images_with_meta_file(
     assert "pixel_mask_applied" in list(dummy_nexus_file[det].keys())
     assert "flatfield" in list(dummy_nexus_file[det].keys())
     assert "bit_depth_readout" in list(dummy_nexus_file[det].keys())
+    assert "serial_number" in list(dummy_nexus_file[det].keys())
 
     mock_nxcoll_writer.assert_called_once()
 
