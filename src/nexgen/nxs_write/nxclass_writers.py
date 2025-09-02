@@ -43,6 +43,9 @@ NXclass_logger = logging.getLogger("nexgen.NXclass_writers")
 NXclass_logger.setLevel(logging.DEBUG)
 
 
+DETECTOR_SPECIFIC_PARAMS = ["eiger_fw_version", "data_collection_date", "ntrigger"]
+
+
 # NXentry writer
 def write_NXentry(nxsfile: h5py.File, definition: str = "NXmx") -> h5py.Group:
     """
@@ -277,7 +280,7 @@ def write_NXsample(
         nxsample["beam"] = nxsfile["/entry/instrument/beam"]
     except KeyError:
         NXclass_logger.debug(
-            "No NXbeam group found elsewhere in the NeXus file." "No link written."
+            "No NXbeam group found elsewhere in the NeXus file.No link written."
         )
 
     if sample_details:
@@ -451,15 +454,8 @@ def write_NXdetector(
                 else meta.as_posix()
             )
             for k, v in detector.detector_params.constants.items():
-                if k in [
-                    "software_version",
-                    "ntrigger",
-                    "data_collection_date",
-                    "eiger_fw_version",
-                    "serial_number",
-                ]:
-                    # NOTE: Software version, eiger_fw_version ntrigger & date should
-                    # go in detectorSpecific (NXcollection)
+                if k in DETECTOR_SPECIFIC_PARAMS + ["software_version"]:
+                    # NOTE: These items go in detectorSpecific (NXcollection)
                     continue
                 nxdetector[k] = h5py.ExternalLink(meta_link, v)
         else:
@@ -784,7 +780,7 @@ def write_NXcollection(
                 data=np.bytes_(detector_params.constants["software_version"]),
             )
     if "EIGER" in detector_params.description.upper() and meta:
-        for field in ["ntrigger"]:  # , "data_collection_date", "eiger_fw_version"]:
+        for field in DETECTOR_SPECIFIC_PARAMS:
             grp[field] = h5py.ExternalLink(meta.name, detector_params.constants[field])
     elif "TRISTAN" in detector_params.description.upper():
         tick = ureg.Quantity(detector_params.constants["detector_tick"])

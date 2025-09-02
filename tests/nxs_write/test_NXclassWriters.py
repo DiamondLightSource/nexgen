@@ -261,7 +261,6 @@ def test_old_sample_groups_added_correctly_to_NXsample_for_rotation_scan(
 
 
 def test_sample_details_in_NXsample(dummy_nexus_file, mock_goniometer):
-
     test_details = {"name": b"test_sample", "temperature": "25C"}
     test_axis = "omega"
     test_scan_range = [0, 1, 2]
@@ -381,12 +380,15 @@ def test_write_NXcoordinate_system_set(dummy_nexus_file):
 def test_write_NXcollection_for_images(dummy_nexus_file):
     nxdet = dummy_nexus_file.require_group("/entry/instrument/detector")
     test_detector_spec = EigerDetector("eiger", [512, 1028], "Si", 10000, -1)
-    test_detector_spec.constants["software_version"] = "0.0.0"
 
-    write_NXcollection(nxdet, test_detector_spec, "images", 10)
+    write_NXcollection(
+        nxdet, test_detector_spec, "images", 10, meta=Path("/mock/meta/path")
+    )
 
     spec = "/entry/instrument/detector/detectorSpecific/"
-    assert dummy_nexus_file[spec + "software_version"][()] == b"0.0.0"
+    assert "software_version" in dummy_nexus_file[spec]
+    assert "eiger_fw_version" in dummy_nexus_file[spec]
+    assert "ntrigger" in dummy_nexus_file[spec]
     assert_array_equal(dummy_nexus_file[spec + "nimages"][()], 10)
     assert_array_equal(
         dummy_nexus_file[spec + "x_pixels"][()], test_detector_spec.image_size[1]
@@ -485,6 +487,7 @@ def test_write_NXdetector_for_eiger_images_with_meta_file(
     assert "pixel_mask_applied" in list(dummy_nexus_file[det].keys())
     assert "flatfield" in list(dummy_nexus_file[det].keys())
     assert "bit_depth_readout" in list(dummy_nexus_file[det].keys())
+    assert "serial_number" in list(dummy_nexus_file[det].keys())
 
     mock_nxcoll_writer.assert_called_once()
 
