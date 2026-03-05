@@ -229,6 +229,7 @@ def eiger_writer(
     n_frames: int | None = None,
     vds_offset: int = 0,
     notes: dict[str, Any] | None = None,
+    data_entry_key: str = "data",
 ):
     """
     A function to call the NXmx nexus file writer for Eiger 2X 4M detector.
@@ -248,6 +249,8 @@ def eiger_writer(
         vds_offset (int, optional): Start index for the vds writer. Defaults to 0.
         notes (dict[str, Any], optional): Dictionary of (key, value) pairs where key represents the \
             dataset name and value its data. Defaults to None.
+        data_entry_key (str, optional): Dataset entry key in datafiles. eg. for gating mode it's data1.\
+            Defaults to data.
 
     Raises:
         ValueError: If use_meta is set to False but axes_pos and det_pos haven't been passed.
@@ -424,7 +427,11 @@ def eiger_writer(
             TR.tot_num_images,
             sample,
         )
-        NXmx_writer.write(image_filename=image_filename, start_time=timestamps[0])
+        NXmx_writer.write(
+            image_filename=image_filename,
+            start_time=timestamps[0],
+            data_entry_key=data_entry_key,
+        )
         NXmx_writer.write_vds(
             vds_offset=vds_offset,
             vds_shape=(n_frames, *detector.detector_params.image_size),

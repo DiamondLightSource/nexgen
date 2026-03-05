@@ -142,6 +142,7 @@ class NXmxFileWriter:
         est_end_time: datetime | str | None = None,
         write_mode: str = "x",
         add_non_standard: bool = True,
+        data_entry_key: str = "data",
     ):
         """Write the NXmx format NeXus file.
 
@@ -162,6 +163,7 @@ class NXmxFileWriter:
                 Accepts any valid h5py file opening mode. Defaults to "x".
             add_non_standard (bool, optional): Flag if non-standard NXsample fields should be added \
                 for processing to work. Defaults to True, will change in the future.
+            data_entry_key (str, optional): Dataset entry key in datafiles. Defaults to data.
         """
         metafile = self._get_meta_file(image_filename)
         if metafile:
@@ -193,10 +195,7 @@ class NXmxFileWriter:
 
             # NXdata: entry/data
             write_NXdata(
-                nxs,
-                datafiles,
-                "images",
-                list(osc.keys())[0],
+                nxs, datafiles, "images", list(osc.keys())[0], entry_key=data_entry_key
             )
 
             # NXinstrument: entry/instrument
@@ -341,6 +340,7 @@ class EventNXmxFileWriter(NXmxFileWriter):
         start_time: datetime | str | None = None,
         write_mode: str = "x",
         add_non_standard: bool = False,
+        data_entry_key: str = "data",
     ):
         """Write a NXmx-like NeXus file for event mode data collections.
 
@@ -356,6 +356,7 @@ class EventNXmxFileWriter(NXmxFileWriter):
                 Accepts any valid h5py file opening mode. Defaults to "x".
             add_non_standard (bool, optional): Flag if non-standard NXsample fields should be added \
                 for processing to work. Defaults to False.
+            data_entry_key (str, optional): Dataset entry key in datafiles. Defaults to data.
         """
         # Get metafile
         # No data files, just link to meta
@@ -381,6 +382,7 @@ class EventNXmxFileWriter(NXmxFileWriter):
                 [metafile],
                 "events",
                 list(osc.keys())[0],
+                entry_key=data_entry_key,
             )
 
             # NXinstrument: entry/instrument
