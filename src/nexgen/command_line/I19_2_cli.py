@@ -236,12 +236,12 @@ parser_nex = subparsers.add_parser(
 )
 parser_nex.add_argument("meta_file", type=str, help="Path to _meta.h5 file.")
 parser_nex.add_argument(
-    "detector-name",
+    "detector_name",
     type=str,
     choices=["eiger", "tristan"],
     help="Detector currently in use on beamline.",
 )
-parser_nex.add_argument("exp-time", type=float, help="Exposure time, in s.")
+parser_nex.add_argument("exp_time", type=float, help="Exposure time, in s.")
 parser_nex.add_argument(
     "-n",
     "--num-imgs",
