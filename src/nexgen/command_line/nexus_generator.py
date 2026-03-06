@@ -48,6 +48,7 @@ def _get_datafiles(filepath: Path, filename_root: str) -> list[Path]:
         for f in glob.glob(_file_template.as_posix())
         if "meta.h5" not in f
     ]
+    datafiles.sort()
     return datafiles
 
 
@@ -141,6 +142,7 @@ def write_nxmx_cli(args):
     logger.debug(f"Recorded exposure time: {detector.exp_time} s.")
 
     try:
+        entry_key = args.data_key if args.data_key else "data"
         # Aaaaaaaaaaaand write
         if params.det.mode == "images":
             writer = NXmxFileWriter(
@@ -152,7 +154,7 @@ def write_nxmx_cli(args):
                 params.instrument.attenuator,
                 num_images,
             )
-            writer.write(image_datafiles=datafiles)
+            writer.write(image_datafiles=datafiles, data_entry_key=entry_key)
             if not args.no_vds:
                 writer.write_vds(args.vds_offset)
         else:
@@ -381,6 +383,12 @@ def _parse_cli() -> argparse.ArgumentParser:
         "--nxs-filename",
         type=str,
         help="New nexus filename if stem needs to be different from data files.",
+    )
+    nxmx_parser.add_argument(
+        "--data-key",
+        type=str,
+        default="data",
+        help="Data entry key of dataset in raw .h5 file. Defaults to data.",
     )
     nxmx_parser.set_defaults(func=write_nxmx_cli)
     demo_parser = subparsers.add_parser(
