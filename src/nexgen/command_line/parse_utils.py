@@ -67,5 +67,5 @@ vds_parser.add_argument(
     "--vds-offset", type=int, default=0, help="Start image for the vds."
 )
 vds_parser.add_argument(
-    "--no-vds", action="store_false", help="Do not write a vds file."
+    "--no-vds", action="store_true", help="Do not write a vds file."
 )
