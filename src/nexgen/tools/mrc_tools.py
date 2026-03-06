@@ -1,4 +1,4 @@
-""" Helper functions for the MRC to Nexus converter """
+"""Helper functions for the MRC to Nexus converter"""
 
 import logging
 import os
@@ -198,9 +198,7 @@ def to_hdf5_data_file(
 
     # Input is a single MRC file with a stack of images
     if (len(data_shape) == 3) and (n == 1):
-
         with h5py.File(out_file, "w") as hdf5_file:
-
             mrc = mrcfile.open(files[0], mode="r")
 
             bs = hdf5plugin.Bitshuffle
@@ -234,7 +232,6 @@ def to_hdf5_data_file(
 
     # Input is a list of MRC files containing single images
     elif (len(data_shape) == 2) and (n >= 1):
-
         with h5py.File(out_file, "w") as hdf5_file:
             dataset_shape = (n, data_shape[0], data_shape[1])
             dataset = hdf5_file.create_dataset(

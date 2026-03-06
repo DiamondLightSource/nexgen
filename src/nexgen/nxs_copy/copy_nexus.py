@@ -41,7 +41,10 @@ def images_nexus(
     original_nexus = Path(original_nexus).expanduser().resolve()
     nxs_filename = get_nexus_filename(data_file[0], copy=True)
     copy_logger.debug(f"New NeXus file name: {nxs_filename}")
-    with h5py.File(original_nexus, "r") as nxs_in, h5py.File(nxs_filename, "x") as nxs_out:
+    with (
+        h5py.File(original_nexus, "r") as nxs_in,
+        h5py.File(nxs_filename, "x") as nxs_out,
+    ):
         if simple_copy is True:
             # Copy the whole tree
             get_nexus_tree(nxs_in, nxs_out, skip=False)
@@ -92,9 +95,10 @@ def pseudo_events_nexus(
     original_nexus = Path(original_nexus).expanduser().resolve()
     nxs_filename = get_nexus_filename(data_file[0], copy=True)
     copy_logger.debug(f"New NeXus file name: {nxs_filename}")
-    with h5py.File(original_nexus, "r") as nxs_in, h5py.File(
-        nxs_filename, "x"
-    ) as nxs_out:
+    with (
+        h5py.File(original_nexus, "r") as nxs_in,
+        h5py.File(nxs_filename, "x") as nxs_out,
+    ):
         nxs_out.attrs["default"] = "entry"
         # Copy the whole tree except for nxdata
         nxentry = get_nexus_tree(nxs_in, nxs_out)

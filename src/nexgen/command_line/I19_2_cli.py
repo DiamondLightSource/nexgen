@@ -307,7 +307,7 @@ parser_nex.add_argument(
     help="Data entry key of dataset in raw .h5 file. Defaults to data.",
 )
 parser_nex.add_argument(
-    "-bits" "--bit-depth",
+    "-bits--bit-depth",
     type=int,
     choices=[8, 16, 32],
     default=32,

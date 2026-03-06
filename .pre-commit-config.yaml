@@ -1,22 +1,21 @@
 repos:
 
-# Automatic source code formatting
-- repo: https://github.com/psf/black
-  rev: 24.1.1
-  hooks:
-  - id: black
-    args: [--safe, --quiet]
-
-
 # Linter
 - repo: local
   hooks:
     - id: ruff
-      name: Run ruff
-      stages: [pre-commit]
+      name: lint with ruff
       language: system
-      entry: ruff check
+      entry: ruff check --force-exclude --fix
       types: [python]
+      require_serial: true
+
+    - id: ruff-format
+      name: format with ruff
+      language: system
+      entry: ruff format --force-exclude
+      types: [python]
+      require_serial: true
 
 
 # Other syntax checks

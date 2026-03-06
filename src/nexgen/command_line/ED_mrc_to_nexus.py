@@ -344,7 +344,6 @@ def overwrite_from_command_line(
 
 
 def log_dict(logger: Logger, dictionary: dict, skip: list = None) -> None:
-
     if skip is None:
         skip = [1]
 
@@ -366,7 +365,6 @@ def log_dict(logger: Logger, dictionary: dict, skip: list = None) -> None:
 
 
 def main():
-
     args = parse_input_arguments()
     metadata_template = Metadata(args.input_files)
     logger.info("Starting MRC to Nexus conversion.")
@@ -478,7 +476,6 @@ def main():
 
 
 def parse_input_arguments():
-
     msg = "Convert electron diffraction data from an MRC format "
     msg += "to a NeXus format"
     parser = ArgumentParser(description=msg, add_help=True)

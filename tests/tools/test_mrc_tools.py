@@ -10,14 +10,12 @@ logger = logging.getLogger("nexgen.ED_mrc_to_nexus")
 
 
 def test_cal_wavelength():
-
     a = 0.025082356047905176
     epsilon = 1.0e-15
     assert abs(cal_wavelength(200000) - a) < epsilon
 
 
 def test_get_metadata():
-
     make_mrc_file("images.mrc")
     h = get_metadata("images.mrc")
     assert isinstance(h, dict)
@@ -26,7 +24,6 @@ def test_get_metadata():
 
 
 def test_collect_data():
-
     make_mrc_file("images_00001.mrc")
     make_mrc_file("images_00002.mrc")
 
@@ -41,7 +38,6 @@ def test_collect_data():
 
 
 def make_mrc_file(filename):
-
     images = np.zeros((1, 1), dtype=np.int16)
 
     with mrcfile.new(filename, overwrite=True) as mrc:

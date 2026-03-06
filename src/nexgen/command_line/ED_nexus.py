@@ -25,7 +25,6 @@ parser = argparse.ArgumentParser(
 
 
 def write_from_SINGLA(args):
-
     singla_nexus_writer(
         args.master_file,
         args.det_distance,
@@ -60,7 +59,7 @@ def write_from_SINGLA_from_config(args):
         )
         ED_coord_system["convention"] = params.coord_system.convention
     else:
-        logger.info("The following convention will be applied:\n" f"{ED_coord_system}")
+        logger.info(f"The following convention will be applied:\n{ED_coord_system}")
 
     if params.coord_system.origin:
         logger.info(

@@ -239,8 +239,7 @@ def mask_and_flatfield_writer_for_event_data(
         )
     else:
         NXclassUtils_logger.warning(
-            f"No {dset_name} file found in working directory."
-            "Writing an ExternalLink."
+            f"No {dset_name} file found in working directory.Writing an ExternalLink."
         )
         file_loc = Path(dset_data_file)
         image_key = "image" if "tristan" in detector_name.lower() else "/"
