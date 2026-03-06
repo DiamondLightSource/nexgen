@@ -142,6 +142,7 @@ def nexgen_writer(args):
             master_file,
             (_start, _stop),
             args.use_meta,
+            data_entry_key=args.data_key,
         )
 
 
@@ -296,6 +297,12 @@ parser_nex.add_argument(
     type=int,
     help="Number of frames in the nexus and vds file. Only passed if different from total number \
         of images collected.",
+)
+parser_nex.add_argument(
+    "--data-key",
+    type=str,
+    default="data",
+    help="Data entry key of dataset in raw .h5 file. Defaults to data.",
 )
 parser_nex.set_defaults(func=nexgen_writer)
 

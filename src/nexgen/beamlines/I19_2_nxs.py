@@ -522,6 +522,7 @@ def nexus_writer(
     master_file: Path,
     timestamps: tuple[datetime, datetime] = (None, None),
     use_meta: bool = False,
+    data_entry_key: str = "data",
 ):
     """Wrapper function to gather all parameters from the beamline and kick off the nexus writer for a \
     standard experiment on I19-2.
@@ -533,6 +534,8 @@ def nexus_writer(
             Defaults to (None, None).
         use_meta (bool, optional): Eiger option only, if True use metadata from meta.h5 file. Otherwise \
             all parameters will need to be passed manually. Defaults to False.
+        data_entry_key (str, optional): Dataset entry key in datafiles. eg. for gating mode it's data1.\
+            Defaults to data.
     """
     collection_params = CollectionParams(**params)
     wdir = master_file.parent
@@ -599,6 +602,7 @@ def nexus_writer(
                 collection_params,
                 timestamps,
                 use_meta,
+                data_entry_key=data_entry_key,
             )
         case DetectorName.TRISTAN:
             tristan_writer(
