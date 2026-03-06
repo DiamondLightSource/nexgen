@@ -393,7 +393,8 @@ def _parse_cli() -> argparse.ArgumentParser:
         help="Data entry key of dataset in raw .h5 file. Defaults to data.",
     )
     nxmx_parser.add_argument(
-        "-bits" "--bit-depth",
+        "-bits",
+        "--bit-depth",
         type=int,
         choices=[8, 16, 32],
         default=32,

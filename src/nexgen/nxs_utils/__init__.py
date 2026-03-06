@@ -34,5 +34,5 @@ __all__ = [
     "TransformationType",
     "Facility",
     "CetaDetector",
-    "TVIPSDetector"
+    "TVIPSDetector",
 ]

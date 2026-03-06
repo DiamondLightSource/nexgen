@@ -57,14 +57,14 @@ def build_an_eiger(
     for i in range(1, n_modules[0] + 1):
         IM[
             :,
-            i * eiger_mod_size[1]
-            + (i - 1) * eiger_gap_size[1] : i * (eiger_mod_size[1] + eiger_gap_size[1]),
+            i * eiger_mod_size[1] + (i - 1) * eiger_gap_size[1] : i
+            * (eiger_mod_size[1] + eiger_gap_size[1]),
         ] = 65535
     # Vertical modules
     for j in range(1, n_modules[1] + 1):
         IM[
-            j * eiger_mod_size[0]
-            + (j - 1) * eiger_gap_size[0] : j * (eiger_mod_size[0] + eiger_gap_size[0]),
+            j * eiger_mod_size[0] + (j - 1) * eiger_gap_size[0] : j
+            * (eiger_mod_size[0] + eiger_gap_size[0]),
             :,
         ] = 65535
 
@@ -104,17 +104,13 @@ def build_a_tristan(
     for i in range(1, n_modules[0] + 1):
         IM[
             :,
-            i * tristan_mod_size[1]
-            + (i - 1)
-            * tristan_gap_size[1] : i
+            i * tristan_mod_size[1] + (i - 1) * tristan_gap_size[1] : i
             * (tristan_mod_size[1] + tristan_gap_size[1]),
         ] = 65535
     # Vertical modules
     for j in range(1, n_modules[1] + 1):
         IM[
-            j * tristan_mod_size[0]
-            + (j - 1)
-            * tristan_gap_size[0] : j
+            j * tristan_mod_size[0] + (j - 1) * tristan_gap_size[0] : j
             * (tristan_mod_size[0] + tristan_gap_size[0]),
             :,
         ] = 65535
@@ -268,7 +264,7 @@ def generate_event_files(
             )
             EV_dict[(i, j)] = pseudo_event_list(I, J, exp_time)
     t1 = time.process_time()
-    data_logger.info(f"Time taken to generate pseudo-event list: {t1-t0:.2f} s.")
+    data_logger.info(f"Time taken to generate pseudo-event list: {t1 - t0:.2f} s.")
 
     # Find total number of events to be written to file
     num_events = tristan_chunk * num_chunks
