@@ -48,6 +48,7 @@ def _get_datafiles(filepath: Path, filename_root: str) -> list[Path]:
         for f in glob.glob(_file_template.as_posix())
         if "meta.h5" not in f
     ]
+    datafiles.sort()
     return datafiles
 
 
