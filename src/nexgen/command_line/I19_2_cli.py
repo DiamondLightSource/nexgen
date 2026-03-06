@@ -135,6 +135,7 @@ def nexgen_writer(args):
             args.use_meta,
             args.vds_offset,
             args.n_frames,
+            bit_depth=args.bit_depth,
         )
     else:
         nexus_writer(
@@ -143,6 +144,7 @@ def nexgen_writer(args):
             (_start, _stop),
             args.use_meta,
             data_entry_key=args.data_key,
+            bit_depth=args.bit_depth,
         )
 
 
@@ -303,6 +305,13 @@ parser_nex.add_argument(
     type=str,
     default="data",
     help="Data entry key of dataset in raw .h5 file. Defaults to data.",
+)
+parser_nex.add_argument(
+    "-bits" "--bit-depth",
+    type=int,
+    choices=[8, 16, 32],
+    default=32,
+    help="Default bit depth for eiger collections, used to define dtype of vds data. Defaults to 32.",
 )
 parser_nex.set_defaults(func=nexgen_writer)
 
