@@ -28,6 +28,7 @@ from nexgen.nxs_utils.scan_utils import (
 from nexgen.nxs_write.nxmx_writer import EventNXmxFileWriter, NXmxFileWriter
 from nexgen.nxs_write.write_utils import find_number_of_images
 from nexgen.tools.data_writer import generate_event_files, generate_image_files
+from nexgen.tools.vds_tools import define_vds_dtype_from_bit_depth
 from nexgen.utils import (
     get_filename_template,
     get_iso_timestamp,
@@ -143,6 +144,7 @@ def write_nxmx_cli(args):
 
     try:
         entry_key = args.data_key if args.data_key else "data"
+        vds_dtype = define_vds_dtype_from_bit_depth(args.bit_depth)
         # Aaaaaaaaaaaand write
         if params.det.mode == "images":
             writer = NXmxFileWriter(
@@ -156,7 +158,7 @@ def write_nxmx_cli(args):
             )
             writer.write(image_datafiles=datafiles, data_entry_key=entry_key)
             if not args.no_vds:
-                writer.write_vds(args.vds_offset)
+                writer.write_vds(args.vds_offset, vds_dtype=vds_dtype)
         else:
             writer = EventNXmxFileWriter(
                 master_file,
@@ -389,6 +391,13 @@ def _parse_cli() -> argparse.ArgumentParser:
         type=str,
         default="data",
         help="Data entry key of dataset in raw .h5 file. Defaults to data.",
+    )
+    nxmx_parser.add_argument(
+        "-bits" "--bit-depth",
+        type=int,
+        choices=[8, 16, 32],
+        default=32,
+        help="Default bit depth for eiger collections, used to define dtype of vds data. Defaults to 32.",
     )
     nxmx_parser.set_defaults(func=write_nxmx_cli)
     demo_parser = subparsers.add_parser(
