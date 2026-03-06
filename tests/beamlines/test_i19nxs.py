@@ -84,7 +84,8 @@ def test_serial_nexus_writer_calls_correct_writer_for_eiger(
         True,
         None,
         0,
-        None,
+        bit_depth=32,
+        notes=None,
     )
 
 

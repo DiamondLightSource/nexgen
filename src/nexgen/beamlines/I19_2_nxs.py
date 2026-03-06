@@ -11,10 +11,10 @@ from pathlib import Path
 from typing import Any, NamedTuple, Optional
 
 import h5py
-import numpy as np
 from numpy.typing import ArrayLike
 from pydantic import field_validator
 
+from nexgen.tools.vds_tools import define_vds_dtype_from_bit_depth
 from nexgen.utils import get_iso_timestamp
 
 from .. import log
@@ -230,6 +230,7 @@ def eiger_writer(
     vds_offset: int = 0,
     notes: dict[str, Any] | None = None,
     data_entry_key: str = "data",
+    bit_depth: int = 32,
 ):
     """
     A function to call the NXmx nexus file writer for Eiger 2X 4M detector.
@@ -251,6 +252,8 @@ def eiger_writer(
             dataset name and value its data. Defaults to None.
         data_entry_key (str, optional): Dataset entry key in datafiles. eg. for gating mode it's data1.\
             Defaults to data.
+        bit_depth(int, optional): Default bit depth for eiger collections, used to define dtype of vds data. \
+            Defaults to 32.
 
     Raises:
         ValueError: If use_meta is set to False but axes_pos and det_pos haven't been passed.
@@ -338,7 +341,7 @@ def eiger_writer(
         logger.info(
             "Not using meta file to update metadata, only the external links will be set up."
         )
-        vds_dtype = np.uint32
+        vds_dtype = define_vds_dtype_from_bit_depth(bit_depth)
         # Update axes
         # Goniometer
         for gax in TR.axes_pos:
@@ -457,6 +460,7 @@ def serial_nexus_writer(
     use_meta: bool = False,
     vds_offset: int = 0,
     n_frames: int | None = None,
+    bit_depth: int = 32,
     notes: dict[str, Any] | None = None,
 ):
     """Wrapper function to gather all parameters from the beamline and kick off the nexus writer for a \
@@ -473,6 +477,8 @@ def serial_nexus_writer(
         n_frames (int | None, optional): Number of images for the nexus file. Only needed if different \
             from the tot_num_images in the collection params. If passed, the VDS will only contain the \
             number of frames specified here. Defaults to None.
+        bit_depth(int, optional): Default bit depth for eiger collections, used to define dtype of vds data. \
+            Defaults to 32.
         notes (dict[str, Any] | None, optional): Any additional information to be written as NXnote, \
             passed as a dictionary of (key, value) pairs where key represents the dataset name and \
             value its data. Defaults to None.
@@ -511,7 +517,8 @@ def serial_nexus_writer(
                 use_meta,
                 n_frames,
                 vds_offset,
-                notes,
+                bit_depth=bit_depth,
+                notes=notes,
             )
         case DetectorName.TRISTAN:
             tristan_writer(master_file, collection_params, timestamps, notes)
@@ -523,6 +530,7 @@ def nexus_writer(
     timestamps: tuple[datetime, datetime] = (None, None),
     use_meta: bool = False,
     data_entry_key: str = "data",
+    bit_depth: int = 32,
 ):
     """Wrapper function to gather all parameters from the beamline and kick off the nexus writer for a \
     standard experiment on I19-2.
@@ -536,6 +544,8 @@ def nexus_writer(
             all parameters will need to be passed manually. Defaults to False.
         data_entry_key (str, optional): Dataset entry key in datafiles. eg. for gating mode it's data1.\
             Defaults to data.
+        bit_depth(int, optional): Default bit depth for eiger collections, used to define dtype of vds data. \
+            Defaults to 32.
     """
     collection_params = CollectionParams(**params)
     wdir = master_file.parent
@@ -603,6 +613,7 @@ def nexus_writer(
                 timestamps,
                 use_meta,
                 data_entry_key=data_entry_key,
+                bit_depth=bit_depth,
             )
         case DetectorName.TRISTAN:
             tristan_writer(

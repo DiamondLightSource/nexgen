@@ -8,11 +8,21 @@ import pytest
 from nexgen.tools.vds_tools import (
     Dataset,
     create_virtual_layout,
+    define_vds_dtype_from_bit_depth,
     find_datasets_in_file,
     image_vds_writer,
     jungfrau_vds_writer,
     split_datasets,
 )
+
+
+@pytest.mark.parametrize(
+    "bit_depth, expected_dtype", [(8, np.uint8), (16, np.uint16), (32, np.uint32)]
+)
+def test_vds_dtype_from_input(bit_depth, expected_dtype):
+    d = define_vds_dtype_from_bit_depth(bit_depth)
+
+    assert d == expected_dtype
 
 
 def test_when_get_frames_and_shape_less_than_1000_then_correct():
