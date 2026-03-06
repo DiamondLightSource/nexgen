@@ -8,8 +8,7 @@ import logging
 from pathlib import Path
 from typing import Literal, get_args
 
-import numpy as np
-from numpy.typing import DTypeLike
+from nexgen.tools.vds_tools import define_vds_dtype_from_bit_depth
 
 from .. import log
 from ..nxs_utils import (
@@ -62,16 +61,6 @@ class SerialParams(GeneralParams):
     num_imgs: int
     detector_distance: float
     experiment_type: str
-
-
-def _define_vds_dtype_from_bit_depth(bit_depth: int) -> DTypeLike:
-    """Define dtype of VDS based on the passed bit depth."""
-    if bit_depth == 32:
-        return np.uint32
-    elif bit_depth == 8:
-        return np.uint8
-    else:
-        return np.uint16
 
 
 def _get_beamline_specific_params(beamline: str) -> tuple[BeamlineAxes, EigerDetector]:
@@ -295,7 +284,7 @@ def ssx_eiger_writer(
         bit_depth = 32
     else:
         bit_depth = ssx_params["bit_depth"]
-    vds_dtype = _define_vds_dtype_from_bit_depth(bit_depth)
+    vds_dtype = define_vds_dtype_from_bit_depth(bit_depth)
     logger.debug(f"VDS dtype will be {vds_dtype}")
 
     # Define Goniometer axes

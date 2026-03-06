@@ -21,6 +21,16 @@ from .constants import jungfrau_fill_value, jungfrau_gap_size, jungfrau_mod_size
 vds_logger = logging.getLogger("nexgen.VDSWriter")
 
 
+def define_vds_dtype_from_bit_depth(bit_depth: int) -> DTypeLike:
+    """Define dtype of VDS based on the passed bit depth."""
+    if bit_depth == 32:
+        return np.uint32
+    elif bit_depth == 8:
+        return np.uint8
+    else:
+        return np.uint16
+
+
 @dataclass
 class Dataset:
     name: str
