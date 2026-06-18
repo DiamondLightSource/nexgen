@@ -48,8 +48,10 @@ EIGER_CBOR_CONST = {
     "bit_depth_readout": "_dectris/bit_depth_image",  # Gorilla to be consistent with NeXus format (and make DIALS work)
     "bit_depth_image": "_dectris/bit_depth_image",
     "threshold_energy": "_dectris/threshold_energy/threshold_1",
+    "photon_energy": "_dectris/incident_energy",
     "ntrigger": "/_dectris/number_of_triggers",
     "serial_number": "/_dectris/detector_serial_number",
+    "data_collection_date": "/_dectris/arm_date",
 }
 
 TRISTAN_CONST = {
