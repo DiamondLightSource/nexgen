@@ -54,7 +54,9 @@ def test_eiger_detector(eiger: EigerDetector):
     assert eiger.sensor_thickness == "0.450mm"
     assert eiger.pixel_size == ["0.075mm", "0.075mm"]
     assert eiger.hasMeta is True
-    assert eiger.constants["flatfield_applied"] == "_dectris/flatfield_applied"
+    assert (
+        eiger.constants["flatfield_applied"] == "_dectris/flatfield_correction_applied"
+    )
     assert eiger.constants["pixel_mask_applied"] == "_dectris/pixel_mask_applied"
 
 

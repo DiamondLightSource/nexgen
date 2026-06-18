@@ -33,10 +33,10 @@ EIGER_CONST = {
     "threshold_energy": "_dectris/threshold_energy",
     "photon_energy": "_dectris/photon_energy",
     "software_version": "_dectris/software_version",
-    "ntrigger": "/_dectris/ntrigger",
-    "serial_number": "/_dectris/detector_number",
-    "eiger_fw_version": "/_dectris/eiger_fw_version",
-    "data_collection_date": "/_dectris/data_collection_date",
+    "ntrigger": "_dectris/ntrigger",
+    "serial_number": "_dectris/detector_number",
+    "eiger_fw_version": "_dectris/eiger_fw_version",
+    "data_collection_date": "_dectris/data_collection_date",
 }
 
 EIGER_CBOR_CONST = {
@@ -49,9 +49,9 @@ EIGER_CBOR_CONST = {
     "bit_depth_image": "_dectris/bit_depth_image",
     "threshold_energy": "_dectris/threshold_energy/threshold_1",
     "photon_energy": "_dectris/incident_energy",
-    "ntrigger": "/_dectris/number_of_triggers",
-    "serial_number": "/_dectris/detector_serial_number",
-    "data_collection_date": "/_dectris/arm_date",
+    "ntrigger": "_dectris/number_of_triggers",
+    "serial_number": "_dectris/detector_serial_number",
+    "data_collection_date": "_dectris/arm_date",
 }
 
 TRISTAN_CONST = {
