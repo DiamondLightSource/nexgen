@@ -6,5 +6,5 @@ pint==0.25.2
 h5py==3.14.0
 hdf5plugin==5.1.0
 importlib_resources==6.5.2
-scanspec==0.10.0
+scanspec==1.0.0
 pydantic==2.12.5
