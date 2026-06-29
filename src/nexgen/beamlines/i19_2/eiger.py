@@ -7,8 +7,8 @@ from numpy.typing import ArrayLike, DTypeLike
 from pydantic import BaseModel, field_validator
 
 from nexgen.beamlines.beamline_utils import collection_summary_log
-from nexgen.beamlines.I19_2.constants import I19_2_EIGER
-from nexgen.beamlines.I19_2.parameters import CollectionParams
+from nexgen.beamlines.i19_2.constants import I19_2_EIGER
+from nexgen.beamlines.i19_2.parameters import CollectionParams
 from nexgen.nxs_utils import NxObjectsComposite
 from nexgen.nxs_utils.axes import Axis
 from nexgen.nxs_utils.detector import Detector, EigerDetector, EigerStreamFormat
