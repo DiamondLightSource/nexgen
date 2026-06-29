@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pydantic.dataclasses import dataclass
+
 from .axes import Axis, TransformationType
 from .detector import (
     CetaDetector,
@@ -15,6 +17,17 @@ from .detector import (
 from .goniometer import Goniometer
 from .sample import Sample
 from .source import Attenuator, Beam, Facility, Source
+
+
+@dataclass(config={"arbitrary_types_allowed": True})
+class NxObjectsComposite:
+    goniometer: Goniometer
+    detector: Detector
+    source: Source
+    beam: Beam
+    attenuator: Attenuator
+    sample: Sample | None
+
 
 __all__ = [
     "Axis",
@@ -35,4 +48,5 @@ __all__ = [
     "Facility",
     "CetaDetector",
     "TVIPSDetector",
+    "NxObjectsComposite",
 ]
