@@ -6,6 +6,8 @@ from nexgen.beamlines.beamline_utils import BeamlineAxes
 from nexgen.nxs_utils import Axis, TransformationType
 from nexgen.utils import Point3D
 
+DEFAULT_DATA_KEY = "data"
+
 I19_2_GONIO = [
     Axis("omega", ".", TransformationType.ROTATION, Point3D(-1, 0, 0)),
     Axis(
