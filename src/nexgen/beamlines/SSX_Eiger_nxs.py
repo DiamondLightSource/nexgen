@@ -8,7 +8,7 @@ import logging
 from pathlib import Path
 from typing import Literal, get_args
 
-from nexgen.tools.vds_tools import define_vds_dtype_from_bit_depth
+from nexgen.tools.vds_w_tools import define_vds_dtype_from_bit_depth
 
 from .. import log
 from ..nxs_utils import (

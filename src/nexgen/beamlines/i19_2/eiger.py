@@ -22,8 +22,8 @@ from nexgen.tools.metafile import DectrisMetafile
 from nexgen.tools.vds_tools import (
     VdsMapping,
     VdsSettings,
-    define_vds_dtype_from_bit_depth,
 )
+from nexgen.tools.vds_w_tools import define_vds_dtype_from_bit_depth
 
 logger = logging.getLogger("nexgen.beamlines.I19_2.eiger")
 

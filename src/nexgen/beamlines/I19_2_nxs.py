@@ -15,7 +15,7 @@ from numpy.typing import ArrayLike
 from pydantic import field_validator
 
 from nexgen.nxs_utils.detector import EigerStreamFormat
-from nexgen.tools.vds_tools import define_vds_dtype_from_bit_depth
+from nexgen.tools.vds_w_tools import define_vds_dtype_from_bit_depth
 from nexgen.utils import get_iso_timestamp
 
 from .. import log

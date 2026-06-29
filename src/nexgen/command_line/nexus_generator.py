@@ -28,7 +28,7 @@ from nexgen.nxs_utils.scan_utils import (
 from nexgen.nxs_write.nxmx_writer import EventNXmxFileWriter, NXmxFileWriter
 from nexgen.nxs_write.write_utils import find_number_of_images
 from nexgen.tools.data_writer import generate_event_files, generate_image_files
-from nexgen.tools.vds_tools import define_vds_dtype_from_bit_depth
+from nexgen.tools.vds_w_tools import define_vds_dtype_from_bit_depth
 from nexgen.utils import (
     get_filename_template,
     get_iso_timestamp,

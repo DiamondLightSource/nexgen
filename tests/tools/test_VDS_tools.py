@@ -5,7 +5,7 @@ import h5py
 import numpy as np
 import pytest
 
-from nexgen.tools.vds_tools import (
+from nexgen.tools.vds_w_tools import (
     Dataset,
     create_virtual_layout,
     define_vds_dtype_from_bit_depth,

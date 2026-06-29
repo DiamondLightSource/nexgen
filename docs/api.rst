@@ -137,7 +137,7 @@ Generating pseudo-events
 VDS writer
 ----------
 
-.. automodule:: nexgen.tools.vds_tools
+.. automodule:: nexgen.tools.vds_w_tools
     :members:
 
 
