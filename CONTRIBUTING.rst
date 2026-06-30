@@ -80,7 +80,7 @@ Creating a release from Github
 ==============================
 
 1. Create a new branch from main named pre followed by the release version e.g. pre_v0.1.0. The release versions should look like v{major}.{minor}.{patch}.
-2. If you haven't run bump2version without creating tags, on this branch change manually change the version in `pyproject.toml` and `src/nexgen/__init__.py`.
+2. If you haven't run bump-my-version without creating tags, on this branch change manually change the version in `pyproject.toml` and `src/nexgen/__init__.py`.
 3. Go `here https://github.com/DiamondLightSource/nexgen/releases/new`.
 4. Select Choose a new tag and type the version of the release, then select the branch created in step 1 as the target.
 5. Click on Generate release notes. This will create a starting set of release notes based on PR titles since the last release.
