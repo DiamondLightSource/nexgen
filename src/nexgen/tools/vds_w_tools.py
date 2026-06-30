@@ -15,6 +15,8 @@ import numpy as np
 from numpy.typing import DTypeLike
 from pydantic.dataclasses import dataclass
 
+from nexgen.tools.vds_tools import find_datasets_in_file
+
 from ..utils import MAX_FRAMES_PER_DATASET
 from .constants import jungfrau_fill_value, jungfrau_gap_size, jungfrau_mod_size
 
@@ -72,31 +74,6 @@ class Dataset:
             start_index=self.start_index + x.start_index,
             stop_index=self.stop_index + x.stop_index,
         )
-
-
-def find_datasets_in_file(nxdata: h5py.Group) -> list:
-    """
-    Look for the source datasets in the NeXus file. Assumes that the source datasets are always h5py.ExternalLink.
-
-    Args:
-        nxdata (h5py.Group): Group where the data should be linked.
-
-    Raises:
-        KeyError: If no ExternalLinks to data are found in the group.
-
-    Returns:
-        dsets (list): The source datasets.
-    """
-    # FIXME for now this assumes that the source datasets are always links
-    dsets = []
-    for k in nxdata.keys():
-        if isinstance(nxdata.get(k, getlink=True), h5py.ExternalLink):
-            dsets.append(k)
-    if not dsets:
-        raise KeyError(
-            f"No External Link datasets found in NeXus file under {nxdata.name}"
-        )
-    return dsets
 
 
 def split_datasets(

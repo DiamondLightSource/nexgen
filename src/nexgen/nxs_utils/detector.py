@@ -4,6 +4,7 @@ Object definition for detectors.
 
 from __future__ import annotations
 
+from enum import StrEnum
 from typing import Literal, Union
 
 from pydantic.dataclasses import Field, dataclass
@@ -14,6 +15,11 @@ from .axes import Axis
 
 class UnknownDetectorTypeError(Exception):
     pass
+
+
+class EigerStreamFormat(StrEnum):
+    LEGACY = "legacy"
+    CBOR = "cbor"
 
 
 EIGER_CONST = {
@@ -27,10 +33,25 @@ EIGER_CONST = {
     "threshold_energy": "_dectris/threshold_energy",
     "photon_energy": "_dectris/photon_energy",
     "software_version": "_dectris/software_version",
-    "ntrigger": "/_dectris/ntrigger",
-    "serial_number": "/_dectris/detector_number",
-    "eiger_fw_version": "/_dectris/eiger_fw_version",
-    "data_collection_date": "/_dectris/data_collection_date",
+    "ntrigger": "_dectris/ntrigger",
+    "serial_number": "_dectris/detector_number",
+    "eiger_fw_version": "_dectris/eiger_fw_version",
+    "data_collection_date": "_dectris/data_collection_date",
+}
+
+EIGER_CBOR_CONST = {
+    "flatfield": "flatfield",
+    "flatfield_applied": "_dectris/flatfield_enabled",
+    "pixel_mask": "mask",
+    "pixel_mask_applied": "_dectris/pixel_mask_enabled",
+    # NOTE. The values in these may not be correct, so may need to override with /types
+    "bit_depth_readout": "_dectris/bit_depth_image",  # Gorilla to be consistent with NeXus format (and make DIALS work)
+    "bit_depth_image": "_dectris/bit_depth_image",
+    "threshold_energy": "_dectris/threshold_energy/threshold_1",
+    "photon_energy": "_dectris/incident_energy",
+    "ntrigger": "_dectris/number_of_triggers",
+    "serial_number": "_dectris/detector_serial_number",
+    "data_collection_date": "_dectris/arm_date",
 }
 
 TRISTAN_CONST = {
@@ -111,6 +132,8 @@ class EigerDetector:
         underload (int): Lowest value measurable for the detector, data is invalid below this value.
         pixel_size (list[str], optional): Size of each detector pixel in both directions, order should be (x, y). Defaults to a pixel size of ['0.075mm', '0.075mm']
         detector_type (str, optional): Description of type of detector. Defaults to 'Pixel'.
+        stream (EigerStreamFormat, optional): With the new firmware there's the option of running in "cbor"/"stream2" (or "gating") mode.
+            If the detector runs in this format, the meta file produced will be slightly different from the legacy one, so different constants are defined. Defaults to "legacy".
 
     Properties:
         sensor_thickness (str): Defined depending on the sensor material: 0.450mm for Si, 0.750mm CdTe.
@@ -126,6 +149,7 @@ class EigerDetector:
         default_factory=lambda: ["0.075mm", "0.075mm"]
     )
     detector_type: str = "Pixel"
+    stream: EigerStreamFormat = EigerStreamFormat.LEGACY
 
     @property
     def sensor_thickness(self) -> str:
@@ -136,7 +160,10 @@ class EigerDetector:
 
     @property
     def constants(self) -> dict:
-        return EIGER_CONST
+        if self.stream is EigerStreamFormat.CBOR:
+            return EIGER_CBOR_CONST
+        else:
+            return EIGER_CONST
 
     @property
     def hasMeta(self) -> bool:

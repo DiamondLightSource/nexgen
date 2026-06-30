@@ -17,7 +17,7 @@ from ..nxs_utils.detector import Detector
 from ..nxs_utils.goniometer import Goniometer
 from ..nxs_utils.sample import Sample
 from ..nxs_utils.source import Attenuator, Beam, Source
-from ..tools.vds_tools import (
+from ..tools.vds_w_tools import (
     clean_unused_links,
     image_vds_writer,
     jungfrau_vds_writer,
@@ -278,6 +278,8 @@ class NXmxFileWriter:
         nxmx_logger.debug(f"VDS shape set to {vds_shape}.")
 
         with h5py.File(self.filename, "r+") as nxs:
+            # For a coming ticket - for now write a separate file
+            # Here will be better to have a match-case for VDS mapping. Default is the same as blocked.
             if "jungfrau" in self.detector.detector_params.description.lower():
                 jungfrau_vds_writer(
                     nxs,

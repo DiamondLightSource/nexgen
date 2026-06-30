@@ -73,7 +73,7 @@ def get_nexus_tree(
         nxs_in (h5py.File): Original NeXus file.
         nxs_out (h5py.File): New NeXus file.
         skip (bool, optional): Copy everything but objects in skip_obj, which always include NXdata.
-                            Pass False to copy the whole NXentry tree. Defaults to True.
+            Pass False to copy the whole NXentry tree. Defaults to True.
         skip_obj (list[str], optional): List of NX_class objects not to be copied, eg. 'NXdata' or 'NXdetector'.. Defaults to None.
 
     Returns:

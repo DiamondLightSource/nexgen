@@ -14,7 +14,8 @@ import h5py
 from numpy.typing import ArrayLike
 from pydantic import field_validator
 
-from nexgen.tools.vds_tools import define_vds_dtype_from_bit_depth
+from nexgen.nxs_utils.detector import EigerStreamFormat
+from nexgen.tools.vds_w_tools import define_vds_dtype_from_bit_depth
 from nexgen.utils import get_iso_timestamp
 
 from .. import log
@@ -231,29 +232,32 @@ def eiger_writer(
     notes: dict[str, Any] | None = None,
     data_entry_key: str = "data",
     bit_depth: int = 32,
+    stream_format: EigerStreamFormat = EigerStreamFormat.LEGACY,
 ):
     """
     A function to call the NXmx nexus file writer for Eiger 2X 4M detector.
     If use_meta is set to False, then the parameter fields axes_pos and det_pos become required arguments.
-    Otherwise, axes_pos and det_pos can be None but the code requires the information contained inside \
+    Otherwise, axes_pos and det_pos can be None but the code requires the information contained inside
     the meta file be correct and readable.
 
     Args:
         master_file (Path): Path to nexus file to be written.
         TR (CollectionParams): Parameters passed from the beamline.
         timestamps (tuple[str, str], optional): Collection start and end time. Defaults to (None, None).
-        use_meta (bool, optional): If True, metadata such as axes positions, wavelength etc. \
+        use_meta (bool, optional): If True, metadata such as axes positions, wavelength etc.
             will be updated using the meta.h5 file. Defaults to False.
-        num_frames (int, optional): Number of images for the nexus file. Not necessary the same as the \
-            tot_num_images from the CollectionParameters. If different, the VDS will only contain the \
+        num_frames (int, optional): Number of images for the nexus file. Not necessary the same as the
+            tot_num_images from the CollectionParameters. If different, the VDS will only contain the
             number of frames specified here. Defaults to None.
         vds_offset (int, optional): Start index for the vds writer. Defaults to 0.
-        notes (dict[str, Any], optional): Dictionary of (key, value) pairs where key represents the \
+        notes (dict[str, Any], optional): Dictionary of (key, value) pairs where key represents the
             dataset name and value its data. Defaults to None.
-        data_entry_key (str, optional): Dataset entry key in datafiles. eg. for gating mode it's data1.\
+        data_entry_key (str, optional): Dataset entry key in datafiles. eg. for gating mode it's data1.
             Defaults to data.
-        bit_depth(int, optional): Default bit depth for eiger collections, used to define dtype of vds data. \
+        bit_depth(int, optional): Default bit depth for eiger collections, used to define dtype of vds data.
             Defaults to 32.
+        stream_format(EigerStreamFormat, optional): Stream format for the eiger with the newest firmware.
+            Can be legacy or cbor. Defaults to legacy.
 
     Raises:
         ValueError: If use_meta is set to False but axes_pos and det_pos haven't been passed.
@@ -286,11 +290,7 @@ def eiger_writer(
 
     # Define Eiger 4M params
     eiger_params = EigerDetector(
-        "Eiger 2X 4M",
-        (2162, 2068),
-        "CdTe",
-        50649,
-        -1,
+        "Eiger 2X 4M", (2162, 2068), "CdTe", 50649, -1, stream=stream_format
     )
 
     # Read some parameters

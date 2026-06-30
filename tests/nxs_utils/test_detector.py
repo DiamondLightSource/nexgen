@@ -54,6 +54,18 @@ def test_eiger_detector(eiger: EigerDetector):
     assert eiger.sensor_thickness == "0.450mm"
     assert eiger.pixel_size == ["0.075mm", "0.075mm"]
     assert eiger.hasMeta is True
+    assert (
+        eiger.constants["flatfield_applied"] == "_dectris/flatfield_correction_applied"
+    )
+    assert eiger.constants["pixel_mask_applied"] == "_dectris/pixel_mask_applied"
+
+
+def test_eiger_detector_cbor_stream():
+    eig = EigerDetector("Eiger2 1M", (1028, 1062), "Si", 10000, -1, stream="cbor")
+    assert eig.constants["flatfield_applied"] == "_dectris/flatfield_enabled"
+    assert eig.constants["pixel_mask_applied"] == "_dectris/pixel_mask_enabled"
+    assert eig.constants["photon_energy"] == "_dectris/incident_energy"
+    assert eig.constants["ntrigger"] == "_dectris/number_of_triggers"
 
 
 def test_tristan_detector(tristan: TristanDetector):
