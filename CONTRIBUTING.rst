@@ -44,14 +44,14 @@ From inside a development environment, a release can be created from the command
     pip install bump-my-version
 
 
-First, choose a release number and run bump2version in "pretend" mode with the to check that the final version will be updated correctly.
+First, choose a release number and run bump-my-version in "pretend" mode with the to check that the final version will be updated correctly.
 
 .. code-block:: console
 
     bump-my-version bump --dry-run {major,minor,patch} --verbose
 
 
-Once sure of the release number, run bump2version and push the the tags for the new version.
+Once sure of the release number, run bump-my-version and push the the tags for the new version.
 
 
 .. code-block:: console
@@ -62,6 +62,18 @@ Once sure of the release number, run bump2version and push the the tags for the 
 
 
 After the second `git push`, the release will be published automatically both to Github and PYPI.
+
+
+To make a pre-release
+
+
+To visualise the versioning path:
+
+.. code-block:: console
+
+    bump-my-version show-bump
+    bump-my-version show-bump {version}
+
 
 
 Creating a release from Github
