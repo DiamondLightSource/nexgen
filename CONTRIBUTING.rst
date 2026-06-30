@@ -63,10 +63,6 @@ Once sure of the release number, run bump-my-version and push the the tags for t
 
 After the second `git push`, the release will be published automatically both to Github and PYPI.
 
-
-To make a pre-release
-
-
 To visualise the versioning path:
 
 .. code-block:: console
