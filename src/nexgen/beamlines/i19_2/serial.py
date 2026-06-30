@@ -76,7 +76,8 @@ def serial_nexus_writer(
 # Until issues in nxs_copy are fixed, pydantic errors abound
 def _get_metadata_from_og_nexus(
     og_nxs: Path, new_nxs: Path, og_vds_key: str = "/entry/data/data"
-) -> tuple(Sequence[int], DTypeLike):
+) -> tuple[Sequence[int], DTypeLike]:
+    """Copy metadata from original nexus file, remove blocked vds and extract data shape and type."""
     with h5py.File(og_nxs, "r") as nxs_in, h5py.File(new_nxs, "w") as nxs_out:
         nxs_in.copy("entry", nxs_out)
         # Extract full data shape and stype
