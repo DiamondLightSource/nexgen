@@ -79,6 +79,16 @@ def write_strided_vds(
     data_type: DTypeLike = np.uint32,
     vds_key: str = "data",
 ):
+    """Write a VDS into the nexus file, built by only taking every n frames.
+
+    Args:
+        nxsfile (h5py.File): The nexus file handle.
+        full_data_shape (Sequence[int]): Shape of the original dataset being mapped.
+        start_index (int): Start index for the vds mapping
+        stride (int, optional): Step for slicing the dataset. Defaults to 2.
+        data_type (DTypeLike, optional): Dtype of the dataset. Defaults to np.uint32.
+        vds_key (str, optional): Key to save the vds. Defaults to "data".
+    """
     nxdata = nxsfile["/entry/data"]
     datasets = create_dataset_list(nxdata, start_index, stride)
 
