@@ -1,5 +1,6 @@
 """Create a Virtual DataSet with a strided mapping, ie mappaing every {n} frames from each file"""
 
+import logging
 from typing import Sequence
 
 import h5py
@@ -8,6 +9,8 @@ from numpy.typing import DTypeLike
 from pydantic.dataclasses import dataclass
 
 from nexgen.tools.vds_tools.utils import find_datasets_in_file
+
+stride_vds_logger = logging.getLogger("nexgen.tools.vds_tools.strided_mapping")
 
 
 @dataclass
@@ -39,7 +42,9 @@ def create_dataset_list(
         datasets.append(dset)
 
     if len(datasets) == 0:
-        raise ValueError("No datasets found in NXdata to create VDS.")
+        msg = "No datasets found in NXdata to create VDS."
+        stride_vds_logger.error(msg)
+        raise ValueError(msg)
 
     return datasets
 
@@ -47,6 +52,8 @@ def create_dataset_list(
 def create_vds_layout(
     datasets: list[SingleDataset], dest_shape: Sequence[int], data_type: DTypeLike
 ) -> h5py.VirtualLayout:
+    stride_vds_logger.debug(f"""Creating VDS layout with shape {dest_shape},
+        start_index {datasets[0].start_index} and stride {datasets[0].stride}""")
     layout = h5py.VirtualLayout(shape=dest_shape, dtype=data_type)
 
     num_dsets = len(datasets)
@@ -76,8 +83,11 @@ def write_strided_vds(
     datasets = create_dataset_list(nxdata, start_index, stride)
 
     vds_shape = (full_data_shape[0] // stride, *full_data_shape[1:])
+    stride_vds_logger.info(f"VDS in {nxsfile} will have shape {vds_shape}")
 
     layout = create_vds_layout(datasets, vds_shape, data_type)
+    stride_vds_logger.debug("Layout created")
 
     # Write VDS in nxs file
     nxdata.create_virtual_dataset(vds_key, layout, fillvalue=-1)
+    stride_vds_logger.info(f"VDS written to {nxsfile}")
