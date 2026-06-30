@@ -9,7 +9,6 @@ from nexgen.tools.vds_w_tools import (
     Dataset,
     create_virtual_layout,
     define_vds_dtype_from_bit_depth,
-    find_datasets_in_file,
     image_vds_writer,
     jungfrau_vds_writer,
     split_datasets,
@@ -89,21 +88,6 @@ def test_when_start_idx_higher_than_full_then_exception_raised():
 def test_when_start_idx_negative_then_exception_raised():
     with pytest.raises(ValueError):
         split_datasets(["test1"], (1100, 10, 10), -100)
-
-
-@pytest.fixture
-def nexus_file_with_single_dataset():
-    test_hdf_file = tempfile.TemporaryFile()
-    test_nexus_file = h5py.File(test_hdf_file, "w")
-    test_nexus_file["/entry/data/data_0001"] = h5py.ExternalLink("filename", "path")
-    yield test_nexus_file
-
-
-def test_find_datasets_int_file(nexus_file_with_single_dataset):
-    nxdata = nexus_file_with_single_dataset["/entry/data"]
-    dsets = find_datasets_in_file(nxdata)
-    assert len(dsets) == 1
-    assert dsets[0] == "data_0001"
 
 
 def test_when_float_shape_passed_to_vds_writer_then_no_exception(
