@@ -38,7 +38,7 @@ def nexus_file_with_single_dataset():
 def nexus_file_with_multiple_datasets():
     with tempfile.NamedTemporaryFile(suffix=".h5", delete=False) as test_data_file:
         # data_path = Path(tmpdir) / "data.h5"
-        with h5py.File(test_data_file.name, "w") as fh:
+        with h5py.File(test_data_file, "w") as fh:
             fh.create_dataset("data", data=np.zeros((5, 2, 3)))
             fh.flush()
 
