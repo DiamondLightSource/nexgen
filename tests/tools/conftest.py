@@ -54,4 +54,4 @@ def nexus_file_with_multiple_datasets():
 
         yield test_nexus_file
 
-        test_data_file.close()
+        # test_data_file.close()
