@@ -19,16 +19,13 @@ def dummy_data_file():
     test_data_file.close()
     with h5py.File(test_data_file.name, "w") as fh:
         fh["data"] = np.zeros((10, 2, 3))
-        fh.flush()
     yield test_data_file.name
-
-    # os.remove(test_data_file.name)
 
 
 @pytest.fixture
 def nexus_file_with_multiple_datasets(dummy_data_file):
     test_hdf_file = tempfile.TemporaryFile()
-    test_nexus_file = h5py.File(test_hdf_file, "w")
+    test_nexus_file = h5py.File(test_hdf_file, "r+")
     test_nexus_file["/entry/data/data_0001"] = h5py.ExternalLink(
         dummy_data_file, "data"
     )
