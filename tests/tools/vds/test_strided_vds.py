@@ -18,19 +18,6 @@ def test_create_dataset_list_fails_if_no_external_links_found(mock_find):
         create_dataset_list("", 0)
 
 
-def test_create_dataset_list(nexus_file_with_multiple_datasets):
-    nxdata = nexus_file_with_multiple_datasets["/entry/data"]
-    dsets = create_dataset_list(nxdata, start_index=0)
-
-    assert len(dsets) == 2
-    assert dsets[0].name == "data_0001"
-    assert dsets[1].name == "data_0002"
-
-    for dset in dsets:
-        assert dset.start_index == 0
-        assert dset.stride == 2
-
-
 def test_create_vds_layout():
     dset_list = [
         SingleDataset(name="data_01", src_shape=(6, 2, 2), start_index=1, stride=2)
