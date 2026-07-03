@@ -1,3 +1,4 @@
+import os
 import tempfile
 
 import h5py
@@ -15,23 +16,22 @@ def nexus_file_with_single_dataset():
 
 @pytest.fixture(scope="session")
 def dummy_data_file():
-    test_data_file = tempfile.NamedTemporaryFile(suffix=".h5", delete=True)
-    with h5py.File(test_data_file, "w") as fh:
+    test_data_file = tempfile.NamedTemporaryFile(suffix=".h5", delete=False)
+    with h5py.File(test_data_file.name, "w") as fh:
         fh["data"] = np.zeros((10, 2, 3))
-    yield test_data_file
+    yield test_data_file.name
+
+    os.remove(test_data_file.name)
 
 
 @pytest.fixture
-def nexus_file_with_multiple_datasets():
-    test_data_file = tempfile.NamedTemporaryFile(suffix=".h5", delete=True)
-    with h5py.File(test_data_file, "w") as fh:
-        fh["data"] = np.zeros((10, 2, 3))
+def nexus_file_with_multiple_datasets(dummy_data_file):
     test_hdf_file = tempfile.TemporaryFile()
     test_nexus_file = h5py.File(test_hdf_file, "w")
     test_nexus_file["/entry/data/data_0001"] = h5py.ExternalLink(
-        test_data_file.name, "data"
+        dummy_data_file, "data"
     )
     test_nexus_file["/entry/data/data_0002"] = h5py.ExternalLink(
-        test_data_file.name, "data"
+        dummy_data_file, "data"
     )
     yield test_nexus_file
