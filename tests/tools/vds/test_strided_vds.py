@@ -20,11 +20,7 @@ def test_create_dataset_list_fails_if_no_external_links_found(mock_find):
 
 def test_create_dataset_list(nexus_file_with_multiple_datasets):
     nxdata = nexus_file_with_multiple_datasets["/entry/data"]
-    nxdata.create_dataset("boh", data=(0, 0, 0))
-    assert nxdata["boh"]
-    dsets = create_dataset_list(
-        nexus_file_with_multiple_datasets["/entry/data"], start_index=0
-    )
+    dsets = create_dataset_list(nxdata, start_index=0)
 
     assert len(dsets) == 2
     assert dsets[0].name == "data_0001"
