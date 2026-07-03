@@ -10,14 +10,18 @@ from nexgen.tools.vds_tools.strided_mapping import (
 )
 
 
+# @patch("nexgen.tools.vds_tools.strided_mapping.find_datasets_in_file")
 def test_create_dataset_list(nexus_file_with_multiple_datasets):
+    # mock_find.return_value = ["data_0001", "data_0002"]
     # with tempfile.NamedTemporaryFile(suffix=".nxs", delete=True)
     # with patch("nexgen.tools.vds_tools.strided_mapping.h5py.Dataset") as patch_dset:
     #     patch_dset.return_value.__enter__.return_value = MagicMock()
     #     patch_dset.return_value.__enter__.return_value.shape = (5, 2, 3)
-    nxdata = nexus_file_with_multiple_datasets["/entry/data"]
-    assert nxdata["data_0001"]
-    dsets = create_dataset_list(nxdata, start_index=0)
+    # nxdata = nexus_file_with_multiple_datasets["/entry/data"]
+    # assert nxdata["data_0001"]
+    dsets = create_dataset_list(
+        nexus_file_with_multiple_datasets["/entry/data"], start_index=0
+    )
 
     assert len(dsets) == 2
     assert dsets[0].name == "data_0001"
