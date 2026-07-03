@@ -13,7 +13,7 @@ def nexus_file_with_single_dataset():
     yield test_nexus_file
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def dummy_data_file():
     test_data_file = tempfile.NamedTemporaryFile(suffix=".h5", delete=True)
     with h5py.File(test_data_file, "w") as fh:
