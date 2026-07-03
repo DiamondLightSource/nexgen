@@ -17,7 +17,7 @@ stride_vds_logger = logging.getLogger("nexgen.tools.vds_tools.strided_mapping")
 class SingleDataset:
     name: str
     # Full size of the source dataset
-    src_shape = Sequence[int]
+    src_shape: Sequence[int]
     # Index to start the mapping from, usually 0 or 1 for this
     start_index: int = 0
     # Step for slicing the dataset. Defaults to every other image

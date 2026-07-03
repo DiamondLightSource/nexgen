@@ -1,0 +1,43 @@
+from unittest.mock import patch
+
+import numpy as np
+import pytest
+
+from nexgen.tools.vds_tools.strided_mapping import (
+    SingleDataset,
+    create_dataset_list,
+    create_vds_layout,
+    write_strided_vds,
+)
+
+
+@patch("nexgen.tools.vds_tools.strided_mapping.find_datasets_in_file")
+def test_create_dataset_list_fails_if_no_external_links_found(mock_find):
+    mock_find.return_value = []
+    with pytest.raises(ValueError):
+        create_dataset_list("", 0)
+
+
+def test_create_vds_layout():
+    dset_list = [
+        SingleDataset(name="data_01", src_shape=(6, 2, 2), start_index=1, stride=2)
+    ]
+    expected_shape = (3, 2, 2)
+
+    layout = create_vds_layout(dset_list, expected_shape, np.uint16)
+
+    assert layout.shape == expected_shape
+    assert list(layout._src_filenames)[0] == b"."
+
+
+@patch("nexgen.tools.vds_tools.strided_mapping.create_dataset_list")
+@patch("nexgen.tools.vds_tools.strided_mapping.create_vds_layout")
+def test_write_strided_vds(mock_dset_list, mock_layout, nexus_file_with_single_dataset):
+    with patch(
+        "nexgen.tools.vds_tools.strided_mapping.h5py.Group.create_virtual_dataset"
+    ) as mock_create:
+        write_strided_vds(nexus_file_with_single_dataset, (10, 2, 3), 0)
+
+        mock_dset_list.assert_called_once()
+        mock_layout.assert_called_once()
+        mock_create.assert_called_once()
