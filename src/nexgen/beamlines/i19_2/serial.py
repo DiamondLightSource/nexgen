@@ -36,6 +36,28 @@ def serial_nexus_writer(
     vds_mapping: VdsMapping = VdsMapping.BLOCKED,
     notes: dict[str, Any] | None = None,
 ):
+    """Wrapper function to gather all parameters from the beamline and kick off the nexus writer for a
+    serial experiment on I19-2.
+
+    Args:
+        params (dict[str, Any]): Dictionary representation of CollectionParams.
+        master_file (Path): Full path to the nexus file to be written.
+        use_meta (bool, optional): Eiger option only, if True use metadata from meta.h5 file. Otherwise
+            all parameters will need to be passed manually. Defaults to False.
+        vds_offset (int, optional): Start index for the vds writer. Defaults to 0.
+        n_frames (int | None, optional): Number of images for the nexus file. Only needed if different
+            from the tot_num_images in the collection params. If passed, the VDS will only contain the
+            number of frames specified here. Defaults to None.
+        bit_depth(int, optional): Default bit depth for eiger collections, used to define dtype of vds data. \
+            Defaults to 32.
+        data_entry_key (str, optional): Where to find the dataset. Defaults to "data".
+        eiger_stream_format (EigerStreamFormat, optional): Stream format setting on the new fastcs eiger.
+            The metafile in the new cbor format is slightly different. Defaults to "legacy".
+        vds_mapping (VdsMapping, optional): How to map the frames when building the VDS.
+        notes (dict[str, Any] | None, optional): Any additional information to be written as NXnote,
+            passed as a dictionary of (key, value) pairs where key represents the dataset name and
+            value its data. Defaults to None.
+    """
     _setup_logging(master_file.parent)
 
     collection_params = CollectionParams(**params)

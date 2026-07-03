@@ -177,8 +177,7 @@ def eiger_writer(
             "Not using meta file to update metadata, only the external links will be set up."
         )
         vds_dtype = define_vds_dtype_from_bit_depth(eiger_settings.bit_depth)
-        # wavelength = parameters.wavelength
-        # beam_center = parameters.beam_center
+
         # Update axes
         # Goniometer
         for gax in parameters.axes_pos:
