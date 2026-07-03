@@ -50,6 +50,7 @@ def nexus_file_with_multiple_datasets():
         data_path = Path(tmpdir) / "data.h5"
         with h5py.File(data_path, "w") as fh:
             fh.create_dataset("data", data=np.zeros((5, 2, 3)))
+            fh.flush()
 
         test_hdf_file = tempfile.TemporaryFile()
         test_nexus_file = h5py.File(test_hdf_file, "r+")

@@ -17,8 +17,8 @@ def test_create_dataset_list(nexus_file_with_multiple_datasets):
     # with patch("nexgen.tools.vds_tools.strided_mapping.h5py.Dataset") as patch_dset:
     #     patch_dset.return_value.__enter__.return_value = MagicMock()
     #     patch_dset.return_value.__enter__.return_value.shape = (5, 2, 3)
-    # nxdata = nexus_file_with_multiple_datasets["/entry/data"]
-    # assert nxdata["data_0001"]
+    nxdata = nexus_file_with_multiple_datasets["/entry/data"]
+    assert nxdata["data_0001"]
     dsets = create_dataset_list(
         nexus_file_with_multiple_datasets["/entry/data"], start_index=0
     )
