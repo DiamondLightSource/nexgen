@@ -1,4 +1,3 @@
-import os
 import tempfile
 
 import h5py
@@ -16,14 +15,14 @@ def nexus_file_with_single_dataset():
 
 @pytest.fixture(scope="session")
 def dummy_data_file():
-    test_data_file = tempfile.NamedTemporaryFile(suffix=".h5", delete=False)
+    test_data_file = tempfile.NamedTemporaryFile(suffix=".h5", delete=True)
     test_data_file.close()
     with h5py.File(test_data_file.name, "w") as fh:
         fh["data"] = np.zeros((10, 2, 3))
         fh.flush()
     yield test_data_file.name
 
-    os.remove(test_data_file.name)
+    # os.remove(test_data_file.name)
 
 
 @pytest.fixture
