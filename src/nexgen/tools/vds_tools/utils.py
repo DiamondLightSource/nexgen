@@ -3,6 +3,7 @@ from typing import Any, TypeAlias
 
 import h5py
 import numpy as np
+from numpy.typing import DTypeLike
 from pydantic import BaseModel, ConfigDict
 
 PydanticDTypeLike: TypeAlias = np.dtype[Any] | type | str | None
@@ -25,7 +26,8 @@ class VdsSettings(BaseModel):
 
 def find_datasets_in_file(nxdata: h5py.Group) -> list:
     """
-    Look for the source datasets in the NeXus file. Assumes that the source datasets are always h5py.ExternalLink.
+    Look for the source datasets in the NeXus file.
+    Assumes that the source datasets are always h5py.ExternalLink.
 
     Args:
         nxdata (h5py.Group): Group where the data should be linked.
@@ -36,7 +38,6 @@ def find_datasets_in_file(nxdata: h5py.Group) -> list:
     Returns:
         dsets (list): The source datasets.
     """
-    # FIXME for now this assumes that the source datasets are always links
     dsets = []
     for k in nxdata.keys():
         if isinstance(nxdata.get(k, getlink=True), h5py.ExternalLink):
@@ -46,3 +47,13 @@ def find_datasets_in_file(nxdata: h5py.Group) -> list:
             f"No External Link datasets found in NeXus file under {nxdata.name}"
         )
     return dsets
+
+
+def define_vds_dtype_from_bit_depth(bit_depth: int) -> DTypeLike:
+    """Define dtype of VDS based on the passed bit depth."""
+    if bit_depth == 32:
+        return np.uint32
+    elif bit_depth == 8:
+        return np.uint8
+    else:
+        return np.uint16
