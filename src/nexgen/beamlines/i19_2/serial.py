@@ -58,7 +58,8 @@ def serial_nexus_writer(
             passed as a dictionary of (key, value) pairs where key represents the dataset name and
             value its data. Defaults to None.
     """
-    _setup_logging(master_file.parent)
+    # _setup_logging(master_file.parent)
+    _setup_logging(params["metafile"].parent)
 
     collection_params = CollectionParams(**params)
     logger.info("NeXus file writer for beamline I19-2 at DLS.")
