@@ -12,7 +12,3 @@ def dummy_eiger_collection_params():
         metafile="/path/to/somefile_meta.h5",
         detector_name=DetectorName.EIGER,
     )
-
-
-# @pytest.fixture
-# def dummy_eiger_settings()
