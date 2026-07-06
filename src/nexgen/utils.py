@@ -237,6 +237,7 @@ def get_iso_timestamp(ts: str | float | None) -> str:
         "%Y-%m-%dT%H:%M:%SZ",  # ISO8601 formatted string
         "%Y-%m-%dT%H:%M:%S",
         "%Y-%m-%d %H:%M:%S",
+        "%Y-%m-%d %H:%M:%S.%f",
         "%a %b %d %Y %H:%M:%S",
         "%A, %d. %B %Y %I:%M%p",
     ]
@@ -255,7 +256,7 @@ def get_iso_timestamp(ts: str | float | None) -> str:
     elif isinstance(ts, str):
         for fmt in format_list:
             if _validate_timestamp_string(ts, fmt) is True:
-                ts_iso = datetime.strptime(ts, fmt).isoformat()
+                ts_iso = datetime.strptime(ts, fmt).isoformat(timespec="seconds")
                 break
         if not ts_iso:
             raise ValueError(

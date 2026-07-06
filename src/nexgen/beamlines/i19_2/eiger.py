@@ -151,11 +151,14 @@ def eiger_writer(
     source = Source("I19-2")
 
     # Define Eiger 4M params
+    overload = (
+        1834948 if eiger_settings.stream_format == EigerStreamFormat.CBOR else 50649
+    )
     eiger_params = EigerDetector(
         "Eiger 2X 4M",
         (2162, 2068),
         "CdTe",
-        50649,
+        overload,
         -1,
         stream=eiger_settings.stream_format,
     )

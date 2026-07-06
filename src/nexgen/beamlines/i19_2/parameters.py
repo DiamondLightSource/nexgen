@@ -1,5 +1,6 @@
 """Define a collection parameter model for I19-2"""
 
+from collections.abc import Sequence
 from enum import StrEnum
 from pathlib import Path
 from typing import NamedTuple
@@ -7,6 +8,7 @@ from typing import NamedTuple
 from pydantic import field_validator
 
 from nexgen.beamlines.beamline_utils import GeneralParams
+from nexgen.utils import get_iso_timestamp
 
 
 # Useful axis definitions and parameters
@@ -74,3 +76,10 @@ class CollectionParams(GeneralParams):
         if isinstance(metafile, str):
             return Path(metafile)
         return metafile
+
+    @field_validator("timestamps", mode="before")
+    @classmethod
+    def _parse_timestamps(cls, timestamps: Sequence[int | None]):
+        start = get_iso_timestamp(timestamps[0]) if timestamps[0] else ""
+        end = get_iso_timestamp(timestamps[1]) if timestamps[1] else ""
+        return (start, end)
