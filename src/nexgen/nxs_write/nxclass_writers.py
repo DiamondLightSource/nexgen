@@ -781,7 +781,11 @@ def write_NXcollection(
             )
     if "EIGER" in detector_params.description.upper() and meta:
         for field in DETECTOR_SPECIFIC_PARAMS:
-            grp[field] = h5py.ExternalLink(meta.name, detector_params.constants[field])
+            if field in detector_params.constants.keys():
+                # New EIGER cbor format does not have all fields in meta file
+                grp[field] = h5py.ExternalLink(
+                    meta.name, detector_params.constants[field]
+                )
     elif "TRISTAN" in detector_params.description.upper():
         tick = ureg.Quantity(detector_params.constants["detector_tick"])
         grp.create_dataset("detector_tick", data=tick.magnitude)
