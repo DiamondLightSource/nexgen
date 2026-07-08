@@ -253,10 +253,10 @@ def eiger_writer(
     )
 
     vds_settings = VdsSettings(
-        vds_dtype,
-        (n_frames, *detector.detector_params.image_size),
-        vds_offset,
-        vds_mapping,
+        vds_dtype=vds_dtype,
+        vds_shape=(n_frames, *detector.detector_params.image_size),
+        vds_offset=vds_offset,
+        vds_mapping=vds_mapping,
     )
 
     start_writer(parameters, eiger_settings, nx_objects, vds_settings, notes)
