@@ -82,7 +82,11 @@ def serial_nexus_writer(
     match collection_params.detector_name:
         case DetectorName.EIGER:
             eiger_settings = EigerSettings(
-                master_file, use_meta, bit_depth, data_entry_key, eiger_stream_format
+                master_file=master_file,
+                use_meta=use_meta,
+                bit_depth=bit_depth,
+                data_entry_key=data_entry_key,
+                stream_format=eiger_stream_format,
             )
             eiger_writer(
                 collection_params,
