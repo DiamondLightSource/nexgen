@@ -17,9 +17,9 @@ from ..nxs_utils.detector import Detector
 from ..nxs_utils.goniometer import Goniometer
 from ..nxs_utils.sample import Sample
 from ..nxs_utils.source import Attenuator, Beam, Source
+from ..tools.vds_tools.blocked_mapping import image_vds_writer
 from ..tools.vds_w_tools import (
     clean_unused_links,
-    image_vds_writer,
     jungfrau_vds_writer,
 )
 from ..utils import (

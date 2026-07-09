@@ -24,7 +24,7 @@ class VdsSettings(BaseModel):
     vds_mapping: VdsMapping = VdsMapping.BLOCKED
 
 
-def find_datasets_in_file(nxdata: h5py.Group) -> list:
+def find_datasets_in_file(nxdata: h5py.Group) -> list[str]:
     """
     Look for the source datasets in the NeXus file.
     Assumes that the source datasets are always h5py.ExternalLink.
