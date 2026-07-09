@@ -15,7 +15,7 @@ from numpy.typing import DTypeLike
 
 from ..nxs_utils import Attenuator, Beam, Detector, Goniometer, Source
 from ..tools.vds_tools.blocked_mapping import image_vds_writer
-from ..tools.vds_w_tools import vds_file_writer
+from ..tools.vds_tools.vds_file import vds_file_writer
 from ..utils import coord2mcstas
 from .nxclass_writers import (
     write_NXcoordinate_system_set,
