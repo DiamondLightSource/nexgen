@@ -19,9 +19,7 @@ from ..nxs_utils.sample import Sample
 from ..nxs_utils.source import Attenuator, Beam, Source
 from ..tools.vds_tools import clean_unused_links
 from ..tools.vds_tools.blocked_mapping import image_vds_writer
-from ..tools.vds_w_tools import (
-    jungfrau_vds_writer,
-)
+from ..tools.vds_tools.tiled_mapping import jungfrau_vds_writer
 from ..utils import (
     MAX_FRAMES_PER_DATASET,
     MAX_SUFFIX_DIGITS,

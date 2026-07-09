@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 
 import h5py
 
-from nexgen.tools.vds_w_tools import (
+from nexgen.tools.vds_tools.tiled_mapping import (
     jungfrau_vds_writer,
 )
 
