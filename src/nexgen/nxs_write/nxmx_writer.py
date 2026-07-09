@@ -2,8 +2,6 @@
 A writer for NXmx format NeXus Files.
 """
 
-from __future__ import annotations
-
 import logging
 import math
 from datetime import datetime
@@ -12,6 +10,9 @@ from pathlib import Path
 import h5py
 import numpy as np
 from numpy.typing import DTypeLike
+
+from nexgen.tools.vds_tools.strided_mapping import write_strided_vds
+from nexgen.tools.vds_tools.utils import VdsMapping
 
 from ..nxs_utils.detector import Detector
 from ..nxs_utils.goniometer import Goniometer
@@ -243,69 +244,98 @@ class NXmxFileWriter:
         vds_offset: int = 0,
         vds_shape: tuple[int, int, int] = None,
         vds_dtype: DTypeLike = np.uint16,
+        vds_mapping: VdsMapping = VdsMapping.BLOCKED,
+        stride: int = 2,
         clean_up: bool = False,
     ):
         """Write a Virtual Dataset.
 
-        This method adds a VDS under /entry/data/data in the NeXus file, linking to either the full datasets or the subset defined by \
+        This method adds a VDS under /entry/data/data in the NeXus file, linking to either the full datasets or the subset defined by
         vds_offset (used as start index) and vds_shape.
         WARNING. Only use clean up if the data collection is finished and all the files have already been written.
 
         Args:
-            vds_offset (int, optional): Start index for the vds writer. Defaults to 0.
-            vds_shape (tuple[int,int,int], optional): Shape of the data which will be linked in the VDS. If not passed, it will be defined as \
+            vds_offset (int, optional): Start index for the vds writer. For the strided mapping this will be where the source starts.
+            Defaults to 0.
+            vds_shape (tuple[int,int,int], optional): Shape of the data which will be linked in the VDS. If not passed, it will be defined as
             (tot_num_imgs - start_idx, *image_size). Defaults to None.
             vds_dtype (DTypeLike, optional): The type of the input data. Defaults to np.uint16.
+            vds_mapping (VdsMapping, optional): Mapping to apply to build the vds. Defaults to "blocked".
+            stride (int, optional): Every how many images to map the strided vds. Defaults to 2 (map to every other image).
             clean_up(bool, optional): Clean up unused links in vds. Defaults to False.
         """
-        if not vds_shape:
-            vds_shape = (
-                self.tot_num_imgs - vds_offset,
-                *self.detector.detector_params.image_size,
-            )
-            if self.goniometer.get_number_of_scan_points() != vds_shape[0]:
-                vds_shape = (
-                    self.goniometer.get_number_of_scan_points(),
-                    *vds_shape[1:],
-                )
-                nxmx_logger.warning(
-                    "The number of scan points doesn't match the calculated vds_shape. \
-                    Resetting it to match the number of frames indicated by the scan."
-                )
-
-        nxmx_logger.debug(f"VDS shape set to {vds_shape}.")
-
-        with h5py.File(self.filename, "r+") as nxs:
-            # For a coming ticket - for now write a separate file
-            # Here will be better to have a match-case for VDS mapping. Default is the same as blocked.
-            if "jungfrau" in self.detector.detector_params.description.lower():
+        if "jungfrau" in self.detector.detector_params.description.lower():
+            with h5py.File(self.filename, "r+") as nxs:
                 jungfrau_vds_writer(
                     nxs,
                     (self.tot_num_imgs, *self.detector.detector_params.image_size),
                     data_type=vds_dtype,
                 )
-            else:
-                image_vds_writer(
-                    nxs,
-                    (self.tot_num_imgs, *self.detector.detector_params.image_size),
-                    start_index=vds_offset,
-                    vds_shape=vds_shape,
-                    data_type=vds_dtype,
-                )
-            if clean_up is True:
-                nxmx_logger.warning("Starting clean up of unused links.")
-                clean_unused_links(
-                    nxs,
-                    vds_shape=vds_shape,
-                    start_index=vds_offset,
-                )
+            nxmx_logger.info("VDS for JF1M written.")
+            return
 
-            # If number of frames in the VDS is lower than the total, nimages in NXcollection should be overwritten to match this
-            if vds_shape[0] < self.tot_num_imgs:
-                del nxs["/entry/instrument/detector/detectorSpecific/nimages"]
-                nxs["/entry/instrument/detector/detectorSpecific"].create_dataset(
-                    "nimages", data=vds_shape[0]
+        match vds_mapping:
+            case VdsMapping.BLOCKED:
+                nxmx_logger.debug("Writing 'standard' blocked VDS")
+                if not vds_shape:
+                    vds_shape = (
+                        self.tot_num_imgs - vds_offset,
+                        *self.detector.detector_params.image_size,
+                    )
+                    if self.goniometer.get_number_of_scan_points() != vds_shape[0]:
+                        vds_shape = (
+                            self.goniometer.get_number_of_scan_points(),
+                            *vds_shape[1:],
+                        )
+                        nxmx_logger.warning(
+                            "The number of scan points doesn't match the calculated vds_shape. \
+                            Resetting it to match the number of frames indicated by the scan."
+                        )
+
+                nxmx_logger.debug(f"VDS shape set to {vds_shape}.")
+
+                with h5py.File(self.filename, "r+") as nxs:
+                    image_vds_writer(
+                        nxs,
+                        (self.tot_num_imgs, *self.detector.detector_params.image_size),
+                        start_index=vds_offset,
+                        vds_shape=vds_shape,
+                        data_type=vds_dtype,
+                    )
+
+                    if clean_up is True:
+                        nxmx_logger.warning("Starting clean up of unused links.")
+                        clean_unused_links(
+                            nxs,
+                            vds_shape=vds_shape,
+                            start_index=vds_offset,
+                        )
+
+                    # If number of frames in the VDS is lower than the total, nimages in NXcollection should be overwritten to match this
+                    if vds_shape[0] < self.tot_num_imgs:
+                        del nxs["/entry/instrument/detector/detectorSpecific/nimages"]
+                        nxs[
+                            "/entry/instrument/detector/detectorSpecific"
+                        ].create_dataset("nimages", data=vds_shape[0])
+                nxmx_logger.info(f"VDS correctly written to file {self.filename}")
+            case VdsMapping.STRIDED:
+                nxmx_logger.info(
+                    f"Writing strided nexus file with start idx {vds_offset} and stride {stride}."
                 )
+                with h5py.File(self.filename, "r+") as nxs:
+                    write_strided_vds(
+                        nxs,
+                        (self.tot_num_imgs, *self.detector.detector_params.image_size),
+                        vds_offset,
+                        stride,
+                        vds_dtype,
+                    )
+                nxmx_logger.info(f"VDS correctly written to file {self.filename}")
+            case VdsMapping.TILED:
+                nxmx_logger.error(
+                    "Tiled VDS mapping not implemented yet, will not write vds."
+                )
+        return
 
 
 class EventNXmxFileWriter(NXmxFileWriter):
