@@ -1,3 +1,4 @@
+import logging
 from enum import StrEnum
 from typing import Any, TypeAlias
 
@@ -7,6 +8,8 @@ from numpy.typing import DTypeLike
 from pydantic import BaseModel, ConfigDict
 
 PydanticDTypeLike: TypeAlias = np.dtype[Any] | type | str | None
+
+vds_logger = logging.getLogger("nexgen.tools.vds_tools")
 
 
 class VdsMapping(StrEnum):
@@ -43,6 +46,7 @@ def find_datasets_in_file(nxdata: h5py.Group) -> list[str]:
         if isinstance(nxdata.get(k, getlink=True), h5py.ExternalLink):
             dsets.append(k)
     if not dsets:
+        vds_logger.error("No extrnale link datasets found.")
         raise KeyError(
             f"No External Link datasets found in NeXus file under {nxdata.name}"
         )
@@ -57,3 +61,40 @@ def define_vds_dtype_from_bit_depth(bit_depth: int) -> DTypeLike:
         return np.uint8
     else:
         return np.uint16
+
+
+def clean_unused_links(
+    nxsfile: h5py.File,
+    vds_shape: tuple | list,
+    start_index: int = 0,
+):
+    """
+    Remove links to external data not used in VDS.
+
+    Args:
+        nxsfile (h5py.File): Handle to NeXus file being written.
+        vds_shape (tuple | list): Actual shape of the VDS dataset, usually defined as (num_frames, *image_size).
+        start_index(int): The start point for the source data. Defaults to 0.
+    """
+    vds_logger.debug("Cleaning links unused in VDS ...")
+    # Location of the VDS
+    nxdata = nxsfile["/entry/data"]
+    dataset_names = find_datasets_in_file(nxdata)
+    if len(dataset_names) == 1:
+        vds_logger.debug("Only one linked file, no need to remove it.")
+        return
+    datasets = [nxdata[name] for name in dataset_names]
+    dataset_lengths = [d.shape[0] for d in datasets]
+    if sum(dataset_lengths) == vds_shape[0]:
+        vds_logger.debug("All links are used in VDS, no need to remove any.")
+        return
+    for i, _ in enumerate(datasets):
+        # unlink datasets before the start of VDS
+        if sum(dataset_lengths[0 : i + 1]) < start_index:
+            vds_logger.debug(f"Removing {dataset_names[i]} link.")
+            del nxdata[dataset_names[i]]
+        # unlink datasets after the end of VDS
+        if sum(dataset_lengths[0:i]) > start_index + vds_shape[0]:
+            vds_logger.debug(f"Removing {dataset_names[i]} link.")
+            del nxdata[dataset_names[i]]
+    vds_logger.debug("Links unused in VDS removed from NeXus file.")
