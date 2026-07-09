@@ -291,7 +291,8 @@ def start_writer(
             vds_offset=vds_settings.vds_offset,
             vds_shape=vds_settings.vds_shape,
             vds_dtype=vds_settings.vds_dtype,
-        )  # TODO add mapping
+            vds_mapping=vds_settings.vds_mapping,
+        )
         if parameters.timestamps[1]:
             NXmx_writer.update_timestamps(parameters.timestamps[1], "end_time")
         if notes:
