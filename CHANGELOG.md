@@ -1,6 +1,16 @@
 # CHANGELOG
 
 
+## 0.12.0
+
+### Added
+- Tiled mapping for VDS
+
+### Changed
+-
+
+
+
 ## 0.11.2
 
 ### Fixed
