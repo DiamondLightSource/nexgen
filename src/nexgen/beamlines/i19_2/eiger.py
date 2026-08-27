@@ -22,8 +22,8 @@ from nexgen.tools.metafile import DectrisMetafile
 from nexgen.tools.vds_tools import (
     VdsMapping,
     VdsSettings,
+    define_vds_dtype_from_bit_depth,
 )
-from nexgen.tools.vds_w_tools import define_vds_dtype_from_bit_depth
 
 logger = logging.getLogger("nexgen.beamlines.I19_2.eiger")
 
@@ -291,7 +291,8 @@ def start_writer(
             vds_offset=vds_settings.vds_offset,
             vds_shape=vds_settings.vds_shape,
             vds_dtype=vds_settings.vds_dtype,
-        )  # TODO add mapping
+            vds_mapping=vds_settings.vds_mapping,
+        )
         if parameters.timestamps[1]:
             NXmx_writer.update_timestamps(parameters.timestamps[1], "end_time")
         if notes:
