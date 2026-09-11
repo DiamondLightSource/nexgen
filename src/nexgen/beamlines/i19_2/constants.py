@@ -4,9 +4,12 @@ Define beamline parameter constants for I19-2 goniometer, Tristan and Eiger dete
 
 from nexgen.beamlines.beamline_utils import BeamlineAxes
 from nexgen.nxs_utils import Axis, TransformationType
+from nexgen.nxs_utils.source import Source
 from nexgen.utils import Point3D
 
 DEFAULT_DATA_KEY = "data"
+
+I19_2_SOURCE = Source("I19-2")
 
 I19_2_GONIO = [
     Axis("omega", ".", TransformationType.ROTATION, Point3D(-1, 0, 0)),
@@ -29,7 +32,7 @@ I19_2_EIGER = BeamlineAxes(
     slow_axis=Point3D(-1, 0, 0),
 )
 
-I19_2T_TRISTAN = BeamlineAxes(
+I19_2_TRISTAN = BeamlineAxes(
     gonio=I19_2_GONIO,
     det_axes=[
         Axis("two_theta", ".", TransformationType.ROTATION, Point3D(-1, 0, 0), 0),

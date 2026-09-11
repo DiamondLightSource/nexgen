@@ -237,7 +237,12 @@ def eiger_writer(
         sample = Sample(depends_on=scan_axis)
 
     nx_objects = NxObjectsComposite(
-        goniometer, detector, source, beam, attenuator, sample
+        goniometer=goniometer,
+        detector=detector,
+        source=source,
+        beam=beam,
+        attenuator=attenuator,
+        sample=sample,
     )
 
     collection_summary_log(
