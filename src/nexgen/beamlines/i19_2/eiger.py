@@ -7,15 +7,19 @@ from numpy.typing import ArrayLike, DTypeLike
 from pydantic import BaseModel, field_validator
 
 from nexgen.beamlines.beamline_utils import collection_summary_log
-from nexgen.beamlines.i19_2.constants import I19_2_EIGER
+from nexgen.beamlines.i19_2.constants import I19_2_EIGER, I19_2_SOURCE
 from nexgen.beamlines.i19_2.parameters import CollectionParams
 from nexgen.nxs_utils import NxObjectsComposite
 from nexgen.nxs_utils.axes import Axis
 from nexgen.nxs_utils.detector import Detector, EigerDetector, EigerStreamFormat
 from nexgen.nxs_utils.goniometer import Goniometer
 from nexgen.nxs_utils.sample import Sample
-from nexgen.nxs_utils.scan_utils import calculate_scan_points, identify_osc_axis
-from nexgen.nxs_utils.source import Attenuator, Beam, Source
+from nexgen.nxs_utils.scan_utils import (
+    calculate_scan_points,
+    identify_osc_axis,
+    is_stills,
+)
+from nexgen.nxs_utils.source import Attenuator, Beam
 from nexgen.nxs_write.nxmx_writer import NXmxFileWriter
 from nexgen.tools.meta_reader import define_vds_data_type, update_axes_from_meta
 from nexgen.tools.metafile import DectrisMetafile
@@ -41,12 +45,6 @@ class EigerSettings(BaseModel):
         if isinstance(master_file, str):
             return Path(master_file)
         return master_file
-
-
-def _is_stills(scan: ArrayLike) -> bool:
-    if all(scan == scan[0]):
-        return True
-    return False
 
 
 def _check_meta_parameters(
@@ -148,7 +146,7 @@ def eiger_writer(
 ):
     _check_meta_parameters(parameters, eiger_settings.use_meta, n_frames)
 
-    source = Source("I19-2")
+    source = I19_2_SOURCE
 
     # Define Eiger 4M params
     overload = (
@@ -233,7 +231,7 @@ def eiger_writer(
 
     # Define Sample if needed
     sample = None
-    if _is_stills(oscillation[scan_axis]):
+    if is_stills(oscillation[scan_axis]):
         logger.info(f"Scan on axis {scan_axis} is actually a collection of stills")
         logger.debug(f"Will set sample depends_on to {scan_axis}")
         sample = Sample(depends_on=scan_axis)

@@ -45,6 +45,12 @@ class ScanAxisError(Exception):
         scan_logger.error(errmsg)
 
 
+def is_stills(scan: ArrayLike) -> bool:
+    if all(scan == scan[0]):
+        return True
+    return False
+
+
 def identify_osc_axis(
     axes_list: List[Axis],
     default: str = "omega",

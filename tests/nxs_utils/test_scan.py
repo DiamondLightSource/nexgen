@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 from numpy.testing import assert_array_equal
+from numpy.typing import ArrayLike
 
 from nexgen.nxs_utils.axes import Axis, TransformationType
 from nexgen.nxs_utils.scan_utils import (
@@ -9,6 +10,7 @@ from nexgen.nxs_utils.scan_utils import (
     calculate_scan_points,
     identify_grid_scan_axes,
     identify_osc_axis,
+    is_stills,
 )
 
 test_axis_list = [
@@ -17,6 +19,20 @@ test_axis_list = [
     Axis("sam_y", "phi", TransformationType.TRANSLATION, (0, 1, 0), 0, 0.1, 10),
     Axis("sam_x", "sam_y", TransformationType.TRANSLATION, (1, 0, 0), 0, 0.2, 5),
 ]
+
+
+@pytest.mark.parametrize(
+    "scan_array, expected_result",
+    (
+        [np.array([1, 1, 1]), True],
+        [np.array([1, 2, 3]), False],
+        [np.array(1, 1, 2, 2), False],
+    ),
+)
+def test_is_stills(scan_array: ArrayLike, expected_result: bool):
+    res = is_stills(scan_array)
+
+    assert res == expected_result
 
 
 def test_identify_osc_axis():
