@@ -6,7 +6,12 @@ import pytest
 
 from nexgen.beamlines.i19_2.constants import I19_2_EIGER
 from nexgen.beamlines.i19_2.eiger import EigerSettings
-from nexgen.beamlines.i19_2.parameters import CollectionParams, DetectorName
+from nexgen.beamlines.i19_2.parameters import (
+    CollectionParams,
+    DetAxisPosition,
+    DetectorName,
+    GonioAxisPosition,
+)
 from nexgen.nxs_utils.axes import Axis
 
 
@@ -66,3 +71,19 @@ def dummy_eiger_legacy_meta_file():
         test_meta_file["_dectris/pixel_mask_applied"] = np.array([0])  # False
     # yield test_meta_file
     yield test_hdf_file
+
+
+@pytest.fixture
+def dummy_tristan_collection_params():
+    return CollectionParams(
+        exposure_time=300,
+        beam_center=(100, 200),
+        wavelength=0.4,
+        metafile="/path/to/somefile_meta.h5",
+        detector_name=DetectorName.TRISTAN,
+        axes_pos=[
+            GonioAxisPosition(id="omega", start=-90, end=-20),
+            GonioAxisPosition(id="phi", start=0.0),
+        ],
+        det_pos=[DetAxisPosition(id="det_z", start=250.0)],
+    )
