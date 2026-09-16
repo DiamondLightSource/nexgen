@@ -5,6 +5,7 @@ import numpy as np
 import pytest
 
 from nexgen.beamlines.i19_2.constants import I19_2_EIGER
+from nexgen.beamlines.i19_2.eiger import EigerSettings
 from nexgen.beamlines.i19_2.parameters import CollectionParams, DetectorName
 from nexgen.nxs_utils.axes import Axis
 
@@ -28,6 +29,11 @@ def dummy_eiger_collection_params() -> CollectionParams:
         metafile="/path/to/somefile_meta.h5",
         detector_name=DetectorName.EIGER,
     )
+
+
+@pytest.fixture
+def dummy_eiger_settings_cbor() -> EigerSettings:
+    return EigerSettings(master_file="/path/to/somefile.nxs", stream_format="cbor")
 
 
 @pytest.fixture
