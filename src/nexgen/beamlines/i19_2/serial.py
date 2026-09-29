@@ -9,6 +9,7 @@ from nexgen import log
 from nexgen.beamlines.i19_2.constants import DEFAULT_DATA_KEY
 from nexgen.beamlines.i19_2.eiger import EigerSettings, eiger_writer
 from nexgen.beamlines.i19_2.parameters import CollectionParams, DetectorName
+from nexgen.beamlines.i19_2.tristan import tristan_writer
 from nexgen.nxs_utils.detector import EigerStreamFormat
 from nexgen.tools.vds_tools import VdsMapping
 from nexgen.tools.vds_tools.strided_mapping import write_strided_vds
@@ -97,7 +98,11 @@ def serial_nexus_writer(
                 notes,
             )
         case DetectorName.TRISTAN:
-            logger.error("TRISTAN NOT IMPLEMENTED YET!")
+            tristan_writer(
+                collection_params,
+                master_file,
+                notes,
+            )
 
 
 # Until issues in nxs_copy are fixed, pydantic errors abound
