@@ -26,7 +26,7 @@ test_axis_list = [
     (
         [np.array([1, 1, 1]), True],
         [np.array([1, 2, 3]), False],
-        [np.array(1, 1, 2, 2), False],
+        [np.array([1, 1, 2, 2]), False],
     ),
 )
 def test_is_stills(scan_array: ArrayLike, expected_result: bool):
