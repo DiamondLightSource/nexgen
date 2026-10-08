@@ -1,6 +1,16 @@
 # CHANGELOG
 
 
+## 0.12.0
+
+### Added
+- Tiled mapping for VDS
+
+### Changed
+- Tristan, eiger and serial writers refactored for I19
+
+
+
 ## 0.11.2
 
 ### Fixed
