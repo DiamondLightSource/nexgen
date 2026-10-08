@@ -111,7 +111,7 @@ def start_writer(
 ):
     # Write
     try:
-        image_filename = parameters.metafile.stem.replace("_meta", "")
+        image_filename = parameters.metafile.as_posix().replace("_meta.h5", "")
         NXmx_tristan_writer = EventNXmxFileWriter(
             master_file,
             nx_objects.goniometer,

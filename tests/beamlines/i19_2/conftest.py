@@ -86,4 +86,5 @@ def dummy_tristan_collection_params():
             GonioAxisPosition(id="phi", start=0.0),
         ],
         det_pos=[DetAxisPosition(id="det_z", start=250.0)],
+        timestamps=["2026-10-08T15:12:57", "2026-10-08T15:14:27"],
     )
