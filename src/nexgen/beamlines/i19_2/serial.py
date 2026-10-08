@@ -6,12 +6,7 @@ import h5py
 from numpy.typing import DTypeLike
 
 from nexgen import log
-from nexgen.beamlines.i19_2.constants import DEFAULT_DATA_KEY
-from nexgen.beamlines.i19_2.eiger import EigerSettings, eiger_writer
-from nexgen.beamlines.i19_2.parameters import CollectionParams, DetectorName
-from nexgen.beamlines.i19_2.tristan import tristan_writer
-from nexgen.nxs_utils.detector import EigerStreamFormat
-from nexgen.tools.vds_tools import VdsMapping
+from nexgen.beamlines.i19_2.main_writer import standard_nexus_writer
 from nexgen.tools.vds_tools.strided_mapping import write_strided_vds
 
 logger = logging.getLogger("nexgen.beamlines.i19_2.serial")
@@ -27,73 +22,34 @@ def _setup_logging(wdir: Path):
 def serial_nexus_writer(
     params: dict[str, Any],
     master_file: Path,
-    use_meta: bool = False,
-    vds_offset: int = 0,
+    detector_params: dict[str, Any] | None = None,
     n_frames: int | None = None,
-    bit_depth: int = 32,
-    data_entry_key: str = DEFAULT_DATA_KEY,
-    eiger_stream_format: EigerStreamFormat = EigerStreamFormat.LEGACY,
-    vds_mapping: VdsMapping = VdsMapping.BLOCKED,
     notes: dict[str, Any] | None = None,
 ):
-    """Wrapper function to gather all parameters from the beamline and kick off the nexus writer for a
+    """Entry point function to gather all parameters from the beamline and kick off the nexus writer for a
     serial experiment on I19-2.
 
     Args:
-        params (dict[str, Any]): Dictionary representation of CollectionParams.
+        params (dict[str, Any]): Dictionary representation of CollectionParams, the main collection parameters
+            needed by any experiment and any detector.
         master_file (Path): Full path to the nexus file to be written.
-        use_meta (bool, optional): Eiger option only, if True use metadata from meta.h5 file. Otherwise
-            all parameters will need to be passed manually. Defaults to False.
-        vds_offset (int, optional): Start index for the vds writer. Defaults to 0.
+        detector_params (dict[str, Any]): Dictionary representation of ExtraDetectorParams, a set of
+            parameters needed to use the correct writer/vds for the Eiger detector. Not needed for Tristan.
+            Defaults to None, if not passed for Eiger, the default (legacy) values will be used.
         n_frames (int | None, optional): Number of images for the nexus file. Only needed if different
             from the tot_num_images in the collection params. If passed, the VDS will only contain the
             number of frames specified here. Defaults to None.
-        bit_depth(int, optional): Default bit depth for eiger collections, used to define dtype of vds data. \
-            Defaults to 32.
-        data_entry_key (str, optional): Where to find the dataset. Defaults to "data".
-        eiger_stream_format (EigerStreamFormat, optional): Stream format setting on the new fastcs eiger.
-            The metafile in the new cbor format is slightly different. Defaults to "legacy".
-        vds_mapping (VdsMapping, optional): How to map the frames when building the VDS.
         notes (dict[str, Any] | None, optional): Any additional information to be written as NXnote,
             passed as a dictionary of (key, value) pairs where key represents the dataset name and
             value its data. Defaults to None.
     """
-    # _setup_logging(master_file.parent)
-    _setup_logging(params["metafile"].parent)
+    if not detector_params:
+        logger.warning(
+            "No specific detector params have been passed. Will default to legacy eiger settings."
+        )
 
-    collection_params = CollectionParams(**params)
-    logger.info("NeXus file writer for beamline I19-2 at DLS.")
-    logger.info(
-        f"Detector in use for this experiment: {collection_params.detector_name.value}."
-    )
-    logger.info(f"Current collection directory: {collection_params.metafile.parent}")
-
-    # Get NeXus filename
-    logger.info("NeXus file will be saved as %s" % master_file)
-
-    match collection_params.detector_name:
-        case DetectorName.EIGER:
-            eiger_settings = EigerSettings(
-                master_file=master_file,
-                use_meta=use_meta,
-                bit_depth=bit_depth,
-                data_entry_key=data_entry_key,
-                stream_format=eiger_stream_format,
-            )
-            eiger_writer(
-                collection_params,
-                eiger_settings,
-                vds_offset,
-                vds_mapping,
-                n_frames,
-                notes,
-            )
-        case DetectorName.TRISTAN:
-            tristan_writer(
-                collection_params,
-                master_file,
-                notes,
-            )
+    logger.info(f"Start nexus file writer for {master_file}")
+    standard_nexus_writer(params, detector_params, master_file, n_frames, notes)
 
 
 # Until issues in nxs_copy are fixed, pydantic errors abound

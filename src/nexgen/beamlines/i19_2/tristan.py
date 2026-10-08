@@ -33,7 +33,7 @@ def _check_input_parameters(parameters: CollectionParams):
 
 def tristan_writer(
     parameters: CollectionParams,
-    master_file: Path | str | None = None,
+    master_file: Path | None = None,
     notes: dict[str, Any] | None = None,
 ):
     # Check nothing missing from parameters

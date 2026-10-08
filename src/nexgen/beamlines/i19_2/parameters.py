@@ -4,10 +4,13 @@ from collections.abc import Sequence
 from enum import StrEnum
 from pathlib import Path
 
-from pydantic import field_validator
+from pydantic import BaseModel, field_validator
 from pydantic.dataclasses import dataclass
 
 from nexgen.beamlines.beamline_utils import GeneralParams
+from nexgen.beamlines.i19_2.constants import DEFAULT_DATA_KEY
+from nexgen.nxs_utils.detector import EigerStreamFormat
+from nexgen.tools.vds_tools import VdsMapping
 from nexgen.utils import get_iso_timestamp
 
 
@@ -85,3 +88,12 @@ class CollectionParams(GeneralParams):
         start = get_iso_timestamp(timestamps[0]) if timestamps[0] else ""
         end = get_iso_timestamp(timestamps[1]) if timestamps[1] else ""
         return (start, end)
+
+
+class ExtraDetectorParams(BaseModel):
+    use_meta: bool = False
+    bit_depth: int = 32
+    data_entry_key: str = DEFAULT_DATA_KEY
+    stream_format: EigerStreamFormat = EigerStreamFormat.LEGACY
+    vds_offset: int = 0
+    vds_mapping: VdsMapping = VdsMapping.BLOCKED
