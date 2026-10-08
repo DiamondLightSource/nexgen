@@ -13,7 +13,6 @@ from nexgen.beamlines.i19_2.tristan import tristan_writer
 from nexgen.nxs_utils.detector import EigerStreamFormat
 from nexgen.tools.vds_tools import VdsMapping
 from nexgen.tools.vds_tools.strided_mapping import write_strided_vds
-from nexgen.utils import get_iso_timestamp
 
 logger = logging.getLogger("nexgen.beamlines.i19_2.serial")
 
@@ -71,14 +70,6 @@ def serial_nexus_writer(
 
     # Get NeXus filename
     logger.info("NeXus file will be saved as %s" % master_file)
-
-    # Get timestamps in the correct format if they aren't already
-    # Should be passed as a string instead of datetime from ui .strftime("%Y-%m-%dT%H:%M:%S")
-    timestamps = (
-        get_iso_timestamp(collection_params.timestamps[0]),
-        get_iso_timestamp(collection_params.timestamps[1]),
-    )
-    collection_params.timestamps = timestamps
 
     match collection_params.detector_name:
         case DetectorName.EIGER:
