@@ -1,13 +1,13 @@
 # CHANGELOG
 
 
-## 0.12.0
+## 0.11.3
 
 ### Added
 - Tiled mapping for VDS
 
 ### Changed
--
+- Tristan and serial writers refactored for I19
 
 
 
