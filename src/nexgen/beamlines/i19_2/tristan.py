@@ -12,12 +12,9 @@ from nexgen.nxs_utils.sample import Sample
 from nexgen.nxs_utils.scan_utils import is_stills
 from nexgen.nxs_utils.source import Attenuator, Beam
 from nexgen.nxs_write.nxmx_writer import EventNXmxFileWriter
+from nexgen.utils import get_nexus_filename
 
 logger = logging.getLogger("nexgen.beamlines.I19_2.tristan")
-
-
-def _get_master_file_name(meta_file: Path) -> Path:
-    return meta_file.parent / meta_file.name.replace("_meta.h5", ".nxs")
 
 
 def _check_input_parameters(parameters: CollectionParams):
@@ -110,7 +107,7 @@ def tristan_writer(
 
     # Master file name
     if not master_file:
-        master_file = _get_master_file_name(parameters.metafile)
+        master_file = get_nexus_filename(parameters.metafile)
 
     if isinstance(master_file, str):
         master_file = Path(master_file)

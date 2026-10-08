@@ -1,4 +1,3 @@
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -6,17 +5,9 @@ import pytest
 from nexgen.beamlines.i19_2.parameters import CollectionParams, DetectorName
 from nexgen.beamlines.i19_2.tristan import (
     _check_input_parameters,
-    _get_master_file_name,
     start_writer,
 )
-
-
-def test_get_master_file_name():
-    metafile = Path("/path/to/file_01_meta.h5")
-
-    nxs = _get_master_file_name(metafile)
-
-    assert nxs.name == "file_01.nxs"
+from nexgen.utils import get_nexus_filename
 
 
 @patch("nexgen.beamlines.i19_2.tristan.logger")
@@ -48,7 +39,7 @@ def test_if_missing_scan_axis_phi_assumed(
 def test_start_writer(
     mock_nx_objects: MagicMock, dummy_tristan_collection_params: CollectionParams
 ):
-    master_file = _get_master_file_name(dummy_tristan_collection_params.metafile)
+    master_file = get_nexus_filename(dummy_tristan_collection_params.metafile)
     with patch("nexgen.beamlines.i19_2.tristan.EventNXmxFileWriter") as mock_writer:
         start_writer(dummy_tristan_collection_params, mock_nx_objects, master_file)
 
