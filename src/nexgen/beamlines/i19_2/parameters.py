@@ -3,16 +3,17 @@
 from collections.abc import Sequence
 from enum import StrEnum
 from pathlib import Path
-from typing import NamedTuple
 
 from pydantic import field_validator
+from pydantic.dataclasses import dataclass
 
 from nexgen.beamlines.beamline_utils import GeneralParams
 from nexgen.utils import get_iso_timestamp
 
 
 # Useful axis definitions and parameters
-class GonioAxisPosition(NamedTuple):
+@dataclass
+class GonioAxisPosition:
     """Definition of goniometer axis name, start and end position, increment.
 
     Fields:
@@ -29,7 +30,8 @@ class GonioAxisPosition(NamedTuple):
     end: float | None = None
 
 
-class DetAxisPosition(NamedTuple):
+@dataclass
+class DetAxisPosition:
     """Definition of detector axis name and position.
 
     Fields:
@@ -68,7 +70,7 @@ class CollectionParams(GeneralParams):
     scan_axis: str | None = None
     axes_pos: list[GonioAxisPosition] | None = None
     det_pos: list[DetAxisPosition] | None = None
-    timestamps: tuple[str, str] = (None, None)
+    timestamps: tuple[str | None, str | None] = (None, None)
 
     @field_validator("metafile", mode="before")
     @classmethod
