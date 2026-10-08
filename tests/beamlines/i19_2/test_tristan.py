@@ -1,8 +1,11 @@
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from nexgen.beamlines.i19_2.parameters import CollectionParams
+import pytest
+
+from nexgen.beamlines.i19_2.parameters import CollectionParams, DetectorName
 from nexgen.beamlines.i19_2.tristan import (
+    _check_input_parameters,
     _get_master_file_name,
     start_writer,
 )
@@ -14,6 +17,31 @@ def test_get_master_file_name():
     nxs = _get_master_file_name(metafile)
 
     assert nxs.name == "file_01.nxs"
+
+
+@patch("nexgen.beamlines.i19_2.tristan.logger")
+def test_check_input_parameters_raises_error_if_no_axes(mock_logger: MagicMock):
+    bad_tristan_params = CollectionParams(
+        exposure_time=300,
+        beam_center=(100, 200),
+        wavelength=0.4,
+        metafile="/path/to/somefile_meta.h5",
+        detector_name=DetectorName.TRISTAN,
+        scan_axis="phi",
+    )
+    with pytest.raises(ValueError):
+        _check_input_parameters(bad_tristan_params)
+        mock_logger.error.assert_called_once()
+
+
+@patch("nexgen.beamlines.i19_2.tristan.logger")
+def test_if_missing_scan_axis_phi_assumed(
+    mock_logger: MagicMock, dummy_tristan_collection_params: CollectionParams
+):
+    _check_input_parameters(dummy_tristan_collection_params)
+
+    mock_logger.warning.assert_called_once()
+    assert dummy_tristan_collection_params.scan_axis == "phi"
 
 
 @patch("nexgen.beamlines.i19_2.tristan.NxObjectsComposite")

@@ -20,11 +20,26 @@ def _get_master_file_name(meta_file: Path) -> Path:
     return meta_file.parent / meta_file.name.replace("_meta.h5", ".nxs")
 
 
+def _check_input_parameters(parameters: CollectionParams):
+    if not parameters.axes_pos or not parameters.det_pos:
+        logger.error("Please pass the axes positions for a Tristan collection.")
+        raise ValueError(
+            "Missing goniometer and/or detector axes information for tristan collection"
+        )
+    if not parameters.scan_axis:
+        logger.warning("No scan axis has been specified. Phi will be set as default.")
+        parameters.scan_axis = "phi"
+
+
 def tristan_writer(
     parameters: CollectionParams,
     master_file: Path | str | None = None,
     notes: dict[str, Any] | None = None,
 ):
+    # Check nothing missing from parameters
+    _check_input_parameters(parameters)
+
+    # Source
     source = I19_2_SOURCE
 
     # Define Tristan 10M params
