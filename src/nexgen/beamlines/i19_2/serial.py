@@ -19,6 +19,9 @@ def _setup_logging(wdir: Path):
     log.config(logfile.as_posix())
 
 
+# This is for a single nxs file for each well in serial, plan si to have an additional entry point
+# to enable writing multiple ones in a single request.
+# See https://github.com/DiamondLightSource/nexgen/issues/415
 def serial_nexus_writer(
     params: dict[str, Any],
     master_file: Path,
