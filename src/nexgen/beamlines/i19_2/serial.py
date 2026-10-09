@@ -5,18 +5,10 @@ from typing import Any, Sequence
 import h5py
 from numpy.typing import DTypeLike
 
-from nexgen import log
 from nexgen.beamlines.i19_2.main_writer import standard_nexus_writer
 from nexgen.tools.vds_tools.strided_mapping import write_strided_vds
 
 logger = logging.getLogger("nexgen.beamlines.i19_2.serial")
-
-
-def _setup_logging(wdir: Path):
-    # Define a file handler
-    logfile = wdir / "I19_2_nxs_writer.log"
-    # Configure logging
-    log.config(logfile.as_posix())
 
 
 # This is for a single nxs file for each well in serial, plan si to have an additional entry point
