@@ -3,6 +3,7 @@
 from collections.abc import Sequence
 from enum import StrEnum
 from pathlib import Path
+from typing import Any
 
 from pydantic import BaseModel, field_validator
 from pydantic.dataclasses import dataclass
@@ -97,3 +98,28 @@ class ExtraDetectorParams(BaseModel):
     stream_format: EigerStreamFormat = EigerStreamFormat.LEGACY
     vds_offset: int = 0
     vds_mapping: VdsMapping = VdsMapping.BLOCKED
+
+
+class ParamsFromGDA(BaseModel):
+    metafile: Path
+    xmlfile: Path
+    detector_name: DetectorName
+    exposure_time: float
+    wavelength: float
+    beam_center: Sequence[float]
+    timestamps: tuple[str | None, str | None] = (None, None)
+    detector_params: dict[str, Any] | None = None  # Will go into ExtraDetparams
+
+    @field_validator("metafile", mode="before")
+    @classmethod
+    def _parse_metafile(cls, metafile: str | Path):
+        if isinstance(metafile, str):
+            return Path(metafile)
+        return metafile
+
+    @field_validator("xmlfile", mode="before")
+    @classmethod
+    def _parse_metafile(cls, xmlfile: str | Path):
+        if isinstance(xmlfile, str):
+            return Path(xmlfile)
+        return xmlfile
