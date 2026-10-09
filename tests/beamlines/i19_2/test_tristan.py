@@ -40,8 +40,11 @@ def test_start_writer(
     mock_nx_objects: MagicMock, dummy_tristan_collection_params: CollectionParams
 ):
     master_file = get_nexus_filename(dummy_tristan_collection_params.metafile)
+    notes = {"well": "004"}
     with patch("nexgen.beamlines.i19_2.tristan.EventNXmxFileWriter") as mock_writer:
-        start_writer(dummy_tristan_collection_params, mock_nx_objects, master_file)
+        start_writer(
+            dummy_tristan_collection_params, mock_nx_objects, master_file, notes
+        )
 
         mock_writer().write.assert_called_once_with(
             image_filename="/path/to/somefile",
@@ -50,3 +53,4 @@ def test_start_writer(
         mock_writer().update_timestamps.assert_called_once_with(
             dummy_tristan_collection_params.timestamps[1], "end_time"
         )
+        mock_writer().add_NXnote.assert_called_once_with(notes)

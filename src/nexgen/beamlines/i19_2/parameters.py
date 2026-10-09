@@ -85,8 +85,8 @@ class CollectionParams(GeneralParams):
     @field_validator("timestamps", mode="before")
     @classmethod
     def _parse_timestamps(cls, timestamps: Sequence[int | None]):
-        start = get_iso_timestamp(timestamps[0]) if timestamps[0] else ""
-        end = get_iso_timestamp(timestamps[1]) if timestamps[1] else ""
+        start = get_iso_timestamp(timestamps[0]) if timestamps[0] else None
+        end = get_iso_timestamp(timestamps[1]) if timestamps[1] else None
         return (start, end)
 
 

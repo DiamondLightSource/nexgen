@@ -22,4 +22,4 @@ def test_collection_parameters_timestamps():
     )
 
     assert params.timestamps[0] == "2026-07-06T17:00:21Z"
-    assert params.timestamps[1] == ""
+    assert params.timestamps[1] is None

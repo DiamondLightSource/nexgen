@@ -51,11 +51,6 @@ def standard_nexus_writer(
     _setup_logging(params["metafile"].parent)
 
     collection_parameters = CollectionParams(**params)
-    det_params = (
-        ExtraDetectorParams(**extra_detector_params)
-        if extra_detector_params
-        else ExtraDetectorParams()
-    )
     logger.info("NeXus file writer for beamline I19-2 at DLS.")
     logger.info(
         f"Detector in use for this experiment: {collection_parameters.detector_name.value}."
@@ -71,12 +66,17 @@ def standard_nexus_writer(
 
     match collection_parameters.detector_name:
         case DetectorName.EIGER:
+            det_params = (
+                ExtraDetectorParams(**extra_detector_params)
+                if extra_detector_params
+                else ExtraDetectorParams()
+            )
             eiger_settings = EigerSettings(
                 master_file=master_file,
                 use_meta=det_params.use_meta,
                 bit_depth=det_params.bit_depth,
                 data_entry_key=det_params.data_entry_key,
-                stream_format=det_params.eiger_stream_format,
+                stream_format=det_params.stream_format,
             )
             logger.info("Kick off eiger writer")
             eiger_writer(
