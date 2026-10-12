@@ -21,10 +21,11 @@ logger = logging.getLogger("nexgen.beamlines.i19_2.serial")
 def _setup_logging(wdir: Path):
     # Define a file handler
     logfile = wdir / "I19_2_nxs_writer.log"
-    # Configure logging
+    # Configure logging, closed by @log.closes_logfile on serial_nexus_writer
     log.config(logfile.as_posix())
 
 
+@log.closes_logfile
 def serial_nexus_writer(
     params: dict[str, Any],
     master_file: Path,

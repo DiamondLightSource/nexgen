@@ -28,6 +28,7 @@ logger = logging.getLogger("nexgen.EDNeXusWriter")
 SINGLA_DATA_ENTRY_KEY = "/entry/data/data"
 
 
+@log.closes_logfile
 def singla_nexus_writer(
     master_file: Path | str,
     det_distance: float,
@@ -79,7 +80,7 @@ def singla_nexus_writer(
 
     # Set up logging config
     logfile = wdir / "EDnxs.log"
-    log.config(logfile.as_posix())
+    log.config(logfile.as_posix())  # Closed by @log.closes_logfile
 
     logger.info("NeXus file writer for electron diffraction data from Singla.")
     logger.info(f"Collection directory: {master_file.parent}.")

@@ -453,6 +453,7 @@ def eiger_writer(
         raise
 
 
+@log.closes_logfile
 def serial_nexus_writer(
     params: dict[str, Any],
     master_file: Path,
@@ -489,7 +490,7 @@ def serial_nexus_writer(
     # Define a file handler
     logfile = wdir / "I19_2_nxs_writer.log"
     # Configure logging
-    log.config(logfile.as_posix())
+    log.config(logfile.as_posix())  # Closed by @log.closes_logfile
 
     logger.info("NeXus file writer for beamline I19-2 at DLS.")
     logger.info(
@@ -524,6 +525,7 @@ def serial_nexus_writer(
             tristan_writer(master_file, collection_params, timestamps, notes)
 
 
+@log.closes_logfile
 def nexus_writer(
     params: dict[str, Any],
     master_file: Path,
@@ -553,7 +555,7 @@ def nexus_writer(
     # Define a file handler
     logfile = wdir / "I19_2_nxs_writer.log"
     # Configure logging
-    log.config(logfile.as_posix())
+    log.config(logfile.as_posix())  # Closed by @log.closes_logfile
 
     logger.info("NeXus file writer for beamline I19-2 at DLS.")
     logger.info(

@@ -2,6 +2,7 @@
 Logging configuration.
 """
 
+import functools
 import logging
 import logging.config
 
@@ -39,9 +40,18 @@ logging_config = {
 logging.config.dictConfig(logging_config)
 
 
-def config(logfile: str = None, write_mode: str = "a", delayed: bool = False):
+# File handlers opened by config(), so that they can be closed again
+_file_handlers: list[logging.FileHandler] = []
+
+
+def config(
+    logfile: str = None, write_mode: str = "a", delayed: bool = False
+) -> logging.FileHandler | None:
     """
     Configure the logging.
+
+    Any log file opened here stays open until closed with close_logfiles, or
+    by a function decorated with closes_logfile returning.
 
     Args:
         logfile (str, optional): If passed, create a file handler for the logger to write to file the log output. Defaults to None.
@@ -62,6 +72,43 @@ def config(logfile: str = None, write_mode: str = "a", delayed: bool = False):
         FH.setLevel(logging.DEBUG)
         FH.setFormatter(fileFormatter)
         nexgen_logger.addHandler(FH)
+        _file_handlers.append(FH)
+        return FH
+    return None
+
+
+def close_logfiles(keep: int = 0):
+    """
+    Remove and close log file handlers opened by config.
+
+    Args:
+        keep (int, optional): Number of the earliest opened handlers to leave open. Defaults to 0.
+    """
+    nexgen_logger = logging.getLogger("nexgen")
+    while len(_file_handlers) > keep:
+        handler = _file_handlers.pop()
+        nexgen_logger.removeHandler(handler)
+        handler.close()
+
+
+def closes_logfile(func):
+    """
+    Decorator to close any log file opened by config while the function runs.
+
+    Without this, every call to a writer leaves another open file handler
+    attached to the nexgen logger, which leaks file descriptors in
+    long-running processes and sends later output to earlier log files.
+    """
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        n_open = len(_file_handlers)
+        try:
+            return func(*args, **kwargs)
+        finally:
+            close_logfiles(keep=n_open)
+
+    return wrapper
 
 
 class LoggingContext:

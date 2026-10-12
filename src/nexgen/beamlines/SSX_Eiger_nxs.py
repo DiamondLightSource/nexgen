@@ -96,6 +96,7 @@ def _get_beamline_specific_params(beamline: str) -> tuple[BeamlineAxes, EigerDet
     return axes_params, eiger_params
 
 
+@log.closes_logfile
 def ssx_eiger_writer(
     visitpath: Path | str,
     filename: str,
@@ -197,7 +198,7 @@ def ssx_eiger_writer(
 
     # Configure logging
     logfile = wdir / f"{beamline}_EigerSSX_nxs_writer.log"
-    log.config(logfile.as_posix())
+    log.config(logfile.as_posix())  # Closed by @log.closes_logfile
 
     logger.info(f"Current collection directory: {visitpath.as_posix()}")
     if wdir != visitpath:

@@ -9,6 +9,9 @@
 ### Changed
 - Tristan, eiger and serial writers refactored for I19
 
+### Fixed
+- Beamline writers now close their log file when they finish, instead of leaking a file handle on each call
+
 
 
 ## 0.11.2
