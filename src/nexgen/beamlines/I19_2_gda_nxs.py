@@ -251,6 +251,7 @@ def eiger_writer(
         )
 
 
+@log.closes_logfile
 def write_nxs(
     meta_file: Path | str,
     xml_file: Path | str,
@@ -303,7 +304,7 @@ def write_nxs(
     # Define a file handler
     logfile = TR.meta_file.parent / "nexus_writer.log"
     # Configure logging
-    log.config(logfile.as_posix())
+    log.config(logfile.as_posix())  # Closed by @log.closes_logfile
 
     logger.info("NeXus file writer for beamline I19-2 at DLS.")
     logger.info(f"Detector in use for this experiment: {TR.detector_name}.")
