@@ -5,8 +5,8 @@ from typing import Any, Sequence
 import h5py
 from numpy.typing import DTypeLike
 
-from nexgen.beamlines.i19_2.main_writer import standard_nexus_writer
-from nexgen.log import closes_logfile
+from nexgen.beamlines.i19_2.main_writer import main_writer_i19
+from nexgen.log import closes_logfile, setup_logging
 from nexgen.tools.vds_tools.strided_mapping import write_strided_vds
 
 logger = logging.getLogger("nexgen.beamlines.i19_2.serial")
@@ -42,13 +42,14 @@ def serial_nexus_writer(
             passed as a dictionary of (key, value) pairs where key represents the dataset name and
             value its data. Defaults to None.
     """
+    setup_logging(params["metafile"].parent)
     if not detector_params:
         logger.warning(
             "No specific detector params have been passed. Will default to legacy eiger settings."
         )
 
     logger.info(f"Start nexus file writer for {master_file}")
-    standard_nexus_writer(params, detector_params, master_file, n_frames, notes)
+    main_writer_i19(params, detector_params, master_file, n_frames, notes)
 
 
 # Until issues in nxs_copy are fixed, pydantic errors abound

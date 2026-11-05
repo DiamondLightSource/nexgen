@@ -10,13 +10,19 @@ from nexgen.beamlines.i19_2.serial import (
 )
 
 
-@patch("nexgen.beamlines.i19_2.serial.standard_nexus_writer")
+@patch("nexgen.beamlines.i19_2.serial.setup_logging")
+@patch("nexgen.beamlines.i19_2.serial.main_writer_i19")
 def test_serial_nexus_writer(
-    mock_writer: MagicMock, dummy_tristan_collection_params: CollectionParams
+    mock_writer: MagicMock,
+    mock_setup_log: MagicMock,
+    dummy_tristan_collection_params: CollectionParams,
 ):
     params = dummy_tristan_collection_params.model_dump()
     serial_nexus_writer(params, "/path/to/somefile.nxs")
 
+    mock_setup_log.assert_called_once_with(
+        dummy_tristan_collection_params.metafile.parent
+    )
     mock_writer.assert_called_once_with(
         params, None, "/path/to/somefile.nxs", None, None
     )

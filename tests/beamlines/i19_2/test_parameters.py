@@ -39,7 +39,7 @@ def test_parameters_tristan_from_GDA():
         wavelength=0.69,
     )
     assert isinstance(params.metafile, Path)
-    assert isinstance(params.metafile, Path)
+    assert isinstance(params.xmlfile, Path)
     assert params.detector_name == DetectorName.TRISTAN
     assert params.timestamps == (None, None)
     assert not params.detector_params

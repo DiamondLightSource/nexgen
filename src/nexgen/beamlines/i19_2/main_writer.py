@@ -2,7 +2,6 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from nexgen import log
 from nexgen.beamlines.i19_2.eiger import EigerSettings, eiger_writer
 from nexgen.beamlines.i19_2.parameters import (
     CollectionParams,
@@ -10,19 +9,13 @@ from nexgen.beamlines.i19_2.parameters import (
     ExtraDetectorParams,
 )
 from nexgen.beamlines.i19_2.tristan import tristan_writer
+from nexgen.log import closes_logfile, setup_logging
 from nexgen.utils import get_nexus_filename
 
 logger = logging.getLogger("nexgen.beamlines.i19_2.main_writer")
 
 
-def _setup_logging(wdir: Path):
-    # Define a file handler
-    logfile = wdir / "I19_2_nxs_writer.log"
-    # Configure logging
-    log.config(logfile.as_posix())
-
-
-def standard_nexus_writer(
+def main_writer_i19(
     params: dict[str, Any],
     extra_detector_params: dict[str, Any] | None = None,
     master_file: Path | None = None,
@@ -48,8 +41,6 @@ def standard_nexus_writer(
             passed as a dictionary of (key, value) pairs where key represents the dataset name and
             value its data. Defaults to None.
     """
-    _setup_logging(params["metafile"].parent)
-
     collection_parameters = CollectionParams(**params)
     logger.info("NeXus file writer for beamline I19-2 at DLS.")
     logger.info(
@@ -94,3 +85,13 @@ def standard_nexus_writer(
                 master_file,
                 notes,
             )
+
+
+@closes_logfile
+def basic_nxmx_writer(
+    params: dict[str, Any],
+    detector_params: dict[str, Any] | None = None,
+):
+    """Entry point with logging to create a basic nxmx format file for i19-2."""
+    setup_logging(params["metafile"].parent)
+    main_writer_i19(params, detector_params)

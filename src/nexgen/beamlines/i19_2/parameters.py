@@ -119,7 +119,7 @@ class ParamsFromGDA(BaseModel):
 
     @field_validator("xmlfile", mode="before")
     @classmethod
-    def _parse_metafile(cls, xmlfile: str | Path):
+    def _parse_xmlfile(cls, xmlfile: str | Path):
         if isinstance(xmlfile, str):
             return Path(xmlfile)
         return xmlfile
