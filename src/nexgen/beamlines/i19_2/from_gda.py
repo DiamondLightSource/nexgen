@@ -43,6 +43,7 @@ def _get_params_from_ecr(parameters: ParamsFromGDA) -> CollectionParams:
         exposure_time=parameters.exposure_time,
         wavelength=parameters.wavelength,
         transmission=ecr.getTransmission(),
+        beam_center=parameters.beam_center,
         metafile=parameters.metafile,
         detector_name=parameters.detector_name,
         tot_num_images=n_frames,
@@ -56,7 +57,10 @@ def _get_params_from_ecr(parameters: ParamsFromGDA) -> CollectionParams:
 
 @closes_logfile
 def gda_nexus_writer(parameters: ParamsFromGDA):
-    setup_logging(parameters["metafile"].parent)
+    setup_logging(
+        parameters.metafile.parent,
+        f"gda_nxs_{parameters.detector_name.value}_writer.log",
+    )
 
     logger.info("NeXus file writer for beamline I19-2 at DLS.")
     logger.info(
@@ -73,8 +77,8 @@ def gda_nexus_writer(parameters: ParamsFromGDA):
     match collection_parameters.detector_name:
         case DetectorName.EIGER:
             det_params = (
-                ExtraDetectorParams(**parameters.extra_detector_params)
-                if parameters.extra_detector_params
+                ExtraDetectorParams(**parameters.detector_params)
+                if parameters.detector_params
                 else ExtraDetectorParams()
             )
             eiger_settings = EigerSettings(
