@@ -9,7 +9,6 @@ from nexgen.nxs_utils import NxObjectsComposite
 from nexgen.nxs_utils.detector import Detector, TristanDetector
 from nexgen.nxs_utils.goniometer import Goniometer
 from nexgen.nxs_utils.sample import Sample
-from nexgen.nxs_utils.scan_utils import is_stills
 from nexgen.nxs_utils.source import Attenuator, Beam
 from nexgen.nxs_write.nxmx_writer import EventNXmxFileWriter
 from nexgen.utils import get_nexus_filename
@@ -81,7 +80,7 @@ def tristan_writer(
 
     # Define Sample if needed
     sample = None
-    if is_stills(oscillation[scan_axis]):
+    if oscillation[scan_axis][0] == oscillation[scan_axis][1]:
         logger.info(f"Scan on axis {scan_axis} is actually a collection of stills")
         logger.debug(f"Will set sample depends_on to {scan_axis}")
         sample = Sample(depends_on=scan_axis)
