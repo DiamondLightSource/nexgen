@@ -7,7 +7,8 @@ from numpy.typing import DTypeLike
 
 from nexgen.beamlines.i19_2.main_writer import main_writer_i19
 from nexgen.log import closes_logfile, setup_logging
-from nexgen.tools.vds_tools.strided_mapping import write_strided_vds
+from nexgen.nxs_utils.detector import EigerStreamFormat
+from nexgen.tools.vds_tools.strided_mapping import VdsMapping, write_strided_vds
 from nexgen.utils import coerce_to_path
 
 logger = logging.getLogger("nexgen.beamlines.i19_2.serial")
@@ -25,6 +26,7 @@ def serial_nexus_writer(
     detector_params: dict[str, Any] | None = None,
     n_frames: int | None = None,
     notes: dict[str, Any] | None = None,
+    vds_names: list[str] | None = None,
 ):
     """Entry point function to gather all parameters from the beamline and kick off the nexus writer for a
     serial experiment on I19-2.
@@ -42,6 +44,9 @@ def serial_nexus_writer(
         notes (dict[str, Any] | None, optional): Any additional information to be written as NXnote,
             passed as a dictionary of (key, value) pairs where key represents the dataset name and
             value its data. Defaults to None.
+        vds_names (list[str] | None): Names to append to the new nexus files with strided VDS.
+            The length of this list also determines how many files should be written and
+            thus the stride. Defaults to None
     """
     setup_logging(Path(params["metafile"]).parent)
     master_file = coerce_to_path(master_file)
@@ -51,7 +56,27 @@ def serial_nexus_writer(
         )
 
     logger.info(f"Start nexus file writer for {master_file.as_posix()}")
-    main_writer_i19(params, detector_params, master_file, n_frames, notes)
+    if (
+        "extg_mode" in detector_params.keys()
+        and detector_params["extg_mode"] == "double"
+    ):
+        if not vds_names:
+            logger.warning(
+                "No names list for the strided VDS has been passed, will assume two and default to [GS, ES]."
+            )
+            vds_names = ["GS", "ES"]
+        for n, name in enumerate(vds_names):
+            detector_params["vds_offset"] = n
+            # These two should already be in but just in case
+            detector_params["vds_mapping"] = VdsMapping.STRIDED
+            detector_params["stream_format"] = EigerStreamFormat.CBOR
+            new_nxs_file = (
+                master_file.parent / f"{master_file.stem}_{name}{master_file.suffix}"
+            )
+            new_n_frames = n_frames // len(vds_names)
+            main_writer_i19(params, detector_params, new_nxs_file, new_n_frames, notes)
+    else:
+        main_writer_i19(params, detector_params, master_file, n_frames, notes)
 
 
 # Until issues in nxs_copy are fixed, pydantic errors abound
