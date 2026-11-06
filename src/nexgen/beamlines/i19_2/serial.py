@@ -42,7 +42,7 @@ def serial_nexus_writer(
             passed as a dictionary of (key, value) pairs where key represents the dataset name and
             value its data. Defaults to None.
     """
-    setup_logging(params["metafile"].parent)
+    setup_logging(Path(params["metafile"]).parent)
     if not detector_params:
         logger.warning(
             "No specific detector params have been passed. Will default to legacy eiger settings."

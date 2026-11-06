@@ -93,5 +93,5 @@ def basic_nxmx_writer(
     detector_params: dict[str, Any] | None = None,
 ):
     """Entry point with logging to create a basic nxmx format file for i19-2."""
-    setup_logging(params["metafile"].parent)
+    setup_logging(Path(params["metafile"]).parent)
     main_writer_i19(params, detector_params)
