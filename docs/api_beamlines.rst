@@ -51,27 +51,27 @@ which in turn calls one of the following depending on the specified detector typ
 Some useful type definitions to use with these methods:
 
 
-.. autoclass:: nexgen.beamlines.i19_2.parameters.GonioAxisPosition
+.. autoclass:: nexgen.beamlines.i19_2.GonioAxisPosition
     :members:
 
 
-.. autoclass:: nexgen.beamlines.i19_2.parameters.DetAxisPosition
+.. autoclass:: nexgen.beamlines.i19_2.DetAxisPosition
     :members:
 
 
-.. autoclass:: nexgen.beamlines.i19_2.parameters.DetectorName
+.. autoclass:: nexgen.beamlines.i19_2.DetectorName
     :members:
 
 
 Collection parameters schema for I19-2
 
 
-.. autopydantic_model:: nexgen.beamlines.i19_2.parameters.CollectionParams
+.. autopydantic_model:: nexgen.beamlines.i19_2.CollectionParams
     :inherited-members: BaseModel
     :model-show-config-summary: False
 
 
-.. autopydantic_model:: nexgen.beamlines.i19_2.parameters.ExtraDetectorParams
+.. autopydantic_model:: nexgen.beamlines.i19_2.ExtraDetectorParams
     :inherited-members: BaseModel
     :model-show-config-summary: False
 
@@ -80,13 +80,13 @@ Collection parameters schema for I19-2
 1. Interface with GDA ...
 
 
-.. autofunction:: nexgen.beamlines.i19_2.from_gda.gda_nexus_writer
+.. autofunction:: nexgen.beamlines.i19_2.gda_nexus_writer
 
 
 Collection parameters schema for I19-2 from GDA
 
 
-.. autopydantic_model:: nexgen.beamlines.i19_2.parameters.ParamsFromGDA
+.. autopydantic_model:: nexgen.beamlines.i19_2.ParamsFromGDA
     :inherited-members: BaseModel
     :model-show-config-summary: False
 
