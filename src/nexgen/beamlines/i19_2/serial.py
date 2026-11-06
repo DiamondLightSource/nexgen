@@ -8,6 +8,7 @@ from numpy.typing import DTypeLike
 from nexgen.beamlines.i19_2.main_writer import main_writer_i19
 from nexgen.log import closes_logfile, setup_logging
 from nexgen.tools.vds_tools.strided_mapping import write_strided_vds
+from nexgen.utils import coerce_to_path
 
 logger = logging.getLogger("nexgen.beamlines.i19_2.serial")
 
@@ -20,7 +21,7 @@ logger = logging.getLogger("nexgen.beamlines.i19_2.serial")
 @closes_logfile
 def serial_nexus_writer(
     params: dict[str, Any],
-    master_file: Path,
+    master_file: str | Path,
     detector_params: dict[str, Any] | None = None,
     n_frames: int | None = None,
     notes: dict[str, Any] | None = None,
@@ -31,7 +32,7 @@ def serial_nexus_writer(
     Args:
         params (dict[str, Any]): Dictionary representation of CollectionParams, the main collection parameters
             needed by any experiment and any detector.
-        master_file (Path): Full path to the nexus file to be written.
+        master_file (str | Path): Full path to the nexus file to be written.
         detector_params (dict[str, Any]): Dictionary representation of ExtraDetectorParams, a set of
             parameters needed to use the correct writer/vds for the Eiger detector. Not needed for Tristan.
             Defaults to None, if not passed for Eiger, the default (legacy) values will be used.
@@ -43,12 +44,13 @@ def serial_nexus_writer(
             value its data. Defaults to None.
     """
     setup_logging(Path(params["metafile"]).parent)
+    master_file = coerce_to_path(master_file)
     if not detector_params:
         logger.warning(
             "No specific detector params have been passed. Will default to legacy eiger settings."
         )
 
-    logger.info(f"Start nexus file writer for {master_file}")
+    logger.info(f"Start nexus file writer for {master_file.as_posix()}")
     main_writer_i19(params, detector_params, master_file, n_frames, notes)
 
 

@@ -24,7 +24,7 @@ def test_serial_nexus_writer(
         dummy_tristan_collection_params.metafile.parent
     )
     mock_writer.assert_called_once_with(
-        params, None, "/path/to/somefile.nxs", None, None
+        params, None, Path("/path/to/somefile.nxs"), None, None
     )
 
 
