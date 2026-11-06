@@ -3,6 +3,7 @@ from pathlib import Path
 from nexgen.beamlines.i19_2.parameters import (
     CollectionParams,
     DetectorName,
+    ExtraDetectorParams,
     ParamsFromGDA,
 )
 
@@ -58,3 +59,17 @@ def test_parameters_eiger_from_GDA():
 
     assert params.detector_name == DetectorName.EIGER
     assert params.detector_params["bit_depth"] == 16
+
+
+def test_extra_detector_parameters():
+    new_params = {"stream_format": "cbor", "vds_offset": 1, "vds_mapping": "tiled"}
+
+    params = ExtraDetectorParams(**new_params)
+
+    # Not changed
+    assert params.bit_depth == 32
+    assert params.data_entry_key == "data"
+    # Updated
+    assert params.stream_format == "cbor"
+    assert params.vds_offset == 1
+    assert params.vds_mapping == "tiled"
