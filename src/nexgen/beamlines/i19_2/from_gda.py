@@ -57,6 +57,12 @@ def _get_params_from_ecr(parameters: ParamsFromGDA) -> CollectionParams:
 
 @closes_logfile
 def gda_nexus_writer(parameters: ParamsFromGDA):
+    """Main entry point for the writer called by GDA scripts.
+
+    Args:
+        parameters (ParamsFromGDA): Parameter representation of all
+            the information that can be gathere from GDA.
+    """
     setup_logging(
         parameters.metafile.parent,
         f"gda_nxs_{parameters.detector_name.value}_writer.log",
