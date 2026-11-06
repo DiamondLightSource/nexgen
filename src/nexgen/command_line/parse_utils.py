@@ -56,15 +56,15 @@ config_parser.add_argument(
 )
 
 vds_parser = argparse.ArgumentParser(add_help=False)
-# vds_parser.add_argument(
-#     "--vds-type",
-#     type=str,
-#     choices=["dataset", "file"],
-#     default="dataset",
-#     help="Choose whether to write the vds as a detaset or a file. Defaults to dataset."
-# )
 vds_parser.add_argument(
     "--vds-offset", type=int, default=0, help="Start image for the vds."
+)
+vds_parser.add_argument(
+    "--vds-mapping",
+    type=str,
+    choices=["blocked", "tiled", "strided"],
+    default="blocked",
+    help="Data mapping for the vds, defaults to blocked",
 )
 vds_parser.add_argument(
     "--no-vds", action="store_true", help="Do not write a vds file."

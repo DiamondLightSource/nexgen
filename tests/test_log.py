@@ -1,5 +1,6 @@
 import logging
-from unittest.mock import MagicMock
+from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -67,3 +68,10 @@ def test_closes_logfile_nested(dummy_logger, tmp_path):
     assert len(dummy_logger.handlers) == 1
     assert "after inner" in (tmp_path / "outer.log").read_text()
     assert "after inner" not in (tmp_path / "inner.log").read_text()
+
+
+@patch("nexgen.log.config")
+def test_setup_logging(mock_config: MagicMock):
+    log.setup_logging(Path("/tmp/data"))
+
+    mock_config.assert_called_once_with("/tmp/data/nexus_writer.log")

@@ -9,22 +9,33 @@ from nexgen.nxs_utils import NxObjectsComposite
 from nexgen.nxs_utils.detector import Detector, TristanDetector
 from nexgen.nxs_utils.goniometer import Goniometer
 from nexgen.nxs_utils.sample import Sample
-from nexgen.nxs_utils.scan_utils import is_stills
 from nexgen.nxs_utils.source import Attenuator, Beam
 from nexgen.nxs_write.nxmx_writer import EventNXmxFileWriter
+from nexgen.utils import get_nexus_filename
 
 logger = logging.getLogger("nexgen.beamlines.I19_2.tristan")
 
 
-def _get_master_file_name(meta_file: Path) -> Path:
-    return meta_file.parent / meta_file.name.replace("_meta.h5", ".nxs")
+def _check_input_parameters(parameters: CollectionParams):
+    if not parameters.axes_pos or not parameters.det_pos:
+        logger.error("Please pass the axes positions for a Tristan collection.")
+        raise ValueError(
+            "Missing goniometer and/or detector axes information for tristan collection"
+        )
+    if not parameters.scan_axis:
+        logger.warning("No scan axis has been specified. Phi will be set as default.")
+        parameters.scan_axis = "phi"
 
 
 def tristan_writer(
     parameters: CollectionParams,
-    master_file: Path | str | None = None,
+    master_file: Path | None = None,
     notes: dict[str, Any] | None = None,
 ):
+    # Check nothing missing from parameters
+    _check_input_parameters(parameters)
+
+    # Source
     source = I19_2_SOURCE
 
     # Define Tristan 10M params
@@ -69,7 +80,7 @@ def tristan_writer(
 
     # Define Sample if needed
     sample = None
-    if is_stills(oscillation[scan_axis]):
+    if oscillation[scan_axis][0] == oscillation[scan_axis][1]:
         logger.info(f"Scan on axis {scan_axis} is actually a collection of stills")
         logger.debug(f"Will set sample depends_on to {scan_axis}")
         sample = Sample(depends_on=scan_axis)
@@ -95,7 +106,7 @@ def tristan_writer(
 
     # Master file name
     if not master_file:
-        master_file = _get_master_file_name(parameters.metafile)
+        master_file = get_nexus_filename(parameters.metafile)
 
     if isinstance(master_file, str):
         master_file = Path(master_file)

@@ -5,6 +5,7 @@ Logging configuration.
 import functools
 import logging
 import logging.config
+from pathlib import Path
 
 import nexgen
 
@@ -75,6 +76,14 @@ def config(
         _file_handlers.append(FH)
         return FH
     return None
+
+
+def setup_logging(wdir: Path, filename: str | None = None):
+    logfilename = filename if filename else "nexus_writer.log"
+    # Define a file handler
+    logfile = wdir / logfilename  # "I19_2_nxs_writer.log"
+    # Configure logging
+    config(logfile.as_posix())
 
 
 def close_logfiles(keep: int = 0):

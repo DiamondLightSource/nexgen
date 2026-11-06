@@ -27,7 +27,8 @@ sys.path.insert(0, os.path.abspath(".."))
 
 # Explicitely import modules that have a pydantic model inheriting from another one.
 # Workaround to make autodoc_pydantic happy as it won't otherwise be able to import it.
-from nexgen.beamlines import I19_2_gda_nxs, I19_2_nxs, SSX_Eiger_nxs  # noqa
+from nexgen.beamlines import SSX_Eiger_nxs  # noqa
+from nexgen.beamlines import i19_2  # noqa
 
 # -- General configuration ---------------------------------------------
 

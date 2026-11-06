@@ -5,20 +5,20 @@ Available detectors: Tristan 10M, Eiger 2X 4M.
 
 import argparse
 import logging
-from datetime import datetime
 from pathlib import Path
 
-from nexgen.utils import get_nexus_filename
-
-from .. import log
-from ..beamlines.I19_2_gda_nxs import write_nxs
-from ..beamlines.I19_2_nxs import (
-    DetAxisPosition,
-    GonioAxisPosition,
-    nexus_writer,
+from nexgen.beamlines.i19_2 import (
+    basic_nxmx_writer,
+    gda_nexus_writer,
     serial_nexus_writer,
 )
-from . import version_parser
+from nexgen.beamlines.i19_2.parameters import (
+    DetAxisPosition,
+    GonioAxisPosition,
+    ParamsFromGDA,
+)
+from nexgen.command_line.parse_utils import vds_parser, version_parser
+from nexgen.utils import get_nexus_filename
 
 logger = logging.getLogger("nexgen.I19-2_NeXus_cli")
 
@@ -34,36 +34,29 @@ def gda_writer(args):
     """
     logger.info("Create a NeXus file for I19-2 interfacing with GDA.")
 
-    write_nxs(
-        meta_file=args.meta_file,
-        xml_file=args.xml_file,
-        detector_name=args.detector_name,  # e.g. "tristan", "eiger",
-        exposure_time=float(args.exp_time),
-        wavelength=float(args.wavelength),
-        beam_center=[
-            float(args.beam_center_x),
-            float(args.beam_center_y),
-        ],
-        start_time=(
-            datetime.strptime(args.start, "%Y-%m-%dT%H:%M:%SZ") if args.start else None
+    params = ParamsFromGDA(
+        metafile=args.meta_file,
+        xmlfile=args.xml_file,
+        detector_name=args.detector_name,
+        exposure_time=args.exp_time,
+        wavelength=args.wavelength,
+        beam_center=(args.beam_center_x, args.beam_center_y),
+        timestamps=(
+            args.start if args.start else None,
+            args.stop if args.stop else None,
         ),
-        stop_time=(
-            datetime.strptime(args.stop, "%Y-%m-%dT%H:%M:%SZ") if args.stop else None
-        ),
-        geometry_json=args.geom if args.geom else None,
-        detector_json=args.det if args.det else None,
+        detector_params={"stream_format": args.eiger_format},
     )
+
+    gda_nexus_writer(params)
 
 
 def parse_input_arguments(args):
     """Perform a series of checks on the nexgen CLI parsed arguments."""
     # Check that an actual meta file has been passed and not a data file
     if "meta" not in args.meta_file:
-        logger.error(
-            f"Wrong input file passed: {args.meta_file}. Please pass the _meta.h5 file for this dataset."
-        )
         raise OSError(
-            "The input file passed is not a _meta.h5 file. Please pass the correct file."
+            f"Wrong input file passed: {args.meta_file}. Please pass the _meta.h5 file for this dataset."
         )
 
     if args.axes and not args.ax_start:
@@ -77,10 +70,7 @@ def parse_input_arguments(args):
 
     if args.detector_name == "eiger" and not args.use_meta:
         if not args.axes or not args.det_axes:
-            logger.error(
-                "If not using the metadata from the meta_file please pass all axes values."
-            )
-            raise OSError("Missing axes values.")
+            raise OSError("Missing axes values when not using meta file.")
 
 
 def nexgen_writer(args):
@@ -108,44 +98,39 @@ def nexgen_writer(args):
     params = {
         "exposure_time": args.exp_time,
         "beam_center": args.beam_center if args.beam_center else (0, 0),
-        "wavelength": args.wavelength if args.wavelength else None,
-        "transmission": args.transmission if args.transmission else None,
+        "wavelength": args.wavelength,
+        "transmission": args.transmission,
         "metafile": args.meta_file,
         "detector_name": args.detector_name,
         "tot_num_images": args.num_imgs if args.num_imgs else None,
-        "scan_axis": args.scan_axis if args.scan_axis else "phi",
+        "scan_axis": args.scan_axis,
         "axes_pos": axes_list if len(axes_list) > 0 else None,
         "det_pos": det_list if len(det_list) > 0 else None,
+        "timestamps": (
+            args.start if args.start else None,
+            args.stop if args.stop else None,
+        ),
     }
 
-    master_file = get_nexus_filename(args.meta_file)
+    det_params = {
+        "bit_depth": args.bit_depth,
+        "data_entry_key": args.data_entry_key,
+        "stream_format": args.eiger_format,
+        "vds_offset": args.vds_offset,
+        "vds_mapping": args.vds_mapping,
+    }
 
-    if args.outdir:
-        _wdir = Path(args.outdir).expanduser().resolve()
-        master_file = _wdir / master_file.name
+    match expt_type:
+        case "serial":
+            master_file = get_nexus_filename(args.meta_file)
 
-    _start = datetime.strptime(args.start, "%Y-%m-%dT%H:%M:%SZ") if args.start else None
-    _stop = datetime.strptime(args.stop, "%Y-%m-%dT%H:%M:%SZ") if args.stop else None
+            if args.outdir:
+                _wdir = Path(args.outdir).expanduser().resolve()
+                master_file = _wdir / master_file.name
 
-    if expt_type == "serial":
-        serial_nexus_writer(
-            params,
-            master_file,
-            (_start, _stop),
-            args.use_meta,
-            args.vds_offset,
-            args.n_frames,
-            bit_depth=args.bit_depth,
-        )
-    else:
-        nexus_writer(
-            params,
-            master_file,
-            (_start, _stop),
-            args.use_meta,
-            data_entry_key=args.data_key,
-            bit_depth=args.bit_depth,
-        )
+            serial_nexus_writer(params, master_file, det_params)
+        case "standard":
+            basic_nxmx_writer(params, det_params)
 
 
 # Define a couple of useful parsers for axes positions
@@ -207,27 +192,20 @@ parser_gda.add_argument(
     choices=["eiger", "tristan"],
     help="Detector currently in use on beamline.",
 )
-parser_gda.add_argument("exp_time", type=str, help="Exposure time, in s.")
-parser_gda.add_argument("wavelength", type=str, help="Incident beam wavelength.")
+parser_gda.add_argument("exp_time", type=float, help="Exposure time, in s.")
+parser_gda.add_argument("wavelength", type=float, help="Incident beam wavelength.")
 parser_gda.add_argument(
-    "beam_center_x", type=str, help="Beam center x position, in pixels."
+    "beam_center_x", type=float, help="Beam center x position, in pixels."
 )
 parser_gda.add_argument(
-    "beam_center_y", type=str, help="Beam center y position, in pixels."
+    "beam_center_y", type=float, help="Beam center y position, in pixels."
 )
 parser_gda.add_argument(
-    "--geom",
-    "--geometry-json",
+    "--eiger-format",
     type=str,
-    default=None,
-    help="Path to GDA generated geometry json file.",
-)
-parser_gda.add_argument(
-    "--det",
-    "--detector-json",
-    type=str,
-    default=None,
-    help="Path to GDA generated detector json file.",
+    choices=["legacy", "cbor"],
+    default="legacy",
+    help="Eiger stream format. Defaults to legacy.",
 )
 parser_gda.set_defaults(func=gda_writer)
 
@@ -235,7 +213,7 @@ parser_nex = subparsers.add_parser(
     "2",
     aliases=["gen"],
     description=("Trigger the NeXus file writer for I19-2 data collection."),
-    parents=[gonioAx_parser, detAx_parser, timestamps_parser],
+    parents=[gonioAx_parser, detAx_parser, timestamps_parser, vds_parser],
 )
 parser_nex.add_argument("meta_file", type=str, help="Path to _meta.h5 file.")
 parser_nex.add_argument(
@@ -256,15 +234,15 @@ parser_nex.add_argument(
     "-tr",
     "--transmission",
     type=float,
-    default=None,
-    help="Attenuator transmission.",
+    default=100,
+    help="Attenuator transmission. Defaults to 100% if not passed.",
 )
 parser_nex.add_argument(
     "-wl",
     "--wavelength",
     type=float,
-    default=None,
-    help="Incident beam wavelength, in A.",
+    default=0.649,
+    help="Incident beam wavelength, in A. Defaults to 0.649 if not passed.",
 )
 parser_nex.add_argument(
     "-bc",
@@ -288,13 +266,6 @@ parser_nex.add_argument(
     "--serial", action="store_true", help="Option to pass for a serial dataset."
 )
 parser_nex.add_argument(
-    "--vds-offset",
-    type=int,
-    default=0,
-    help="Start index for the vds writer. Mostly used for serial collections to separate wells \
-        into different nexus files. If not passed defaults to 0",
-)
-parser_nex.add_argument(
     "--frames",
     type=int,
     help="Number of frames in the nexus and vds file. Only passed if different from total number \
@@ -307,16 +278,23 @@ parser_nex.add_argument(
     help="Data entry key of dataset in raw .h5 file. Defaults to data.",
 )
 parser_nex.add_argument(
-    "-bits--bit-depth",
+    "-bits",
+    "--bit-depth",
     type=int,
     choices=[8, 16, 32],
     default=32,
     help="Default bit depth for eiger collections, used to define dtype of vds data. Defaults to 32.",
 )
+parser_nex.add_argument(
+    "--eiger-format",
+    type=str,
+    choices=["legacy", "cbor"],
+    default="legacy",
+    help="Eiger stream format. Defaults to legacy.",
+)
 parser_nex.set_defaults(func=nexgen_writer)
 
 
 def main():
-    log.config()
     args = parser.parse_args()
     args.func(args)
