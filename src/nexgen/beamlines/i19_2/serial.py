@@ -6,6 +6,7 @@ import h5py
 from numpy.typing import DTypeLike
 
 from nexgen.beamlines.i19_2.main_writer import main_writer_i19
+from nexgen.beamlines.i19_2.parameters import CollectionParams, ExtraDetectorParams
 from nexgen.log import closes_logfile, setup_logging
 from nexgen.nxs_utils.detector import EigerExtgMode, EigerStreamFormat
 from nexgen.tools.vds_tools.strided_mapping import write_strided_vds
@@ -53,18 +54,23 @@ def serial_nexus_writer(
             The length of this list also determines how many files should be written and
             thus the stride. Defaults to None
     """
-    setup_logging(Path(params["metafile"]).parent)
-    master_file = coerce_to_path(master_file)
+    parameters = CollectionParams(**params)
     if not detector_params:
         logger.warning(
             "No specific detector params have been passed. Will default to legacy eiger settings."
         )
+    detector_parameters = (
+        ExtraDetectorParams(**detector_params)
+        if detector_params
+        else ExtraDetectorParams()
+    )
+    setup_logging(Path(params["metafile"]).parent)
+    master_file = coerce_to_path(master_file)
+    if detector_parameters.extg_mode == EigerExtgMode.SINGLE:  # default
         logger.info(f"Start nexus file writer for {master_file.as_posix()}")
-        main_writer_i19(params, detector_params, master_file, n_frames, notes)
-    elif (
-        "extg_mode" in detector_params.keys()
-        and detector_params["extg_mode"] == EigerExtgMode.DOUBLE
-    ):
+        main_writer_i19(parameters, detector_parameters, master_file, n_frames, notes)
+    else:
+        # Double gating
         if not vds_names:
             logger.warning(
                 "No names list for the strided VDS has been passed, will assume two and default to [GS, ES]."
@@ -89,11 +95,12 @@ def serial_nexus_writer(
             )
             logger.info(f"Start nexus file writer for {new_nxs_file.as_posix()}")
             main_writer_i19(
-                params, updated_det_params, new_nxs_file, new_n_frames, notes
+                parameters,
+                ExtraDetectorParams(**updated_det_params),
+                new_nxs_file,
+                new_n_frames,
+                notes,
             )
-    else:
-        logger.info(f"Start nexus file writer for {master_file.as_posix()}")
-        main_writer_i19(params, detector_params, master_file, n_frames, notes)
 
 
 # Until issues in nxs_copy are fixed, pydantic errors abound

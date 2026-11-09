@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, call, patch
 
 import numpy as np
 
-from nexgen.beamlines.i19_2.parameters import CollectionParams
+from nexgen.beamlines.i19_2.parameters import CollectionParams, ExtraDetectorParams
 from nexgen.beamlines.i19_2.serial import (
     serial_nexus_writer,
     serial_nexus_writer_with_strided_vds,
@@ -24,7 +24,11 @@ def test_serial_nexus_writer(
         dummy_tristan_collection_params.metafile.parent
     )
     mock_writer.assert_called_once_with(
-        params, None, Path("/path/to/somefile.nxs"), None, None
+        dummy_tristan_collection_params,
+        ExtraDetectorParams(),
+        Path("/path/to/somefile.nxs"),
+        None,
+        None,
     )
 
 
@@ -52,25 +56,25 @@ def test_serial_nexus_writer_in_extg_mode(
     mock_writer.assert_has_calls(
         [
             call(
-                params,
-                {
-                    "extg_mode": "double",
-                    "stream_format": "cbor",
-                    "vds_mapping": "strided",
-                    "vds_offset": 0,
-                },
+                dummy_eiger_collection_params,
+                ExtraDetectorParams(
+                    extg_mode="double",
+                    stream_format="cbor",
+                    vds_mapping="strided",
+                    vds_offset=0,
+                ),
                 Path("/path/to/somefile_A.nxs"),
                 50,
                 None,
             ),
             call(
-                params,
-                {
-                    "extg_mode": "double",
-                    "stream_format": "cbor",
-                    "vds_mapping": "strided",
-                    "vds_offset": 1,
-                },
+                dummy_eiger_collection_params,
+                ExtraDetectorParams(
+                    extg_mode="double",
+                    stream_format="cbor",
+                    vds_mapping="strided",
+                    vds_offset=1,
+                ),
                 Path("/path/to/somefile_B.nxs"),
                 50,
                 None,
