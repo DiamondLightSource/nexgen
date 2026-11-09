@@ -38,7 +38,6 @@ def test_serial_nexus_writer_in_extg_mode(
     dummy_eiger_collection_params.tot_num_images = 100
     params = dummy_eiger_collection_params.model_dump()
     det_params = {
-        "stream_format": "cbor",
         "extg_mode": "double",
         "vds_mapping": "strided",
     }
@@ -55,8 +54,8 @@ def test_serial_nexus_writer_in_extg_mode(
             call(
                 params,
                 {
-                    "stream_format": "cbor",
                     "extg_mode": "double",
+                    "stream_format": "cbor",
                     "vds_mapping": "strided",
                     "vds_offset": 0,
                 },
@@ -67,8 +66,8 @@ def test_serial_nexus_writer_in_extg_mode(
             call(
                 params,
                 {
-                    "stream_format": "cbor",
                     "extg_mode": "double",
+                    "stream_format": "cbor",
                     "vds_mapping": "strided",
                     "vds_offset": 1,
                 },
@@ -77,6 +76,7 @@ def test_serial_nexus_writer_in_extg_mode(
                 None,
             ),
         ],
+        any_order=True,
     )
 
 

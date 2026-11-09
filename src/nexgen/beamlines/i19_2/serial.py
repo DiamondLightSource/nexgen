@@ -1,6 +1,5 @@
 import logging
 from pathlib import Path
-from time import sleep
 from typing import Any, Sequence
 
 import h5py
@@ -8,7 +7,7 @@ from numpy.typing import DTypeLike
 
 from nexgen.beamlines.i19_2.main_writer import main_writer_i19
 from nexgen.log import closes_logfile, setup_logging
-from nexgen.nxs_utils.detector import EigerStreamFormat
+from nexgen.nxs_utils.detector import EigerExtgMode, EigerStreamFormat
 from nexgen.tools.vds_tools.strided_mapping import write_strided_vds
 from nexgen.tools.vds_tools.utils import VdsMapping
 from nexgen.utils import coerce_to_path
@@ -56,13 +55,11 @@ def serial_nexus_writer(
         logger.warning(
             "No specific detector params have been passed. Will default to legacy eiger settings."
         )
-
-    if not detector_params:
         logger.info(f"Start nexus file writer for {master_file.as_posix()}")
         main_writer_i19(params, detector_params, master_file, n_frames, notes)
     elif (
         "extg_mode" in detector_params.keys()
-        and detector_params["extg_mode"] == "double"
+        and detector_params["extg_mode"] == EigerExtgMode.DOUBLE
     ):
         if not vds_names:
             logger.warning(
@@ -75,19 +72,21 @@ def serial_nexus_writer(
             else params["tot_num_images"] // len(vds_names)
         )
         for n, name in enumerate(vds_names):
-            start_index = n
-            # These two should already be in but just in case
-            detector_params["vds_mapping"] = VdsMapping.STRIDED
-            detector_params["stream_format"] = EigerStreamFormat.CBOR
+            # Set all relevant parameters just in case they were omitted in the call
+            extg_params = {
+                "extg_mode": EigerExtgMode.DOUBLE,
+                "stream_format": EigerStreamFormat.CBOR,
+                "vds_mapping": VdsMapping.STRIDED,
+                "vds_offset": n,
+            }
+            updated_det_params = detector_params | extg_params
             new_nxs_file = (
                 master_file.parent / f"{master_file.stem}_{name}{master_file.suffix}"
             )
             logger.info(f"Start nexus file writer for {new_nxs_file.as_posix()}")
-            detector_params["vds_offset"] = start_index
-            main_writer_i19(params, detector_params, new_nxs_file, new_n_frames, notes)
-            logger.info(detector_params["vds_offset"])
-            logger.info(detector_params)
-            sleep(1)
+            main_writer_i19(
+                params, updated_det_params, new_nxs_file, new_n_frames, notes
+            )
     else:
         logger.info(f"Start nexus file writer for {master_file.as_posix()}")
         main_writer_i19(params, detector_params, master_file, n_frames, notes)
