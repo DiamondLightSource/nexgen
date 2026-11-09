@@ -32,6 +32,10 @@ def serial_nexus_writer(
     """Entry point function to gather all parameters from the beamline and kick off the nexus writer for a
     serial experiment on I19-2.
 
+    When running in "double gating" mode (extg mode = "double") on the Eiger detector, detector_params should
+    include at a minimum {"extg_mode": "double"}. This will signal the writer to create two files with the
+    correct vds mapping.
+
     Args:
         params (dict[str, Any]): Dictionary representation of CollectionParams, the main collection parameters
             needed by any experiment and any detector.
