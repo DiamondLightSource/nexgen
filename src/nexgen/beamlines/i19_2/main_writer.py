@@ -16,8 +16,8 @@ logger = logging.getLogger("nexgen.beamlines.i19_2.main_writer")
 
 
 def main_writer_i19(
-    params: dict[str, Any],
-    extra_detector_params: dict[str, Any] | None = None,
+    collection_parameters: CollectionParams,
+    extra_detector_params: ExtraDetectorParams | None = None,
     master_file: Path | None = None,
     n_frames: int | None = None,
     notes: dict[str, Any] | None = None,
@@ -27,9 +27,9 @@ def main_writer_i19(
     optional fields.
 
     Args:
-        params (dict[str, Any]): Dictionary representation of CollectionParams, the main collection parameters
+        params (CollectionParams): Dictionary representation of CollectionParams, the main collection parameters
             needed by any experiment and any detector.
-        extra_detector_params (dict[str, Any]): Dictionary representation of ExtraDetectorParams, a set of
+        extra_detector_params (ExtraDetectorParams | None, optional): Dictionary representation of ExtraDetectorParams, a set of
             parameters needed to use the correct writer/vds for the Eiger detector. Not needed for Tristan.
             Defaults to None, if not passed for Eiger, the default (legacy) values will be used.
         master_file (Path): Full path to the nexus file to be written. For a standard collection it could
@@ -41,7 +41,6 @@ def main_writer_i19(
             passed as a dictionary of (key, value) pairs where key represents the dataset name and
             value its data. Defaults to None.
     """
-    collection_parameters = CollectionParams(**params)
     logger.info("NeXus file writer for beamline I19-2 at DLS.")
     logger.info(
         f"Detector in use for this experiment: {collection_parameters.detector_name.value}."
@@ -57,24 +56,19 @@ def main_writer_i19(
 
     match collection_parameters.detector_name:
         case DetectorName.EIGER:
-            det_params = (
-                ExtraDetectorParams(**extra_detector_params)
-                if extra_detector_params
-                else ExtraDetectorParams()
-            )
             eiger_settings = EigerSettings(
                 master_file=master_file,
-                use_meta=det_params.use_meta,
-                bit_depth=det_params.bit_depth,
-                data_entry_key=det_params.data_entry_key,
-                stream_format=det_params.stream_format,
+                use_meta=extra_detector_params.use_meta,
+                bit_depth=extra_detector_params.bit_depth,
+                data_entry_key=extra_detector_params.data_entry_key,
+                stream_format=extra_detector_params.stream_format,
             )
             logger.info("Kick off eiger writer")
             eiger_writer(
                 collection_parameters,
                 eiger_settings,
-                det_params.vds_offset,
-                det_params.vds_mapping,
+                extra_detector_params.vds_offset,
+                extra_detector_params.vds_mapping,
                 n_frames,
                 notes,
             )
@@ -93,5 +87,11 @@ def basic_nxmx_writer(
     detector_params: dict[str, Any] | None = None,
 ):
     """Entry point with logging to create a basic nxmx format file for i19-2."""
-    setup_logging(Path(params["metafile"]).parent)
-    main_writer_i19(params, detector_params)
+    collection_parameters = CollectionParams(**params)
+    setup_logging(collection_parameters.metafile.parent)
+    detector_parameters = (
+        ExtraDetectorParams(**detector_params)
+        if detector_params
+        else ExtraDetectorParams()
+    )
+    main_writer_i19(collection_parameters, detector_parameters)

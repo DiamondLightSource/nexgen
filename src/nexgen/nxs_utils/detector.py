@@ -22,6 +22,11 @@ class EigerStreamFormat(StrEnum):
     CBOR = "cbor"
 
 
+class EigerExtgMode(StrEnum):
+    SINGLE = "single"
+    DOUBLE = "double"
+
+
 EIGER_CONST = {
     "flatfield": "flatfield",
     "flatfield_applied": "_dectris/flatfield_correction_applied",

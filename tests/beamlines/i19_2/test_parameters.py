@@ -69,6 +69,7 @@ def test_extra_detector_parameters():
     # Not changed
     assert params.bit_depth == 32
     assert params.data_entry_key == "data"
+    assert params.extg_mode == "single"
     # Updated
     assert params.stream_format == "cbor"
     assert params.vds_offset == 1

@@ -1,9 +1,9 @@
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, call, patch
 
 import numpy as np
 
-from nexgen.beamlines.i19_2.parameters import CollectionParams
+from nexgen.beamlines.i19_2.parameters import CollectionParams, ExtraDetectorParams
 from nexgen.beamlines.i19_2.serial import (
     serial_nexus_writer,
     serial_nexus_writer_with_strided_vds,
@@ -24,7 +24,63 @@ def test_serial_nexus_writer(
         dummy_tristan_collection_params.metafile.parent
     )
     mock_writer.assert_called_once_with(
-        params, None, Path("/path/to/somefile.nxs"), None, None
+        dummy_tristan_collection_params,
+        ExtraDetectorParams(),
+        Path("/path/to/somefile.nxs"),
+        None,
+        None,
+    )
+
+
+@patch("nexgen.beamlines.i19_2.serial.setup_logging")
+@patch("nexgen.beamlines.i19_2.serial.main_writer_i19")
+def test_serial_nexus_writer_in_extg_mode(
+    mock_writer: MagicMock,
+    mock_setup_log: MagicMock,
+    dummy_eiger_collection_params: CollectionParams,
+):
+    dummy_eiger_collection_params.tot_num_images = 100
+    params = dummy_eiger_collection_params.model_dump()
+    det_params = {
+        "extg_mode": "double",
+        "vds_mapping": "strided",
+    }
+    serial_nexus_writer(
+        params, "/path/to/somefile.nxs", det_params, vds_names=["A", "B"]
+    )
+
+    mock_setup_log.assert_called_once_with(
+        dummy_eiger_collection_params.metafile.parent
+    )
+    assert mock_writer.call_count == 2
+    mock_writer.assert_has_calls(
+        [
+            call(
+                dummy_eiger_collection_params,
+                ExtraDetectorParams(
+                    extg_mode="double",
+                    stream_format="cbor",
+                    vds_mapping="strided",
+                    vds_offset=0,
+                ),
+                Path("/path/to/somefile_A.nxs"),
+                50,
+                None,
+            ),
+            call(
+                dummy_eiger_collection_params,
+                ExtraDetectorParams(
+                    extg_mode="double",
+                    stream_format="cbor",
+                    vds_mapping="strided",
+                    vds_offset=1,
+                ),
+                Path("/path/to/somefile_B.nxs"),
+                50,
+                None,
+            ),
+        ],
+        any_order=True,
     )
 
 

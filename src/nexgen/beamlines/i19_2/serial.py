@@ -6,8 +6,11 @@ import h5py
 from numpy.typing import DTypeLike
 
 from nexgen.beamlines.i19_2.main_writer import main_writer_i19
+from nexgen.beamlines.i19_2.parameters import CollectionParams, ExtraDetectorParams
 from nexgen.log import closes_logfile, setup_logging
+from nexgen.nxs_utils.detector import EigerExtgMode, EigerStreamFormat
 from nexgen.tools.vds_tools.strided_mapping import write_strided_vds
+from nexgen.tools.vds_tools.utils import VdsMapping
 from nexgen.utils import coerce_to_path
 
 logger = logging.getLogger("nexgen.beamlines.i19_2.serial")
@@ -25,9 +28,14 @@ def serial_nexus_writer(
     detector_params: dict[str, Any] | None = None,
     n_frames: int | None = None,
     notes: dict[str, Any] | None = None,
+    vds_names: list[str] | None = None,
 ):
     """Entry point function to gather all parameters from the beamline and kick off the nexus writer for a
     serial experiment on I19-2.
+
+    When running in "double gating" mode (extg mode = "double") on the Eiger detector, detector_params should
+    include at a minimum {"extg_mode": "double"}. This will signal the writer to create two files with the
+    correct vds mapping.
 
     Args:
         params (dict[str, Any]): Dictionary representation of CollectionParams, the main collection parameters
@@ -42,16 +50,57 @@ def serial_nexus_writer(
         notes (dict[str, Any] | None, optional): Any additional information to be written as NXnote,
             passed as a dictionary of (key, value) pairs where key represents the dataset name and
             value its data. Defaults to None.
+        vds_names (list[str] | None): Names to append to the new nexus files with strided VDS.
+            The length of this list also determines how many files should be written and
+            thus the stride. Defaults to None
     """
-    setup_logging(Path(params["metafile"]).parent)
-    master_file = coerce_to_path(master_file)
+    parameters = CollectionParams(**params)
     if not detector_params:
         logger.warning(
             "No specific detector params have been passed. Will default to legacy eiger settings."
         )
-
-    logger.info(f"Start nexus file writer for {master_file.as_posix()}")
-    main_writer_i19(params, detector_params, master_file, n_frames, notes)
+    detector_parameters = (
+        ExtraDetectorParams(**detector_params)
+        if detector_params
+        else ExtraDetectorParams()
+    )
+    setup_logging(Path(params["metafile"]).parent)
+    master_file = coerce_to_path(master_file)
+    if detector_parameters.extg_mode == EigerExtgMode.SINGLE:  # default
+        logger.info(f"Start nexus file writer for {master_file.as_posix()}")
+        main_writer_i19(parameters, detector_parameters, master_file, n_frames, notes)
+    else:
+        # Double gating
+        if not vds_names:
+            logger.warning(
+                "No names list for the strided VDS has been passed, will assume two and default to [GS, ES]."
+            )
+            vds_names = ["GS", "ES"]
+        new_n_frames = (
+            n_frames // len(vds_names)
+            if n_frames
+            else params["tot_num_images"] // len(vds_names)
+        )
+        for n, name in enumerate(vds_names):
+            # Set all relevant parameters just in case they were omitted in the call
+            extg_params = {
+                "extg_mode": EigerExtgMode.DOUBLE,
+                "stream_format": EigerStreamFormat.CBOR,
+                "vds_mapping": VdsMapping.STRIDED,
+                "vds_offset": n,
+            }
+            updated_det_params = detector_params | extg_params
+            new_nxs_file = (
+                master_file.parent / f"{master_file.stem}_{name}{master_file.suffix}"
+            )
+            logger.info(f"Start nexus file writer for {new_nxs_file.as_posix()}")
+            main_writer_i19(
+                parameters,
+                ExtraDetectorParams(**updated_det_params),
+                new_nxs_file,
+                new_n_frames,
+                notes,
+            )
 
 
 # Until issues in nxs_copy are fixed, pydantic errors abound

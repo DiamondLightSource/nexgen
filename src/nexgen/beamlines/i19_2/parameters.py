@@ -10,7 +10,7 @@ from pydantic.dataclasses import dataclass
 
 from nexgen.beamlines.beamline_utils import GeneralParams
 from nexgen.beamlines.i19_2.constants import DEFAULT_DATA_KEY
-from nexgen.nxs_utils.detector import EigerStreamFormat
+from nexgen.nxs_utils.detector import EigerExtgMode, EigerStreamFormat
 from nexgen.tools.vds_tools import VdsMapping
 from nexgen.utils import get_iso_timestamp
 
@@ -96,6 +96,7 @@ class ExtraDetectorParams(BaseModel):
     bit_depth: int = 32
     data_entry_key: str = DEFAULT_DATA_KEY
     stream_format: EigerStreamFormat = EigerStreamFormat.LEGACY
+    extg_mode: EigerExtgMode = EigerExtgMode.SINGLE  # for double gating
     vds_offset: int = 0
     vds_mapping: VdsMapping = VdsMapping.BLOCKED
 
